@@ -220,7 +220,6 @@ AC_DEFINE_PATH(GNOMELOCALEDIR, "${datadir}/locale", [locale directory])
 AC_OUTPUT([
 Makefile
 src/Makefile
-scripts/Makefile
 data/Makefile
 po/Makefile.in
 tools-vala/Makefile
