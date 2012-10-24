@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PKG_NAME="indicator-appmenu"
+PKG_NAME="hud"
 
 which gnome-autogen.sh || {
 	echo "You need gnome-common from GNOME SVN"

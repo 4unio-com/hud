@@ -1,10 +1,10 @@
-AC_INIT([indicator-appmenu],
+AC_INIT([hud],
         [12.10.3],
-        [http://bugs.launchpad.net/indicator-appmenu],
-        [indicator-appmenu],
-        [http://launchpad.net/indicator-appmenu])
+        [http://bugs.launchpad.net/hud],
+        [hud],
+        [http://launchpad.net/hud])
 
-AC_COPYRIGHT([Copyright 2010 Canonical])
+AC_COPYRIGHT([Copyright 2010-2012 Canonical])
 
 AC_PREREQ(2.53)
 
@@ -202,7 +202,7 @@ AC_DEFUN([AC_DEFINE_PATH], [
 # Internationalization
 ###########################
 
-GETTEXT_PACKAGE=indicator-appmenu
+GETTEXT_PACKAGE=hud
 
 IT_PROG_INTLTOOL([0.50.2])
 
