@@ -224,7 +224,6 @@ data/Makefile
 po/Makefile.in
 tools-vala/Makefile
 tests/Makefile
-tests/manual/Makefile
 docs/Makefile
 docs/man/Makefile
 docs/devel/Makefile
