@@ -1,6 +1,0 @@
-#!/bin/sh
-
-BAMFWINDOW=`gdbus call --session --dest org.ayatana.bamf --object-path /org/ayatana/bamf/matcher --method org.ayatana.bamf.matcher.ActiveWindow | cut -d "'" -f 2`
-WINDOWID=`gdbus call --session --dest org.ayatana.bamf --object-path $BAMFWINDOW --method org.ayatana.bamf.window.GetXid | cut -d "," -f 1 | cut -d " " -f 2`
-
-gdbus call --session --dest com.canonical.AppMenu.Registrar --object-path /com/canonical/AppMenu/Registrar --method com.canonical.AppMenu.Registrar.GetMenuForWindow $WINDOWID

@@ -53,9 +53,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @BUILD_TESTS_TRUE@am__append_1 = \
-@BUILD_TESTS_TRUE@	scripts \
 @BUILD_TESTS_TRUE@	tests \
-@BUILD_TESTS_TRUE@	tools \
 @BUILD_TESTS_TRUE@	tools-vala
 
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
@@ -110,7 +108,7 @@ AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
 	distdir dist dist-all distcheck
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = data po src docs scripts tests tools tools-vala
+DIST_SUBDIRS = data po src docs tests tools-vala
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -206,8 +204,6 @@ INDICATORDIR = @INDICATORDIR@
 INDICATORICONSDIR = @INDICATORICONSDIR@
 INDICATORTEST_CFLAGS = @INDICATORTEST_CFLAGS@
 INDICATORTEST_LIBS = @INDICATORTEST_LIBS@
-INDICATOR_CFLAGS = @INDICATOR_CFLAGS@
-INDICATOR_LIBS = @INDICATOR_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
