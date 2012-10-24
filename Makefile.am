@@ -10,7 +10,6 @@ if BUILD_TESTS
 SUBDIRS += \
 	scripts \
 	tests \
-	tools \
 	tools-vala
 endif
 

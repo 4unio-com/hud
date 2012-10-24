@@ -222,7 +222,6 @@ Makefile
 src/Makefile
 scripts/Makefile
 data/Makefile
-tools/Makefile
 po/Makefile.in
 tools-vala/Makefile
 tests/Makefile
