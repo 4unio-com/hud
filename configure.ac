@@ -1,10 +1,10 @@
-AC_INIT([indicator-appmenu],
-        [12.10.3],
-        [http://bugs.launchpad.net/indicator-appmenu],
-        [indicator-appmenu],
-        [http://launchpad.net/indicator-appmenu])
+AC_INIT([hud],
+        [13.04.0],
+        [http://bugs.launchpad.net/hud],
+        [hud],
+        [http://launchpad.net/hud])
 
-AC_COPYRIGHT([Copyright 2010 Canonical])
+AC_COPYRIGHT([Copyright 2010-2012 Canonical])
 
 AC_PREREQ(2.53)
 
@@ -57,25 +57,6 @@ GLIB_GSETTINGS
 # Dependencies
 ###########################
 
-GTK_REQUIRED_VERSION=3.0
-GIO_REQUIRED_VERSION=2.26
-INDICATOR_REQUIRED_VERSION=0.3.90
-DBUSMENUGTK_REQUIRED_VERSION=0.5.90
-BAMF_REQUIRED_VERSION=0.2.53
-
-PKG_CHECK_MODULES(gtk, gtk+-3.0 >= $GTK_REQUIRED_VERSION)
-PKG_CHECK_MODULES(INDICATOR,  gtk+-3.0 >= $GTK_REQUIRED_VERSION
-                              gio-2.0 >= $GIO_REQUIRED_VERSION
-                              indicator3-0.4 >= $INDICATOR_REQUIRED_VERSION
-                              dbusmenu-gtk3-0.4 >= $DBUSMENUGTK_REQUIRED_VERSION
-                              libbamf3 >= $BAMF_REQUIRED_VERSION)
-AC_SUBST(INDICATOR_CFLAGS)
-AC_SUBST(INDICATOR_LIBS)
-
-###########################
-# Dependencies
-###########################
-
 DBUSMENU_GLIB_REQUIRED_VERSION=0.4.0
 BAMF_REQUIRED_VERSION=0.2.53
 SQLITE_REQUIRED_VERSION=0.0
@@ -84,6 +65,11 @@ PKG_CHECK_MODULES([HUD],[
 		dbusmenu-glib-0.4 >= $DBUSMENU_GLIB_REQUIRED_VERSION
 		libbamf3 
 		sqlite3 >= $SQLITE_REQUIRED_VERSION
+])
+
+GTK_REQUIRED_VERSION=3.0
+PKG_CHECK_MODULES(gtk,[
+		gtk+-3.0 >= $GTK_REQUIRED_VERSION
 ])
 
 ###########################
@@ -202,7 +188,7 @@ AC_DEFUN([AC_DEFINE_PATH], [
 # Internationalization
 ###########################
 
-GETTEXT_PACKAGE=indicator-appmenu
+GETTEXT_PACKAGE=hud
 
 IT_PROG_INTLTOOL([0.50.2])
 
@@ -220,13 +206,10 @@ AC_DEFINE_PATH(GNOMELOCALEDIR, "${datadir}/locale", [locale directory])
 AC_OUTPUT([
 Makefile
 src/Makefile
-scripts/Makefile
 data/Makefile
-tools/Makefile
 po/Makefile.in
 tools-vala/Makefile
 tests/Makefile
-tests/manual/Makefile
 docs/Makefile
 docs/man/Makefile
 docs/devel/Makefile

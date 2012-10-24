@@ -11,9 +11,6 @@ XVFB_RUN=". $(srcdir)/run-xvfb.sh"
 EXTRA_DIST += \
 	run-xvfb.sh
 
-SUBDIRS = \
-	manual
-
 ######################
 # Test Distance
 ######################
