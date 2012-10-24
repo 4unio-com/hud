@@ -29,7 +29,7 @@ Vcs-Browser: https://code.launchpad.net/~ubuntu-desktop/hud/ubuntu
 Package: hud
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Conflicts: indicator-appmenu < 13
+Conflicts: indicator-appmenu (< 13)
 Description: Backend for the Unity HUD
  .
  This package provides a service for Unity's HUD
@@ -40,7 +40,7 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
          hud (= ${binary:Version}),
          sqlite3
-Conflicts: indicator-appmenu-tools < 13
+Conflicts: indicator-appmenu-tools (< 13)
 Description: Tools for debuging HUD.
  .
  This package provides tools for working with HUD.
