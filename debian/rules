@@ -13,6 +13,3 @@ DEB_MAKE_CHECK_TARGET := check
 
 LDFLAGS += -Wl,-z,defs -Wl,--as-needed
 
-common-install-arch::
-	find debian/indicator-appmenu -name \*.la -delete
-	find debian/indicator-appmenu -name \*.a -delete
