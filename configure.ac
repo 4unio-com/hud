@@ -67,6 +67,11 @@ PKG_CHECK_MODULES([HUD],[
 		sqlite3 >= $SQLITE_REQUIRED_VERSION
 ])
 
+GTK_REQUIRED_VERSION=3.0
+PKG_CHECK_MODULES(gtk,[
+		gtk+-3.0 >= $GTK_REQUIRED_VERSION
+])
+
 ###########################
 # CLI Dependencies
 ###########################
