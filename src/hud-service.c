@@ -26,6 +26,7 @@
 #include <locale.h>
 #include <libintl.h>
 
+/* Pocket Sphinx */
 #include "pocketsphinx.h"
 
 #include "hudappindicatorsource.h"
@@ -271,6 +272,11 @@ name_lost_cb (GDBusConnection *connection,
   g_main_loop_quit (mainloop);
 }
 
+static arg_t sphinx_cmd_ln[] = {
+	POCKETSPHINX_OPTIONS,
+	{NULL, 0, NULL, NULL}
+};
+
 int
 main (int argc, char **argv)
 {
@@ -283,7 +289,12 @@ main (int argc, char **argv)
   bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
   textdomain (GETTEXT_PACKAGE);
 
-  cmd_ln_t * spx_cmd = cmd_ln_init(NULL, NULL, TRUE, NULL);
+  cmd_ln_t * spx_cmd = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
+                                   "-hmm", "/usr/share/pocketsphinx/model/hmm/wsj1",
+                                   "-mdef", "/usr/share/pocketsphinx/model/hmm/wsj1/mdef",
+                                   "-lm", "/usr/share/pocketsphinx/model/lm/wsj/wlist5o.3e-7.vp.tg.lm.DMP",
+                                   "-dict", "/usr/share/pocketsphinx/model/lm/wsj/wlist5o.dic",
+                                   NULL);
   ps_decoder_t * decoder = ps_init(spx_cmd);
 
   hud_settings_init ();
