@@ -26,6 +26,8 @@
 #include <locale.h>
 #include <libintl.h>
 
+#include "pocketsphinx.h"
+
 #include "hudappindicatorsource.h"
 #include "hudindicatorsource.h"
 #include "hudwebappsource.h"
@@ -281,6 +283,9 @@ main (int argc, char **argv)
   bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
   textdomain (GETTEXT_PACKAGE);
 
+  cmd_ln_t * spx_cmd = cmd_ln_init(NULL, NULL, TRUE, NULL);
+  ps_decoder_t * decoder = ps_init(spx_cmd);
+
   hud_settings_init ();
 
   source_list = hud_source_list_new ();
@@ -332,6 +337,8 @@ main (int argc, char **argv)
 
   g_object_unref (window_source);
   g_object_unref (source_list);
+
+  ps_free(decoder);
 
   return 0;
 }
