@@ -207,6 +207,7 @@ AC_OUTPUT([
 Makefile
 src/Makefile
 libhud/Makefile
+libhud/tests/Makefile
 data/Makefile
 po/Makefile.in
 tools-vala/Makefile

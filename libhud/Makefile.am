@@ -1,4 +1,6 @@
 
+SUBDIRS = tests
+
 lib_LTLIBRARIES = libhud.la
 
 ABI_VERSION = 1
