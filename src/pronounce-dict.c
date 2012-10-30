@@ -113,7 +113,7 @@ load_dict (PronounceDict * dict)
 
 		/* Break it on the tab so that we have the name and the phonetics
 		   broken apart */
-		gchar ** split = g_strsplit(line, "\t", 2);
+		gchar ** split = g_strsplit(line, "  ", 2);
 		if (split[0] == NULL) {
 			g_strfreev(split);
 			continue;
@@ -130,7 +130,7 @@ load_dict (PronounceDict * dict)
 
 		/* This will be NULL if it doesn't exist, which GList handles
 		   nicely for us -- cool, little trick, eh? */
-		GList * phono_list = g_hash_table_lookup(dict->priv->dict, word);
+		GList * phono_list = g_list_copy_deep((GList *)g_hash_table_lookup(dict->priv->dict, word), (GCopyFunc)g_strdup, NULL);
 
 		phono_list = g_list_append(phono_list, g_strdup(phonetics));
 		g_hash_table_insert(dict->priv->dict, g_strdup(word), phono_list);
@@ -156,6 +156,7 @@ pronounce_dict_lookup_word(PronounceDict * dict, gchar * word)
 
 	GList * retval = (GList *)g_hash_table_lookup(dict->priv->dict, word);
 	if (retval != NULL) {
+		g_debug("Found: %s", (gchar *)retval->data);
 		return g_strdup((gchar *)retval->data);
 	}
 
