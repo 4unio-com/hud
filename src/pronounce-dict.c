@@ -4,7 +4,7 @@
 
 #include "pronounce-dict.h"
 
-#define DICT_PATH "/"
+#define DICT_PATH "/home/ted/Development/cmusphinx/trunk/cmudict/cmudict.0.7a"
 
 struct _PronounceDictPrivate {
 	GHashTable * dict;
@@ -17,6 +17,7 @@ static void pronounce_dict_class_init (PronounceDictClass *klass);
 static void pronounce_dict_init       (PronounceDict *self);
 static void pronounce_dict_dispose    (GObject *object);
 static void pronounce_dict_finalize   (GObject *object);
+static void load_dict                 (PronounceDict * dict);
 
 G_DEFINE_TYPE (PronounceDict, pronounce_dict, G_TYPE_OBJECT);
 
@@ -52,6 +53,8 @@ pronounce_dict_init (PronounceDict *self)
 
 	self->priv->dict = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, str_list_free);
 
+	load_dict(self);
+
 	return;
 }
 
@@ -73,6 +76,15 @@ pronounce_dict_finalize (GObject *object)
 	g_hash_table_unref(dict->priv->dict);
 
 	G_OBJECT_CLASS (pronounce_dict_parent_class)->finalize (object);
+	return;
+}
+
+/* Load the dictionary from a file */
+static void
+load_dict (PronounceDict * dict)
+{
+
+
 	return;
 }
 
