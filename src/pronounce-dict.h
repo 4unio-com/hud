@@ -28,6 +28,7 @@ struct _PronounceDict {
 };
 
 GType pronounce_dict_get_type (void);
+gchar * pronounce_dict_lookup_word(PronounceDict * dict, gchar * word);
 
 G_END_DECLS
 

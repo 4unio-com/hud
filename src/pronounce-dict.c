@@ -75,3 +75,12 @@ pronounce_dict_finalize (GObject *object)
 	G_OBJECT_CLASS (pronounce_dict_parent_class)->finalize (object);
 	return;
 }
+
+/* Lookup a word */
+gchar *
+pronounce_dict_lookup_word(PronounceDict * dict, gchar * word)
+{
+
+
+	return NULL;
+}
