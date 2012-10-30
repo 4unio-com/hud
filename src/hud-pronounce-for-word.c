@@ -14,7 +14,7 @@ main (int argc, char * argv[])
 
 	gchar * pronounce = pronounce_dict_lookup_word(dict, argv[1]);
 
-	g_print("%s:\t%s", argv[1], pronounce);
+	g_print("%s:\t%s\n", argv[1], pronounce);
 	g_free(pronounce);
 
 	g_clear_object(&dict);
