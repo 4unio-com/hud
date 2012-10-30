@@ -96,8 +96,46 @@ load_dict (PronounceDict * dict)
 
 	gchar * line = NULL;
 	while ((line = g_data_input_stream_read_line(dstream, NULL, NULL, NULL)) != NULL) {
-		g_debug("%s", line);
+		/* Catch the NULL string and just kill it early */
+		if (line[0] == '\0') {
+			g_free(line);
+			continue;
+		}
 
+		gunichar charone = g_utf8_get_char(line);
+
+		/* There are punctuation things in the DB, which makes sense for
+		   other folks but not us */
+		if (!g_unichar_isalnum(charone)) {
+			g_free(line);
+			continue;
+		}
+
+		/* Break it on the tab so that we have the name and the phonetics
+		   broken apart */
+		gchar ** split = g_strsplit(line, "\t", 2);
+		if (split[0] == NULL) {
+			g_strfreev(split);
+			continue;
+		}
+
+		gchar * word = split[0];
+		gchar * phonetics = split[1];
+
+		/* Some words end with a counter, which is nice, but we don't care */
+		if (g_str_has_suffix(word, ")")) {
+			gchar * first_paren = g_strrstr(word, "(");
+			first_paren[0] = '\0';
+		}
+
+		/* This will be NULL if it doesn't exist, which GList handles
+		   nicely for us -- cool, little trick, eh? */
+		GList * phono_list = g_hash_table_lookup(dict->priv->dict, word);
+
+		phono_list = g_list_append(phono_list, g_strdup(phonetics));
+		g_hash_table_insert(dict->priv->dict, g_strdup(word), phono_list);
+
+		g_strfreev(split);
 		g_free(line);
 	}
 
