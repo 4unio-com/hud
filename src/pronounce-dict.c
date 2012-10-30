@@ -4,6 +4,8 @@
 
 #include "pronounce-dict.h"
 
+#include <gio/gio.h>
+
 #define DICT_PATH "/home/ted/Development/cmusphinx/trunk/cmudict/cmudict.0.7a"
 
 struct _PronounceDictPrivate {
@@ -83,7 +85,23 @@ pronounce_dict_finalize (GObject *object)
 static void
 load_dict (PronounceDict * dict)
 {
+	if (!g_file_test(DICT_PATH, G_FILE_TEST_EXISTS)) {
+		g_warning("Unable to find dictionary '%s'!", DICT_PATH);
+		return;
+	}
 
+	GFile * dict_file = g_file_new_for_path(DICT_PATH);
+	GFileInputStream * stream = g_file_read(dict_file, NULL, NULL);
+	GDataInputStream * dstream = g_data_input_stream_new(G_INPUT_STREAM(stream));
+
+	gchar * line = NULL;
+	while ((line = g_data_input_stream_read_line(dstream, NULL, NULL, NULL)) != NULL) {
+		g_debug("%s", line);
+
+		g_free(line);
+	}
+
+	g_free(line);
 
 	return;
 }
