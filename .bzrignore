@@ -173,3 +173,4 @@ po/indicator-appmenu.pot
 libappmenu_la-window-menu.lo
 libappmenu_la-window-menu-model.lo
 libappmenu_la-window-menu-dbusmenu.lo
+hud-pronounce-for-word

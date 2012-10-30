@@ -293,7 +293,6 @@ main (int argc, char **argv)
                                    "-hmm", "/usr/share/pocketsphinx/model/hmm/wsj1",
                                    "-mdef", "/usr/share/pocketsphinx/model/hmm/wsj1/mdef",
                                    "-lm", "/usr/share/pocketsphinx/model/lm/wsj/wlist5o.3e-7.vp.tg.lm.DMP",
-                                   "-dict", "/usr/share/pocketsphinx/model/lm/wsj/wlist5o.dic",
                                    NULL);
   ps_decoder_t * decoder = ps_init(spx_cmd);
 
