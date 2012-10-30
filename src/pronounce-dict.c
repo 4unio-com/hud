@@ -148,7 +148,41 @@ load_dict (PronounceDict * dict)
 gchar *
 pronounce_dict_lookup_word(PronounceDict * dict, gchar * word)
 {
+	g_return_val_if_fail(IS_PRONOUNCE_DICT(dict), NULL);
+	
+	if (word[0] == '\0') {
+		return NULL;
+	}
 
+	GList * retval = (GList *)g_hash_table_lookup(dict->priv->dict, word);
+	if (retval != NULL) {
+		return g_strdup((gchar *)retval->data);
+	}
 
-	return NULL;
+	glong fullstring = g_utf8_strlen(word, -1);
+	gchar * frontstring = g_utf8_substring(word, 0, fullstring - 1);
+	gchar * frontphono = pronounce_dict_lookup_word(dict, frontstring);
+
+	g_free(frontstring);
+
+	if (frontphono == NULL) { /* It is nowhere... which seems odd */
+		return NULL;
+	}
+
+	gchar * laststring = g_utf8_substring(word, fullstring - 1, fullstring);
+	gchar * lastphono = pronounce_dict_lookup_word(dict, laststring);
+
+	g_free(laststring);
+
+	if (lastphono == NULL) {
+		g_free(frontphono);
+		return NULL;
+	}
+
+	gchar * output = g_strdup_printf("%s %s", frontphono, lastphono);
+
+	g_free(frontphono);
+	g_free(lastphono);
+
+	return output;
 }
