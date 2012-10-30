@@ -144,46 +144,76 @@ load_dict (PronounceDict * dict)
 	return;
 }
 
-/* Lookup a word */
-gchar *
-pronounce_dict_lookup_word(PronounceDict * dict, gchar * word)
+/* Puts the results of a lookup into an array.  Assumes the word is already
+   upper case an a bunch of other fun things. */
+static void
+pronounce_dict_lookup_word_internal (PronounceDict * dict, gchar * word, GArray * results)
 {
-	g_return_val_if_fail(IS_PRONOUNCE_DICT(dict), NULL);
-	
 	if (word[0] == '\0') {
-		return NULL;
+		return;
 	}
 
 	GList * retval = (GList *)g_hash_table_lookup(dict->priv->dict, word);
 	if (retval != NULL) {
-		g_debug("Found: %s", (gchar *)retval->data);
-		return g_strdup((gchar *)retval->data);
+		while (retval != NULL) {
+			g_debug("Found: %s", (gchar *)retval->data);
+			gchar * appval = g_strdup((gchar *)retval->data);
+			g_array_append_val(results, appval);
+			retval = retval->next;
+		}
+		return;
 	}
 
 	glong fullstring = g_utf8_strlen(word, -1);
 	gchar * frontstring = g_utf8_substring(word, 0, fullstring - 1);
-	gchar * frontphono = pronounce_dict_lookup_word(dict, frontstring);
+	GArray * front_array = g_array_new(TRUE, FALSE, sizeof(gchar *));
+	pronounce_dict_lookup_word_internal(dict, frontstring, front_array);
 
 	g_free(frontstring);
 
-	if (frontphono == NULL) { /* It is nowhere... which seems odd */
-		return NULL;
+	if (front_array->len == 0) { /* It is nowhere... which seems odd */
+		g_array_free(front_array, TRUE);
+		return;
 	}
 
 	gchar * laststring = g_utf8_substring(word, fullstring - 1, fullstring);
-	gchar * lastphono = pronounce_dict_lookup_word(dict, laststring);
+	GArray * last_array = g_array_new(TRUE, FALSE, sizeof(gchar *));
+	pronounce_dict_lookup_word_internal(dict, laststring, last_array);
 
 	g_free(laststring);
 
-	if (lastphono == NULL) {
-		g_free(frontphono);
-		return NULL;
+	if (last_array->len == 0) {
+		g_array_free(front_array, TRUE);
+		g_array_free(last_array, TRUE);
+		return;
 	}
 
-	gchar * output = g_strdup_printf("%s %s", frontphono, lastphono);
+	int i, j;
+	for (i = 0; i < front_array->len; i++) {
+	for (j = 0; j < last_array->len; j++) {
+		gchar * output = g_strdup_printf("%s %s", g_array_index(front_array, gchar *, i), g_array_index(last_array, gchar *, j));
+		g_array_append_val(results, output);
+	} // j
+	} // i
 
-	g_free(frontphono);
-	g_free(lastphono);
+	g_array_free(front_array, TRUE);
+	g_array_free(last_array, TRUE);
 
-	return output;
+	return;
+}
+
+/* Lookup a word and return results */
+gchar **
+pronounce_dict_lookup_word(PronounceDict * dict, gchar * word)
+{
+	g_return_val_if_fail(IS_PRONOUNCE_DICT(dict), NULL);
+
+	GArray * results = g_array_new(TRUE, FALSE, sizeof(gchar *));
+	gchar * upper = g_utf8_strup(word, -1);
+
+	pronounce_dict_lookup_word_internal(dict, upper, results);
+
+	g_free(upper);
+
+	return (gchar **) g_array_free(results, FALSE);
 }
