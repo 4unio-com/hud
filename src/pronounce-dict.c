@@ -156,7 +156,6 @@ pronounce_dict_lookup_word_internal (PronounceDict * dict, gchar * word, GArray 
 	GList * retval = (GList *)g_hash_table_lookup(dict->priv->dict, word);
 	if (retval != NULL) {
 		while (retval != NULL) {
-			g_debug("Found: %s", (gchar *)retval->data);
 			gchar * appval = g_strdup((gchar *)retval->data);
 			g_array_append_val(results, appval);
 			retval = retval->next;
