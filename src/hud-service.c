@@ -41,6 +41,15 @@
 #include "shared-values.h"
 #include "hudquery.h"
 
+/* Function to try and get a query from voice */
+static gchar *
+do_voice (HudSource * source_kinda)
+{
+
+
+	return NULL;
+}
+
 /* The return value of 'StartQuery' and the signal parameters for
  * 'UpdatedQuery' are the same, so use a utility function for both.
  */
@@ -210,6 +219,19 @@ bus_method (GDBusConnection       *connection,
 
       /* always success -- they may have just been closing a timed out query */
       g_dbus_method_invocation_return_value (invocation, NULL);
+    }
+
+  else if (g_str_equal (method_name, "VoiceSearch"))
+    {
+      gchar * querystr = do_voice(source);
+
+      GVariant * str = NULL;
+      if (querystr == NULL) {
+        str = g_variant_new_string("");
+      } else {
+        str = g_variant_new_string(querystr);
+      }
+      g_dbus_method_invocation_return_value (invocation, g_variant_new_tuple(&str, 1));
     }
 }
 
