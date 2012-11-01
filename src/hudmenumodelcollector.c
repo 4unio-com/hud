@@ -755,3 +755,25 @@ hud_menu_model_collector_new_for_endpoint (const gchar *application_id,
 
   return collector;
 }
+
+/**
+ * hud_menu_model_collector_get_items:
+ * @collector: A #HudMenuModelCollector
+ *
+ * Get the list of items that are currently being watched
+ *
+ * Return value: (transfer full) (element-type HudItem): Items to look at
+ */
+GList *
+hud_menu_model_collector_get_items (HudMenuModelCollector * collector)
+{
+	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector), NULL);
+
+	GList * retval = NULL;
+	int i;
+	for (i = 0; i < collector->items->len; i++) {
+		retval = g_list_prepend(retval, g_object_ref(g_ptr_array_index(collector->items, i)));
+	}
+
+	return retval;
+}
