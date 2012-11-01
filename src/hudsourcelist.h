@@ -20,6 +20,7 @@
 #define __HUD_SOURCE_LIST_H__
 
 #include "hudsource.h"
+#include "hud-collector.h"
 
 #define HUD_TYPE_SOURCE_LIST                                (hud_source_list_get_type ())
 #define HUD_SOURCE_LIST(inst)                               (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
@@ -35,5 +36,7 @@ HudSourceList *         hud_source_list_new                             (void);
 
 void                    hud_source_list_add                             (HudSourceList *list,
                                                                          HudSource     *source);
+
+HudCollector *          hud_source_active_collector                     (HudSourceList *list);
 
 #endif /* __HUD_SOURCE_LIST_H__ */
