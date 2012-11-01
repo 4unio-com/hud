@@ -341,3 +341,19 @@ hud_item_get_token_list (HudItem *item)
 {
   return item->priv->token_list;
 }
+
+/**
+ * hud_item_insert_pronounciation:
+ * @item: A #HudItem
+ * @table: A #GHashTabel of (gchar *, gchar**)
+ *
+ * Get the pronounciations of all the tokens for this item.
+ */
+void
+hud_item_insert_pronounciation (HudItem * item, GHashTable * table)
+{
+	g_return_if_fail(HUD_IS_ITEM(item));
+
+	hud_string_list_insert_pronounciation(item->priv->tokens, table);
+	return;
+}
