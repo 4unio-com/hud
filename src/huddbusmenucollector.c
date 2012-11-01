@@ -677,3 +677,21 @@ hud_dbusmenu_collector_set_icon (HudDbusmenuCollector *collector,
   collector->icon = g_strdup (icon);
   hud_dbusmenu_collector_setup_root (collector, collector->root);
 }
+
+/**
+ * hud_dbusmenu_collector_get_items:
+ * @collector: a #HudDbusmenuCollector
+ *
+ * Gets the items that have been collected at any point in time.
+ *
+ * Return Value: (element-type HudItem) (transfer none) A list of #HudItem
+ * objects.  No referece to the list or the items, copy if you want to keep
+ * them.
+ */
+GList *
+hud_dbusmenu_collector_get_items (HudDbusmenuCollector * collector)
+{
+	g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(collector), NULL);
+
+	return g_hash_table_get_values(collector->items);
+}

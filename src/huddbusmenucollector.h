@@ -44,5 +44,6 @@ void                    hud_dbusmenu_collector_set_prefix               (HudDbus
                                                                          const gchar          *prefix);
 void                    hud_dbusmenu_collector_set_icon                 (HudDbusmenuCollector *collector,
                                                                          const gchar          *icon);
+GList *                 hud_dbusmenu_collector_get_items                (HudDbusmenuCollector * collector);
 
 #endif /* __HUD_DBUSMENU_COLLECTOR_H__ */
