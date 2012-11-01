@@ -216,3 +216,15 @@ pronounce_dict_lookup_word(PronounceDict * dict, gchar * word)
 
 	return (gchar **) g_array_free(results, FALSE);
 }
+
+PronounceDict *
+pronounce_dict_get (void)
+{
+	static PronounceDict * global = NULL;
+
+	if (global == NULL) {
+		global = g_object_new(PRONOUNCE_DICT_TYPE, NULL);
+	}
+
+	return global;
+}

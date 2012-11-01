@@ -67,6 +67,8 @@ libhud_service_a_SOURCES = \
 	hud.interface.c \
 	load-app-info.h \
 	load-app-info.c \
+	pronounce-dict.c \
+	pronounce-dict.h \
 	usage-tracker.h \
 	usage-tracker.c
 
