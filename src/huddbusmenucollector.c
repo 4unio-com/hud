@@ -27,6 +27,7 @@
 #include "hudappmenuregistrar.h"
 #include "hudresult.h"
 #include "hudsource.h"
+#include "hud-collector.h"
 
 /**
  * SECTION:huddbusmenucollector
@@ -206,7 +207,7 @@ hud_dbusmenu_item_new (HudStringList    *context,
 
 struct _HudDbusmenuCollector
 {
-  GObject parent_instance;
+  HudCollector parent_instance;
 
   DbusmenuClient *client;
   DbusmenuMenuitem *root;
@@ -221,10 +222,12 @@ struct _HudDbusmenuCollector
   gboolean reentrance_check;
 };
 
-typedef GObjectClass HudDbusmenuCollectorClass;
+typedef HudCollectorClass HudDbusmenuCollectorClass;
 
 static void hud_dbusmenu_collector_iface_init (HudSourceInterface *iface);
-G_DEFINE_TYPE_WITH_CODE (HudDbusmenuCollector, hud_dbusmenu_collector, G_TYPE_OBJECT,
+GList * get_items (HudCollector * collector);
+
+G_DEFINE_TYPE_WITH_CODE (HudDbusmenuCollector, hud_dbusmenu_collector, HUD_TYPE_COLLECTOR,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, hud_dbusmenu_collector_iface_init))
 
 static void
@@ -557,7 +560,11 @@ hud_dbusmenu_collector_iface_init (HudSourceInterface *iface)
 static void
 hud_dbusmenu_collector_class_init (HudDbusmenuCollectorClass *class)
 {
-  class->finalize = hud_dbusmenu_collector_finalize;
+  GObjectClass * gclass = G_OBJECT_CLASS(class);
+  gclass->finalize = hud_dbusmenu_collector_finalize;
+
+  HudCollectorClass * cclass = HUD_COLLECTOR_CLASS(class);
+  cclass->get_items = get_items;
 }
 
 /**
@@ -688,11 +695,12 @@ hud_dbusmenu_collector_set_icon (HudDbusmenuCollector *collector,
  * objects.  Free with g_list_free_full(g_object_unref)
  */
 GList *
-hud_dbusmenu_collector_get_items (HudDbusmenuCollector * collector)
+get_items (HudCollector * collector)
 {
 	g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(collector), NULL);
+	HudDbusmenuCollector * dcollector = HUD_DBUSMENU_COLLECTOR(collector);
 
-	GList * hashvals = g_hash_table_get_values(collector->items);
+	GList * hashvals = g_hash_table_get_values(dcollector->items);
 
 	return g_list_copy_deep(hashvals, (GCopyFunc) g_object_ref, NULL);
 }
