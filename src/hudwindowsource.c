@@ -370,3 +370,18 @@ hud_window_source_get_active_xid (HudWindowSource *source)
 {
   return bamf_window_get_xid (source->active_window);
 }
+
+/**
+ * hud_window_source_get_active_collector:
+ *
+ * Returns the active collector if there is one
+ *
+ * Returns: (transfer none): A #HudSource or NULL if none
+ */
+HudSource *
+hud_window_source_get_active_collector (HudWindowSource * source)
+{
+	g_return_val_if_fail(HUD_IS_WINDOW_SOURCE(source), NULL);
+
+	return source->active_collector;
+}

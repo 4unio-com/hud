@@ -20,6 +20,7 @@
 #define __HUD_WINDOW_SOURCE_H__
 
 #include <glib-object.h>
+#include <hudsource.h>
 
 #define HUD_TYPE_WINDOW_SOURCE                              (hud_window_source_get_type ())
 #define HUD_WINDOW_SOURCE(inst)                             (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
@@ -32,6 +33,7 @@ typedef struct _HudWindowSource                             HudWindowSource;
 GType                   hud_window_source_get_type                      (void);
 
 HudWindowSource *       hud_window_source_new                           (void);
-guint32 hud_window_source_get_active_xid (HudWindowSource *source);
+guint32                 hud_window_source_get_active_xid                (HudWindowSource *source);
+HudSource *             hud_window_source_get_active_collector          (HudWindowSource * source);
 
 #endif /* __HUD_WINDOW_SOURCE_H__ */
