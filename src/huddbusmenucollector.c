@@ -684,14 +684,15 @@ hud_dbusmenu_collector_set_icon (HudDbusmenuCollector *collector,
  *
  * Gets the items that have been collected at any point in time.
  *
- * Return Value: (element-type HudItem) (transfer none) A list of #HudItem
- * objects.  No referece to the list or the items, copy if you want to keep
- * them.
+ * Return Value: (element-type HudItem) (transfer full) A list of #HudItem
+ * objects.  Free with g_list_free_full(g_object_unref)
  */
 GList *
 hud_dbusmenu_collector_get_items (HudDbusmenuCollector * collector)
 {
 	g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(collector), NULL);
 
-	return g_hash_table_get_values(collector->items);
+	GList * hashvals = g_hash_table_get_values(collector->items);
+
+	return g_list_copy_deep(hashvals, (GCopyFunc) g_object_ref, NULL);
 }
