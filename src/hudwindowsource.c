@@ -68,7 +68,7 @@ struct _HudWindowSource
   BamfApplication *active_application;
   const gchar *active_desktop_file;
   gchar *active_icon;
-  HudSource *active_collector;
+  HudCollector *active_collector;
   gint use_count;
 };
 
@@ -249,7 +249,7 @@ hud_window_source_active_window_changed (BamfMatcher *matcher,
     {
       g_signal_handlers_disconnect_by_func (source->active_collector, hud_window_source_collector_changed, source);
       if (source->use_count)
-        hud_source_unuse (source->active_collector);
+        hud_source_unuse (HUD_SOURCE(source->active_collector));
     }
 
   g_clear_object (&source->active_collector);
@@ -263,7 +263,7 @@ hud_window_source_active_window_changed (BamfMatcher *matcher,
   source->active_collector = g_object_ref (hud_window_source_get_collector (source));
 
   if (source->use_count)
-    hud_source_use (source->active_collector);
+    hud_source_use (HUD_SOURCE(source->active_collector));
   g_signal_connect_object (source->active_collector, "changed",
                            G_CALLBACK (hud_window_source_collector_changed), source, 0);
 
@@ -277,7 +277,7 @@ hud_window_source_use (HudSource *hud_source)
 
   if (source->use_count == 0)
     if (source->active_collector)
-      hud_source_use (source->active_collector);
+      hud_source_use (HUD_SOURCE(source->active_collector));
 
   source->use_count++;
 }
@@ -293,7 +293,7 @@ hud_window_source_unuse (HudSource *hud_source)
 
   if (source->use_count == 0)
     if (source->active_collector)
-      hud_source_unuse (source->active_collector);
+      hud_source_unuse (HUD_SOURCE(source->active_collector));
 }
 
 static void
@@ -304,7 +304,7 @@ hud_window_source_search (HudSource    *hud_source,
   HudWindowSource *source = HUD_WINDOW_SOURCE (hud_source);
 
   if (source->active_collector)
-    hud_source_search (source->active_collector, results_array, search_string);
+    hud_source_search (HUD_SOURCE(source->active_collector), results_array, search_string);
 }
 
 static void
@@ -376,9 +376,9 @@ hud_window_source_get_active_xid (HudWindowSource *source)
  *
  * Returns the active collector if there is one
  *
- * Returns: (transfer none): A #HudSource or NULL if none
+ * Returns: (transfer none): A #HudCollector or NULL if none
  */
-HudSource *
+HudCollector *
 hud_window_source_get_active_collector (HudWindowSource * source)
 {
 	g_return_val_if_fail(HUD_IS_WINDOW_SOURCE(source), NULL);
