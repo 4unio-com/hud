@@ -21,6 +21,7 @@
 #include "hudsource.h"
 #include "hudresult.h"
 #include "huditem.h"
+#include "hud-collector.h"
 
 #include <libbamf/libbamf.h>
 #include <gio/gio.h>
@@ -58,7 +59,7 @@ struct _HudMenuModelContext
 
 struct _HudMenuModelCollector
 {
-  GObject parent_instance;
+  HudCollector parent_instance;
 
   /* Cancelled on finalize */
   GCancellable *cancellable;
@@ -293,10 +294,12 @@ hud_model_item_new (HudMenuModelCollector *collector,
   return HUD_ITEM (item);
 }
 
-typedef GObjectClass HudMenuModelCollectorClass;
+typedef HudCollectorClass HudMenuModelCollectorClass;
 
 static void hud_menu_model_collector_iface_init (HudSourceInterface *iface);
-G_DEFINE_TYPE_WITH_CODE (HudMenuModelCollector, hud_menu_model_collector, G_TYPE_OBJECT,
+static GList * get_items (HudCollector * collector);
+
+G_DEFINE_TYPE_WITH_CODE (HudMenuModelCollector, hud_menu_model_collector, HUD_TYPE_COLLECTOR,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, hud_menu_model_collector_iface_init))
 
 /* XXX: There is a potential for unbounded recursion here if a hostile
@@ -581,7 +584,14 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
 static void
 hud_menu_model_collector_class_init (HudMenuModelCollectorClass *class)
 {
-  class->finalize = hud_menu_model_collector_finalize;
+  GObjectClass *gobject_class = G_OBJECT_CLASS (class);
+
+  gobject_class->finalize = hud_menu_model_collector_finalize;
+
+  HudCollectorClass * cclass = HUD_COLLECTOR_CLASS(class);
+  cclass->get_items = get_items;
+
+  return;
 }
 
 static void
@@ -764,15 +774,16 @@ hud_menu_model_collector_new_for_endpoint (const gchar *application_id,
  *
  * Return value: (transfer full) (element-type HudItem): Items to look at
  */
-GList *
-hud_menu_model_collector_get_items (HudMenuModelCollector * collector)
+static GList *
+get_items (HudCollector * collector)
 {
 	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector), NULL);
+	HudMenuModelCollector * mcollector = HUD_MENU_MODEL_COLLECTOR(collector);
 
 	GList * retval = NULL;
 	int i;
-	for (i = 0; i < collector->items->len; i++) {
-		retval = g_list_prepend(retval, g_object_ref(g_ptr_array_index(collector->items, i)));
+	for (i = 0; i < mcollector->items->len; i++) {
+		retval = g_list_prepend(retval, g_object_ref(g_ptr_array_index(mcollector->items, i)));
 	}
 
 	return retval;

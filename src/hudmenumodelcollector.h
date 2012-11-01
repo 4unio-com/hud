@@ -42,6 +42,5 @@ HudMenuModelCollector * hud_menu_model_collector_new_for_endpoint       (const g
                                                                          guint        penalty,
                                                                          const gchar *bus_name,
                                                                          const gchar *object_path);
-GList *                 hud_menu_model_collector_get_items              (HudMenuModelCollector * collector);
 
 #endif /* __HUD_MENU_MODEL_COLLECTOR_H__ */
