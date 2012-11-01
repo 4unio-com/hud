@@ -37,6 +37,6 @@ HudSourceList *         hud_source_list_new                             (void);
 void                    hud_source_list_add                             (HudSourceList *list,
                                                                          HudSource     *source);
 
-HudCollector *          hud_source_active_collector                     (HudSourceList *list);
+HudCollector *          hud_source_list_active_collector                (HudSourceList *list);
 
 #endif /* __HUD_SOURCE_LIST_H__ */

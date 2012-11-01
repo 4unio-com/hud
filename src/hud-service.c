@@ -45,7 +45,29 @@
 static gchar *
 do_voice (HudSource * source_kinda)
 {
+	HudCollector * collector = hud_source_list_active_collector(HUD_SOURCE_LIST(source_kinda));
+	if (collector == NULL) {
+		/* No active window, that's fine, but we'll just move on */
+		return NULL;
+	}
 
+	GList * items = hud_collector_get_items(collector);
+	if (items == NULL) {
+		/* The active window doesn't have items, that's cool.  We'll move on. */
+		return NULL;
+	}
+
+	GHashTable * pronounciations = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify)g_strfreev);
+	g_list_foreach(items, (GFunc)hud_item_insert_pronounciation, pronounciations);
+
+	GHashTableIter iter;
+	g_hash_table_iter_init(&iter, pronounciations);
+	gpointer key, value;
+	while (g_hash_table_iter_next(&iter, &key, &value)) {
+		g_debug("Keys: %s", (gchar *)key);
+	}
+
+	g_hash_table_unref(pronounciations);
 
 	return NULL;
 }
