@@ -24,6 +24,10 @@
 			<arg type="v" name="querykey" direction="in" />
 		</method>
 
+		<method name="VoiceSearch">
+			<arg type="s" name="query" direction="out" />
+		</method>
+
 <!-- Signals -->
 		<signal name="UpdatedQuery">
 			<arg type="s" name="target" direction="out" />
