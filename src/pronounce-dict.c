@@ -151,6 +151,25 @@ load_dict (PronounceDict * dict)
 		   nicely for us -- cool, little trick, eh? */
 		GList * phono_list = g_list_copy_deep((GList *)g_hash_table_lookup(dict->priv->dict, word), (GCopyFunc)g_strdup, NULL);
 
+		if (phonetics != NULL) {
+			gchar ** splitted = g_strsplit(phonetics, " ", -1);
+			g_free(phonetics);
+
+			gint i;
+			for (i = 0; splitted[i] != NULL; i++) {
+				gint len = g_utf8_strlen(splitted[i], -1);
+
+				if (splitted[i][len - 1] == '1' || splitted[i][len - 1] == '0') {
+					splitted[i][len - 1] = '\0';
+				}
+			}
+
+			phonetics = g_strjoinv(" ", splitted);
+			split[1] = phonetics;
+
+			g_strfreev(splitted);
+		}
+
 		phono_list = g_list_append(phono_list, g_strdup(phonetics));
 		g_hash_table_insert(dict->priv->dict, g_strdup(word), phono_list);
 
