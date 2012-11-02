@@ -74,9 +74,9 @@ do_voice (HudSource * source_kinda)
 
 	GError * error = NULL;
 
-	if ((string_file = g_file_open_tmp("hud-strings-XXXXXX.txt", &string_filename, &error)) != 0 ||
-			(pron_file = g_file_open_tmp("hud-pronounciations-XXXXXX.txt", &pron_filename, &error)) != 0 ||
-			(audio_file = g_file_open_tmp("hud-voice-XXXXXX.raw", &audio_filename, &error)) != 0) {
+	if ((string_file = g_file_open_tmp("hud-strings-XXXXXX.txt", &string_filename, &error)) == 0 ||
+			(pron_file = g_file_open_tmp("hud-pronounciations-XXXXXX.txt", &pron_filename, &error)) == 0 ||
+			(audio_file = g_file_open_tmp("hud-voice-XXXXXX.raw", &audio_filename, &error)) == 0) {
 		g_warning("Unable to open temporary filee: %s", error->message);
 
 		if (string_file != 0) {
