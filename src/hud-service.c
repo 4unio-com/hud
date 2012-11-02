@@ -165,6 +165,11 @@ do_voice (HudSource * source_kinda)
 
 		for (i = 0; prons[i] != NULL; i++) {
 			g_output_stream_write(pron_output, key, g_utf8_strlen(key, -1), NULL, NULL);
+			if (i != 0) {
+				gchar * number = g_strdup_printf("(%d)", i + 1);
+				g_output_stream_write(pron_output, number, g_utf8_strlen(number, -1), NULL, NULL);
+				g_free(number);
+			}
 			g_output_stream_write(pron_output, "\t", g_utf8_strlen("\t", -1), NULL, NULL);
 			g_output_stream_write(pron_output, prons[i], g_utf8_strlen(prons[i], -1), NULL, NULL);
 			g_output_stream_write(pron_output, "\n", g_utf8_strlen("\n", -1), NULL, NULL);
