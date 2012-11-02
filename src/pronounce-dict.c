@@ -102,11 +102,7 @@ load_dict (PronounceDict * dict)
 			continue;
 		}
 
-		gunichar charone = g_utf8_get_char(line);
-
-		/* There are punctuation things in the DB, which makes sense for
-		   other folks but not us */
-		if (!g_unichar_isalnum(charone)) {
+		if (line[0] == ';' && line[1] == ';' && line[2] == ';') {
 			g_free(line);
 			continue;
 		}
@@ -122,10 +118,29 @@ load_dict (PronounceDict * dict)
 		gchar * word = split[0];
 		gchar * phonetics = split[1];
 
+		gunichar charone = g_utf8_get_char(word);
+
+		/* Handle those that are punctuation stuff */
+		if (!g_unichar_isalnum(charone)) {
+			gchar * lookingchar = word + 1;
+
+			while (lookingchar != NULL && !g_unichar_isalnum(g_utf8_get_char(lookingchar))) {
+				lookingchar++;
+			}
+
+			if (lookingchar != NULL) {
+				lookingchar[0] = '\0';
+			}
+		}
+
 		/* Some words end with a counter, which is nice, but we don't care */
 		if (g_str_has_suffix(word, ")")) {
-			gchar * first_paren = g_strrstr(word, "(");
-			first_paren[0] = '\0';
+			/* Magic +1 to make sure it isn't the first character, so the description
+			   for the character */
+			gchar * first_paren = g_strrstr(word + 1, "(");
+			if (first_paren != NULL) {
+				first_paren[0] = '\0';
+			}
 		}
 
 		/* This will be NULL if it doesn't exist, which GList handles
