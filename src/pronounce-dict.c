@@ -155,7 +155,7 @@ load_dict (PronounceDict * dict)
 			for (i = 0; splitted[i] != NULL; i++) {
 				gint len = g_utf8_strlen(splitted[i], -1);
 
-				if (splitted[i][len - 1] == '1' || splitted[i][len - 1] == '0') {
+				if (g_unichar_isdigit(g_utf8_get_char(&splitted[i][len - 1]))) {
 					splitted[i][len - 1] = '\0';
 				}
 			}
