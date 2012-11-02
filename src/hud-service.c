@@ -22,6 +22,7 @@
 
 #include <glib.h>
 #include <gio/gio.h>
+#include <glib/gstdio.h>
 #include <stdlib.h>
 #include <locale.h>
 #include <libintl.h>
@@ -57,9 +58,50 @@ do_voice (HudSource * source_kinda)
 		return NULL;
 	}
 
+	/* Get the pronounciations for the items */
 	GHashTable * pronounciations = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify)g_strfreev);
 	g_list_foreach(items, (GFunc)hud_item_insert_pronounciation, pronounciations);
 
+	/* Get our cache together */
+	gchar * string_filename = NULL;
+	gchar * pron_filename = NULL;
+	gchar * audio_filename = NULL;
+
+	gint string_file = 0;
+	gint pron_file = 0;
+	gint audio_file = 0;
+
+	GError * error = NULL;
+
+	if ((string_file = g_file_open_tmp("hud-strings-XXXXXX.txt", &string_filename, &error)) != 0 ||
+			(pron_file = g_file_open_tmp("hud-pronounciations-XXXXXX.txt", &pron_filename, &error)) != 0 ||
+			(audio_file = g_file_open_tmp("hud-voice-XXXXXX.raw", &audio_filename, &error)) != 0) {
+		g_warning("Unable to open temporary filee: %s", error->message);
+
+		if (string_file != 0) {
+			close(string_file);
+			g_unlink(string_filename);
+		}
+
+		if (pron_file != 0) {
+			close(pron_file);
+			g_unlink(pron_filename);
+		}
+
+		if (audio_file != 0) {
+			close(audio_file);
+			g_unlink(audio_filename);
+		}
+
+		g_error_free(error);
+		g_hash_table_unref(pronounciations);
+		return NULL;
+	}
+
+	/* Now we have files */
+
+
+	/* Go through all of the pronounciations */
 	GHashTableIter iter;
 	g_hash_table_iter_init(&iter, pronounciations);
 	gpointer key, value;
@@ -68,6 +110,21 @@ do_voice (HudSource * source_kinda)
 	}
 
 	g_hash_table_unref(pronounciations);
+
+	if (string_file != 0) {
+		close(string_file);
+		g_unlink(string_filename);
+	}
+
+	if (pron_file != 0) {
+		close(pron_file);
+		g_unlink(pron_filename);
+	}
+
+	if (audio_file != 0) {
+		close(audio_file);
+		g_unlink(audio_filename);
+	}
 
 	return NULL;
 }
