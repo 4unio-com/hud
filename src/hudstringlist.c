@@ -243,13 +243,19 @@ hud_string_list_insert_pronounciation (HudStringList * list, GHashTable * table)
 	}
 
 	gchar * upper = g_utf8_strup(list->head, -1);
+	gchar ** splitted = g_strsplit(upper, " ", -1);
+	g_free(upper);
 
-	if (g_hash_table_lookup(table, upper) == NULL) {
-		PronounceDict * dict = pronounce_dict_get();
-		g_hash_table_insert(table, upper, pronounce_dict_lookup_word(dict, list->head));
-	} else {
-		g_free(upper);
+	PronounceDict * dict = pronounce_dict_get();
+
+	int i;
+	for (i = 0; splitted[i] != NULL; i++) {
+		if (g_hash_table_lookup(table, splitted[i]) == NULL) {
+			g_hash_table_insert(table, g_strdup(splitted[i]), pronounce_dict_lookup_word(dict, splitted[i]));
+		}
 	}
+
+	g_strfreev(splitted);
 
 	return hud_string_list_insert_pronounciation(list->tail, table);
 }

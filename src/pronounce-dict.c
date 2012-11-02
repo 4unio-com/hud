@@ -94,10 +94,6 @@ load_dict (PronounceDict * dict)
 	GFileInputStream * stream = g_file_read(dict_file, NULL, NULL);
 	GDataInputStream * dstream = g_data_input_stream_new(G_INPUT_STREAM(stream));
 
-	/* Starting with space, we like it */
-	gchar * null_phono[2] = {"", NULL};
-	g_hash_table_insert(dict->priv->dict, g_strdup(" "), g_strdupv(null_phono));
-
 	gchar * line = NULL;
 	while ((line = g_data_input_stream_read_line(dstream, NULL, NULL, NULL)) != NULL) {
 		/* Catch the NULL string and just kill it early */
