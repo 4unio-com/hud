@@ -109,7 +109,6 @@ do_voice (HudSource * source_kinda)
 	g_hash_table_iter_init(&iter, pronounciations);
 	gpointer key, value;
 	while (g_hash_table_iter_next(&iter, &key, &value)) {
-		g_debug("Key: %s", (gchar *)key);
 		g_output_stream_write(string_output, "<s> ", g_utf8_strlen("<s> ", -1), NULL, NULL);
 		g_output_stream_write(string_output, key, g_utf8_strlen(key, -1), NULL, NULL);
 		g_output_stream_write(string_output, " </s>\n", g_utf8_strlen(" </s>\n", -1), NULL, NULL);
@@ -118,7 +117,6 @@ do_voice (HudSource * source_kinda)
 		gint i;
 
 		for (i = 0; prons[i] != NULL; i++) {
-			g_debug("%s: %s", (gchar *)key, prons[i]);
 			g_output_stream_write(pron_output, key, g_utf8_strlen(key, -1), NULL, NULL);
 			g_output_stream_write(pron_output, ": ", g_utf8_strlen(": ", -1), NULL, NULL);
 			g_output_stream_write(pron_output, prons[i], g_utf8_strlen(prons[i], -1), NULL, NULL);
