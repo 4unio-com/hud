@@ -43,11 +43,37 @@
 #include "shared-values.h"
 #include "hudquery.h"
 
+static arg_t sphinx_cmd_ln[] = {
+	POCKETSPHINX_OPTIONS,
+	{NULL, 0, NULL, NULL}
+};
+
 /* Actually recognizing the Audio */
 static void
 recognize_audio(const gchar * lm_filename, const gchar * audio_filename, const gchar * pron_filename)
 {
+	cmd_ln_t * spx_cmd = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
+	                                 "-hmm", "/usr/share/pocketsphinx/model/hmm/wsj1",
+	                                 "-mdef", "/usr/share/pocketsphinx/model/hmm/wsj1/mdef",
+	                                 "-lm", lm_filename,
+	                                 "-dict", pron_filename,
+	                                 NULL);
+	ps_decoder_t * decoder = ps_init(spx_cmd);
 
+	FILE * audiof = fopen(audio_filename, "rb");
+
+	ps_decode_raw(decoder, audiof, "filename", -1);
+
+	char const *hyp, *uttid;
+	int32 score;
+
+	hyp = ps_get_hyp(decoder, &score, &uttid);
+	if (hyp == NULL) {
+		return;
+	}
+	g_debug("Recognized: %s\n", hyp);
+
+	ps_free(decoder);
 
 	return;
 }
@@ -152,22 +178,18 @@ do_voice (HudSource * source_kinda)
 
 	if (string_file != 0) {
 		close(string_file);
-		g_unlink(string_filename);
 	}
 
 	if (pron_file != 0) {
 		close(pron_file);
-		g_unlink(pron_filename);
 	}
 
 	if (audio_file != 0) {
 		close(audio_file);
-		g_unlink(audio_filename);
 	}
 
 	if (lm_file != 0) {
 		close(lm_file);
-		g_unlink(lm_filename);
 	}
 
 	g_debug("String: %s", string_filename);
@@ -191,6 +213,22 @@ do_voice (HudSource * source_kinda)
 	g_free(record);
 
 	recognize_audio(lm_filename, audio_filename, pron_filename);
+
+	if (string_file != 0) {
+		g_unlink(string_filename);
+	}
+
+	if (pron_file != 0) {
+		g_unlink(pron_filename);
+	}
+
+	if (audio_file != 0) {
+		g_unlink(audio_filename);
+	}
+
+	if (lm_file != 0) {
+		g_unlink(lm_filename);
+	}
 
 	g_free(string_filename);
 	g_free(pron_filename);
@@ -444,11 +482,6 @@ name_lost_cb (GDBusConnection *connection,
   g_main_loop_quit (mainloop);
 }
 
-static arg_t sphinx_cmd_ln[] = {
-	POCKETSPHINX_OPTIONS,
-	{NULL, 0, NULL, NULL}
-};
-
 int
 main (int argc, char **argv)
 {
@@ -460,13 +493,6 @@ main (int argc, char **argv)
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
   textdomain (GETTEXT_PACKAGE);
-
-  cmd_ln_t * spx_cmd = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
-                                   "-hmm", "/usr/share/pocketsphinx/model/hmm/wsj1",
-                                   "-mdef", "/usr/share/pocketsphinx/model/hmm/wsj1/mdef",
-                                   "-lm", "/usr/share/pocketsphinx/model/lm/wsj/wlist5o.3e-7.vp.tg.lm.DMP",
-                                   NULL);
-  ps_decoder_t * decoder = ps_init(spx_cmd);
 
   hud_settings_init ();
 
@@ -519,8 +545,6 @@ main (int argc, char **argv)
 
   g_object_unref (window_source);
   g_object_unref (source_list);
-
-  ps_free(decoder);
 
   return 0;
 }
