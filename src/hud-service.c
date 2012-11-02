@@ -203,17 +203,17 @@ do_voice (HudSource * source_kinda)
 	g_debug("Lang Model: %s", lm_filename);
 
 	/* Okay, now some shell stuff */
-	g_setenv("IRSTLM", "/usr/bin/", TRUE);
+	g_setenv("IRSTLM", "/usr", TRUE);
 
 	gchar * buildlm = g_strdup_printf("/usr/bin/build-lm.sh -i %s -o %s.gz", string_filename, lm_filename);
 	g_spawn_command_line_sync(buildlm, NULL, NULL, NULL, NULL);
 	g_free(buildlm);
 
-	gchar * unzipit = g_strdup_printf("gzip -d %s.gz", lm_filename);
+	gchar * unzipit = g_strdup_printf("gzip -f -d %s.gz", lm_filename);
 	g_spawn_command_line_sync(unzipit, NULL, NULL, NULL, NULL);
 	g_free(unzipit);
 
-	gchar * record = g_strdup_printf("timeout -s KILL 5 gst-launch-0.10 pulsesrc ! 'audio/x-raw-int,channels=1;audio/x-raw-int' ! audioconvert ! audio/x-raw-int,channels=1,depth=16 ! wavenc ! filesink location=%s", audio_filename);
+	gchar * record = g_strdup_printf("timeout -s KILL 5 gst-launch-0.10 -e pulsesrc ! 'audio/x-raw-int,channels=1;audio/x-raw-int' ! audioconvert ! audio/x-raw-int,channels=1,depth=16 ! wavenc ! filesink location=%s", audio_filename);
 	g_spawn_command_line_sync(record, NULL, NULL, NULL, NULL);
 	g_free(record);
 
