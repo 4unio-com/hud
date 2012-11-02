@@ -22,6 +22,7 @@
 
 #include <glib.h>
 #include <gio/gio.h>
+#include <gio/gunixoutputstream.h>
 #include <glib/gstdio.h>
 #include <stdlib.h>
 #include <locale.h>
@@ -98,18 +99,35 @@ do_voice (HudSource * source_kinda)
 		return NULL;
 	}
 
-	/* Now we have files */
-
+	/* Now we have files -- now streams */
+	GOutputStream * string_output = g_unix_output_stream_new(string_file, FALSE);
+	GOutputStream * pron_output = g_unix_output_stream_new(pron_file, FALSE);
+	GOutputStream * audio_output = g_unix_output_stream_new(audio_file, FALSE);
 
 	/* Go through all of the pronounciations */
 	GHashTableIter iter;
 	g_hash_table_iter_init(&iter, pronounciations);
 	gpointer key, value;
 	while (g_hash_table_iter_next(&iter, &key, &value)) {
-		g_debug("Keys: %s", (gchar *)key);
+		g_output_stream_write(string_output, "<s> ", g_utf8_strlen("<s> ", -1), NULL, NULL);
+		g_output_stream_write(string_output, key, g_utf8_strlen(key, -1), NULL, NULL);
+		g_output_stream_write(string_output, " </s>\n", g_utf8_strlen(" </s>\n", -1), NULL, NULL);
+
+		gchar ** prons = (gchar **)value;
+		gint i;
+
+		for (i = 0; prons[i] != NULL; i++) {
+			g_output_stream_write(pron_output, key, g_utf8_strlen(key, -1), NULL, NULL);
+			g_output_stream_write(pron_output, ": ", g_utf8_strlen(": ", -1), NULL, NULL);
+			g_output_stream_write(pron_output, prons[i], g_utf8_strlen(prons[i], -1), NULL, NULL);
+			g_output_stream_write(pron_output, "\n", g_utf8_strlen("\n", -1), NULL, NULL);
+		}
 	}
 
 	g_hash_table_unref(pronounciations);
+	g_clear_object(&string_output);
+	g_clear_object(&pron_output);
+	g_clear_object(&audio_output);
 
 	if (string_file != 0) {
 		close(string_file);
