@@ -43,6 +43,15 @@
 #include "shared-values.h"
 #include "hudquery.h"
 
+/* Actually recognizing the Audio */
+static void
+recognize_audio(const gchar * lm_filename, const gchar * audio_filename, const gchar * pron_filename)
+{
+
+
+	return;
+}
+
 /* Function to try and get a query from voice */
 static gchar *
 do_voice (HudSource * source_kinda)
@@ -67,31 +76,43 @@ do_voice (HudSource * source_kinda)
 	gchar * string_filename = NULL;
 	gchar * pron_filename = NULL;
 	gchar * audio_filename = NULL;
+	gchar * lm_filename = NULL;
 
 	gint string_file = 0;
 	gint pron_file = 0;
 	gint audio_file = 0;
+	gint lm_file = 0;
 
 	GError * error = NULL;
 
 	if ((string_file = g_file_open_tmp("hud-strings-XXXXXX.txt", &string_filename, &error)) == 0 ||
 			(pron_file = g_file_open_tmp("hud-pronounciations-XXXXXX.txt", &pron_filename, &error)) == 0 ||
+			(lm_file = g_file_open_tmp("hud-lang-XXXXXX.lm", &lm_filename, &error)) == 0 ||
 			(audio_file = g_file_open_tmp("hud-voice-XXXXXX.raw", &audio_filename, &error)) == 0) {
 		g_warning("Unable to open temporary filee: %s", error->message);
 
 		if (string_file != 0) {
 			close(string_file);
 			g_unlink(string_filename);
+			g_free(string_filename);
 		}
 
 		if (pron_file != 0) {
 			close(pron_file);
 			g_unlink(pron_filename);
+			g_free(pron_filename);
 		}
 
 		if (audio_file != 0) {
 			close(audio_file);
 			g_unlink(audio_filename);
+			g_free(audio_filename);
+		}
+
+		if (lm_file != 0) {
+			close(lm_file);
+			g_unlink(lm_filename);
+			g_free(lm_filename);
 		}
 
 		g_error_free(error);
@@ -144,13 +165,37 @@ do_voice (HudSource * source_kinda)
 		g_unlink(audio_filename);
 	}
 
+	if (lm_file != 0) {
+		close(lm_file);
+		g_unlink(lm_filename);
+	}
+
 	g_debug("String: %s", string_filename);
 	g_debug("Pronounciations: %s", pron_filename);
 	g_debug("Audio: %s", audio_filename);
+	g_debug("Lang Model: %s", lm_filename);
+
+	/* Okay, now some shell stuff */
+	g_setenv("IRSTLM", "/usr/bin/", TRUE);
+
+	gchar * buildlm = g_strdup_printf("/usr/bin/build-lm.sh -i %s -o %s.gz", string_filename, lm_filename);
+	g_spawn_command_line_sync(buildlm, NULL, NULL, NULL, NULL);
+	g_free(buildlm);
+
+	gchar * unzipit = g_strdup_printf("gzip -d %s.gz", lm_filename);
+	g_spawn_command_line_sync(unzipit, NULL, NULL, NULL, NULL);
+	g_free(unzipit);
+
+	gchar * record = g_strdup_printf("timeout -s INT 5 gst-launch-0.10 pulsesrc ! 'audio/x-raw-int,channels=1;audio/x-raw-int' ! audioconvert ! audio/x-raw-int,channels=1,depth=16 ! wavenc ! filesink location=%s", audio_filename);
+	g_spawn_command_line_sync(record, NULL, NULL, NULL, NULL);
+	g_free(record);
+
+	recognize_audio(lm_filename, audio_filename, pron_filename);
 
 	g_free(string_filename);
 	g_free(pron_filename);
 	g_free(audio_filename);
+	g_free(lm_filename);
 
 	return NULL;
 }
