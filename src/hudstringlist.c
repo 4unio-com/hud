@@ -242,10 +242,13 @@ hud_string_list_insert_pronounciation (HudStringList * list, GHashTable * table)
 		return;
 	}
 
-	/* TODO capitalize */
-	if (g_hash_table_lookup(table, list->head) == NULL) {
+	gchar * upper = g_utf8_strup(list->head, -1);
+
+	if (g_hash_table_lookup(table, upper) == NULL) {
 		PronounceDict * dict = pronounce_dict_get();
-		g_hash_table_insert(table, g_strdup(list->head), pronounce_dict_lookup_word(dict, list->head));
+		g_hash_table_insert(table, upper, pronounce_dict_lookup_word(dict, list->head));
+	} else {
+		g_free(upper);
 	}
 
 	return hud_string_list_insert_pronounciation(list->tail, table);
