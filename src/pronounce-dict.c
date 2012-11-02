@@ -94,6 +94,10 @@ load_dict (PronounceDict * dict)
 	GFileInputStream * stream = g_file_read(dict_file, NULL, NULL);
 	GDataInputStream * dstream = g_data_input_stream_new(G_INPUT_STREAM(stream));
 
+	/* Starting with space, we like it */
+	gchar * null_phono[2] = {"", NULL};
+	g_hash_table_insert(dict->priv->dict, g_strdup(" "), g_strdupv(null_phono));
+
 	gchar * line = NULL;
 	while ((line = g_data_input_stream_read_line(dstream, NULL, NULL, NULL)) != NULL) {
 		/* Catch the NULL string and just kill it early */
@@ -205,7 +209,20 @@ pronounce_dict_lookup_word_internal (PronounceDict * dict, gchar * word, GArray 
 	int i, j;
 	for (i = 0; i < front_array->len; i++) {
 	for (j = 0; j < last_array->len; j++) {
-		gchar * output = g_strdup_printf("%s %s", g_array_index(front_array, gchar *, i), g_array_index(last_array, gchar *, j));
+		gchar * a = g_array_index(front_array, gchar *, i);
+		gchar * b = g_array_index(last_array, gchar *, j);
+
+		gchar * output = NULL;
+		if (a[0] != '\0' && b[0] != '\0') {
+			output = g_strdup_printf("%s %s", g_array_index(front_array, gchar *, i), g_array_index(last_array, gchar *, j));
+		} else {
+			if (a[0] != '\0') {
+				output = g_strdup(a);
+			} else {
+				output = g_strdup(b);
+			}
+		}
+
 		g_array_append_val(results, output);
 	} // j
 	} // i
