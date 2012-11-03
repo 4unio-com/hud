@@ -252,7 +252,6 @@ do_voice (HudSource * source_kinda)
 	}
 
 	/* Now we have files -- now streams */
-	GOutputStream * string_output = g_unix_output_stream_new(string_file, FALSE);
 	GOutputStream * pron_output = g_unix_output_stream_new(pron_file, FALSE);
 
 	/* Go through all of the pronounciations */
@@ -260,10 +259,6 @@ do_voice (HudSource * source_kinda)
 	g_hash_table_iter_init(&iter, pronounciations);
 	gpointer key, value;
 	while (g_hash_table_iter_next(&iter, &key, &value)) {
-		g_output_stream_write(string_output, "<s> ", g_utf8_strlen("<s> ", -1), NULL, NULL);
-		g_output_stream_write(string_output, key, g_utf8_strlen(key, -1), NULL, NULL);
-		g_output_stream_write(string_output, " </s>\n", g_utf8_strlen(" </s>\n", -1), NULL, NULL);
-
 		gchar ** prons = (gchar **)value;
 		gint i;
 
@@ -281,8 +276,26 @@ do_voice (HudSource * source_kinda)
 	}
 
 	g_hash_table_unref(pronounciations);
-	g_clear_object(&string_output);
 	g_clear_object(&pron_output);
+
+	/* Get the commands from the items */
+	GOutputStream * string_output = g_unix_output_stream_new(string_file, FALSE);
+	GList * litem;
+
+	for (litem = items; litem != NULL; litem = g_list_next(litem)) {
+		HudItem * item = HUD_ITEM(litem->data);
+
+		const gchar * command = hud_item_get_command(item);
+		if (command == NULL) {
+			continue;
+		}
+
+		g_output_stream_write(string_output, "<s> ", g_utf8_strlen("<s> ", -1), NULL, NULL);
+		g_output_stream_write(string_output, command, g_utf8_strlen(command, -1), NULL, NULL);
+		g_output_stream_write(string_output, " </s>\n", g_utf8_strlen(" </s>\n", -1), NULL, NULL);
+	}
+
+	g_clear_object(&string_output);
 
 	if (string_file != 0) {
 		close(string_file);

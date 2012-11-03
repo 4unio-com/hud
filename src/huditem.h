@@ -77,5 +77,6 @@ HudItem *               hud_item_lookup                                 (guint64
 HudTokenList *          hud_item_get_token_list                         (HudItem       *item);
 void                    hud_item_insert_pronounciation                  (HudItem       * item,
                                                                          GHashTable    * table);
+const gchar *           hud_item_get_command                            (HudItem       * item);
 
 #endif /* __HUD_ITEM_H__ */

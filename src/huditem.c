@@ -357,3 +357,19 @@ hud_item_insert_pronounciation (HudItem * item, GHashTable * table)
 	hud_string_list_insert_pronounciation(item->priv->tokens, table);
 	return;
 }
+
+/**
+ * hud_item_get_commadn:
+ * @item: A #HudItem
+ *
+ * Get the command (or leaf in a menu) for an item.
+ *
+ * Return: The command to execute
+ */
+const gchar *
+hud_item_get_command (HudItem * item)
+{
+	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
+
+	return hud_string_list_get_head(item->priv->tokens);
+}
