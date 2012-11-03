@@ -49,7 +49,7 @@ static arg_t sphinx_cmd_ln[] = {
 };
 
 /* Actually recognizing the Audio */
-static void
+static gchar *
 recognize_audio(const gchar * lm_filename, const gchar * audio_filename, const gchar * pron_filename)
 {
 	cmd_ln_t * spx_cmd = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
@@ -69,13 +69,14 @@ recognize_audio(const gchar * lm_filename, const gchar * audio_filename, const g
 
 	hyp = ps_get_hyp(decoder, &score, &uttid);
 	if (hyp == NULL) {
-		return;
+		return NULL;
 	}
 	g_debug("Recognized: %s\n", hyp);
+	gchar * retval = g_strdup(hyp);
 
 	ps_free(decoder);
 
-	return;
+	return retval;
 }
 
 /* Function to try and get a query from voice */
@@ -217,7 +218,7 @@ do_voice (HudSource * source_kinda)
 	g_spawn_command_line_sync(record, NULL, NULL, NULL, NULL);
 	g_free(record);
 
-	recognize_audio(lm_filename, audio_filename, pron_filename);
+	gchar * retval = recognize_audio(lm_filename, audio_filename, pron_filename);
 
 	if (string_file != 0) {
 		g_unlink(string_filename);
@@ -240,7 +241,7 @@ do_voice (HudSource * source_kinda)
 	g_free(audio_filename);
 	g_free(lm_filename);
 
-	return NULL;
+	return retval;
 }
 
 /* The return value of 'StartQuery' and the signal parameters for
