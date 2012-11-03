@@ -30,6 +30,8 @@
 
 /* Pocket Sphinx */
 #include "pocketsphinx.h"
+#include <sphinxbase/ad.h>
+#include <sphinxbase/cont_ad.h>
 
 #include "hudappindicatorsource.h"
 #include "hudindicatorsource.h"
@@ -44,8 +46,9 @@
 #include "hudquery.h"
 
 /* Start code taken from PocketSphinx */
-static void
-utterance_loop()
+
+static char const *
+utterance_loop(ad_rec_t * ad, ps_decoder_t * ps)
 {
     int16 adbuf[4096];
     int32 k, ts, rem, score;
@@ -56,13 +59,13 @@ utterance_loop()
 
     /* Initialize continuous listening module */
     if ((cont = cont_ad_init(ad, ad_read)) == NULL)
-        E_FATAL("cont_ad_init failed\n");
+        g_error("cont_ad_init failed\n");
     if (ad_start_rec(ad) < 0)
-        E_FATAL("ad_start_rec failed\n");
+        g_error("ad_start_rec failed\n");
     if (cont_ad_calib(cont) < 0)
-        E_FATAL("cont_ad_calib failed\n");
+        g_error("cont_ad_calib failed\n");
 
-    for (;;) {
+    if (TRUE) {
         /* Indicate listening for next utterance */
         printf("READY....\n");
         fflush(stdout);
@@ -70,17 +73,17 @@ utterance_loop()
 
         /* Await data for next utterance */
         while ((k = cont_ad_read(cont, adbuf, 4096)) == 0)
-            sleep_msec(200);
+            g_usleep(200 * 1000);
 
         if (k < 0)
-            E_FATAL("cont_ad_read failed\n");
+            g_error("cont_ad_read failed\n");
 
         /*
          * Non-zero amount of data received; start recognition of new utterance.
          * NULL argument to uttproc_begin_utt => automatic generation of utterance-id.
          */
         if (ps_start_utt(ps, NULL) < 0)
-            E_FATAL("ps_start_utt() failed\n");
+            g_error("ps_start_utt() failed\n");
         ps_process_raw(ps, adbuf, k, FALSE, FALSE);
         printf("Listening...\n");
         fflush(stdout);
@@ -92,7 +95,7 @@ utterance_loop()
         for (;;) {
             /* Read non-silence audio data, if any, from continuous listening module */
             if ((k = cont_ad_read(cont, adbuf, 4096)) < 0)
-                E_FATAL("cont_ad_read failed\n");
+                g_error("cont_ad_read failed\n");
             if (k == 0) {
                 /*
                  * No speech data available; check current timestamp with most recent
@@ -113,7 +116,7 @@ utterance_loop()
 
             /* If no work to be done, sleep a bit */
             if ((rem == 0) && (k == 0))
-                sleep_msec(20);
+                g_usleep(20 * 1000);
         }
 
         /*
@@ -136,15 +139,16 @@ utterance_loop()
         if (hyp) {
             sscanf(hyp, "%s", word);
             if (strcmp(word, "goodbye") == 0)
-                break;
+                return NULL;
         }
 
         /* Resume A/D recording for next utterance */
         if (ad_start_rec(ad) < 0)
-            E_FATAL("ad_start_rec failed\n");
+            g_error("ad_start_rec failed\n");
     }
 
     cont_ad_close(cont);
+	return hyp;
 }
 /* End code taken from PocketSphinx */
 
@@ -165,21 +169,25 @@ recognize_audio(const gchar * lm_filename, const gchar * audio_filename, const g
 	                                 NULL);
 	ps_decoder_t * decoder = ps_init(spx_cmd);
 
-	FILE * audiof = fopen(audio_filename, "rb");
+	ad_rec_t * ad = ad_open_dev(cmd_ln_str_r(spx_cmd, "-adcdev"), (int)cmd_ln_float32_r(spx_cmd, "-samprate"));
+	if (ad == NULL) {
+		g_warning("Unable to get audio device");
+		ps_free(decoder);
+		return NULL;
+	}
 
-	ps_decode_raw(decoder, audiof, "filename", -1);
+	char const * hyp;
 
-	char const *hyp, *uttid;
-	int32 score;
-
-	hyp = ps_get_hyp(decoder, &score, &uttid);
+	hyp = utterance_loop(ad, decoder);
 	if (hyp == NULL) {
 		return NULL;
 	}
+
 	g_debug("Recognized: %s\n", hyp);
 	gchar * retval = g_strdup(hyp);
 
 	ps_free(decoder);
+	ad_close(ad);
 
 	return retval;
 }
