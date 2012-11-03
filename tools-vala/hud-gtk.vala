@@ -68,6 +68,10 @@ namespace HudGtk {
 			}
 		}
 
+		void voice_pressed (Gtk.Button button) {
+
+		}
+
 		void view_activated (Gtk.TreeView view, Gtk.TreePath path, Gtk.TreeViewColumn column) {
 			Gtk.TreeIter iter;
 			Variant key;
@@ -100,6 +104,7 @@ namespace HudGtk {
 			                          "/com/canonical/hud", null, DBusSignalFlags.NONE, updated_query);
 			model = builder.get_object ("liststore") as Gtk.ListStore;
 			builder.get_object ("entry").notify["text"].connect (entry_text_changed);
+			(builder.get_object ("voice") as Gtk.Button).clicked.connect (voice_pressed);
 			(builder.get_object ("treeview") as Gtk.TreeView).row_activated.connect (view_activated);
 			add (builder.get_object ("grid") as Gtk.Widget);
 		}
