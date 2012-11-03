@@ -159,7 +159,7 @@ static arg_t sphinx_cmd_ln[] = {
 
 /* Actually recognizing the Audio */
 static gchar *
-recognize_audio(const gchar * lm_filename, const gchar * audio_filename, const gchar * pron_filename)
+recognize_audio(const gchar * lm_filename, const gchar * pron_filename)
 {
 	cmd_ln_t * spx_cmd = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
 	                                 "-hmm", "/usr/share/pocketsphinx/model/hmm/wsj1",
@@ -215,20 +215,17 @@ do_voice (HudSource * source_kinda)
 	/* Get our cache together */
 	gchar * string_filename = NULL;
 	gchar * pron_filename = NULL;
-	gchar * audio_filename = NULL;
 	gchar * lm_filename = NULL;
 
 	gint string_file = 0;
 	gint pron_file = 0;
-	gint audio_file = 0;
 	gint lm_file = 0;
 
 	GError * error = NULL;
 
 	if ((string_file = g_file_open_tmp("hud-strings-XXXXXX.txt", &string_filename, &error)) == 0 ||
 			(pron_file = g_file_open_tmp("hud-pronounciations-XXXXXX.txt", &pron_filename, &error)) == 0 ||
-			(lm_file = g_file_open_tmp("hud-lang-XXXXXX.lm", &lm_filename, &error)) == 0 ||
-			(audio_file = g_file_open_tmp("hud-voice-XXXXXX.raw", &audio_filename, &error)) == 0) {
+			(lm_file = g_file_open_tmp("hud-lang-XXXXXX.lm", &lm_filename, &error)) == 0) {
 		g_warning("Unable to open temporary filee: %s", error->message);
 
 		if (string_file != 0) {
@@ -241,12 +238,6 @@ do_voice (HudSource * source_kinda)
 			close(pron_file);
 			g_unlink(pron_filename);
 			g_free(pron_filename);
-		}
-
-		if (audio_file != 0) {
-			close(audio_file);
-			g_unlink(audio_filename);
-			g_free(audio_filename);
 		}
 
 		if (lm_file != 0) {
@@ -263,7 +254,6 @@ do_voice (HudSource * source_kinda)
 	/* Now we have files -- now streams */
 	GOutputStream * string_output = g_unix_output_stream_new(string_file, FALSE);
 	GOutputStream * pron_output = g_unix_output_stream_new(pron_file, FALSE);
-	GOutputStream * audio_output = g_unix_output_stream_new(audio_file, FALSE);
 
 	/* Go through all of the pronounciations */
 	GHashTableIter iter;
@@ -293,7 +283,6 @@ do_voice (HudSource * source_kinda)
 	g_hash_table_unref(pronounciations);
 	g_clear_object(&string_output);
 	g_clear_object(&pron_output);
-	g_clear_object(&audio_output);
 
 	if (string_file != 0) {
 		close(string_file);
@@ -303,17 +292,12 @@ do_voice (HudSource * source_kinda)
 		close(pron_file);
 	}
 
-	if (audio_file != 0) {
-		close(audio_file);
-	}
-
 	if (lm_file != 0) {
 		close(lm_file);
 	}
 
 	g_debug("String: %s", string_filename);
 	g_debug("Pronounciations: %s", pron_filename);
-	g_debug("Audio: %s", audio_filename);
 	g_debug("Lang Model: %s", lm_filename);
 
 	/* Okay, now some shell stuff */
@@ -327,11 +311,7 @@ do_voice (HudSource * source_kinda)
 	g_spawn_command_line_sync(unzipit, NULL, NULL, NULL, NULL);
 	g_free(unzipit);
 
-	gchar * record = g_strdup_printf("timeout -s KILL 5 gst-launch-0.10 -e pulsesrc ! 'audio/x-raw-int,channels=1;audio/x-raw-int' ! audioconvert ! audio/x-raw-int,channels=1,depth=16 ! filesink location=%s", audio_filename);
-	g_spawn_command_line_sync(record, NULL, NULL, NULL, NULL);
-	g_free(record);
-
-	gchar * retval = recognize_audio(lm_filename, audio_filename, pron_filename);
+	gchar * retval = recognize_audio(lm_filename, pron_filename);
 
 	if (string_file != 0) {
 		g_unlink(string_filename);
@@ -341,17 +321,12 @@ do_voice (HudSource * source_kinda)
 		g_unlink(pron_filename);
 	}
 
-	if (audio_file != 0) {
-		g_unlink(audio_filename);
-	}
-
 	if (lm_file != 0) {
 		g_unlink(lm_filename);
 	}
 
 	g_free(string_filename);
 	g_free(pron_filename);
-	g_free(audio_filename);
 	g_free(lm_filename);
 
 	return retval;
