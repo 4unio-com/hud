@@ -17,6 +17,7 @@ namespace HudGtk {
 		DBusConnection session;
 		Gtk.ListStore model;
 		Variant? query_key;
+		Gtk.Entry entry;
 
 		void populate_model (Variant update) {
 				foreach (var result in update.get_child_value (1)) {
@@ -74,7 +75,7 @@ namespace HudGtk {
 				var reply = session.call_sync ("com.canonical.hud", "/com/canonical/hud", "com.canonical.hud",
 				                               "VoiceSearch", null,
 				                               new VariantType ("(s)"), 0, -1, null);
-				debug(reply.get_child_value(0).get_string());
+				entry.text = reply.get_child_value(0).get_string();
 			} catch (Error e) {
 				warning (e.message);
 			}
@@ -111,7 +112,8 @@ namespace HudGtk {
 			session.signal_subscribe ("com.canonical.hud", "com.canonical.hud", "UpdatedQuery",
 			                          "/com/canonical/hud", null, DBusSignalFlags.NONE, updated_query);
 			model = builder.get_object ("liststore") as Gtk.ListStore;
-			builder.get_object ("entry").notify["text"].connect (entry_text_changed);
+			entry = builder.get_object ("entry") as Gtk.Entry;
+			entry.notify["text"].connect (entry_text_changed);
 			(builder.get_object ("voice") as Gtk.Button).clicked.connect (voice_pressed);
 			(builder.get_object ("treeview") as Gtk.TreeView).row_activated.connect (view_activated);
 			add (builder.get_object ("grid") as Gtk.Widget);
