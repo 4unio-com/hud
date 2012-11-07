@@ -4,6 +4,7 @@ SUBDIRS = \
 	data \
 	po \
 	src \
+	libhud \
 	docs
 
 if BUILD_TESTS

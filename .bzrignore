@@ -173,3 +173,11 @@ po/indicator-appmenu.pot
 libappmenu_la-window-menu.lo
 libappmenu_la-window-menu-model.lo
 libappmenu_la-window-menu-dbusmenu.lo
+.deps
+.libs
+hud-1.pc
+hud-service-iface.c
+hud-service-iface.h
+libhud.la
+libhud_la-hud.lo
+libhud_la-hud-service-iface.lo

@@ -11,6 +11,7 @@ dbus_services_DATA = com.canonical.hud.service
 	sed -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@
 
 EXTRA_DIST = \
+	com.canonical.hud.Application.xml \
 	$(dbus_services_DATA:.service=.service.in) \
 	$(gsettings_SCHEMAS)
 
