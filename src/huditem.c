@@ -371,5 +371,9 @@ hud_item_get_command (HudItem * item)
 {
 	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
 
+	if (item->priv->tokens == NULL) {
+		return NULL;
+	}
+
 	return hud_string_list_get_head(item->priv->tokens);
 }
