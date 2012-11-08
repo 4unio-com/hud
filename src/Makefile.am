@@ -78,6 +78,7 @@ libhud_service_a_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
+	-DDICT_PATH=\""$(pkgdatadir)/cmudict.0.7a"\" \
 	-Wall -Werror
 hud_service_CFLAGS = \
 	$(HUD_CFLAGS) \
@@ -178,6 +179,7 @@ hud_pronounce_for_word_SOURCES = \
 hud_pronounce_for_word_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
+	-DDICT_PATH=\""$(pkgdatadir)/cmudict.0.7a"\" \
 	-Wall -Werror
 
 hud_pronounce_for_word_LDFLAGS = \

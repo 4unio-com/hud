@@ -6,8 +6,6 @@
 
 #include <gio/gio.h>
 
-#define DICT_PATH "/home/ted/Development/cmusphinx/trunk/cmudict/cmudict.0.7a"
-
 struct _PronounceDictPrivate {
 	GHashTable * dict;
 };
