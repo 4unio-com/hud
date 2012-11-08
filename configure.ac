@@ -141,23 +141,6 @@ with_localinstall="no"
 AC_ARG_ENABLE(localinstall, AS_HELP_STRING([--enable-localinstall], [install all of the files localy instead of system directories (for distcheck)]), with_localinstall=$enableval, with_localinstall=no)
 
 ###########################
-# Indicator Info
-###########################
-
-if test "x$with_localinstall" = "xyes"; then
-	INDICATORDIR="${libdir}/indicators/3/"
-	INDICATORICONSDIR="${datadir}/libindicate/icons/"
-elif test "x$with_gtk" = x2; then
-	INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator-0.4`
-	INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator-0.4`
-else
-	INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator3-0.4`
-	INDICATORICONSDIR=`$PKG_CONFIG --variable=iconsdir indicator3-0.4`
-fi
-AC_SUBST(INDICATORDIR)
-AC_SUBST(INDICATORICONSDIR)
-
-###########################
 # DBus Service Info
 ###########################
 
