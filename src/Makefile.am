@@ -166,17 +166,18 @@ hud_verify_app_info_LDFLAGS = \
 ####################
 
 EXTRA_DIST += \
-	hud.xml \
+	com.canonical.hud.xml \
+	com.canonical.hud.query.xml \
 	create-db.sql
 
 BUILT_SOURCES += \
 	hud.interface.c \
 	hud.interface.h
 
-%.interface.h: %.xml
+hud.interface.h: com.canonical.hud.xml
 	echo "extern const char * $(subst -,_,$(subst .,_,$(basename $(notdir $@))));" > $@
 
-%.interface.c: %.xml
+hud.interface.c: com.canonical.hud.xml
 	echo "const char * $(subst -,_,$(subst .,_,$(basename $(notdir $@)))) = " > $@
 	sed -e "s:\":\\\\\":g" -e s:^:\": -e s:\$$:\\\\n\": $< >> $@
 	echo ";" >> $@
