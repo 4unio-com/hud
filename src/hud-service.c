@@ -34,7 +34,7 @@
 #include "hudsourcelist.h"
 #include "hudsettings.h"
 
-#include "hud.interface.h"
+#include "hud-iface.h"
 #include "shared-values.h"
 #include "hudquery.h"
 
@@ -212,25 +212,6 @@ bus_method (GDBusConnection       *connection,
 
 static GMainLoop *mainloop = NULL;
 
-static GDBusInterfaceInfo *
-get_iface_info (void)
-{
-  GDBusInterfaceInfo *iface_info;
-  GDBusNodeInfo *node_info;
-  GError *error = NULL;
-
-  node_info = g_dbus_node_info_new_for_xml (hud_interface, &error);
-  g_assert_no_error (error);
-
-  iface_info = g_dbus_node_info_lookup_interface (node_info, DBUS_IFACE);
-  g_assert (iface_info != NULL);
-
-  g_dbus_interface_info_ref (iface_info);
-  g_dbus_node_info_unref (node_info);
-
-  return iface_info;
-}
-
 static void
 bus_acquired_cb (GDBusConnection *connection,
                  const gchar     *name,
@@ -244,7 +225,7 @@ bus_acquired_cb (GDBusConnection *connection,
 
   g_debug ("Bus acquired (guid %s)", g_dbus_connection_get_guid (connection));
 
-  if (!g_dbus_connection_register_object (connection, DBUS_PATH, get_iface_info (), &vtable, source, NULL, &error))
+  if (!g_dbus_connection_register_object (connection, DBUS_PATH, hud_iface_com_canonical_hud_interface_info (), &vtable, source, NULL, &error))
     {
       g_warning ("Unable to register path '"DBUS_PATH"': %s", error->message);
       g_main_loop_quit (mainloop);

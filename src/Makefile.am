@@ -60,8 +60,10 @@ libhud_service_a_SOURCES = \
 	huditem.c		\
 	hudresult.h		\
 	hudresult.c		\
-	hud.interface.h \
-	hud.interface.c \
+	hud-iface.h \
+	hud-iface.c \
+	hud-query-iface.h \
+	hud-query-iface.c \
 	load-app-info.h \
 	load-app-info.c \
 	usage-tracker.h \
@@ -171,16 +173,27 @@ EXTRA_DIST += \
 	create-db.sql
 
 BUILT_SOURCES += \
-	hud.interface.c \
-	hud.interface.h
+	hud-query-iface.c \
+	hud-query-iface.h \
+	hud-iface.c \
+	hud-iface.h
 
-hud.interface.h: com.canonical.hud.xml
-	echo "extern const char * $(subst -,_,$(subst .,_,$(basename $(notdir $@))));" > $@
+hud-iface.c: $(srcdir)/com.canonical.hud.xml
+	$(AM_V_GEN) gdbus-codegen \
+		--interface-prefix com.canonical.hud. \
+		--generate-c-code hud-iface \
+		--c-namespace HudIface \
+		$^
+hud-iface.h: hud-iface.c
 
-hud.interface.c: com.canonical.hud.xml
-	echo "const char * $(subst -,_,$(subst .,_,$(basename $(notdir $@)))) = " > $@
-	sed -e "s:\":\\\\\":g" -e s:^:\": -e s:\$$:\\\\n\": $< >> $@
-	echo ";" >> $@
+hud-query-iface.c: $(srcdir)/com.canonical.hud.query.xml
+	$(AM_V_GEN) gdbus-codegen \
+		--interface-prefix com.canonical.hud.query. \
+		--generate-c-code hud-query-iface \
+		--c-namespace HudQueryIface \
+		$^
+hud-query-iface.h: hud-iface.c
+
 
 CLEANFILES += $(BUILT_SOURCES)
 
