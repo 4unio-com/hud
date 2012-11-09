@@ -197,4 +197,3 @@ hud-query-iface.h: hud-iface.c
 
 CLEANFILES += $(BUILT_SOURCES)
 
-EXTRA_DIST += $(DBUS_SPECS) clean-namespaces.xslt
