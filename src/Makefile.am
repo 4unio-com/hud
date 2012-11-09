@@ -168,8 +168,6 @@ hud_verify_app_info_LDFLAGS = \
 ####################
 
 EXTRA_DIST += \
-	com.canonical.hud.xml \
-	com.canonical.hud.query.xml \
 	create-db.sql
 
 BUILT_SOURCES += \
@@ -178,7 +176,7 @@ BUILT_SOURCES += \
 	hud-iface.c \
 	hud-iface.h
 
-hud-iface.c: $(srcdir)/com.canonical.hud.xml
+hud-iface.c: $(top_srcdir)/data/com.canonical.hud.xml
 	$(AM_V_GEN) gdbus-codegen \
 		--interface-prefix com.canonical.hud. \
 		--generate-c-code hud-iface \
@@ -186,7 +184,7 @@ hud-iface.c: $(srcdir)/com.canonical.hud.xml
 		$^
 hud-iface.h: hud-iface.c
 
-hud-query-iface.c: $(srcdir)/com.canonical.hud.query.xml
+hud-query-iface.c: $(top_srcdir)/data/com.canonical.hud.query.xml
 	$(AM_V_GEN) gdbus-codegen \
 		--interface-prefix com.canonical.hud.query. \
 		--generate-c-code hud-query-iface \

@@ -152,6 +152,13 @@ else
 fi
 AC_SUBST(DBUSSERVICEDIR)
 
+if test "x$with_localinstall" = "xyes"; then
+	DBUSIFACEDIR="${datadir}/dbus-1/interfaces/"
+else
+	DBUSIFACEDIR=`$PKG_CONFIG --variable=interfaces_dir dbus-1`
+fi
+AC_SUBST(DBUSIFACEDIR)
+
 ##############################
 # Custom Junk
 ##############################
