@@ -2,34 +2,17 @@
 <node name="/">
 	<interface name="com.canonical.hud">
 <!-- Properties -->
-		<!-- None -->
+		<property name="OpenQueries" type="ao" access="read" />
 
 <!-- Functions -->
 		<method name="StartQuery">
 			<!-- in -->
 			<arg type="s" name="query" direction="in" />
-			<arg type="i" name="entries" direction="in" />
 			<!-- out -->
-			<arg type="s" name="target" direction="out" />
-			<arg type="a(sssssv)" name="suggestions" direction="out" />
-			<arg type="v" name="querykey" direction="out" />
+			<arg type="o" name="queryObject" direction="out" />
+			<arg type="o" name="resultsObject" direction="out" />
+			<arg type="i" name="modelRevision" direction="out" />
 		</method>
-
-		<method name="ExecuteQuery">
-			<arg type="v" name="key" direction="in" />
-			<arg type="u" name="timestamp" direction="in" />
-		</method>
-
-		<method name="CloseQuery">
-			<arg type="v" name="querykey" direction="in" />
-		</method>
-
-<!-- Signals -->
-		<signal name="UpdatedQuery">
-			<arg type="s" name="target" direction="out" />
-			<arg type="a(sssssv)" name="suggestions" direction="out" />
-			<arg type="v" name="querykey" direction="out" />
-		</signal>
 
 <!-- End of interesting stuff -->
 
