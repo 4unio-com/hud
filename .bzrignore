@@ -198,3 +198,11 @@ tools-vala/.libs/
 tools-vala/hud-gtk
 tools-vala/hud-gtk.c
 tools-vala/hud_gtk_vala.stamp
+.deps
+.libs
+hud-1.pc
+hud-service-iface.c
+hud-service-iface.h
+libhud.la
+libhud_la-hud.lo
+libhud_la-hud-service-iface.lo

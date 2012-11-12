@@ -17,6 +17,7 @@ dbus_interfaces_DATA = \
 
 EXTRA_DIST = \
 	$(dbus_interfaces_DATA) \
+	com.canonical.hud.Application.xml \
 	$(dbus_services_DATA:.service=.service.in) \
 	$(gsettings_SCHEMAS)
 
