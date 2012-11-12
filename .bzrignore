@@ -206,3 +206,11 @@ hud-service-iface.h
 libhud.la
 libhud_la-hud.lo
 libhud_la-hud-service-iface.lo
+hud-client-1.pc
+libhud-client.la
+libhud_client_la-hud-client.lo
+libhud_client_la-hud-client.o
+libhud_client_la-hud.lo
+libhud_client_la-hud.o
+libhud_client_la-hud-service-iface.lo
+libhud_client_la-hud-service-iface.o

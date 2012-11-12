@@ -199,6 +199,7 @@ Makefile
 src/Makefile
 libhud/Makefile
 libhud/tests/Makefile
+libhud-client/Makefile
 data/Makefile
 po/Makefile.in
 tools-vala/Makefile

@@ -5,6 +5,7 @@ SUBDIRS = \
 	po \
 	src \
 	libhud \
+	libhud-client \
 	docs
 
 if BUILD_TESTS
