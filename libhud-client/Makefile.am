@@ -14,7 +14,9 @@ libhud_client_la_SOURCES = \
 	hud-service-iface.h \
 	hud-service-iface.c \
 	hud-client-connection.h \
-	hud-client-connection.c
+	hud-client-connection.c \
+	hud-client-query.h \
+	hud-client-query.c \
 	hud-client.h \
 	hud-client.c
 
