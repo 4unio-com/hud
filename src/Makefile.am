@@ -105,8 +105,8 @@ CLEANFILES += \
 hud_cli_SOURCES = \
 	shared-values.h \
 	hud-cli.c \
-	hud.interface.h \
-	hud.interface.c
+	hud-iface.h \
+	hud-iface.c
 
 hud_cli_CFLAGS = \
 	$(HUD_CFLAGS) \

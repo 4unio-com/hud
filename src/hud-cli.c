@@ -30,7 +30,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <curses.h>
 
 #include "shared-values.h"
-#include "hud.interface.h"
+#include "hud-iface.h"
 
 
 static void print_suggestions(const char * query);
@@ -58,10 +58,7 @@ main (int argc, char *argv[])
 	GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 	g_return_val_if_fail(session != NULL, 1);
 
-	GDBusNodeInfo * nodeinfo = g_dbus_node_info_new_for_xml(hud_interface, NULL);
-	g_return_val_if_fail(nodeinfo != NULL, 1);
-
-	GDBusInterfaceInfo * ifaceinfo = g_dbus_node_info_lookup_interface(nodeinfo, DBUS_IFACE);
+	GDBusInterfaceInfo * ifaceinfo = hud_iface_com_canonical_hud_interface_info();
 	g_return_val_if_fail(ifaceinfo != NULL, 1);
 
 	proxy = g_dbus_proxy_new_sync(session,
@@ -151,7 +148,6 @@ main (int argc, char *argv[])
 	
 	free(line);
 
-	g_dbus_node_info_unref(nodeinfo);
 	g_object_unref(session);
 
 	return 0;
