@@ -2,6 +2,8 @@
 #define __HUD_CLIENT_QUERY_H__
 
 #include <glib-object.h>
+#include <dee.h>
+#include <libhud-client/hud-client-connection.h>
 
 G_BEGIN_DECLS
 
@@ -26,6 +28,16 @@ struct _HudClientQuery {
 };
 
 GType hud_client_query_get_type (void);
+
+HudClientQuery *   hud_client_query_new                   (const gchar *           query);
+HudClientQuery *   hud_client_query_new_for_connection    (const gchar *           query,
+                                                           HudClientConnection *   connection);
+
+void               hud_client_query_set_query             (HudClientQuery *        cquery,
+                                                           const gchar *           query);
+const gchar *      hud_client_query_get_query             (HudClientQuery *        cquery);
+
+DeeModel *         hud_client_query_get_results_model     (HudClientQuery *        cquery);
 
 G_END_DECLS
 
