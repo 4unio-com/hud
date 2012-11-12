@@ -1,2 +1,3 @@
 
-void new_app (void);
+#include <libhud-client/hud-client-connection.h>
+

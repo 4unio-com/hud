@@ -218,3 +218,4 @@ hud-iface.c
 hud-iface.h
 hud-query-iface.c
 hud-query-iface.h
+libhud_client_la-hud-client-connection.lo

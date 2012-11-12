@@ -13,6 +13,8 @@ libhud_client_include_HEADERS = \
 libhud_client_la_SOURCES = \
 	hud-service-iface.h \
 	hud-service-iface.c \
+	hud-client-connection.h \
+	hud-client-connection.c
 	hud-client.h \
 	hud-client.c
 
