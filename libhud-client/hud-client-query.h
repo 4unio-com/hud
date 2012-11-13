@@ -1,3 +1,7 @@
+#if !defined (_HUD_CLIENT_H_INSIDE) && !defined (HUD_CLIENT_COMPILATION)
+#error "Only <hud-client.h> can be included directly."
+#endif
+
 #ifndef __HUD_CLIENT_QUERY_H__
 #define __HUD_CLIENT_QUERY_H__
 

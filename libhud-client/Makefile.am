@@ -6,9 +6,14 @@ lib_LTLIBRARIES = libhud-client.la
 ABI_VERSION = 1
 API_VERSION = 1
 
-libhud_client_includedir = $(includedir)/libhud-client-$(API_VERSION)/libhud
-libhud_client_include_HEADERS = \
+libhud_client_include_basedir = $(includedir)/libhud-client-$(API_VERSION)/
+libhud_client_include_base_HEADERS = \
 	hud-client.h
+
+libhud_client_includedir = $(includedir)/libhud-client-$(API_VERSION)/libhud-client
+libhud_client_include_HEADERS = \
+	hud-client-connection.h \
+	hud-client-query.h
 
 libhud_client_la_SOURCES = \
 	hud-service-iface.h \
@@ -25,6 +30,7 @@ libhud_client_la_CFLAGS = \
 	$(COVERAGE_CFLAGS) \
 	-I $(top_srcdir) \
 	-D G_LOG_DOMAIN=\"libhud-client\" \
+	-D HUD_CLIENT_COMPILATION \
 	-Wall -Werror
 
 libhud_client_la_LIBADD = \
