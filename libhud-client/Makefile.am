@@ -37,9 +37,9 @@ libhud_client_la_LDFLAGS = \
 	-no-undefined \
 	-export-symbols-regex "^[^_].*"
 
-hud-service-iface.c: $(top_srcdir)/data/com.canonical.hud.Application.xml
+hud-service-iface.c: $(top_srcdir)/data/com.canonical.hud.xml
 	$(AM_V_GEN) gdbus-codegen \
-		--interface-prefix com.canonical.hud.Application. \
+		--interface-prefix com.canonical.hud. \
 		--generate-c-code hud-service-iface \
 		--c-namespace _HudService \
 		$^
