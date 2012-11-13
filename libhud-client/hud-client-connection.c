@@ -3,9 +3,10 @@
 #endif
 
 #include "hud-client-connection.h"
+#include "hud-service-iface.h"
 
 struct _HudClientConnectionPrivate {
-	int dummy;
+	_HudServiceComCanonicalHud * proxy;
 };
 
 #define HUD_CLIENT_CONNECTION_GET_PRIVATE(o) \
@@ -34,6 +35,24 @@ hud_client_connection_class_init (HudClientConnectionClass *klass)
 static void
 hud_client_connection_init (HudClientConnection *self)
 {
+	self->priv = HUD_CLIENT_CONNECTION_GET_PRIVATE(self);
+
+	GError * error = NULL;
+	self->priv->proxy = _hud_service_com_canonical_hud_proxy_new_for_bus_sync(
+		G_BUS_TYPE_SESSION,
+		G_DBUS_PROXY_FLAGS_NONE,
+		"com.canonical.hud",
+		"/com/canonical/hud",
+		NULL, /* GCancellable */
+		&error
+	);
+
+	if (error != NULL) {
+		g_warning("Unable to get a HUD proxy: %s", error->message);
+		self->priv->proxy = NULL;
+		g_error_free(error); error = NULL;
+	}
+
 	return;
 }
 
