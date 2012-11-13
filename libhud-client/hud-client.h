@@ -3,7 +3,8 @@
 
 #define _HUD_CLIENT_H_INSIDE
 
-#include <libhud-client/hud-client-connection.h>
+#include <libhud-client/connection.h>
+#include <libhud-client/query.h>
 
 #undef _HUD_CLIENT_H_INSIDE
 

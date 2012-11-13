@@ -2,8 +2,8 @@
 #include "config.h"
 #endif
 
-#include "hud-client-connection.h"
-#include "hud-service-iface.h"
+#include "connection.h"
+#include "service-iface.h"
 
 struct _HudClientConnectionPrivate {
 	_HudServiceComCanonicalHud * proxy;

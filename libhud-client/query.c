@@ -2,7 +2,7 @@
 #include "config.h"
 #endif
 
-#include "hud-client-query.h"
+#include "query.h"
 
 struct _HudClientQueryPrivate {
 	int dummy;

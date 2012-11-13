@@ -12,18 +12,17 @@ libhud_client_include_base_HEADERS = \
 
 libhud_client_includedir = $(includedir)/libhud-client-$(API_VERSION)/libhud-client
 libhud_client_include_HEADERS = \
-	hud-client-connection.h \
-	hud-client-query.h
+	connection.h \
+	query.h
 
 libhud_client_la_SOURCES = \
-	hud-service-iface.h \
-	hud-service-iface.c \
-	hud-client-connection.h \
-	hud-client-connection.c \
-	hud-client-query.h \
-	hud-client-query.c \
-	hud-client.h \
-	hud-client.c
+	service-iface.h \
+	service-iface.c \
+	connection.h \
+	connection.c \
+	query.h \
+	query.c \
+	hud-client.h
 
 libhud_client_la_CFLAGS = \
 	$(HUD_CFLAGS) \
@@ -43,17 +42,17 @@ libhud_client_la_LDFLAGS = \
 	-no-undefined \
 	-export-symbols-regex "^[^_].*"
 
-hud-service-iface.c: $(top_srcdir)/data/com.canonical.hud.xml
+service-iface.c: $(top_srcdir)/data/com.canonical.hud.xml
 	$(AM_V_GEN) gdbus-codegen \
 		--interface-prefix com.canonical.hud. \
-		--generate-c-code hud-service-iface \
+		--generate-c-code service-iface \
 		--c-namespace _HudService \
 		$^
-hud-service-iface.h: hud-service-iface.c
+service-iface.h: service-iface.c
 
 BUILT_SOURCES = \
-	hud-service-iface.h \
-	hud-service-iface.c
+	service-iface.h \
+	service-iface.c
 
 EXTRA_DIST = \
 	hud-client.pc.in

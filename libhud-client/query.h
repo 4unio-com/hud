@@ -7,7 +7,7 @@
 
 #include <glib-object.h>
 #include <dee.h>
-#include <libhud-client/hud-client-connection.h>
+#include <libhud-client/connection.h>
 
 G_BEGIN_DECLS
 

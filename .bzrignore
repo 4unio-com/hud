@@ -220,3 +220,11 @@ hud-query-iface.c
 hud-query-iface.h
 libhud_client_la-hud-client-connection.lo
 libhud_client_la-hud-client-query.lo
+service-iface.c
+service-iface.h
+libhud_client_la-connection.lo
+libhud_client_la-connection.o
+libhud_client_la-query.lo
+libhud_client_la-query.o
+libhud_client_la-service-iface.lo
+libhud_client_la-service-iface.o
