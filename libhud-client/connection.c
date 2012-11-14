@@ -32,6 +32,7 @@ struct _HudClientConnectionPrivate {
 
 static void hud_client_connection_class_init (HudClientConnectionClass *klass);
 static void hud_client_connection_init       (HudClientConnection *self);
+static void hud_client_connection_constructed (GObject *object);
 static void hud_client_connection_dispose    (GObject *object);
 static void hud_client_connection_finalize   (GObject *object);
 
@@ -46,6 +47,7 @@ hud_client_connection_class_init (HudClientConnectionClass *klass)
 
 	object_class->dispose = hud_client_connection_dispose;
 	object_class->finalize = hud_client_connection_finalize;
+	object_class->constructed = hud_client_connection_constructed;
 
 	return;
 }
@@ -54,6 +56,14 @@ static void
 hud_client_connection_init (HudClientConnection *self)
 {
 	self->priv = HUD_CLIENT_CONNECTION_GET_PRIVATE(self);
+
+	return;
+}
+
+static void
+hud_client_connection_constructed (GObject * object)
+{
+	HudClientConnection * self = HUD_CLIENT_CONNECTION(object);
 
 	GError * error = NULL;
 	self->priv->proxy = _hud_service_com_canonical_hud_proxy_new_for_bus_sync(
