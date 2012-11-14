@@ -21,9 +21,10 @@
 #endif
 
 #include "query.h"
+#include "connection.h"
 
 struct _HudClientQueryPrivate {
-	int dummy;
+	HudClientConnection * connection;
 };
 
 #define HUD_CLIENT_QUERY_GET_PRIVATE(o) \
@@ -62,7 +63,13 @@ hud_client_query_init (HudClientQuery *self)
 static void
 hud_client_query_constructed (GObject *object)
 {
+	HudClientQuery * self = HUD_CLIENT_QUERY(object);
+
 	G_OBJECT_CLASS (hud_client_query_parent_class)->constructed (object);
+
+	if (self->priv->connection == NULL) {
+		self->priv->connection = hud_client_connection_get_ref();
+	}
 
 	return;
 }
@@ -70,6 +77,9 @@ hud_client_query_constructed (GObject *object)
 static void
 hud_client_query_dispose (GObject *object)
 {
+	HudClientQuery * self = HUD_CLIENT_QUERY(object);
+
+	g_clear_object(&self->priv->connection);
 
 	G_OBJECT_CLASS (hud_client_query_parent_class)->dispose (object);
 	return;
