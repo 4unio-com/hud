@@ -32,11 +32,19 @@ struct _HudClientConnectionPrivate {
 #define HUD_CLIENT_CONNECTION_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_CLIENT_TYPE_CONNECTION, HudClientConnectionPrivate))
 
+enum {
+	PROP_0 = 0,
+	PROP_ADDRESS,
+	PROP_PATH,
+};
+
 static void hud_client_connection_class_init (HudClientConnectionClass *klass);
 static void hud_client_connection_init       (HudClientConnection *self);
 static void hud_client_connection_constructed (GObject *object);
 static void hud_client_connection_dispose    (GObject *object);
 static void hud_client_connection_finalize   (GObject *object);
+static void set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec);
+static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec);
 
 G_DEFINE_TYPE (HudClientConnection, hud_client_connection, G_TYPE_OBJECT);
 
@@ -50,6 +58,20 @@ hud_client_connection_class_init (HudClientConnectionClass *klass)
 	object_class->dispose = hud_client_connection_dispose;
 	object_class->finalize = hud_client_connection_finalize;
 	object_class->constructed = hud_client_connection_constructed;
+	object_class->set_property = set_property;
+	object_class->get_property = get_property;
+
+	g_object_class_install_property (object_class, PROP_ADDRESS,
+	                                 g_param_spec_string("address", "Address on DBus for the HUD service",
+	                                              "The DBus address of the HUD service we should connect to.",
+	                                              "com.canonical.hud",
+	                                              G_PARAM_READABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property (object_class, PROP_ADDRESS,
+	                                 g_param_spec_string("path", "Path on DBus for the HUD service",
+	                                              "The DBus path of the HUD service we should connect to.",
+	                                              "/com/canonical/hud",
+	                                              G_PARAM_READABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	return;
 }
@@ -58,6 +80,48 @@ static void
 hud_client_connection_init (HudClientConnection *self)
 {
 	self->priv = HUD_CLIENT_CONNECTION_GET_PRIVATE(self);
+
+	return;
+}
+
+static void
+set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
+{
+	HudClientConnection * self = HUD_CLIENT_CONNECTION(obj);
+
+	switch (id) {
+	case PROP_ADDRESS:
+		g_clear_pointer(&self->priv->address, g_free);
+		self->priv->address = g_value_dup_string(value);
+		break;
+	case PROP_PATH:
+		g_clear_pointer(&self->priv->path, g_free);
+		self->priv->path = g_value_dup_string(value);
+		break;
+	default:
+		g_warning("Unknown property %d.", id);
+		return;
+	}
+
+	return;
+}
+
+static void
+get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
+{
+	HudClientConnection * self = HUD_CLIENT_CONNECTION(obj);
+
+	switch (id) {
+	case PROP_ADDRESS:
+		g_value_set_string(value, self->priv->address);
+		break;
+	case PROP_PATH:
+		g_value_set_string(value, self->priv->path);
+		break;
+	default:
+		g_warning("Unknown property %d.", id);
+		return;
+	}
 
 	return;
 }
