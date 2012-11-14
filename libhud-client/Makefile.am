@@ -18,6 +18,8 @@ libhud_client_include_HEADERS = \
 libhud_client_la_SOURCES = \
 	service-iface.h \
 	service-iface.c \
+	query-iface.h \
+	query-iface.c \
 	connection.h \
 	connection.c \
 	query.h \
@@ -50,7 +52,17 @@ service-iface.c: $(top_srcdir)/data/com.canonical.hud.xml
 		$^
 service-iface.h: service-iface.c
 
+query-iface.c: $(top_srcdir)/data/com.canonical.hud.query.xml
+	$(AM_V_GEN) gdbus-codegen \
+		--interface-prefix com.canonical.hud.query. \
+		--generate-c-code query-iface \
+		--c-namespace _HudQuery \
+		$^
+query-iface.h: query-iface.c
+
 BUILT_SOURCES = \
+	query-iface.h \
+	query-iface.c \
 	service-iface.h \
 	service-iface.c
 

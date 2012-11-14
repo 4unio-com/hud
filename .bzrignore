@@ -228,3 +228,6 @@ libhud_client_la-query.lo
 libhud_client_la-query.o
 libhud_client_la-service-iface.lo
 libhud_client_la-service-iface.o
+query-iface.c
+query-iface.h
+libhud_client_la-query-iface.lo
