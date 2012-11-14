@@ -25,6 +25,7 @@
 
 struct _HudClientQueryPrivate {
 	HudClientConnection * connection;
+	gchar * query;
 };
 
 #define HUD_CLIENT_QUERY_GET_PRIVATE(o) \
@@ -33,9 +34,11 @@ struct _HudClientQueryPrivate {
 enum {
 	PROP_0 = 0,
 	PROP_CONNECTION,
+	PROP_QUERY,
 };
 
 #define PROP_CONNECTION_S  "connection"
+#define PROP_QUERY_S       "query"
 
 static void hud_client_query_class_init  (HudClientQueryClass *klass);
 static void hud_client_query_init        (HudClientQuery *self);
@@ -65,6 +68,11 @@ hud_client_query_class_init (HudClientQueryClass *klass)
 	                                              "HUD service connection",
 	                                              HUD_CLIENT_TYPE_CONNECTION,
 	                                              G_PARAM_READABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (object_class, PROP_QUERY,
+	                                 g_param_spec_string(PROP_QUERY_S, "Query to the HUD service",
+	                                              "HUD query",
+	                                              NULL,
+	                                              G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	return;
 }
@@ -87,6 +95,9 @@ set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
 		g_clear_object(&self->priv->connection);
 		self->priv->connection = g_value_dup_object(value);
 		break;
+	case PROP_QUERY:
+		hud_client_query_set_query(self, g_value_get_string(value));
+		break;
 	default:
 		g_warning("Unknown property %d.", id);
 		return;
@@ -103,6 +114,9 @@ get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
 	switch (id) {
 	case PROP_CONNECTION:
 		g_value_set_object(value, self->priv->connection);
+		break;
+	case PROP_QUERY:
+		g_value_set_string(value, self->priv->query);
 		break;
 	default:
 		g_warning("Unknown property %d.", id);
@@ -140,6 +154,9 @@ hud_client_query_dispose (GObject *object)
 static void
 hud_client_query_finalize (GObject *object)
 {
+	HudClientQuery * self = HUD_CLIENT_QUERY(object);
+
+	g_clear_pointer(&self->priv->query, g_free);
 
 	G_OBJECT_CLASS (hud_client_query_parent_class)->finalize (object);
 	return;
@@ -162,6 +179,12 @@ hud_client_query_new_for_connection (const gchar * query, HudClientConnection * 
 void
 hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 {
+	g_return_if_fail(HUD_CLIENT_IS_QUERY(cquery));
+
+	g_clear_pointer(&cquery->priv->query, g_free);
+	cquery->priv->query = g_strdup(query);
+
+	g_object_notify(G_OBJECT(cquery), PROP_QUERY_S);
 
 	return;
 }
@@ -169,9 +192,9 @@ hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 const gchar *
 hud_client_query_get_query (HudClientQuery * cquery)
 {
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
 
-
-	return NULL;
+	return cquery->priv->query;
 }
 
 DeeModel *
