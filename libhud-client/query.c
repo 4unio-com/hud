@@ -165,15 +165,20 @@ hud_client_query_finalize (GObject *object)
 HudClientQuery *
 hud_client_query_new (const gchar * query)
 {
-
-	return NULL;
+	return HUD_CLIENT_QUERY(g_object_new(HUD_CLIENT_TYPE_QUERY,
+		PROP_QUERY_S, query,
+		NULL
+	));
 }
 
 HudClientQuery *
 hud_client_query_new_for_connection (const gchar * query, HudClientConnection * connection)
 {
-
-	return NULL;
+	return HUD_CLIENT_QUERY(g_object_new(HUD_CLIENT_TYPE_QUERY,
+		PROP_CONNECTION_S, connection,
+		PROP_QUERY_S, query,
+		NULL
+	));
 }
 
 void
