@@ -25,6 +25,8 @@
 
 struct _HudClientConnectionPrivate {
 	_HudServiceComCanonicalHud * proxy;
+	gchar * address;
+	gchar * path;
 };
 
 #define HUD_CLIENT_CONNECTION_GET_PRIVATE(o) \
@@ -69,8 +71,8 @@ hud_client_connection_constructed (GObject * object)
 	self->priv->proxy = _hud_service_com_canonical_hud_proxy_new_for_bus_sync(
 		G_BUS_TYPE_SESSION,
 		G_DBUS_PROXY_FLAGS_NONE,
-		"com.canonical.hud",
-		"/com/canonical/hud",
+		self->priv->address,
+		self->priv->path,
 		NULL, /* GCancellable */
 		&error
 	);
@@ -87,6 +89,9 @@ hud_client_connection_constructed (GObject * object)
 static void
 hud_client_connection_dispose (GObject *object)
 {
+	HudClientConnection * self = HUD_CLIENT_CONNECTION(object);
+
+	g_clear_object(&self->priv->proxy);
 
 	G_OBJECT_CLASS (hud_client_connection_parent_class)->dispose (object);
 	return;
@@ -95,6 +100,10 @@ hud_client_connection_dispose (GObject *object)
 static void
 hud_client_connection_finalize (GObject *object)
 {
+	HudClientConnection * self = HUD_CLIENT_CONNECTION(object);
+
+	g_clear_pointer(&self->priv->address, g_free);
+	g_clear_pointer(&self->priv->path, g_free);
 
 	G_OBJECT_CLASS (hud_client_connection_parent_class)->finalize (object);
 	return;
