@@ -182,10 +182,7 @@ hud_client_connection_get_ref (void)
 	static HudClientConnection * global = NULL;
 
 	if (global == NULL) {
-		global = HUD_CLIENT_CONNECTION(g_object_new(HUD_CLIENT_TYPE_CONNECTION,
-			PROP_ADDRESS_S, "com.canonical.hud",
-			PROP_PATH_S, "/com/canonical/hud",
-			NULL));
+		global = HUD_CLIENT_CONNECTION(g_object_new(HUD_CLIENT_TYPE_CONNECTION, NULL));
 		g_object_add_weak_pointer(G_OBJECT(global), (gpointer *)&global);
 		return global;
 	} else {
@@ -196,7 +193,8 @@ hud_client_connection_get_ref (void)
 HudClientConnection *
 hud_client_connection_new (gchar * dbus_address, gchar * dbus_path)
 {
-
-
-	return NULL;
+	return HUD_CLIENT_CONNECTION(g_object_new(HUD_CLIENT_TYPE_CONNECTION,
+			PROP_ADDRESS_S, dbus_address,
+			PROP_PATH_S, dbus_path,
+			NULL));
 }
