@@ -38,6 +38,9 @@ enum {
 	PROP_PATH,
 };
 
+#define PROP_ADDRESS_S  "address"
+#define PROP_PATH_S     "path"
+
 static void hud_client_connection_class_init (HudClientConnectionClass *klass);
 static void hud_client_connection_init       (HudClientConnection *self);
 static void hud_client_connection_constructed (GObject *object);
@@ -62,13 +65,13 @@ hud_client_connection_class_init (HudClientConnectionClass *klass)
 	object_class->get_property = get_property;
 
 	g_object_class_install_property (object_class, PROP_ADDRESS,
-	                                 g_param_spec_string("address", "Address on DBus for the HUD service",
+	                                 g_param_spec_string(PROP_ADDRESS_S, "Address on DBus for the HUD service",
 	                                              "The DBus address of the HUD service we should connect to.",
 	                                              "com.canonical.hud",
 	                                              G_PARAM_READABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (object_class, PROP_ADDRESS,
-	                                 g_param_spec_string("path", "Path on DBus for the HUD service",
+	                                 g_param_spec_string(PROP_PATH_S, "Path on DBus for the HUD service",
 	                                              "The DBus path of the HUD service we should connect to.",
 	                                              "/com/canonical/hud",
 	                                              G_PARAM_READABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
@@ -176,9 +179,18 @@ hud_client_connection_finalize (GObject *object)
 HudClientConnection *
 hud_client_connection_get_ref (void)
 {
+	static HudClientConnection * global = NULL;
 
-
-	return NULL;
+	if (global == NULL) {
+		global = HUD_CLIENT_CONNECTION(g_object_new(HUD_CLIENT_TYPE_CONNECTION,
+			PROP_ADDRESS_S, "com.canonical.hud",
+			PROP_PATH_S, "/com/canonical/hud",
+			NULL));
+		g_object_add_weak_pointer(G_OBJECT(global), (gpointer *)&global);
+		return global;
+	} else {
+		return g_object_ref(global);
+	}
 }
 
 HudClientConnection *
