@@ -30,11 +30,20 @@ struct _HudClientQueryPrivate {
 #define HUD_CLIENT_QUERY_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_CLIENT_TYPE_QUERY, HudClientQueryPrivate))
 
+enum {
+	PROP_0 = 0,
+	PROP_CONNECTION,
+};
+
+#define PROP_CONNECTION_S  "connection"
+
 static void hud_client_query_class_init  (HudClientQueryClass *klass);
 static void hud_client_query_init        (HudClientQuery *self);
 static void hud_client_query_constructed (GObject *object);
 static void hud_client_query_dispose     (GObject *object);
 static void hud_client_query_finalize    (GObject *object);
+static void set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec);
+static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec);
 
 G_DEFINE_TYPE (HudClientQuery, hud_client_query, G_TYPE_OBJECT);
 
@@ -48,6 +57,14 @@ hud_client_query_class_init (HudClientQueryClass *klass)
 	object_class->dispose = hud_client_query_dispose;
 	object_class->finalize = hud_client_query_finalize;
 	object_class->constructed = hud_client_query_constructed;
+	object_class->set_property = set_property;
+	object_class->get_property = get_property;
+
+	g_object_class_install_property (object_class, PROP_CONNECTION,
+	                                 g_param_spec_object(PROP_CONNECTION_S, "Connection to the HUD service",
+	                                              "HUD service connection",
+	                                              HUD_CLIENT_TYPE_CONNECTION,
+	                                              G_PARAM_READABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	return;
 }
@@ -56,6 +73,41 @@ static void
 hud_client_query_init (HudClientQuery *self)
 {
 	self->priv = HUD_CLIENT_QUERY_GET_PRIVATE(self);
+
+	return;
+}
+
+static void
+set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
+{
+	HudClientQuery * self = HUD_CLIENT_QUERY(obj);
+
+	switch (id) {
+	case PROP_CONNECTION:
+		g_clear_object(&self->priv->connection);
+		self->priv->connection = g_value_dup_object(value);
+		break;
+	default:
+		g_warning("Unknown property %d.", id);
+		return;
+	}
+
+	return;
+}
+
+static void
+get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
+{
+	HudClientQuery * self = HUD_CLIENT_QUERY(obj);
+
+	switch (id) {
+	case PROP_CONNECTION:
+		g_value_set_object(value, self->priv->connection);
+		break;
+	default:
+		g_warning("Unknown property %d.", id);
+		return;
+	}
 
 	return;
 }
