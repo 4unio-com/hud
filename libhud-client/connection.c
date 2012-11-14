@@ -198,3 +198,17 @@ hud_client_connection_new (gchar * dbus_address, gchar * dbus_path)
 			PROP_PATH_S, dbus_path,
 			NULL));
 }
+
+gboolean
+hud_client_connection_new_query (HudClientConnection * connection, gchar ** query_path, gchar ** results_path)
+{
+
+	return FALSE;
+}
+
+const gchar *
+hud_client_connection_get_address (HudClientConnection * connection)
+{
+
+	return NULL;
+}

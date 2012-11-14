@@ -51,6 +51,10 @@ GType                   hud_client_connection_get_type   (void);
 HudClientConnection *   hud_client_connection_get_ref    (void);
 HudClientConnection *   hud_client_connection_new        (gchar * dbus_address,
                                                           gchar * dbus_path);
+gboolean                hud_client_connection_new_query  (HudClientConnection * connection,
+                                                          gchar ** query_path,
+                                                          gchar ** results_path);
+const gchar *           hud_client_connection_get_address (HudClientConnection * connection);
 
 G_END_DECLS
 
