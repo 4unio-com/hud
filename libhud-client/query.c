@@ -22,8 +22,10 @@
 
 #include "query.h"
 #include "connection.h"
+#include "query-iface.h"
 
 struct _HudClientQueryPrivate {
+	_HudQueryComCanonicalHud * proxy;
 	HudClientConnection * connection;
 	gchar * query;
 };
@@ -145,6 +147,7 @@ hud_client_query_dispose (GObject *object)
 {
 	HudClientQuery * self = HUD_CLIENT_QUERY(object);
 
+	g_clear_object(&self->priv->proxy);
 	g_clear_object(&self->priv->connection);
 
 	G_OBJECT_CLASS (hud_client_query_parent_class)->dispose (object);
