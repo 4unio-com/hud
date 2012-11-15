@@ -20,6 +20,8 @@
 #include "config.h"
 #endif
 
+#include <dee.h>
+
 #include "query.h"
 #include "connection.h"
 #include "query-iface.h"
@@ -28,6 +30,7 @@ struct _HudClientQueryPrivate {
 	_HudQueryComCanonicalHud * proxy;
 	HudClientConnection * connection;
 	gchar * query;
+	DeeModel * results;
 };
 
 #define HUD_CLIENT_QUERY_GET_PRIVATE(o) \
@@ -147,6 +150,7 @@ hud_client_query_dispose (GObject *object)
 {
 	HudClientQuery * self = HUD_CLIENT_QUERY(object);
 
+	g_clear_object(&self->priv->results);
 	g_clear_object(&self->priv->proxy);
 	g_clear_object(&self->priv->connection);
 
@@ -213,7 +217,8 @@ hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 			NULL  /* GError */
 		);
 
-		/* TODO: Make a DeeModel */
+		g_clear_object(&cquery->priv->results);
+		cquery->priv->results = dee_shared_model_new(results);
 
 		g_free(path);
 		g_free(results);
@@ -235,7 +240,7 @@ hud_client_query_get_query (HudClientQuery * cquery)
 DeeModel *
 hud_client_query_get_results_model (HudClientQuery * cquery)
 {
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
 
-
-	return NULL;
+	return cquery->priv->results;
 }
