@@ -200,15 +200,25 @@ hud_client_connection_new (gchar * dbus_address, gchar * dbus_path)
 }
 
 gboolean
-hud_client_connection_new_query (HudClientConnection * connection, gchar ** query_path, gchar ** results_path)
+hud_client_connection_new_query (HudClientConnection * connection, const gchar * query, gchar ** query_path, gchar ** results_path)
 {
+	g_return_val_if_fail(HUD_CLIENT_IS_CONNECTION(connection), FALSE);
 
-	return FALSE;
+	gint modelrev = 0;
+
+	return _hud_service_com_canonical_hud_call_start_query_sync(connection->priv->proxy,
+		query,
+		query_path,
+		results_path,
+		&modelrev,
+		NULL,  /* GCancellable */
+		NULL); /* GError */
 }
 
 const gchar *
 hud_client_connection_get_address (HudClientConnection * connection)
 {
+	g_return_val_if_fail(HUD_CLIENT_IS_CONNECTION(connection), NULL);
 
-	return NULL;
+	return connection->priv->address;
 }

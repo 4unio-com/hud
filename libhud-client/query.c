@@ -202,7 +202,7 @@ hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 		
 		/* This is perhaps a little extreme, but really, if this is failing
 		   there's a whole world of hurt for us. */
-		g_return_if_fail(hud_client_connection_new_query(cquery->priv->connection, &path, &results));
+		g_return_if_fail(hud_client_connection_new_query(cquery->priv->connection, cquery->priv->query, &path, &results));
 
 		cquery->priv->proxy = _hud_query_com_canonical_hud_proxy_new_for_bus_sync(
 			G_BUS_TYPE_SESSION,
