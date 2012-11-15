@@ -29,11 +29,11 @@ static void new_element (GMarkupParseContext *context, const gchar * name, const
 static void end_element (GMarkupParseContext  *context, const gchar * name, gpointer user_data, GError ** error);
 
 static GMarkupParser app_info_parser = {
-	start_element:  new_element,
-	end_element:    end_element,
-	text:           NULL,
-	passthrough:    NULL,
-	error:          NULL
+	.start_element =  new_element,
+	.end_element =    end_element,
+	.text =           NULL,
+	.passthrough =    NULL,
+	.error =          NULL
 };
 
 typedef struct _menu_data_t menu_data_t;
@@ -97,13 +97,13 @@ load_app_info (const gchar * filename, sqlite3 * db)
 
 	/* parse it */
 	menu_data_t menu_data = {
-		db: db,
-		seen_header: FALSE,
-		seen_menus: FALSE,
-		desktopfile: NULL,
-		domain: NULL,
-		queue: G_QUEUE_INIT,
-		statement: NULL
+		.db = db,
+		.seen_header = FALSE,
+		.seen_menus = FALSE,
+		.desktopfile = NULL,
+		.domain = NULL,
+		.queue = G_QUEUE_INIT,
+		.statement = NULL
 	};
 
 	menu_data.statement = g_string_new("begin transaction;");
