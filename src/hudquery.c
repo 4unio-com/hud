@@ -61,10 +61,7 @@ struct _HudQuery
 
 typedef GObjectClass HudQueryClass;
 
-static void query_dbus_iface_init (HudQueryIfaceComCanonicalHud * iface);
-
-G_DEFINE_TYPE_WITH_CODE (HudQuery, hud_query, G_TYPE_OBJECT,
-                         G_IMPLEMENT_INTERFACE (HUD_QUERY_IFACE_TYPE_COM_CANONICAL_HUD, query_dbus_iface_init))
+G_DEFINE_TYPE (HudQuery, hud_query, G_TYPE_OBJECT)
 
 static guint hud_query_changed_signal;
 
@@ -185,15 +182,6 @@ hud_query_class_init (HudQueryClass *class)
                                            NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
 
   class->finalize = hud_query_finalize;
-}
-
-/* Connects to the dbus calls from the bus */
-static void
-query_dbus_iface_init (HudQueryIfaceComCanonicalHud * iface)
-{
-	/* TODO */
-
-	return;
 }
 
 /**
