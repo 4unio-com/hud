@@ -56,6 +56,9 @@ struct _HudQuery
   gint num_results;
   guint refresh_id;
 
+  guint querynumber; /* Incrementing count, which one were we? */
+  HudQueryIfaceComCanonicalHud * skel;
+
   GPtrArray *results;
 };
 
@@ -149,6 +152,9 @@ hud_query_finalize (GObject *object)
   HudQuery *query = HUD_QUERY (object);
 
   g_debug ("Destroyed query '%s'", query->search_string);
+
+  /* TODO: move to destroy */
+  g_clear_object(&query->skel);
 
   if (query->refresh_id)
     g_source_remove (query->refresh_id);
