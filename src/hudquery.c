@@ -70,6 +70,8 @@ static guint hud_query_changed_signal;
 
 static HudQuery *last_created_query;
 
+static guint query_count = 0;
+
 static void
 hud_query_find_max_usage (gpointer data,
                           gpointer user_data)
@@ -173,6 +175,9 @@ hud_query_finalize (GObject *object)
 static void
 hud_query_init (HudQuery *query)
 {
+  query->querynumber = query_count++;
+
+  return;
 }
 
 static void
