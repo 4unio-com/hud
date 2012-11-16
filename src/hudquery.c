@@ -177,6 +177,14 @@ hud_query_init (HudQuery *query)
 {
   query->querynumber = query_count++;
 
+  query->skel = hud_query_iface_com_canonical_hud_skeleton_new();
+  gchar * path = g_strdup_printf("/com/canonical/hud/query%d", query->querynumber);
+  g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),
+                                   g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
+                                   path,
+                                   NULL);
+  g_free(path);
+
   return;
 }
 
