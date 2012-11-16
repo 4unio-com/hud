@@ -8,13 +8,18 @@ API_VERSION = 1
 
 libhudincludedir = $(includedir)/libhud-$(API_VERSION)/libhud
 libhudinclude_HEADERS = \
+	hudoperation.h		\
+	hudaction.h		\
+	hudactionpublisher.h	\
 	hud.h
 
 libhud_la_SOURCES = \
-	hud-service-iface.h \
-	hud-service-iface.c \
-	hud.h \
-	hud.c
+	hud-service-iface.h	\
+	hud-service-iface.c	\
+	hudoperation-private.h	\
+	hudoperation.c		\
+	hudaction.c		\
+	hudactionpublisher.c
 
 libhud_la_CFLAGS = \
 	$(HUD_CFLAGS) \
