@@ -27,7 +27,7 @@
 #include "query-iface.h"
 
 struct _HudClientQueryPrivate {
-	_HudQueryComCanonicalHud * proxy;
+	_HudQueryComCanonicalHudQuery * proxy;
 	HudClientConnection * connection;
 	gchar * query;
 	DeeModel * results;
@@ -198,7 +198,7 @@ hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 
 	if (cquery->priv->proxy != NULL) {
 		gint revision = 0;
-		_hud_query_com_canonical_hud_call_update_query_sync(cquery->priv->proxy, cquery->priv->query, &revision, NULL, NULL);
+		_hud_query_com_canonical_hud_query_call_update_query_sync(cquery->priv->proxy, cquery->priv->query, &revision, NULL, NULL);
 		g_debug("Revision for update: %d", revision);
 	} else {
 		gchar * path = NULL;
@@ -208,7 +208,7 @@ hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 		   there's a whole world of hurt for us. */
 		g_return_if_fail(hud_client_connection_new_query(cquery->priv->connection, cquery->priv->query, &path, &results));
 
-		cquery->priv->proxy = _hud_query_com_canonical_hud_proxy_new_for_bus_sync(
+		cquery->priv->proxy = _hud_query_com_canonical_hud_query_proxy_new_for_bus_sync(
 			G_BUS_TYPE_SESSION,
 			G_DBUS_PROXY_FLAGS_NONE,
 			hud_client_connection_get_address(cquery->priv->connection),
