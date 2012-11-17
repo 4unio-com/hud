@@ -58,6 +58,8 @@ struct _HudQuery
 
   guint querynumber; /* Incrementing count, which one were we? */
   HudQueryIfaceComCanonicalHudQuery * skel;
+  gchar * object_path;
+  gchar * results_name;
 
   GPtrArray *results;
 };
@@ -168,6 +170,9 @@ hud_query_finalize (GObject *object)
   g_free (query->search_string);
   g_ptr_array_unref (query->results);
 
+  g_clear_pointer(&query->object_path, g_free);
+  g_clear_pointer(&query->results_name, g_free);
+
   G_OBJECT_CLASS (hud_query_parent_class)
     ->finalize (object);
 }
@@ -178,12 +183,13 @@ hud_query_init (HudQuery *query)
   query->querynumber = query_count++;
 
   query->skel = hud_query_iface_com_canonical_hud_query_skeleton_new();
-  gchar * path = g_strdup_printf("/com/canonical/hud/query%d", query->querynumber);
+  query->object_path = g_strdup_printf("/com/canonical/hud/query%d", query->querynumber);
   g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),
                                    g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
-                                   path,
+                                   query->object_path,
                                    NULL);
-  g_free(path);
+
+  query->results_name = g_strdup_printf("com.canonical.hud.query%d", query->querynumber);
 
   return;
 }
@@ -339,18 +345,34 @@ hud_query_get_result_by_index (HudQuery *query,
   return query->results->pdata[i];
 }
 
+/**
+ * hud_query_get_path:
+ * @query: a #HudQuery
+ *
+ * Gets the path that the query object is exported to DBus on.
+ *
+ * Return value: A dbus object path
+ */
 const gchar *
 hud_query_get_path (HudQuery    *query)
 {
-	/* TODO */
+	g_return_val_if_fail(HUD_IS_QUERY(query), NULL);
 
-	return NULL;
+	return query->object_path;
 }
 
+/**
+ * hud_query_get_results_name:
+ * @query: a #HudQuery
+ *
+ * Gets the DBus name that the shared results model is using
+ *
+ * Return value: A dbus name
+ */
 const gchar *
 hud_query_get_results_name (HudQuery    *query)
 {
-	/* TODO */
+	g_return_val_if_fail(HUD_IS_QUERY(query), NULL);
 
-	return NULL;
+	return query->results_name;
 }
