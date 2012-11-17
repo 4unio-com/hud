@@ -55,12 +55,12 @@ TESTS += \
 check_PROGRAMS += \
 	test-result-highlighting
 
-DISTANCE_XML_REPORT = test-result-highlighting.xml
+HIGHLIGHTING_XML_REPORT = test-result-highlighting.xml
 
 test-result-highlighting-test: test-result-highlighting Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
-	@echo gtester --verbose -k -o $(DISTANCE_XML_REPORT) $(builddir)/test-result-highlighting >> $@
+	@echo gtester --verbose -k -o $(HIGHLIGHTING_XML_REPORT) $(builddir)/test-result-highlighting >> $@
 	@chmod +x $@
 
 test_result_highlighting_SOURCES = \
@@ -77,7 +77,7 @@ test_result_highlighting_LDADD = \
 	../src/libhud-service.a		\
 	$(HUD_LIBS)
 
-DISTCLEANFILES += $(DISTANCE_XML_REPORT)
+DISTCLEANFILES += $(HIGHLIGHTING_XML_REPORT)
 
 ######################
 # Test Usage DB Simple
