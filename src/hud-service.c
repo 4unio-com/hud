@@ -80,16 +80,20 @@ bus_method (GDBusConnection       *connection,
 
   if (g_str_equal (method_name, "StartQuery"))
     {
+      GVariant * vsearch;
       const gchar *search_string;
-      gint num_results;
       HudQuery *query;
 
-      g_variant_get (parameters, "(&si)", &search_string, &num_results);
-      g_debug ("'StartQuery' from %s: '%s', %d", sender, search_string, num_results);
-      query = hud_query_new (source, search_string, num_results);
+      vsearch = g_variant_get_child_value (parameters, 0);
+      search_string = g_variant_get_string(vsearch, NULL);
+      g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
+
+      query = hud_query_new (source, search_string, 10);
       g_signal_connect_object (query, "changed", G_CALLBACK (query_changed), connection, 0);
       g_dbus_method_invocation_return_value (invocation, describe_query (query));
       g_object_unref (query);
+
+      g_variant_unref(vsearch);
     }
   else
     {
