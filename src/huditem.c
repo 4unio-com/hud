@@ -16,6 +16,8 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
+#include <glib/gi18n.h>
+
 #include "huditem.h"
 
 #include "usage-tracker.h"
@@ -340,4 +342,54 @@ HudTokenList *
 hud_item_get_token_list (HudItem *item)
 {
   return item->priv->token_list;
+}
+
+/**
+ * hud_item_get_command:
+ * @item: a #HudItem
+ *
+ * Returns the user visible string that describes this command
+ *
+ * Returns: A string that can be shown to the user
+ */
+const gchar *
+hud_item_get_command (HudItem *item)
+{
+	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
+
+	if (item->priv->tokens == NULL) {
+		return _("No Command");
+	}
+
+	const gchar * head = hud_string_list_get_head(item->priv->tokens);
+	if (head == NULL) {
+		return _("No Command");
+	}
+
+	return head;
+}
+
+/**
+ * hud_item_get_context:
+ * @item: a #HudItem
+ *
+ * Returns the context of this command as a string
+ *
+ * Returns: A string that can be shown to the user
+ */
+gchar *
+hud_item_get_context (HudItem *item)
+{
+	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
+
+	if (item->priv->tokens == NULL) {
+		return "";
+	}
+
+	HudStringList * tail = hud_string_list_get_tail(item->priv->tokens);
+	if (tail == NULL) {
+		return "";
+	}
+
+	return hud_string_list_pretty_print(tail);
 }

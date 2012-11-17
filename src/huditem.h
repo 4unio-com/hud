@@ -75,5 +75,7 @@ gboolean                hud_item_get_enabled                            (HudItem
 guint64                 hud_item_get_id                                 (HudItem       *item);
 HudItem *               hud_item_lookup                                 (guint64        id);
 HudTokenList *          hud_item_get_token_list                         (HudItem       *item);
+const gchar *           hud_item_get_command                            (HudItem       *item);
+gchar *                 hud_item_get_context                            (HudItem       *item);
 
 #endif /* __HUD_ITEM_H__ */
