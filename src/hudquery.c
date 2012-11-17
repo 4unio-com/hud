@@ -18,6 +18,8 @@
 
 #define G_LOG_DOMAIN "hudquery"
 
+#include <dee.h>
+
 #include "hudquery.h"
 #include "hud-query-iface.h"
 
@@ -59,6 +61,7 @@ struct _HudQuery
   guint querynumber; /* Incrementing count, which one were we? */
   HudQueryIfaceComCanonicalHudQuery * skel;
   gchar * object_path;
+  DeeModel * results_model;
   gchar * results_name;
 
   GPtrArray *results;
@@ -159,6 +162,7 @@ hud_query_finalize (GObject *object)
 
   /* TODO: move to destroy */
   g_clear_object(&query->skel);
+  g_clear_object(&query->results_model);
 
   if (query->refresh_id)
     g_source_remove (query->refresh_id);
@@ -190,6 +194,7 @@ hud_query_init (HudQuery *query)
                                    NULL);
 
   query->results_name = g_strdup_printf("com.canonical.hud.query%d", query->querynumber);
+  query->results_model = dee_shared_model_new(query->results_name);
 
   return;
 }
