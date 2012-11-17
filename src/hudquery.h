@@ -38,11 +38,6 @@ HudQuery *              hud_query_new                                   (HudSour
 
 GVariant *              hud_query_get_query_key                         (HudQuery    *query);
 
-HudResult *             hud_query_get_result_by_index                   (HudQuery    *query,
-                                                                         guint        i);
-
-guint                   hud_query_get_n_results                         (HudQuery    *query);
-
 void                    hud_query_close                                 (HudQuery    *query);
 
 HudQuery *              hud_query_lookup                                (GVariant    *query_key);

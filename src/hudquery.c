@@ -63,8 +63,7 @@ struct _HudQuery
   gchar * object_path;
   DeeModel * results_model;
   gchar * results_name;
-
-  GPtrArray *results;
+  DeeModelTag * results_tag;
 };
 
 typedef GObjectClass HudQueryClass;
@@ -84,36 +83,19 @@ static const gchar * results_model_schema[] = {
 	"s", /* Description */
 	"a(ii)", /* Highlights in description */
 	"s", /* Shortcut */
+	"u", /* Distance */
 };
 
-static void
-hud_query_find_max_usage (gpointer data,
-                          gpointer user_data)
-{
-  guint *max_usage = user_data;
-  HudResult *result = data;
-  HudItem *item;
-  guint usage;
-
-  item = hud_result_get_item (result);
-  usage = hud_item_get_usage (item);
-
-  *max_usage = MAX (*max_usage, usage);
-}
-
 static gint
-hud_query_compare_results (gconstpointer a,
-                           gconstpointer b,
-                           gpointer      user_data)
+compare_func (GVariant   ** a,
+              GVariant   ** b,
+              gpointer      user_data)
 {
-  HudResult *result_a = *(HudResult * const *) a;
-  HudResult *result_b = *(HudResult * const *) b;
-  gint max_usage = GPOINTER_TO_INT (user_data);
   guint distance_a;
   guint distance_b;
 
-  distance_a = hud_result_get_distance (result_a, max_usage);
-  distance_b = hud_result_get_distance (result_b, max_usage);
+  distance_a = g_variant_get_uint32(a[6]);
+  distance_b = g_variant_get_uint32(b[6]);
 
   return distance_a - distance_b;
 }
@@ -122,28 +104,38 @@ hud_query_compare_results (gconstpointer a,
 static void
 results_list_populate (HudResult * result, gpointer user_data)
 {
-	GPtrArray * array = (GPtrArray *)user_data;
-	g_ptr_array_add(array, result);
+	HudQuery * query = (HudQuery *)user_data;
+
+	GVariant * columns[G_N_ELEMENTS(results_model_schema) + 1];
+	columns[0] = g_variant_new_string("id");
+	columns[1] = g_variant_new_string("name");
+	columns[2] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+	columns[3] = g_variant_new_string("description");
+	columns[4] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+	columns[5] = g_variant_new_string("shortcut");
+	columns[6] = g_variant_new_uint32(hud_result_get_distance(result, 0)); /* TODO: Figure out max usage */
+	columns[7] = NULL;
+
+	DeeModelIter * iter = dee_model_insert_row_sorted(query->results_model,
+	                                                  columns /* variants */,
+	                                                  compare_func, NULL);
+
+	dee_model_set_tag(query->results_model, iter, query->results_tag, result);
+
 	return;
 }
 
 static void
 hud_query_refresh (HudQuery *query)
 {
-  guint max_usage = 0;
   guint64 start_time;
 
   start_time = g_get_monotonic_time ();
 
-  g_ptr_array_set_size (query->results, 0);
+  dee_model_clear(query->results_model);
 
   if (hud_token_list_get_length (query->token_list) != 0)
-    hud_source_search (query->source, query->token_list, results_list_populate, query->results);
-
-  g_ptr_array_foreach (query->results, hud_query_find_max_usage, &max_usage);
-  g_ptr_array_sort_with_data (query->results, hud_query_compare_results, GINT_TO_POINTER (max_usage));
-  if (query->results->len > query->num_results)
-    g_ptr_array_set_size (query->results, query->num_results);
+    hud_source_search (query->source, query->token_list, results_list_populate, query);
 
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
 }
@@ -190,7 +182,6 @@ hud_query_finalize (GObject *object)
   g_object_unref (query->source);
   hud_token_list_free (query->token_list);
   g_free (query->search_string);
-  g_ptr_array_unref (query->results);
 
   g_clear_pointer(&query->object_path, g_free);
   g_clear_pointer(&query->results_name, g_free);
@@ -214,6 +205,7 @@ hud_query_init (HudQuery *query)
   query->results_name = g_strdup_printf("com.canonical.hud.query%d.results", query->querynumber);
   query->results_model = dee_shared_model_new(query->results_name);
   dee_model_set_schema_full(query->results_model, results_model_schema, G_N_ELEMENTS(results_model_schema));
+  query->results_tag = dee_model_register_tag(query->results_model, g_object_unref);
 
   return;
 }
@@ -262,7 +254,6 @@ hud_query_new (HudSource   *source,
 
   query = g_object_new (HUD_TYPE_QUERY, NULL);
   query->source = g_object_ref (source);
-  query->results = g_ptr_array_new_with_free_func (g_object_unref);
   query->search_string = g_strdup (search_string);
   query->token_list = hud_token_list_new_from_string (query->search_string);
   query->num_results = num_results;
@@ -334,39 +325,6 @@ hud_query_close (HudQuery *query)
 {
   if (query == last_created_query)
     g_clear_object (&last_created_query);
-}
-
-/**
- * hud_query_get_n_results:
- * @query: a #HudQuery
- *
- * Gets the number of results in @query.
- *
- * Returns: the number of results
- **/
-guint
-hud_query_get_n_results (HudQuery *query)
-{
-  return query->results->len;
-}
-
-/**
- * hud_query_get_result_by_index:
- * @query: a #HudQuery
- * @i: the index of the result
- *
- * Gets the @i<!-- -->th result from @query.
- *
- * @i must be less than the number of results in the query.  See
- * hud_query_get_n_results().
- *
- * Returns: (transfer none): the #HudResult at position @i
- **/
-HudResult *
-hud_query_get_result_by_index (HudQuery *query,
-                               guint     i)
-{
-  return query->results->pdata[i];
 }
 
 /**
