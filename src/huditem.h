@@ -77,5 +77,6 @@ HudItem *               hud_item_lookup                                 (guint64
 HudTokenList *          hud_item_get_token_list                         (HudItem       *item);
 const gchar *           hud_item_get_command                            (HudItem       *item);
 gchar *                 hud_item_get_context                            (HudItem       *item);
+const gchar *           hud_item_get_shortcut                           (HudItem       *item);
 
 #endif /* __HUD_ITEM_H__ */

@@ -105,14 +105,15 @@ static void
 results_list_populate (HudResult * result, gpointer user_data)
 {
 	HudQuery * query = (HudQuery *)user_data;
+	HudItem * item = hud_result_get_item(result);
 
 	GVariant * columns[G_N_ELEMENTS(results_model_schema) + 1];
 	columns[0] = g_variant_new_string("id");
-	columns[1] = g_variant_new_string(hud_item_get_command(hud_result_get_item(result)));
+	columns[1] = g_variant_new_string(hud_item_get_command(item));
 	columns[2] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
-	columns[3] = g_variant_new_string(hud_item_get_context(hud_result_get_item(result)));
+	columns[3] = g_variant_new_string(hud_item_get_context(item));
 	columns[4] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
-	columns[5] = g_variant_new_string("shortcut");
+	columns[5] = g_variant_new_string(hud_item_get_shortcut(item));
 	columns[6] = g_variant_new_uint32(hud_result_get_distance(result, 0)); /* TODO: Figure out max usage */
 	columns[7] = NULL;
 

@@ -393,3 +393,20 @@ hud_item_get_context (HudItem *item)
 
 	return hud_string_list_pretty_print(tail);
 }
+
+/**
+ * hud_item_get_shortcut:
+ * @item: a #HudItem
+ *
+ * Returns the shortcut for activating this command
+ *
+ * Returns: A string that can be shown to the user
+ */
+const gchar *
+hud_item_get_shortcut (HudItem *item)
+{
+	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
+
+	/* TODO: Track shortcuts */
+	return "";
+}
