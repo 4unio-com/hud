@@ -203,6 +203,7 @@ libhud-client/Makefile
 data/Makefile
 po/Makefile.in
 tools-vala/Makefile
+tools/Makefile
 tests/Makefile
 docs/Makefile
 docs/man/Makefile
