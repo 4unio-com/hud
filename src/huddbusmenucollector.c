@@ -291,8 +291,9 @@ hud_dbusmenu_collector_unuse (HudSource *source)
 
 static void
 hud_dbusmenu_collector_search (HudSource    *source,
-                               GPtrArray    *results_array,
-                               HudTokenList *search_string)
+                               HudTokenList *search_string,
+                               void        (*append_func) (HudResult * result, gpointer user_data),
+                               gpointer      user_data)
 {
   HudDbusmenuCollector *collector = HUD_DBUSMENU_COLLECTOR (source);
   GHashTableIter iter;
@@ -305,7 +306,7 @@ hud_dbusmenu_collector_search (HudSource    *source,
 
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
       if (result)
-        g_ptr_array_add (results_array, result);
+        append_func(result, user_data);
     }
 }
 

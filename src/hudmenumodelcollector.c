@@ -512,8 +512,9 @@ hud_menu_model_collector_unuse (HudSource *source)
 
 static void
 hud_menu_model_collector_search (HudSource    *source,
-                                 GPtrArray    *results_array,
-                                 HudTokenList *search_string)
+                                 HudTokenList *search_string,
+                                 void        (*append_func) (HudResult * result, gpointer user_data),
+                                 gpointer      user_data)
 {
   HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
   GPtrArray *items;
@@ -529,7 +530,7 @@ hud_menu_model_collector_search (HudSource    *source,
       item = g_ptr_array_index (items, i);
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
       if (result)
-        g_ptr_array_add (results_array, result);
+        append_func(result, user_data);
     }
 }
 static void

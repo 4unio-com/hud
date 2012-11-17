@@ -84,14 +84,15 @@ hud_source_list_unuse (HudSource *source)
 
 static void
 hud_source_list_search (HudSource    *source,
-                        GPtrArray    *results_array,
-                        HudTokenList *search_string)
+                        HudTokenList *search_string,
+                        void        (*append_func) (HudResult * result, gpointer user_data),
+                        gpointer      user_data)
 {
   HudSourceList *list = HUD_SOURCE_LIST (source);
   GSList *node;
 
   for (node = list->list; node; node = node->next)
-    hud_source_search (node->data, results_array, search_string);
+    hud_source_search (node->data, search_string, append_func, user_data);
 }
 
 static void
