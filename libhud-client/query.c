@@ -72,7 +72,7 @@ hud_client_query_class_init (HudClientQueryClass *klass)
 	                                 g_param_spec_object(PROP_CONNECTION_S, "Connection to the HUD service",
 	                                              "HUD service connection",
 	                                              HUD_CLIENT_TYPE_CONNECTION,
-	                                              G_PARAM_READABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+	                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (object_class, PROP_QUERY,
 	                                 g_param_spec_string(PROP_QUERY_S, "Query to the HUD service",
 	                                              "HUD query",

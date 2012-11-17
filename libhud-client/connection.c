@@ -70,13 +70,13 @@ hud_client_connection_class_init (HudClientConnectionClass *klass)
 	                                 g_param_spec_string(PROP_ADDRESS_S, "Address on DBus for the HUD service",
 	                                              "The DBus address of the HUD service we should connect to.",
 	                                              DBUS_NAME,
-	                                              G_PARAM_READABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+	                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
-	g_object_class_install_property (object_class, PROP_ADDRESS,
+	g_object_class_install_property (object_class, PROP_PATH,
 	                                 g_param_spec_string(PROP_PATH_S, "Path on DBus for the HUD service",
 	                                              "The DBus path of the HUD service we should connect to.",
 	                                              DBUS_PATH,
-	                                              G_PARAM_READABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+	                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	return;
 }
@@ -135,6 +135,9 @@ static void
 hud_client_connection_constructed (GObject * object)
 {
 	HudClientConnection * self = HUD_CLIENT_CONNECTION(object);
+
+	g_return_if_fail(self->priv->address != NULL);
+	g_return_if_fail(self->priv->path != NULL);
 
 	GError * error = NULL;
 	self->priv->proxy = _hud_service_com_canonical_hud_proxy_new_for_bus_sync(
