@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <node name="/">
-	<interface name="com.canonical.hud">
+	<interface name="com.canonical.hud.query">
 <!-- Properties -->
 		<property name="ResultsModel" type="o" access="read" />
 		<!-- Note, this is read only, to update use the update function so
