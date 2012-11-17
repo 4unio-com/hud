@@ -77,6 +77,15 @@ static HudQuery *last_created_query;
 
 static guint query_count = 0;
 
+static const gchar * results_model_schema[] = {
+	"s", /* Command ID */
+	"s", /* Command Name */
+	"a(ii)", /* Highlights in command name */
+	"s", /* Description */
+	"a(ii)", /* Highlights in description */
+	"s", /* Shortcut */
+};
+
 static void
 hud_query_find_max_usage (gpointer data,
                           gpointer user_data)
@@ -193,8 +202,9 @@ hud_query_init (HudQuery *query)
                                    query->object_path,
                                    NULL);
 
-  query->results_name = g_strdup_printf("com.canonical.hud.query%d", query->querynumber);
+  query->results_name = g_strdup_printf("com.canonical.hud.query%d.results", query->querynumber);
   query->results_model = dee_shared_model_new(query->results_name);
+  dee_model_set_schema_full(query->results_model, results_model_schema, G_N_ELEMENTS(results_model_schema));
 
   return;
 }
