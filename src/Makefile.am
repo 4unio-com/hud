@@ -98,35 +98,6 @@ CLEANFILES += \
 	create-db.c
 
 
-####################
-# HUD CLI
-####################
-
-hud_cli_SOURCES = \
-	shared-values.h \
-	hud-cli.c \
-	hud-iface.h \
-	hud-iface.c
-
-hud_cli_CFLAGS = \
-	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
-	-Wall -Werror
-
-hud_cli_LDFLAGS = \
-	$(HUD_LIBS) \
-	$(COVERAGE_LDFLAGS) \
-	-lreadline -lcurses
-
-
-if BUILD_CLI
-bin_PROGRAMS += \
-	hud-cli
-else
-EXTRA_DIST += \
-	$(hud_cli_SOURCES)
-endif
-
 #######################
 # HUD Dump Application
 #######################

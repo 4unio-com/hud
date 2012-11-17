@@ -49,7 +49,7 @@ po/quot.sed
 po/remove-potcdate.sin
 src/.deps
 src/.libs
-src/hud-cli
+hud-cli
 src/hud-service
 src/hud.interface.c
 src/hud.interface.h
