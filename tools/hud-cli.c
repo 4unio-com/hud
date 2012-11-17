@@ -149,6 +149,33 @@ update( char *string ){
 	refresh();
 }
 
+static void
+wait_for_sync_notify (GObject * object, GParamSpec * pspec, gpointer user_data)
+{
+	GMainLoop * loop = (GMainLoop *)user_data;
+	g_main_loop_quit(loop);
+	return;
+}
+
+static gboolean
+wait_for_sync (DeeModel * model)
+{
+	if (dee_shared_model_is_synchronized(DEE_SHARED_MODEL(model))) {
+		return TRUE;
+	}
+
+	GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+
+	glong sig = g_signal_connect(G_OBJECT(model), "notify::synchronized", G_CALLBACK(wait_for_sync_notify), loop);
+
+	g_main_loop_run(loop);
+	g_main_loop_unref(loop);
+
+	g_signal_handler_disconnect(G_OBJECT(model), sig);
+
+	return dee_shared_model_is_synchronized(DEE_SHARED_MODEL(model));
+}
+
 static void 
 print_suggestions (const char *query)
 {
@@ -159,6 +186,8 @@ print_suggestions (const char *query)
 	}
 
 	DeeModel * model = hud_client_query_get_results_model(client_query);
+	g_return_if_fail(wait_for_sync(model));
+
 	DeeModelIter * iter = NULL;
 	int i = 0;
 	for (iter = dee_model_get_first_iter(model); !dee_model_is_last(model, iter); iter = dee_model_next(model, iter), i++) {
