@@ -23,6 +23,8 @@
 #include "connection.h"
 #include "service-iface.h"
 
+#include "shared-values.h"
+
 struct _HudClientConnectionPrivate {
 	_HudServiceComCanonicalHud * proxy;
 	gchar * address;
@@ -67,13 +69,13 @@ hud_client_connection_class_init (HudClientConnectionClass *klass)
 	g_object_class_install_property (object_class, PROP_ADDRESS,
 	                                 g_param_spec_string(PROP_ADDRESS_S, "Address on DBus for the HUD service",
 	                                              "The DBus address of the HUD service we should connect to.",
-	                                              "com.canonical.hud",
+	                                              DBUS_NAME,
 	                                              G_PARAM_READABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (object_class, PROP_ADDRESS,
 	                                 g_param_spec_string(PROP_PATH_S, "Path on DBus for the HUD service",
 	                                              "The DBus path of the HUD service we should connect to.",
-	                                              "/com/canonical/hud",
+	                                              DBUS_PATH,
 	                                              G_PARAM_READABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	return;

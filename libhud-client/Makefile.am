@@ -30,6 +30,7 @@ libhud_client_la_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-I $(top_srcdir) \
+	-I $(top_srcdir)/src \
 	-D G_LOG_DOMAIN=\"libhud-client\" \
 	-D HUD_CLIENT_COMPILATION \
 	-Wall -Werror
