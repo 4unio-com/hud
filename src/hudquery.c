@@ -338,3 +338,19 @@ hud_query_get_result_by_index (HudQuery *query,
 {
   return query->results->pdata[i];
 }
+
+const gchar *
+hud_query_get_path (HudQuery    *query)
+{
+	/* TODO */
+
+	return NULL;
+}
+
+const gchar *
+hud_query_get_results_name (HudQuery    *query)
+{
+	/* TODO */
+
+	return NULL;
+}

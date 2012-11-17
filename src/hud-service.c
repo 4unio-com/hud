@@ -38,42 +38,17 @@
 #include "shared-values.h"
 #include "hudquery.h"
 
-/* The return value of 'StartQuery' and the signal parameters for
- * 'UpdatedQuery' are the same, so use a utility function for both.
- */
+/* Describe the important values in the query */
 GVariant *
 describe_query (HudQuery *query)
 {
   GVariantBuilder builder;
-  gint n, i;
 
-  n = hud_query_get_n_results (query);
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_TUPLE);
 
-  g_variant_builder_init (&builder, G_VARIANT_TYPE ("(sa(sssssv)v)"));
-
-  /* Target */
-  g_variant_builder_add (&builder, "s", "");
-
-  /* List of results */
-  g_variant_builder_open (&builder, G_VARIANT_TYPE ("a(sssssv)"));
-  for (i = 0; i < n; i++)
-    {
-      HudResult *result = hud_query_get_result_by_index (query, i);
-      HudItem *item;
-
-      item = hud_result_get_item (result);
-
-      g_variant_builder_add (&builder, "(sssssv)",
-                             hud_result_get_html_description (result),
-                             hud_item_get_app_icon (item),
-                             hud_item_get_item_icon (item),
-                             "" /* complete text */ , "" /* accel */,
-                             g_variant_new_uint64 (hud_item_get_id (item)));
-    }
-  g_variant_builder_close (&builder);
-
-  /* Query key */
-  g_variant_builder_add (&builder, "v", hud_query_get_query_key (query));
+  g_variant_builder_add_value(&builder, g_variant_new_object_path(hud_query_get_path(query)));
+  g_variant_builder_add_value(&builder, g_variant_new_string(hud_query_get_results_name(query)));
+  g_variant_builder_add_value(&builder, g_variant_new_int32(0)); /* TODO: Get model rev */
 
   return g_variant_builder_end (&builder);
 }
