@@ -149,7 +149,6 @@ update( char *string ){
 	refresh();
 }
 
-
 static void 
 print_suggestions (const char *query)
 {
@@ -162,7 +161,7 @@ print_suggestions (const char *query)
 	DeeModel * model = hud_client_query_get_results_model(client_query);
 	DeeModelIter * iter = NULL;
 	int i = 0;
-	for (iter = dee_model_get_first_iter(model); iter != NULL; iter = dee_model_next(model, iter), i++) {
+	for (iter = dee_model_get_first_iter(model); !dee_model_is_last(model, iter); iter = dee_model_next(model, iter), i++) {
 		const gchar * suggestion = dee_model_get_string(model, iter, 1);
 		if( use_curses)
 			mvwprintw(twindow, 9 + i, 15, "%s", suggestion);
