@@ -201,6 +201,8 @@ handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoca
 	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
 	HudQuery * query = HUD_QUERY(user_data);
 
+	g_debug("Updating Query to: '%s'", search_string);
+
 	/* Clear the last query */
 	g_clear_pointer(&query->search_string, g_free);
 	hud_token_list_free (query->token_list);
