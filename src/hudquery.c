@@ -196,20 +196,44 @@ hud_query_finalize (GObject *object)
 
 /* Handle the DBus function UpdateQuery */
 static gboolean
-handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, const gchar * query, gpointer user_data)
+handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, const gchar * search_string, gpointer user_data)
 {
+	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
+	HudQuery * query = HUD_QUERY(user_data);
 
+	/* Clear the last query */
+	g_clear_pointer(&query->search_string, g_free);
+	hud_token_list_free (query->token_list);
+	query->token_list = NULL;
 
-	return FALSE;
+	/* Grab the data from this one */
+	query->search_string = g_strdup (search_string);
+	query->token_list = hud_token_list_new_from_string (query->search_string);
+
+	/* Refresh it all */
+	hud_query_refresh (query);
+
+	/* Tell DBus everything is going to be A-OK */
+	GVariant * modelrev = g_variant_new_int32(0);
+	g_dbus_method_invocation_return_value(invocation, g_variant_new_tuple(&modelrev, 1));
+
+	return TRUE;
 }
 
 /* Handle the DBus function UpdateQuery */
 static gboolean
 handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
 {
+	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
+	HudQuery * query = HUD_QUERY(user_data);
 
+	/* Unref the query */
+	g_object_unref(query);
 
-	return FALSE;
+	/* Tell DBus we're dying */
+	g_dbus_method_invocation_return_value(invocation, NULL);
+
+	return TRUE;
 }
 
 static void
