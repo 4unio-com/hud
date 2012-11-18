@@ -194,12 +194,34 @@ hud_query_finalize (GObject *object)
     ->finalize (object);
 }
 
+/* Handle the DBus function UpdateQuery */
+static gboolean
+handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, const gchar * query, gpointer user_data)
+{
+
+
+	return FALSE;
+}
+
+/* Handle the DBus function UpdateQuery */
+static gboolean
+handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
+{
+
+
+	return FALSE;
+}
+
 static void
 hud_query_init (HudQuery *query)
 {
   query->querynumber = query_count++;
 
   query->skel = hud_query_iface_com_canonical_hud_query_skeleton_new();
+
+  g_signal_connect(G_OBJECT(query->skel), "handle-update-query", G_CALLBACK(handle_update_query), query);
+  g_signal_connect(G_OBJECT(query->skel), "handle-close-query", G_CALLBACK(handle_close_query), query);
+
   query->object_path = g_strdup_printf("/com/canonical/hud/query%d", query->querynumber);
   g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),
                                    g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
