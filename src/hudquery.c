@@ -72,8 +72,6 @@ G_DEFINE_TYPE (HudQuery, hud_query, G_TYPE_OBJECT)
 
 static guint hud_query_changed_signal;
 
-static HudQuery *last_created_query;
-
 static guint query_count = 0;
 
 static const gchar * results_model_schema[] = {
@@ -316,67 +314,7 @@ hud_query_new (HudSource   *source,
 
   g_signal_connect_object (source, "changed", G_CALLBACK (hud_query_source_changed), query, 0);
 
-  g_clear_object (&last_created_query);
-  last_created_query = g_object_ref (query);
-
   return query;
-}
-
-/**
- * hud_query_get_query_key:
- * @query: a #HudQuery
- *
- * Returns the query key for @HudQuery.
- *
- * Each #HudQuery has a unique identifying key that is assigned when the
- * query is created.
- *
- * FIXME: This is a lie.
- *
- * Returns: (transfer none): the query key for @query
- **/
-GVariant *
-hud_query_get_query_key (HudQuery *query)
-{
-  static GVariant *query_key;
-
-  if (query_key == NULL)
-    query_key = g_variant_ref_sink (g_variant_new_string ("query key"));
-
-  return query_key;
-}
-
-/**
- * hud_query_lookup:
- * @query_key: a query key
- *
- * Finds the query that has the given @query_key.
- *
- * Returns: (transfer none): the query, or %NULL if no such query exists
- **/
-HudQuery *
-hud_query_lookup (GVariant *query_key)
-{
-  return last_created_query;
-}
-
-/**
- * hud_query_close:
- * @query: a #HudQuery
- *
- * Closes a #HudQuery.
- *
- * This drops the query from the internal list of queries.  Future use
- * of hud_query_lookup() to find this query will fail.
- *
- * You must still release your own reference on @query, if you have one.
- * This only drops the internal reference.
- **/
-void
-hud_query_close (HudQuery *query)
-{
-  if (query == last_created_query)
-    g_clear_object (&last_created_query);
 }
 
 /**

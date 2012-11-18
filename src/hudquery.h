@@ -36,11 +36,6 @@ HudQuery *              hud_query_new                                   (HudSour
                                                                          const gchar *search_string,
                                                                          gint         num_results);
 
-GVariant *              hud_query_get_query_key                         (HudQuery    *query);
-
-void                    hud_query_close                                 (HudQuery    *query);
-
-HudQuery *              hud_query_lookup                                (GVariant    *query_key);
 const gchar *           hud_query_get_path                              (HudQuery    *query);
 const gchar *           hud_query_get_results_name                      (HudQuery    *query);
 
