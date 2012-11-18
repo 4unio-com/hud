@@ -199,7 +199,6 @@ hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 	if (cquery->priv->proxy != NULL) {
 		gint revision = 0;
 		_hud_query_com_canonical_hud_query_call_update_query_sync(cquery->priv->proxy, cquery->priv->query, &revision, NULL, NULL);
-		g_debug("Revision for update: %d", revision);
 	} else {
 		gchar * path = NULL;
 		gchar * results = NULL;
