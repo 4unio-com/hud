@@ -54,6 +54,16 @@ describe_query (HudQuery *query)
 }
 
 static void
+query_destroyed (gpointer data, GObject * old_object)
+{
+	GPtrArray * list = (GPtrArray *)data;
+	g_ptr_array_remove(list, old_object);
+	return;
+}
+
+static GPtrArray * query_list = NULL;
+
+static void
 bus_method (GDBusConnection       *connection,
             const gchar           *sender,
             const gchar           *object_path,
@@ -77,7 +87,9 @@ bus_method (GDBusConnection       *connection,
 
       query = hud_query_new (source, search_string, 10);
       g_dbus_method_invocation_return_value (invocation, describe_query (query));
-      g_object_unref (query);
+
+      g_ptr_array_add(query_list, query);
+      g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
 
       g_variant_unref(vsearch);
     }
@@ -89,7 +101,40 @@ bus_method (GDBusConnection       *connection,
   return;
 }
 
+/* Gets properties for DBus */
+static GVariant *
+bus_get_prop (GDBusConnection * connection, const gchar * sender, const gchar * object_path, const gchar * interface_name, const gchar * property_name, GError ** error, gpointer user_data)
+{
+	// HudSource *source = user_data;
+
+	if (g_str_equal(property_name, "OpenQueries")) {
+		if (query_list->len == 0) {
+			return g_variant_new_array(G_VARIANT_TYPE_OBJECT_PATH, NULL, 0);
+		}
+
+		int i;
+		GVariantBuilder builder;
+		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
+
+		for (i = 0; i < query_list->len; i++) {
+			HudQuery * query = g_ptr_array_index(query_list, i);
+			g_variant_builder_add_value(&builder, g_variant_new_object_path(hud_query_get_path(query)));
+		}
+
+		return g_variant_builder_end(&builder);
+	} else {
+		g_warn_if_reached();
+	}
+
+	return NULL;
+}
+
 static GMainLoop *mainloop = NULL;
+static GDBusInterfaceVTable vtable = {
+	.method_call = bus_method,
+	.get_property = bus_get_prop,
+	.set_property = NULL
+};
 
 static void
 bus_acquired_cb (GDBusConnection *connection,
@@ -97,9 +142,6 @@ bus_acquired_cb (GDBusConnection *connection,
                  gpointer         user_data)
 {
   HudSource *source = user_data;
-  GDBusInterfaceVTable vtable = {
-    bus_method
-  };
   GError *error = NULL;
 
   g_debug ("Bus acquired (guid %s)", g_dbus_connection_get_guid (connection));
@@ -143,6 +185,7 @@ main (int argc, char **argv)
 
   hud_settings_init ();
 
+  query_list = g_ptr_array_new();
   source_list = hud_source_list_new ();
 
   /* we will eventually pull GtkMenu out of this, so keep it around */
@@ -192,6 +235,7 @@ main (int argc, char **argv)
 
   g_object_unref (window_source);
   g_object_unref (source_list);
+  g_ptr_array_free(query_list, TRUE);
 
   return 0;
 }
