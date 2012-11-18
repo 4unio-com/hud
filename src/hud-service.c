@@ -54,19 +54,6 @@ describe_query (HudQuery *query)
 }
 
 static void
-query_changed (HudQuery *query,
-               gpointer  user_data)
-{
-  GDBusConnection *connection = user_data;
-
-  g_debug ("emit UpdatedQuery signal");
-
-  g_dbus_connection_emit_signal (connection, NULL, DBUS_PATH,
-                                 DBUS_IFACE, "UpdatedQuery",
-                                 describe_query (query), NULL);
-}
-
-static void
 bus_method (GDBusConnection       *connection,
             const gchar           *sender,
             const gchar           *object_path,
@@ -89,7 +76,6 @@ bus_method (GDBusConnection       *connection,
       g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
 
       query = hud_query_new (source, search_string, 10);
-      g_signal_connect_object (query, "changed", G_CALLBACK (query_changed), connection, 0);
       g_dbus_method_invocation_return_value (invocation, describe_query (query));
       g_object_unref (query);
 
