@@ -243,3 +243,14 @@ hud_client_query_get_results_model (HudClientQuery * cquery)
 
 	return cquery->priv->results;
 }
+
+void
+hud_client_query_execute_command (HudClientQuery * cquery, GVariant * command_key, guint timestamp)
+{
+	g_return_if_fail(HUD_CLIENT_IS_QUERY(cquery));
+	g_return_if_fail(command_key != NULL);
+
+	_hud_query_com_canonical_hud_query_call_execute_command_sync(cquery->priv->proxy, command_key, timestamp, NULL, NULL);
+
+	return;
+}

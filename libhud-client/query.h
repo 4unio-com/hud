@@ -60,6 +60,9 @@ void               hud_client_query_set_query             (HudClientQuery *     
 const gchar *      hud_client_query_get_query             (HudClientQuery *        cquery);
 
 DeeModel *         hud_client_query_get_results_model     (HudClientQuery *        cquery);
+void               hud_client_query_execute_command       (HudClientQuery *        cquery,
+                                                           GVariant *              command_key,
+                                                           guint                   timestamp);
 
 G_END_DECLS
 
