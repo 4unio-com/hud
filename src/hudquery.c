@@ -107,7 +107,7 @@ results_list_populate (HudResult * result, gpointer user_data)
 	gchar * context = NULL; /* Need to free this one, sucks, practical reality */
 
 	GVariant * columns[G_N_ELEMENTS(results_model_schema) + 1];
-	columns[0] = g_variant_new_variant(g_variant_new_string("id"));
+	columns[0] = g_variant_new_variant(g_variant_new_uint64(hud_item_get_id(item)));
 	columns[1] = g_variant_new_string(hud_item_get_command(item));
 	columns[2] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
 	columns[3] = g_variant_new_string(context = hud_item_get_context(item));
@@ -228,6 +228,30 @@ handle_execute (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation 
 	//HudQuery * query = HUD_QUERY(user_data);
 
 	/* Do good */
+	GVariant * inner = g_variant_get_variant(command_id);
+	guint64 id = g_variant_get_uint64(inner);
+	g_variant_unref(inner);
+
+	HudItem * item = hud_item_lookup(id);
+
+	if (item == NULL) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS, "Item specified by command key does not exist");
+		return TRUE;
+	}
+
+	GVariantBuilder platform;
+	g_variant_builder_init(&platform, G_VARIANT_TYPE_DICTIONARY);
+
+	GVariantBuilder entry;
+	g_variant_builder_init(&entry, G_VARIANT_TYPE_DICT_ENTRY);
+	g_variant_builder_add_value(&entry, g_variant_new_string("desktop-startup-id"));
+	gchar * timestr = g_strdup_printf("_TIME%d", timestamp);
+	g_variant_builder_add_value(&entry, g_variant_new_variant(g_variant_new_string(timestr)));
+	g_free(timestr);
+
+	g_variant_builder_add_value(&platform, g_variant_builder_end(&entry));
+
+	hud_item_activate(item, g_variant_builder_end(&platform));
 
 	return TRUE;
 }
