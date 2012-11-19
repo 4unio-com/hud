@@ -230,6 +230,9 @@ handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 	/* Unref the query */
 	g_object_unref(query);
 
+	/* NOTE: Don't use the query after this, it may not exist */
+	query = NULL;
+
 	/* Tell DBus we're dying */
 	g_dbus_method_invocation_return_value(invocation, NULL);
 
