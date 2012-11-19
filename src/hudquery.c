@@ -220,6 +220,18 @@ handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoca
 	return TRUE;
 }
 
+/* Handle getting execute from DBus */
+static gboolean
+handle_execute (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, GVariant * command_id, guint timestamp, gpointer user_data)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
+	//HudQuery * query = HUD_QUERY(user_data);
+
+	/* Do good */
+
+	return TRUE;
+}
+
 /* Handle the DBus function UpdateQuery */
 static gboolean
 handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
@@ -248,6 +260,7 @@ hud_query_init (HudQuery *query)
 
   g_signal_connect(G_OBJECT(query->skel), "handle-update-query", G_CALLBACK(handle_update_query), query);
   g_signal_connect(G_OBJECT(query->skel), "handle-close-query", G_CALLBACK(handle_close_query), query);
+  g_signal_connect(G_OBJECT(query->skel), "handle-execute-command", G_CALLBACK(handle_execute), query);
 
   query->object_path = g_strdup_printf("/com/canonical/hud/query%d", query->querynumber);
   g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),
