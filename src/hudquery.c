@@ -75,7 +75,7 @@ static guint hud_query_changed_signal;
 static guint query_count = 0;
 
 static const gchar * results_model_schema[] = {
-	"s", /* Command ID */
+	"v", /* Command ID */
 	"s", /* Command Name */
 	"a(ii)", /* Highlights in command name */
 	"s", /* Description */
@@ -107,7 +107,7 @@ results_list_populate (HudResult * result, gpointer user_data)
 	gchar * context = NULL; /* Need to free this one, sucks, practical reality */
 
 	GVariant * columns[G_N_ELEMENTS(results_model_schema) + 1];
-	columns[0] = g_variant_new_string("id");
+	columns[0] = g_variant_new_variant(g_variant_new_string("id"));
 	columns[1] = g_variant_new_string(hud_item_get_command(item));
 	columns[2] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
 	columns[3] = g_variant_new_string(context = hud_item_get_context(item));
