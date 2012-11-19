@@ -38,5 +38,6 @@ HudQuery *              hud_query_new                                   (HudSour
 
 const gchar *           hud_query_get_path                              (HudQuery    *query);
 const gchar *           hud_query_get_results_name                      (HudQuery    *query);
+const gchar *           hud_query_get_appstack_name                     (HudQuery    *query);
 
 #endif /* __HUD_QUERY_H__ */

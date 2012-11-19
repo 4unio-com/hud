@@ -61,9 +61,13 @@ struct _HudQuery
   guint querynumber; /* Incrementing count, which one were we? */
   HudQueryIfaceComCanonicalHudQuery * skel;
   gchar * object_path;
+
   DeeModel * results_model;
   gchar * results_name;
   DeeModelTag * results_tag;
+
+  DeeModel * appstack_model;
+  gchar * appstack_name;
 };
 
 typedef GObjectClass HudQueryClass;
@@ -82,6 +86,11 @@ static const gchar * results_model_schema[] = {
 	"a(ii)", /* Highlights in description */
 	"s", /* Shortcut */
 	"u", /* Distance */
+};
+
+static const gchar * appstack_model_schema[] = {
+	"s", /* Application ID */
+	"s", /* Icon Name */
 };
 
 static gint
@@ -175,6 +184,8 @@ hud_query_finalize (GObject *object)
   /* TODO: move to destroy */
   g_clear_object(&query->skel);
   g_clear_object(&query->results_model);
+  /* NOTE: ^^ Kills results_tag as well */
+  g_clear_object(&query->appstack_model);
 
   if (query->refresh_id)
     g_source_remove (query->refresh_id);
@@ -187,6 +198,7 @@ hud_query_finalize (GObject *object)
 
   g_clear_pointer(&query->object_path, g_free);
   g_clear_pointer(&query->results_name, g_free);
+  g_clear_pointer(&query->appstack_name, g_free);
 
   G_OBJECT_CLASS (hud_query_parent_class)
     ->finalize (object);
@@ -282,6 +294,7 @@ hud_query_init (HudQuery *query)
 
   query->skel = hud_query_iface_com_canonical_hud_query_skeleton_new();
 
+  /* NOTE: Connect to the functions before putting on the bus. */
   g_signal_connect(G_OBJECT(query->skel), "handle-update-query", G_CALLBACK(handle_update_query), query);
   g_signal_connect(G_OBJECT(query->skel), "handle-close-query", G_CALLBACK(handle_close_query), query);
   g_signal_connect(G_OBJECT(query->skel), "handle-execute-command", G_CALLBACK(handle_execute), query);
@@ -296,6 +309,10 @@ hud_query_init (HudQuery *query)
   query->results_model = dee_shared_model_new(query->results_name);
   dee_model_set_schema_full(query->results_model, results_model_schema, G_N_ELEMENTS(results_model_schema));
   query->results_tag = dee_model_register_tag(query->results_model, g_object_unref);
+
+  query->appstack_name = g_strdup_printf("com.canonical.hud.query%d.appstack", query->querynumber);
+  query->appstack_model = dee_shared_model_new(query->appstack_name);
+  dee_model_set_schema_full(query->appstack_model, appstack_model_schema, G_N_ELEMENTS(appstack_model_schema));
 
   return;
 }
@@ -387,4 +404,20 @@ hud_query_get_results_name (HudQuery    *query)
 	g_return_val_if_fail(HUD_IS_QUERY(query), NULL);
 
 	return query->results_name;
+}
+
+/**
+ * hud_query_get_appstack_name:
+ * @query: a #HudQuery
+ *
+ * Gets the DBus name that the appstack model is using
+ *
+ * Return value: A dbus name
+ */
+const gchar *
+hud_query_get_appstack_name (HudQuery * query)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(query), NULL);
+
+	return query->appstack_name;
 }
