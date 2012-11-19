@@ -18,6 +18,12 @@
 		<method name="CloseQuery">
 		</method>
 
+		<method name="ExecuteCommand">
+			<!-- in -->
+			<arg type="v" name="item" direction="in" />
+			<arg type="u" name="timestamp" direction="in" />
+		</method>
+
 <!-- Signals -->
 		<!-- Most update signals come through the Dee model -->
 
