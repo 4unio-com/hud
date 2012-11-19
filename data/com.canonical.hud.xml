@@ -10,7 +10,8 @@
 			<arg type="s" name="query" direction="in" />
 			<!-- out -->
 			<arg type="o" name="queryObject" direction="out" />
-			<arg type="s" name="resultsObject" direction="out" />
+			<arg type="s" name="resultsName" direction="out" />
+			<arg type="s" name="appstackName" direction="out" />
 			<arg type="i" name="modelRevision" direction="out" />
 		</method>
 

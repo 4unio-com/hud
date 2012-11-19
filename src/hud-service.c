@@ -48,6 +48,7 @@ describe_query (HudQuery *query)
 
   g_variant_builder_add_value(&builder, g_variant_new_object_path(hud_query_get_path(query)));
   g_variant_builder_add_value(&builder, g_variant_new_string(hud_query_get_results_name(query)));
+  g_variant_builder_add_value(&builder, g_variant_new_string(hud_query_get_appstack_name(query)));
   g_variant_builder_add_value(&builder, g_variant_new_int32(0)); /* TODO: Get model rev */
 
   return g_variant_builder_end (&builder);

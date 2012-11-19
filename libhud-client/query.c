@@ -204,10 +204,11 @@ hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 	} else {
 		gchar * path = NULL;
 		gchar * results = NULL;
+		gchar * appstack = NULL;
 		
 		/* This is perhaps a little extreme, but really, if this is failing
 		   there's a whole world of hurt for us. */
-		g_return_if_fail(hud_client_connection_new_query(cquery->priv->connection, cquery->priv->query, &path, &results));
+		g_return_if_fail(hud_client_connection_new_query(cquery->priv->connection, cquery->priv->query, &path, &results, &appstack));
 
 		cquery->priv->proxy = _hud_query_com_canonical_hud_query_proxy_new_for_bus_sync(
 			G_BUS_TYPE_SESSION,
@@ -223,6 +224,7 @@ hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 
 		g_free(path);
 		g_free(results);
+		g_free(appstack);
 	}
 
 	g_object_notify(G_OBJECT(cquery), PROP_QUERY_S);

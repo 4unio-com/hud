@@ -54,7 +54,8 @@ HudClientConnection *   hud_client_connection_new        (gchar * dbus_address,
 gboolean                hud_client_connection_new_query  (HudClientConnection * connection,
                                                           const gchar * query,
                                                           gchar ** query_path,
-                                                          gchar ** results_path);
+                                                          gchar ** results_name,
+                                                          gchar ** appstack_name);
 const gchar *           hud_client_connection_get_address (HudClientConnection * connection);
 
 G_END_DECLS
