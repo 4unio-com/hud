@@ -31,6 +31,7 @@ struct _HudClientQueryPrivate {
 	HudClientConnection * connection;
 	gchar * query;
 	DeeModel * results;
+	DeeModel * appstack;
 };
 
 #define HUD_CLIENT_QUERY_GET_PRIVATE(o) \
@@ -153,6 +154,7 @@ hud_client_query_dispose (GObject *object)
 	_hud_query_com_canonical_hud_query_call_close_query_sync(self->priv->proxy, NULL, NULL);
 
 	g_clear_object(&self->priv->results);
+	g_clear_object(&self->priv->appstack);
 	g_clear_object(&self->priv->proxy);
 	g_clear_object(&self->priv->connection);
 
@@ -222,6 +224,9 @@ hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 		g_clear_object(&cquery->priv->results);
 		cquery->priv->results = dee_shared_model_new(results);
 
+		g_clear_object(&cquery->priv->appstack);
+		cquery->priv->appstack = dee_shared_model_new(appstack);
+
 		g_free(path);
 		g_free(results);
 		g_free(appstack);
@@ -246,6 +251,14 @@ hud_client_query_get_results_model (HudClientQuery * cquery)
 	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
 
 	return cquery->priv->results;
+}
+
+DeeModel *
+hud_client_query_get_appstack_model (HudClientQuery * cquery)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+
+	return cquery->priv->appstack;
 }
 
 void
