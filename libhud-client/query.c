@@ -150,6 +150,8 @@ hud_client_query_dispose (GObject *object)
 {
 	HudClientQuery * self = HUD_CLIENT_QUERY(object);
 
+	_hud_query_com_canonical_hud_query_call_close_query_sync(self->priv->proxy, NULL, NULL);
+
 	g_clear_object(&self->priv->results);
 	g_clear_object(&self->priv->proxy);
 	g_clear_object(&self->priv->connection);
