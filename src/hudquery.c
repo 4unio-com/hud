@@ -149,6 +149,8 @@ hud_query_refresh (HudQuery *query)
     hud_source_search (query->source, query->token_list, results_list_populate, query);
 
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
+
+  g_object_set(G_OBJECT(query->skel), "current-query", query->search_string, NULL);
 }
 
 static gboolean
@@ -313,6 +315,11 @@ hud_query_init (HudQuery *query)
   query->appstack_name = g_strdup_printf("com.canonical.hud.query%d.appstack", query->querynumber);
   query->appstack_model = dee_shared_model_new(query->appstack_name);
   dee_model_set_schema_full(query->appstack_model, appstack_model_schema, G_N_ELEMENTS(appstack_model_schema));
+
+  g_object_set(G_OBJECT(query->skel),
+               "appstack-model", query->appstack_name,
+               "results-model", query->results_name,
+               NULL);
 
   return;
 }
