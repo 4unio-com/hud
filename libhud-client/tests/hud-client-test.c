@@ -112,10 +112,51 @@ test_query_create (void)
 }
 
 static void
+test_query_update (void)
+{
+	DbusTestService * service = dbus_test_service_new(NULL);
+
+	/* HUD Service */
+	DbusTestProcess * huds = dbus_test_process_new(HUD_SERVICE);
+	dbus_test_service_add_task(service, DBUS_TEST_TASK(huds));
+	g_object_unref(huds);
+
+	/* Dummy */
+	DbusTestTask * dummy = dbus_test_task_new();
+	dbus_test_task_set_wait_for(dummy, "com.canonical.hud");
+	dbus_test_service_add_task(service, dummy);
+	g_object_unref(dummy);
+
+	/* Get HUD up and running and us on that bus */
+	dbus_test_service_start_tasks(service);
+
+	GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+	g_dbus_connection_set_exit_on_close(session, FALSE);
+
+	/* Create a query */
+	HudClientQuery * query = hud_client_query_new("test");
+
+	g_assert(g_strcmp0("test", hud_client_query_get_query(query)) == 0);
+
+	hud_client_query_set_query(query, "test2");
+	g_assert(g_strcmp0("test2", hud_client_query_get_query(query)) == 0);
+
+	hud_client_query_set_query(query, "test a really really long query string that is probably too long to be resonable");
+	g_assert(g_strcmp0("test a really really long query string that is probably too long to be resonable", hud_client_query_get_query(query)) == 0);
+
+	g_object_unref(query);
+	g_object_unref(service);
+	g_object_unref(session);
+
+	return;
+}
+
+static void
 test_suite (void)
 {
 	g_test_add_func ("/hud/client/connection/create",   test_connection_create);
 	g_test_add_func ("/hud/client/query/create",   test_query_create);
+	g_test_add_func ("/hud/client/query/update",   test_query_update);
 
 	return;
 }
