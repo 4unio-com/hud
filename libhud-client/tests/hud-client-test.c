@@ -45,6 +45,17 @@ test_connection_create (void)
 
 	g_assert(g_strcmp0("com.canonical.hud", hud_client_connection_get_address(con)) == 0);
 
+	gchar * address = NULL;
+	gchar * path = NULL;
+
+	g_object_get(G_OBJECT(con), "address", &address, "path", &path, NULL);
+
+	g_assert(g_strcmp0(address, "com.canonical.hud") == 0);
+	g_assert(g_strcmp0(path, "/com/canonical/hud") == 0);
+
+	g_free(address);
+	g_free(path);
+
 	g_object_unref(con);
 	g_object_unref(service);
 	g_object_unref(session);
