@@ -93,6 +93,17 @@ test_query_create (void)
 
 	g_assert(g_strcmp0("test", hud_client_query_get_query(query)) == 0);
 
+	HudClientConnection * con = NULL;
+	gchar * search = NULL;
+
+	g_object_get(G_OBJECT(query), "query", &search, "connection", &con, NULL);
+
+	g_assert(g_strcmp0("test", search) == 0);
+	g_assert(HUD_CLIENT_IS_CONNECTION(con));
+	
+	g_free(search);
+	g_object_unref(con);
+
 	g_object_unref(query);
 	g_object_unref(service);
 	g_object_unref(session);
