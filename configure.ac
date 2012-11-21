@@ -200,6 +200,7 @@ src/Makefile
 libhud/Makefile
 libhud/tests/Makefile
 libhud-client/Makefile
+libhud-client/tests/Makefile
 data/Makefile
 po/Makefile.in
 tools-vala/Makefile

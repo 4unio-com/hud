@@ -1,5 +1,5 @@
 
-# SUBDIRS = tests
+SUBDIRS = tests
 
 lib_LTLIBRARIES = libhud-client.la
 

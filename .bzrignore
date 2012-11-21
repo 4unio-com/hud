@@ -231,3 +231,6 @@ libhud_client_la-service-iface.o
 query-iface.c
 query-iface.h
 libhud_client_la-query-iface.lo
+libhud-client-test
+libhud-client-test.xml
+libhud-client-tester
