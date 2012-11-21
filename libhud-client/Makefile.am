@@ -15,11 +15,22 @@ libhud_client_include_HEADERS = \
 	connection.h \
 	query.h
 
-libhud_client_la_SOURCES = \
+noinst_LTLIBRARIES = libhud-client-generated.la
+
+libhud_client_generated_la_SOURCES = \
 	service-iface.h \
 	service-iface.c \
 	query-iface.h \
-	query-iface.c \
+	query-iface.c
+
+libhud_client_generated_la_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-Wall -Werror
+
+libhud_client_generated_la_LIBADD = \
+	$(HUD_LIBS)
+
+libhud_client_la_SOURCES = \
 	connection.h \
 	connection.c \
 	query.h \
@@ -36,6 +47,7 @@ libhud_client_la_CFLAGS = \
 	-Wall -Werror
 
 libhud_client_la_LIBADD = \
+	libhud-client-generated.la \
 	$(HUD_LIBS)
 
 libhud_client_la_LDFLAGS = \
