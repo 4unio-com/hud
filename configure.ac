@@ -115,6 +115,10 @@ AM_CONDITIONAL(BUILD_TESTS, test x${have_dbusmenu_jsonloader} = xyes)
 AC_SUBST(INDICATORTEST_CFLAGS)
 AC_SUBST(INDICATORTEST_LIBS)
 
+PKG_CHECK_MODULES(DBUSTEST, dbustest-1)
+AC_SUBST(DBUSTEST_CFLAGS)
+AC_SUBST(DBUSTEST_LIBS)
+
 ###########################
 # gcov coverage reporting
 ###########################

@@ -24,13 +24,16 @@ CLEANFILES += \
 libhud_client_test_SOURCES = \
 	hud-client-test.c
 libhud_client_test_CFLAGS = \
+	-D HUD_SERVICE="\"$(top_builddir)/src/hud-service\"" \
 	-I $(top_srcdir) \
 	-I $(top_srcdir)/libhud-client \
 	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
 	$(TEST_CFLAGS)
 libhud_client_test_LDADD = \
 	$(top_builddir)/libhud-client/libhud-client.la \
 	$(HUD_LIBS) \
+	$(DBUSTEST_LIBS) \
 	$(TEST_LIBS)
 
 check_PROGRAMS += libhud-client-test
