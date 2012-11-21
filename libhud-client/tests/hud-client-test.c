@@ -3,6 +3,56 @@
 #include <hud-client.h>
 
 static void
+test_connection_create (void)
+{
+	DbusTestService * service = dbus_test_service_new(NULL);
+
+	/* HUD Service */
+	DbusTestProcess * huds = dbus_test_process_new(HUD_SERVICE);
+	dbus_test_service_add_task(service, DBUS_TEST_TASK(huds));
+	g_object_unref(huds);
+
+	/* Dummy */
+	DbusTestTask * dummy = dbus_test_task_new();
+	dbus_test_task_set_wait_for(dummy, "com.canonical.hud");
+	dbus_test_service_add_task(service, dummy);
+	g_object_unref(dummy);
+
+	/* Get HUD up and running and us on that bus */
+	dbus_test_service_start_tasks(service);
+
+	/* Set us not to exit when the service goes */
+	GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+	g_dbus_connection_set_exit_on_close(session, FALSE);
+
+	/* Create a query */
+	HudClientConnection * con = hud_client_connection_new("com.canonical.hud", "/com/canonical/hud");
+
+	g_assert(HUD_CLIENT_IS_CONNECTION(con));
+
+	gchar * query_path = NULL;
+	gchar * results_name = NULL;
+	gchar * appstack_name = NULL;
+
+	g_assert(hud_client_connection_new_query(con, "test", &query_path, &results_name, &appstack_name));
+	g_assert(query_path != NULL);
+	g_assert(results_name != NULL);
+	g_assert(appstack_name != NULL);
+
+	g_free(query_path);
+	g_free(results_name);
+	g_free(appstack_name);
+
+	g_assert(g_strcmp0("com.canonical.hud", hud_client_connection_get_address(con)) == 0);
+
+	g_object_unref(con);
+	g_object_unref(service);
+	g_object_unref(session);
+
+	return;
+}
+
+static void
 test_query_create (void)
 {
 	DbusTestService * service = dbus_test_service_new(NULL);
@@ -42,6 +92,7 @@ test_query_create (void)
 static void
 test_suite (void)
 {
+	g_test_add_func ("/hud/client/connection/create",   test_connection_create);
 	g_test_add_func ("/hud/client/query/create",   test_query_create);
 
 	return;
