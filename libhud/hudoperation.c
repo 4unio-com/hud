@@ -98,53 +98,11 @@ hud_operation_setup (HudOperation *operation,
 {
   GVariantIter iter;
   const gchar *name;
-  gboolean enabled;
-  const gchar *signature;
-  GVariant *maybe_state;
-
-  g_return_if_fail (operation->priv->group == NULL);
+  GVariant *value;
 
   g_variant_iter_init (&iter, parameters);
-  while (g_variant_iter_loop (&iter, "{&s(b&g@av)}", &name, &enabled, &signature, &maybe_state))
-    {
-      const GVariantType *parameter_type;
-      GSimpleAction *action;
-
-      if (name[0] == '\0')
-        {
-          g_warning ("refusing to create action with empty name");
-          continue;
-        }
-
-      if (signature[0] != '\0')
-        {
-          if (!g_variant_type_string_is_valid (signature))
-            {
-              g_warning ("parameter type '%s' for action '%s' is invalid", signature, name);
-              continue;
-            }
-
-          parameter_type = G_VARIANT_TYPE (signature);
-        }
-      else
-        parameter_type = NULL;
-
-      if (g_variant_n_children (maybe_state))
-        {
-          GVariant *state;
-
-          g_variant_get_child (maybe_state, 0, "v", &state);
-          action = g_simple_action_new_stateful (name, parameter_type, state);
-          g_variant_unref (state);
-        }
-      else
-        action = g_simple_action_new (name, parameter_type);
-
-      g_simple_action_set_enabled (action, enabled);
-
-      g_action_map_add_action (G_ACTION_MAP (operation->priv->group), G_ACTION (action));
-      g_object_unref (action);
-    }
+  while (g_variant_iter_loop (&iter, "{&sv}", &name, &value))
+    g_action_group_change_action_state (G_ACTION_GROUP (operation->priv->group), name, value);
 }
 
 void
