@@ -47,13 +47,13 @@ typedef struct _HudOperation                                   HudOperation;
 
 struct _HudOperation
 {
-  GObject           parent_instance;
+  GSimpleActionGroup   parent_instance;
   HudOperationPrivate *priv;
 };
 
 struct _HudOperationClass
 {
-  GObjectClass parent_class;
+  GSimpleActionGroupClass parent_class;
 
   void (* start)    (HudOperation *operation);
 
@@ -68,6 +68,20 @@ struct _HudOperationClass
 };
 
 GType                   hud_operation_get_type                          (void) G_GNUC_CONST;
+
+HudOperation *          hud_operation_new                               (void);
+
+void                    hud_operation_setup                             (HudOperation *operation,
+                                                                         GVariant     *parameters);
+
+gboolean                hud_operation_get_boolean                       (HudOperation *operation,
+                                                                         const gchar  *action_name);
+gint                    hud_operation_get_int                           (HudOperation *operation,
+                                                                         const gchar  *action_name);
+guint                   hud_operation_get_uint                          (HudOperation *operation,
+                                                                         const gchar  *action_name);
+gdouble                 hud_operation_get_double                        (HudOperation *operation,
+                                                                         const gchar  *action_name);
 
 G_END_DECLS
 

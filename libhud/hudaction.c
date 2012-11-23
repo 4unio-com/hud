@@ -28,8 +28,11 @@
 
 struct _HudActionPrivate {
   HudOperation *operation;
-  gboolean enabled;
   gchar *name;
+  gboolean enabled;
+
+  const HudActionEntry *entry;
+  gpointer user_data;
 };
 
 enum
@@ -39,10 +42,20 @@ enum
   PROP_NAME,
   PROP_PARAMETER_TYPE,
   PROP_STATE,
-  PROP_STATE_TYPE
+  PROP_STATE_TYPE,
+  PROP_IS_ACTIVE,
+  PROP_OPERATION
 };
 
-guint hud_action_signal_create_operation;
+enum
+{
+  SIGNAL_CREATE_OPERATION,
+  SIGNAL_OPENED,
+  SIGNAL_CLOSED,
+  N_SIGNALS
+};
+
+guint hud_action_signals[N_SIGNALS];
 
 static void hud_action_iface_init (GActionInterface *iface);
 
@@ -60,13 +73,13 @@ hud_action_get_name (GAction *g_action)
 static const GVariantType *
 hud_action_get_parameter_type (GAction *g_action)
 {
-  return G_VARIANT_TYPE ("(sa{sv})");
+  return G_VARIANT_TYPE ("(ssav)");
 }
 
 static const GVariantType *
 hud_action_get_state_type (GAction *g_action)
 {
-  return G_VARIANT_TYPE_BOOLEAN;
+  return G_VARIANT_TYPE ("aa{s(bgav)}");
 }
 
 static GVariant *
@@ -83,22 +96,59 @@ hud_action_get_enabled (GAction *g_action)
   return action->priv->enabled;
 }
 
+static void
+hud_action_operation_updated (HudAction *action)
+{
+  g_object_notify (G_OBJECT (action), "state");
+}
+
 static GVariant *
 hud_action_get_state (GAction *g_action)
 {
   HudAction *action = HUD_ACTION (g_action);
+  GVariantBuilder builder;
 
-  return g_variant_ref_sink (g_variant_new_boolean (hud_action_get_is_active (action)));
+  g_variant_builder_init (&builder, G_VARIANT_TYPE ("aa{s(bgav)}"));
+
+  if (action->priv->operation)
+    {
+      GActionGroup *group;
+      gchar **actions;
+      gint i;
+
+      group = G_ACTION_GROUP (action->priv->operation->priv->group);
+
+      g_variant_builder_open (&builder, G_VARIANT_TYPE ("a{s(bgav)}"));
+
+      actions = g_action_group_list_actions (group);
+      for (i = 0; actions[i]; i++)
+        {
+          const GVariantType *parameter_type;
+          gchar *typestring;
+          GVariant *state;
+
+          parameter_type = g_action_group_get_action_parameter_type (group, actions[i]);
+          typestring = g_variant_type_dup_string (parameter_type);
+          state = g_action_group_get_action_state (group, actions[i]);
+
+          g_variant_builder_add (&builder, "{s(bgav)}", actions[i],
+                                 g_action_group_get_action_enabled (group, actions[i]), typestring,
+                                 g_variant_new_array (G_VARIANT_TYPE_VARIANT, &state, state ? 1 : 0));
+
+          g_free (typestring);
+        }
+
+      g_variant_builder_close (&builder);
+      g_strfreev (actions);
+    }
+
+  return g_variant_ref_sink (g_variant_builder_end (&builder));
 }
 
 static void
 hud_action_change_state (GAction  *g_action,
                          GVariant *value)
 {
-  HudAction *action = HUD_ACTION (g_action);
-
-  if (!g_variant_get_boolean (value))
-    hud_action_set_operation (action, NULL);
 }
 
 static void
@@ -107,50 +157,55 @@ hud_action_activate (GAction  *g_action,
 {
   HudAction *action = HUD_ACTION (g_action);
   const gchar *op;
+  const gchar *name;
+  GVariantIter *iter;
   GVariant *args;
 
-  g_variant_get (value, "(&s@a{sv})", &op, &args);
+  g_variant_get (value, "(&s&sav)", &op, &name, &iter);
+  if (!g_variant_iter_next (iter, "v", &args))
+    args = NULL;
+  g_variant_iter_free (iter);
 
   if (g_str_equal (op, "start"))
     {
       if (action->priv->operation == NULL)
-        g_signal_emit (action, hud_action_signal_create_operation, 0, args);
+        g_signal_emit (action, hud_action_signals[SIGNAL_CREATE_OPERATION], 0, args);
     }
 
-  else if (g_str_equal (op, "update"))
+  else if (g_str_equal (op, "change-state"))
     {
       if (action->priv->operation != NULL)
-        hud_operation_update (action->priv->operation, args);
+        g_action_group_change_action_state (G_ACTION_GROUP (action->priv->operation->priv->group), name, args);
     }
 
-  else if (g_str_equal (op, "response"))
+  else if (g_str_equal (op, "activate"))
     {
       if (action->priv->operation != NULL)
-        hud_operation_response (action->priv->operation, args);
+        g_action_group_activate_action (G_ACTION_GROUP (action->priv->operation->priv->group), name, args);
     }
 
   else if (g_str_equal (op, "end"))
-    hud_action_set_operation (action, NULL);
+    {
+      hud_action_set_operation (action, NULL);
+    }
 
-  g_variant_unref (args);
+  if (args)
+    g_variant_unref (args);
 }
 
 static void
 hud_action_real_create_operation (HudAction *action,
                                   GVariant  *parameters)
 {
-  HudOperation *operation;
+  if (action->priv->operation == NULL)
+    {
+      HudOperation *operation;
 
-  if (action->priv->operation)
-    operation = g_object_ref (action->priv->operation);
-  else
-    operation = hud_operation_new ();
-
-  hud_operation_setup (operation, parameters);
-
-  hud_action_set_operation (action, operation);
-
-  g_object_unref (operation);
+      operation = hud_operation_new ();
+      hud_operation_setup (operation, parameters);
+      hud_action_set_operation (action, operation);
+      g_object_unref (operation);
+    }
 }
 
 static void
@@ -181,6 +236,14 @@ hud_action_get_property (GObject *object, guint prop_id,
       g_value_set_boxed (value, G_VARIANT_TYPE_BOOLEAN);
       break;
 
+    case PROP_IS_ACTIVE:
+      g_value_set_boolean (value, action->priv->operation != NULL);
+      break;
+
+    case PROP_OPERATION:
+      g_value_set_object (value, action->priv->operation);
+      break;
+
     default:
       g_assert_not_reached ();
     }
@@ -201,6 +264,10 @@ hud_action_set_property (GObject *object, guint prop_id,
     case PROP_NAME:
       g_assert (!action->priv->name);
       action->priv->name = g_value_dup_string (value);
+      break;
+
+    case PROP_OPERATION:
+      hud_action_set_operation (action, g_value_get_object (value));
       break;
 
     default:
@@ -246,15 +313,38 @@ hud_action_class_init (HudActionClass *class)
 
   /* Name becomes constructable and enabled becomes writable... */
   g_object_class_install_property (object_class, PROP_NAME,
-                                   g_param_spec_string ("name", "Action Name", "The name used to invoke the action", NULL,
-                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+                                   g_param_spec_string ("name", "Action Name", "The name used to invoke the action",
+                                                        NULL, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                                                        G_PARAM_STATIC_STRINGS));
   g_object_class_install_property (object_class, PROP_ENABLED,
                                    g_param_spec_boolean ("enabled", "Enabled", "If the action can be activated", TRUE,
-                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS));
+                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT |
+                                                        G_PARAM_STATIC_STRINGS));
 
-  hud_action_signal_create_operation = g_signal_new ("create-operation", HUD_TYPE_ACTION, G_SIGNAL_RUN_LAST,
-                                                     G_STRUCT_OFFSET (HudActionClass, create_operation), NULL, NULL,
-                                                     g_cclosure_marshal_VOID__OBJECT, G_TYPE_NONE, 1, G_TYPE_OBJECT);
+  /* is-active and operation are not GAction properties at all... */
+  g_object_class_install_property (object_class, PROP_IS_ACTIVE,
+                                   g_param_spec_boolean ("is-active", "Is active",
+                                                         "If operation is currently in progress",
+                                                         FALSE, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (object_class, PROP_OPERATION,
+                                   g_param_spec_object ("operation", "Operation",
+                                                        "The operation object, if active, else, NULL",
+                                                        HUD_TYPE_OPERATION,
+                                                        G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  hud_action_signals[SIGNAL_CREATE_OPERATION] = g_signal_new ("create-operation", HUD_TYPE_ACTION, G_SIGNAL_RUN_LAST,
+                                                              G_STRUCT_OFFSET (HudActionClass, create_operation),
+                                                              NULL, NULL, g_cclosure_marshal_VOID__VARIANT,
+                                                              G_TYPE_NONE, 1, G_TYPE_VARIANT);
+  hud_action_signals[SIGNAL_OPENED] = g_signal_new ("opened", HUD_TYPE_ACTION, G_SIGNAL_RUN_LAST,
+                                                    G_STRUCT_OFFSET (HudActionClass, opened),
+                                                    NULL, NULL, g_cclosure_marshal_VOID__OBJECT,
+                                                    G_TYPE_NONE, 1, G_TYPE_OBJECT);
+  hud_action_signals[SIGNAL_CLOSED] = g_signal_new ("closed", HUD_TYPE_ACTION, G_SIGNAL_RUN_LAST,
+                                                    G_STRUCT_OFFSET (HudActionClass, closed),
+                                                    NULL, NULL, g_cclosure_marshal_VOID__VOID,
+                                                    G_TYPE_NONE, 0);
 }
 
 static void
@@ -278,6 +368,19 @@ hud_action_new (const gchar  *name)
                        NULL);
 }
 
+void
+hud_action_set_enabled (HudAction *action,
+                        gboolean   enabled)
+{
+  enabled = !!enabled;
+
+  if (action->priv->enabled != enabled)
+    {
+      action->priv->enabled = enabled;
+      g_object_notify (G_OBJECT (action), "enabled");
+    }
+}
+
 gboolean
 hud_action_get_is_active (HudAction *action)
 {
@@ -299,13 +402,50 @@ hud_action_set_operation (HudAction    *action,
 
   if (action->priv->operation)
     {
-      hud_operation_end (action->priv->operation);
+      g_signal_handlers_disconnect_by_func (action->priv->operation,
+                                            hud_action_operation_updated,
+                                            action);
+      hud_operation_ended (action->priv->operation);
+      g_signal_emit (action, hud_action_signals[SIGNAL_CLOSED], 0);
       g_object_unref (action->priv->operation);
       action->priv->operation = NULL;
     }
 
   if (operation)
-    action->priv->operation = g_object_ref (operation);
+    {
+      action->priv->operation = g_object_ref (operation);
+      g_signal_connect_swapped (action->priv->operation->priv->group, "action-added",
+                                G_CALLBACK (hud_action_operation_updated), action);
+      g_signal_connect_swapped (action->priv->operation->priv->group, "action-removed",
+                                G_CALLBACK (hud_action_operation_updated), action);
+      g_signal_connect_swapped (action->priv->operation->priv->group, "action-enabled-changed",
+                                G_CALLBACK (hud_action_operation_updated), action);
+      g_signal_connect_swapped (action->priv->operation->priv->group, "action-state-changed",
+                                G_CALLBACK (hud_action_operation_updated), action);
+      g_signal_emit (action, hud_action_signals[SIGNAL_OPENED], 0, action->priv->operation);
+      hud_operation_started (action->priv->operation);
+    }
 
   g_object_notify (G_OBJECT (action), "state");
+}
+
+void
+hud_action_entries_install (GActionMap           *map,
+                            const HudActionEntry *entries,
+                            guint                 n_entries,
+                            gpointer              user_data)
+{
+  guint i;
+
+  for (i = 0; i < n_entries; i++)
+    {
+      const HudActionEntry *entry = &entries[i];
+      HudAction *action;
+
+      action = hud_action_new (entry->name);
+      action->priv->entry = entry;
+      action->priv->user_data = user_data;
+
+      g_action_map_add_action (map, G_ACTION (action));
+    }
 }

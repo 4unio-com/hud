@@ -25,19 +25,14 @@
 #ifndef __HUD_OPERATION_PRIVATE_H__
 #define __HUD_OPERATION_PRIVATE_H__
 
+struct _HudOperationPrivate
+{
+  GSimpleActionGroup *group;
+};
+
 #include "hudoperation.h"
 
-HudOperation *          hud_operation_new                               (void);
-
-void                    hud_operation_setup                             (HudOperation *operation,
-                                                                         GVariant     *parameters);
-
-void                    hud_operation_update                            (HudOperation *operation,
-                                                                         GVariant     *parameters);
-
-void                    hud_operation_response                          (HudOperation *operation,
-                                                                         GVariant     *parameters);
-
-void                    hud_operation_end                               (HudOperation *operation);
+void                    hud_operation_started                           (HudOperation *operation);
+void                    hud_operation_ended                             (HudOperation *operation);
 
 #endif /* __HUD_OPERATION_PRIVATE_H__ */

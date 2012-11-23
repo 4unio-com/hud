@@ -55,9 +55,34 @@ struct _HudActionClass
 {
   GObjectClass parent_class;
 
-  void (* create_operation) (HudAction *action,
-                             GVariant  *parameters);
+  void (* create_operation) (HudAction    *action,
+                             GVariant     *parameters);
+  void (* opened)           (HudAction    *action,
+                             HudOperation *operation);
+  void (* closed)           (HudAction    *action);
 };
+
+typedef struct
+{
+  const gchar        *name;
+  const GActionEntry *action_entries;
+  guint               n_actions;
+
+  void (* started) (HudOperation *operation,
+                    gpointer      user_data);
+  void (* changed) (HudOperation *operation,
+                    const gchar  *changed_action,
+                    gpointer      user_data);
+  void (* ended)   (HudOperation *operation,
+                    gpointer      user_data);
+  void (* prepare) (HudOperation *operation,
+                    gpointer      user_data);
+} HudActionEntry;
+
+void                    hud_action_entries_install                      (GActionMap           *map,
+                                                                         const HudActionEntry *entries,
+                                                                         guint                 n_entries,
+                                                                         gpointer              user_data);
 
 GType                   hud_action_get_type                             (void) G_GNUC_CONST;
 
