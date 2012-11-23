@@ -1,5 +1,5 @@
 
-SUBDIRS = tests
+SUBDIRS = . tests demo
 
 lib_LTLIBRARIES = libhud.la
 
