@@ -246,3 +246,15 @@ hud_action_publisher_add_descriptions_from_file (HudActionPublisher *publisher,
                                                  const gchar        *filename)
 {
 }
+
+const gchar *
+hud_action_description_get_action_name (HudActionDescription *description)
+{
+  return NULL;
+}
+
+GVariant *
+hud_action_description_get_action_target (HudActionDescription *description)
+{
+  return NULL;
+}
