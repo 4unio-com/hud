@@ -66,6 +66,9 @@ hud_action_publisher_finalize (GObject *object)
 static void
 hud_action_publisher_init (HudActionPublisher *publisher)
 {
+  publisher->description_sequence = g_sequence_new ((GDestroyNotify) hud_action_description_unref);
+  publisher->description_table = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+  publisher->eos = g_sequence_append (publisher->description_sequence, NULL);
 }
 
 static void
@@ -107,6 +110,8 @@ variant_equal0 (GVariant *a,
   return g_variant_equal (a, b);
 }
 
+#define g_menu_model_items_changed(x,...)
+
 void
 hud_action_publisher_add_description (HudActionPublisher   *publisher,
                                       HudActionDescription *description)
@@ -114,6 +119,20 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
   GSequenceIter *iter;
   const gchar *name;
   GVariant *target;
+
+
+  {
+    GHashTableIter iter;
+    gpointer key, value;
+
+    g_print ("-- add action description --\n");
+    g_hash_table_iter_init (&iter, (gpointer) description);
+    while (g_hash_table_iter_next (&iter, &key, &value))
+      {
+        g_print ("  %s -> %s\n", (char *) key, g_variant_print (value, FALSE));
+      }
+    g_print ("--\n\n");
+  }
 
   name = hud_action_description_get_action_name (description);
   target = hud_action_description_get_action_target (description);
@@ -130,7 +149,7 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
       g_hash_table_insert (publisher->description_table, g_strdup (name), iter);
 
       /* Add the actual description */
-      g_sequence_insert_before (publisher->eos, g_object_ref (description));
+      g_sequence_insert_before (publisher->eos, hud_action_description_ref (description));
 
       /* Signal that we added two items */
       g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), g_sequence_iter_get_position (iter), 0, 2);
@@ -241,20 +260,625 @@ hud_action_publisher_remove_descriptions (HudActionPublisher *publisher,
   g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), p, r, 0);
 }
 
-void
-hud_action_publisher_add_descriptions_from_file (HudActionPublisher *publisher,
-                                                 const gchar        *filename)
+#include <string.h>
+
+static gboolean
+backport_g_action_parse_detailed_name (const gchar  *detailed_name,
+                                       gchar       **action_name,
+                                       GVariant    **target_value,
+                                       GError      **error)
 {
+  const gchar *target;
+  gsize target_len;
+  gsize base_len;
+
+  /* We decide which format we have based on which we see first between
+   * '::' '(' and '\0'.
+   */
+
+  if (*detailed_name == '\0' || *detailed_name == ' ')
+    goto bad_fmt;
+
+  base_len = strcspn (detailed_name, ": ()");
+  target = detailed_name + base_len;
+  target_len = strlen (target);
+
+  switch (target[0])
+    {
+    case ' ':
+    case ')':
+      goto bad_fmt;
+
+    case ':':
+      if (target[1] != ':')
+        goto bad_fmt;
+
+      *target_value = g_variant_ref_sink (g_variant_new_string (target + 2));
+      break;
+
+    case '(':
+      {
+        if (target[target_len - 1] != ')')
+          goto bad_fmt;
+
+        /* This is a bit tricky.  We want to allow strings like ('x') to
+         * mean "the string X" while allowing strings like ('x', 'y') to
+         * represent pairs and even allowing ('x',) to represent
+         * one-tuples.
+         *
+         * Fortunately the two cases are completely disjoint; we can
+         * just parse twice, once with the brackets and once without.
+         * It's not possible that both will work.
+         *
+         * The problem is what happens when neither works: we need to
+         * report an error, but which one will be better?
+         *
+         * It seems more likely that the user will be using a simple
+         * target, so let's give the error for that case...
+         *
+         * First, try without the brackets, recording the error...
+         */
+        *target_value = g_variant_parse (NULL, target + 1, target + target_len - 1, NULL, error);
+
+        if (*target_value == NULL)
+          {
+            /* If that failed, try with the brackets, ignoring the
+             * error.
+             */
+            *target_value = g_variant_parse (NULL, target, target + target_len, NULL, NULL);
+
+            /* If the second attempt failed, return the error from the
+             * first attempt (which will already be set).
+             */
+            if (*target_value == NULL)
+              goto bad_fmt;
+
+            /* Otherwise, it worked, so clear the error. */
+            g_clear_error (error);
+          }
+      }
+      break;
+
+    case '\0':
+      *target_value = NULL;
+      break;
+    }
+
+  *action_name = g_strndup (detailed_name, base_len);
+
+  return TRUE;
+
+bad_fmt:
+  if (error)
+    {
+      if (*error == NULL)
+        g_set_error (error, G_VARIANT_PARSE_ERROR, G_VARIANT_PARSE_ERROR_FAILED,
+                     "Detailed action name '%s' has invalid format", detailed_name);
+      else
+        g_prefix_error (error, "Detailed action name '%s' has invalid format: ", detailed_name);
+    }
+
+  return FALSE;
+}
+
+static void
+backport_g_markup_string_parser_start_element (GMarkupParseContext  *context,
+                                               const gchar          *element_name,
+                                               const gchar         **attribute_names,
+                                               const gchar         **attribute_values,
+                                               gpointer              user_data,
+                                               GError              **error)
+{
+  g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_UNKNOWN_ELEMENT,
+               "Only text may appear inside element <%s> (not <%s>)",
+               g_markup_parse_context_get_element (context), element_name);
+}
+
+typedef struct
+{
+  GString *str;
+  gboolean translatable;
+  gchar *context;
+  gchar *domain;
+} StringParserState;
+
+static void
+backport_g_markup_string_parser_text (GMarkupParseContext  *context,
+                                      const gchar          *text,
+                                      gsize                 text_len,
+                                      gpointer              user_data,
+                                      GError              **error)
+{
+  StringParserState *state = user_data;
+
+  g_string_append_len (state->str, text, text_len);
+}
+
+static void
+backport_g_markup_string_parser_error (GMarkupParseContext *context,
+                                       GError              *error,
+                                       gpointer             user_data)
+{
+  StringParserState *state = user_data;
+
+  g_string_free (state->str, TRUE);
+  g_free (state->context);
+  g_free (state->domain);
+
+  g_slice_free (StringParserState, state);
+}
+
+static void
+backport_g_markup_string_parser_start (GMarkupParseContext  *context,
+                                       gboolean              translatable,
+                                       const gchar          *gettext_domain,
+                                       const gchar          *gettext_context,
+                                       GError              **error)
+{
+  static const GMarkupParser parser = {
+    backport_g_markup_string_parser_start_element,
+    NULL,
+    backport_g_markup_string_parser_text,
+    NULL,
+    backport_g_markup_string_parser_error
+  };
+  StringParserState *state;
+
+  if (translatable && gettext_domain == NULL)
+    {
+      g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_MISSING_ATTRIBUTE,
+                   "translation was requested for <%s> but no gettext domain was given",
+                   g_markup_parse_context_get_element (context));
+      return;
+    }
+
+  state = g_slice_new (StringParserState);
+  state->str = g_string_new (NULL);
+  state->domain = g_strdup (gettext_domain);
+  state->context = g_strdup (gettext_context);
+  state->translatable = translatable;
+
+  g_markup_parse_context_push (context, &parser, state);
+}
+
+static gchar *
+backport_g_markup_string_parser_end (GMarkupParseContext *context)
+{
+  StringParserState *state = g_markup_parse_context_pop (context);
+  const gchar *translated;
+  gchar *result;
+
+  /* TODO: whitespace normalisation before translation? */
+
+  if (state->translatable)
+    {
+      if (state->context)
+        translated = g_dpgettext2 (state->domain, state->context, state->str->str);
+      else
+        translated = g_dgettext (state->domain, state->str->str);
+    }
+  else
+    translated = state->str->str;
+
+  if (translated != state->str->str)
+    {
+      g_string_free (state->str, TRUE);
+      result = g_strdup (translated);
+    }
+  else
+    result = g_string_free (state->str, FALSE);
+
+  g_slice_free (StringParserState, state);
+
+  return result;
+}
+
+static void
+backport_g_markup_parser_reject_text (GMarkupParseContext  *context,
+                                      const gchar          *text,
+                                      gsize                 text_len,
+                                      gpointer              user_data,
+                                      GError              **error)
+{
+  gsize i;
+
+  for (i = 0; i < text_len; i++)
+    if (!g_ascii_isspace (text[i]))
+      {
+        g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT,
+                     "text may not appear inside <%s>",
+                     g_markup_parse_context_get_element (context));
+        break;
+      }
+}
+
+typedef struct
+{
+  HudActionPublisher   *publisher;
+  gchar                *gettext_domain;
+
+  GVariantType         *type;
+
+  gchar                *attribute;
+
+  HudActionDescription *description;
+
+  GVariantBuilder      *operation;
+
+  GVariantBuilder      *widget;
+} ParserState;
+
+static void
+start_element (GMarkupParseContext  *context,
+               const gchar          *element_name,
+               const gchar         **attribute_names,
+               const gchar         **attribute_values,
+               gpointer              user_data,
+               GError              **error)
+{
+  ParserState *state = user_data;
+  const GSList *element_stack;
+  const gchar *container;
+
+  element_stack = g_markup_parse_context_get_element_stack (context);
+  container = element_stack->next ? element_stack->next->data : NULL;
+
+#define COLLECT(first, ...) \
+  g_markup_collect_attributes (element_name,                                 \
+                               attribute_names, attribute_values, error,     \
+                               first, __VA_ARGS__, G_MARKUP_COLLECT_INVALID)
+#define OPTIONAL   G_MARKUP_COLLECT_OPTIONAL
+#define STRDUP     G_MARKUP_COLLECT_STRDUP
+#define STRING     G_MARKUP_COLLECT_STRING
+#define BOOLEAN    G_MARKUP_COLLECT_BOOLEAN
+#define NO_ATTRS() COLLECT (G_MARKUP_COLLECT_INVALID, NULL)
+
+  if (container == NULL)
+    {
+      if (g_str_equal (element_name, "actions"))
+        {
+          COLLECT (OPTIONAL | STRDUP, "gettext-domain", &state->gettext_domain);
+          return;
+        }
+    }
+
+  else if (g_str_equal (container, "actions"))
+    {
+      if (g_str_equal (element_name, "action"))
+        {
+          const gchar *detailed_name;
+
+          if (COLLECT (STRING, "name", &detailed_name))
+            {
+              gchar *action_name;
+              GVariant *target;
+
+              if (!backport_g_action_parse_detailed_name (detailed_name, &action_name, &target, error))
+                return;
+
+              state->description = hud_action_description_new (action_name, target);
+
+              if (target)
+                g_variant_unref (target);
+              g_free (action_name);
+            }
+
+          return;
+        }
+    }
+
+  else if (g_str_equal (container, "action"))
+    {
+      if (g_str_equal (element_name, "attribute"))
+        {
+          const gchar *typestr;
+          const gchar *name;
+          const gchar *gettext_context;
+          gboolean translatable;
+
+          if (COLLECT (STRDUP,             "name", &name,
+                       OPTIONAL | BOOLEAN, "translatable", &translatable,
+                       OPTIONAL | STRING,  "context", &gettext_context,
+                       OPTIONAL | STRING,  "comments", NULL, /* ignore, just for translators */
+                       OPTIONAL | STRING,  "type", &typestr))
+            {
+              if (typestr && !g_variant_type_string_is_valid (typestr))
+                {
+                  g_set_error (error, G_VARIANT_PARSE_ERROR,
+                               G_VARIANT_PARSE_ERROR_INVALID_TYPE_STRING,
+                               "Invalid GVariant type string '%s'", typestr);
+                  return;
+                }
+
+              state->type = typestr ? g_variant_type_new (typestr) : NULL;
+              state->attribute = g_strdup (name);
+
+              backport_g_markup_string_parser_start (context, translatable, state->gettext_domain, gettext_context, error);
+            }
+
+          return;
+        }
+
+      else if (g_str_equal (element_name, "operation"))
+        {
+          if (NO_ATTRS ())
+            state->operation = g_variant_builder_new (G_VARIANT_TYPE ("aa{sv}"));
+
+          return;
+        }
+    }
+
+  else if (g_str_equal (container, "operation"))
+    {
+      if (g_str_equal (element_name, "widget"))
+        {
+          const gchar *action;
+          const gchar *type;
+
+          if (COLLECT (STRING, "type",   &type,
+                       STRING, "action", &action))
+            {
+              state->widget = g_variant_builder_new (G_VARIANT_TYPE_VARDICT);
+              g_variant_builder_add (state->widget, "{sv}", "type", g_variant_new_string (type));
+              g_variant_builder_add (state->widget, "{sv}", "action", g_variant_new_string (action));
+            }
+
+          return;
+        }
+    }
+
+  else if (g_str_equal (container, "widget"))
+    {
+      if (g_str_equal (element_name, "label"))
+        {
+          const gchar *gettext_context;
+          gboolean translatable;
+
+          if (COLLECT (OPTIONAL | BOOLEAN, "translatable", &translatable,
+                       OPTIONAL | STRING,  "context", &gettext_context,
+                       OPTIONAL | STRING,  "comments", NULL))
+            backport_g_markup_string_parser_start (context, translatable, state->gettext_domain, gettext_context, error);
+
+          return;
+        }
+
+      else if (g_str_equal (element_name, "range"))
+        {
+          const gchar *minstr, *maxstr, *typestr;
+
+          if (COLLECT (STRING,            "min",  &minstr,
+                       STRING,            "max",  &maxstr,
+                       OPTIONAL | STRING, "type", &typestr))
+            {
+              const GVariantType *type;
+              GVariant *min, *max;
+
+              if (typestr && !g_variant_type_string_is_valid (typestr))
+                {
+                  g_set_error (error, G_VARIANT_PARSE_ERROR,
+                               G_VARIANT_PARSE_ERROR_INVALID_TYPE_STRING,
+                               "Invalid GVariant type string '%s'", typestr);
+                  return;
+                }
+
+              type = typestr ? G_VARIANT_TYPE (typestr) : NULL;
+
+              min = g_variant_parse (type, minstr, NULL, NULL, error);
+              if (min == NULL)
+                {
+                  g_prefix_error (error, "Parsing minimum value %s: ", minstr);
+                  return;
+                }
+
+              /* Force both values to have the same type.
+               *
+               * If the type was explicitly specified then the first
+               * value has the same type anyway, so this is a no-op.
+               */
+              type = g_variant_get_type (min);
+              max = g_variant_parse (type, maxstr, NULL, NULL, error);
+              if (max == NULL)
+                {
+                  g_prefix_error (error, "Parsing maximum value %s: ", maxstr);
+                  g_variant_unref (min);
+                  return;
+                }
+
+              g_variant_builder_add (state->widget, "{sv}", "range", g_variant_new ("(**)", min, max));
+              g_variant_unref (max);
+              g_variant_unref (min);
+              return;
+            }
+        }
+    }
+
+  if (container)
+    g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_UNKNOWN_ELEMENT,
+                 "Element <%s> not allowed inside <%s>",
+                 element_name, container);
+  else
+    g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_UNKNOWN_ELEMENT,
+                 "Element <%s> not allowed at toplevel", element_name);
+}
+
+static void
+end_element (GMarkupParseContext  *context,
+             const gchar          *element_name,
+             gpointer              user_data,
+             GError              **error)
+{
+  ParserState *state = user_data;
+
+  if (g_str_equal (element_name, "actions"))
+    {
+      g_free (state->gettext_domain);
+      state->gettext_domain = NULL;
+    }
+
+  else if (g_str_equal (element_name, "action"))
+    {
+      hud_action_publisher_add_description (state->publisher, state->description);
+      hud_action_description_unref (state->description);
+      state->description = NULL;
+    }
+
+  else if (g_str_equal (element_name, "attribute"))
+    {
+      GVariant *value;
+      gchar *str;
+
+      str = backport_g_markup_string_parser_end (context);
+
+      if (state->type == NULL)
+        /* No type string specified -> it's a normal string. */
+        hud_action_description_set_attribute (state->description, state->attribute, "s", str);
+
+      /* Else, we try to parse it according to the type string.  If
+       * error is set here, it will follow us out, ending the parse.
+       *
+       * We still need to free everything, though, so ignore it here.
+       */
+      else if ((value = g_variant_parse (state->type, str, NULL, NULL, error)))
+        {
+          hud_action_description_set_attribute_value (state->description, state->attribute, value);
+          g_variant_unref (value);
+        }
+
+      if (state->type)
+        {
+          g_variant_type_free (state->type);
+          state->type = NULL;
+        }
+
+      g_free (state->attribute);
+      state->attribute = NULL;
+      g_free (str);
+    }
+
+  else if (g_str_equal (element_name, "operation"))
+    {
+      hud_action_description_set_attribute (state->description, "operation", "aa{sv}", state->operation);
+      g_variant_builder_unref (state->operation);
+      state->operation = NULL;
+    }
+
+  else if (g_str_equal (element_name, "widget"))
+    {
+      g_variant_builder_add (state->operation, "a{sv}", state->widget);
+      g_variant_builder_unref (state->widget);
+      state->widget = NULL;
+    }
+
+  else if (g_str_equal (element_name, "label"))
+    {
+      gchar *str;
+
+      str = backport_g_markup_string_parser_end (context);
+      g_variant_builder_add (state->widget, "{sv}", "label", g_variant_new_string (str));
+      g_free (str);
+    }
+}
+
+void
+hud_action_publisher_add_actions_from_file (HudActionPublisher *publisher,
+                                            const gchar        *filename)
+{
+  GMarkupParser parser = {
+    start_element,
+    end_element,
+    backport_g_markup_parser_reject_text
+  };
+  GMarkupParseContext *context;
+  GError *error = NULL;
+  ParserState *state;
+  gchar *contents;
+  gsize size;
+
+  state = g_slice_new0 (ParserState);
+  state->publisher = publisher;
+
+  if (!g_file_get_contents (filename, &contents, &size, &error))
+    g_error ("Failed to open file %s: %s", filename, error->message);
+
+  context = g_markup_parse_context_new (&parser, 0, state, NULL);
+  if (!g_markup_parse_context_parse (context, contents, size, &error) ||
+      !g_markup_parse_context_end_parse (context, &error))
+    g_error ("Failed to parse action description XML from %s: %s", filename, error->message);
+  g_markup_parse_context_free (context);
+  g_free (contents);
+
+  /* We know that everything has been cleaned up properly because
+   * otherwise we would have hit the g_error() above.
+   */
+}
+
+HudActionDescription *
+hud_action_description_new (const gchar *action_name,
+                            GVariant    *action_target)
+{
+  HudActionDescription *description;
+
+  /* Our dirty little secret: a HudActionDescription is just a GHashTable */
+  description = (gpointer) g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
+  hud_action_description_set_attribute (description, "action", "s", action_name);
+  hud_action_description_set_attribute_value (description, "target", action_target);
+
+  return description;
+}
+
+HudActionDescription *
+hud_action_description_ref (HudActionDescription *description)
+{
+  return (gpointer) g_hash_table_ref ((gpointer) description);
+}
+
+void
+hud_action_description_unref (HudActionDescription *description)
+{
+  g_hash_table_unref ((gpointer) description);
+}
+
+void
+hud_action_description_set_attribute_value (HudActionDescription *description,
+                                            const gchar          *attribute_name,
+                                            GVariant             *value)
+{
+  if (value)
+    g_hash_table_insert ((gpointer) description, g_strdup (attribute_name), g_variant_ref_sink (value));
+  else
+    g_hash_table_remove ((gpointer) description, attribute_name);
+}
+
+void
+hud_action_description_set_attribute (HudActionDescription *description,
+                                      const gchar          *attribute_name,
+                                      const gchar          *format_string,
+                                      ...)
+{
+  GVariant *value;
+
+  if (format_string != NULL)
+    {
+      va_list ap;
+
+      va_start (ap, format_string);
+      value = g_variant_new_va (format_string, NULL, &ap);
+      va_end (ap);
+    }
+  else
+    value = NULL;
+
+  hud_action_description_set_attribute_value (description, attribute_name, value);
 }
 
 const gchar *
 hud_action_description_get_action_name (HudActionDescription *description)
 {
-  return NULL;
+  return g_variant_get_string (g_hash_table_lookup ((gpointer) description, "action"), NULL);
 }
 
 GVariant *
 hud_action_description_get_action_target (HudActionDescription *description)
 {
-  return NULL;
+  return g_hash_table_lookup ((gpointer) description, "target");
 }

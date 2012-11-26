@@ -48,8 +48,20 @@ void                    hud_action_publisher_add_action_description     (HudActi
 void                    hud_action_publisher_add_actions_from_file      (HudActionPublisher    *publisher,
                                                                          const gchar           *filename);
 
+
+HudActionDescription *  hud_action_description_new                      (const gchar           *action_name,
+                                                                         GVariant              *action_target);
+HudActionDescription *  hud_action_description_ref                      (HudActionDescription  *description);
+void                    hud_action_description_unref                    (HudActionDescription  *description);
 const gchar *           hud_action_description_get_action_name          (HudActionDescription  *description);
 GVariant *              hud_action_description_get_action_target        (HudActionDescription  *description);
+void                    hud_action_description_set_attribute_value      (HudActionDescription  *description,
+                                                                         const gchar           *attribute_name,
+                                                                         GVariant              *value);
+void                    hud_action_description_set_attribute            (HudActionDescription  *description,
+                                                                         const gchar           *attribute_name,
+                                                                         const gchar           *format_string,
+                                                                         ...);
 
 G_END_DECLS
 
