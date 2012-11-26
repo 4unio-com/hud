@@ -20,9 +20,9 @@ include $(top_srcdir)/Makefile.am.marshal
 # HUD Service
 ####################
 
-noinst_LIBRARIES = libhud-service.a
+noinst_LTLIBRARIES = libhud-service.la
 
-libhud_service_a_SOURCES = \
+libhud_service_la_SOURCES = \
 	create-db.h \
 	create-db.c \
 	dump-app-info.h \
@@ -69,23 +69,29 @@ libhud_service_a_SOURCES = \
 	usage-tracker.h \
 	usage-tracker.c
 
-hud_service_SOURCES = hud-service.c
+libhud_service_la_LDFLAGS = \
+	$(COVERAGE_LDFLAGS)
 
-libhud_service_a_CFLAGS = \
+libhud_service_la_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-Wall -Werror
+
+#######################
+# HUD Service
+#######################
+
+hud_service_SOURCES = hud-service.c
+
 hud_service_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-Wall -Werror
 hud_service_LDADD = \
-	libhud-service.a	\
+	libhud-service.la	\
 	$(HUD_LIBS)
-hud_service_LDFLAGS = \
-	$(COVERAGE_LDFLAGS)
 
 
 create-db.c: create-db.sql
