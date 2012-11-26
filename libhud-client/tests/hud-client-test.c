@@ -5,7 +5,8 @@
 static gboolean
 no_dee_add_match (const gchar * log_domain, GLogLevelFlags level, const gchar * message, gpointer user_data)
 {
-	if (g_strcmp0(log_domain, "GLib-GIO") == 0) {
+	if (g_strcmp0(log_domain, "GLib-GIO") == 0 && 
+			g_str_has_prefix(message, "Error while sending AddMatch()")) {
 		return FALSE;
 	}
 
