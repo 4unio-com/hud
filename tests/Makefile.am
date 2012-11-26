@@ -34,7 +34,6 @@ test_distance_SOURCES = \
 
 test_distance_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
@@ -68,7 +67,6 @@ test_result_highlighting_SOURCES = \
 
 test_result_highlighting_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
@@ -109,7 +107,6 @@ test_usage_db_simple_SOURCES = \
 
 test_usage_db_simple_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -152,7 +149,6 @@ test_usage_db_old_SOURCES = \
 
 test_usage_db_old_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -197,7 +193,6 @@ test_usage_db_ancient_SOURCES = \
 
 test_usage_db_ancient_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -242,7 +237,6 @@ test_usage_db_testapp_SOURCES = \
 
 test_usage_db_testapp_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -349,7 +343,6 @@ test_bad_app_info_SOURCES = \
 
 test_bad_app_info_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
@@ -373,7 +366,6 @@ test_load_app_info_SOURCES = \
 
 test_load_app_info_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
