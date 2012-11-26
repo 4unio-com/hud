@@ -16,15 +16,15 @@ libexec_PROGRAMS = \
 
 include $(top_srcdir)/Makefile.am.marshal
 
-####################
-# HUD Service
-####################
+noinst_LTLIBRARIES = \
+	libhud-service-generated.la \
+	libhud-service.la
 
-noinst_LTLIBRARIES = libhud-service.la
+####################
+# HUD Service C code
+####################
 
 libhud_service_la_SOURCES = \
-	create-db.h \
-	create-db.c \
 	dump-app-info.h \
 	dump-app-info.c \
 	shared-values.h \
@@ -60,17 +60,14 @@ libhud_service_la_SOURCES = \
 	huditem.c		\
 	hudresult.h		\
 	hudresult.c		\
-	hud-iface.h \
-	hud-iface.c \
-	hud-query-iface.h \
-	hud-query-iface.c \
 	load-app-info.h \
 	load-app-info.c \
 	usage-tracker.h \
 	usage-tracker.c
 
 libhud_service_la_LDFLAGS = \
-	$(COVERAGE_LDFLAGS)
+	$(COVERAGE_LDFLAGS) \
+	libhud-service-generated.la
 
 libhud_service_la_CFLAGS = \
 	$(HUD_CFLAGS) \
@@ -92,16 +89,6 @@ hud_service_CFLAGS = \
 hud_service_LDADD = \
 	libhud-service.la	\
 	$(HUD_LIBS)
-
-
-create-db.c: create-db.sql
-	echo "#include \"create-db.h\"" > $@
-	echo -n "const gchar * create_db = \"" >> $@
-	cat $< | xargs printf "%s " >> $@
-	echo -n "\";" >> $@
-
-CLEANFILES += \
-	create-db.c
 
 
 #######################
@@ -140,14 +127,34 @@ hud_verify_app_info_LDFLAGS = \
 	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
-####################
-# HUD DBus Interface
-####################
+#######################
+# HUD Generated Files
+#######################
+
+libhud_service_generated_la_SOURCES = \
+	create-db.h \
+	create-db.c \
+	hud-iface.h \
+	hud-iface.c \
+	hud-query-iface.h \
+	hud-query-iface.c
+
+libhud_service_generated_la_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-Wall -Werror
 
 EXTRA_DIST += \
 	create-db.sql
 
+create-db.c: create-db.sql
+	echo "#include \"create-db.h\"" > $@
+	echo -n "const gchar * create_db = \"" >> $@
+	cat $< | xargs printf "%s " >> $@
+	echo -n "\";" >> $@
+
 BUILT_SOURCES += \
+	create-db.c \
 	hud-query-iface.c \
 	hud-query-iface.h \
 	hud-iface.c \
