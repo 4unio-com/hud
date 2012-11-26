@@ -267,6 +267,8 @@ handle_execute (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation 
 
 	hud_item_activate(item, g_variant_builder_end(&platform));
 
+	g_dbus_method_invocation_return_value(invocation, NULL);
+
 	return TRUE;
 }
 
