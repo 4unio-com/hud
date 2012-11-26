@@ -2,6 +2,16 @@
 #include <libdbustest/dbus-test.h>
 #include <hud-client.h>
 
+static gboolean
+no_dee_add_match (const gchar * log_domain, GLogLevelFlags level, const gchar * message, gpointer user_data)
+{
+	if (g_strcmp0(log_domain, "GLib-GIO") == 0) {
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 static void
 test_connection_create (void)
 {
@@ -114,6 +124,8 @@ test_query_create (void)
 static void
 test_query_update (void)
 {
+	g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
 	DbusTestService * service = dbus_test_service_new(NULL);
 
 	/* HUD Service */
@@ -154,6 +166,8 @@ test_query_update (void)
 static void
 test_query_custom (void)
 {
+	g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
 	DbusTestService * service = dbus_test_service_new(NULL);
 
 	/* HUD Service */
