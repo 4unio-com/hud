@@ -129,6 +129,8 @@ gimp_app_startup (GApplication *app)
 
   g_action_map_add_action_entries (G_ACTION_MAP (app), app_actions, G_N_ELEMENTS (app_actions), app);
   hud_action_entries_install (G_ACTION_MAP (app), hud_entries, G_N_ELEMENTS (hud_entries), app);
+
+  hud_action_publisher_add_actions_from_file (hud_action_publisher_get (), "gimp.xml");
 }
 
 static void
