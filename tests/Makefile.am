@@ -401,6 +401,7 @@ TESTS += \
 
 test-dbus-message-count: test-dbus-message-count.in
 	@sed \
+		-e "s|\@indicatordir\@|$(INDICATORDIR)|" \
 		-e "s|\@top_builddir\@|$(top_builddir)|" \
 		-e "s|\@builddir\@|$(builddir)|" \
 		-e "s|\@srcdir\@|$(srcdir)|" \
