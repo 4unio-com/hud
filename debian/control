@@ -45,3 +45,31 @@ Description: Tools for debuging HUD.
  .
  This package provides tools for working with HUD.
 
+Package: libhud1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Recommends: hud (= ${binary:Version})
+Description: library for exporting items to the Unity HUD
+ Allows applications to add items into the HUD without requiring a
+ menubar or other parsed GUI elements.
+ .
+ This package contains shared libraries to be used by applications.
+
+Package: libhud1-dev
+Section: libdevel
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libhud1 (= ${binary:Version}),
+         libglib2.0-dev
+Multi-Arch: same
+Description: library for exporting items to the Unity HUD
+ Allows applications to add items into the HUD without requiring a
+ menubar or other parsed GUI elements.
+ .
+ This package contains files that are needed to build applications.
+
