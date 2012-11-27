@@ -1,0 +1,9 @@
+<SECTION>
+<FILE>query</FILE>
+HudClientQuery
+</SECTION>
+
+<SECTION>
+<FILE>connection</FILE>
+HudClientConnection
+</SECTION>

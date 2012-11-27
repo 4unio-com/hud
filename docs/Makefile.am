@@ -1,1 +1,4 @@
-SUBDIRS = man devel
+SUBDIRS = \
+	libhud-client \
+	devel \
+	man
