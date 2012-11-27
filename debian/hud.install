@@ -1,5 +1,5 @@
 debian/source_hud.py /usr/share/apport/package-hooks/
 debian/hud-crashdb.conf /etc/apport/crashdb.conf.d/
-debian/tmp/usr/lib/hud/hud-service /usr/lib/indicator-appmenu/
+debian/tmp/usr/lib/*/hud/hud-service
 debian/tmp/usr/share/dbus-1/ /usr/share/
 debian/tmp/usr/share/glib-2.0/ /usr/share/
