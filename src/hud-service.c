@@ -172,6 +172,14 @@ name_lost_cb (GDBusConnection *connection,
   g_main_loop_quit (mainloop);
 }
 
+static void
+sigterm_graceful_exit (int signal)
+{
+  g_warning("SIGTERM recieved");
+  g_main_loop_quit(mainloop);
+  return;
+}
+
 int
 main (int argc, char **argv)
 {
@@ -231,6 +239,9 @@ main (int argc, char **argv)
                   bus_acquired_cb, name_acquired_cb, name_lost_cb, source_list, NULL);
 
   mainloop = g_main_loop_new (NULL, FALSE);
+
+  signal(SIGTERM, sigterm_graceful_exit);
+  
   g_main_loop_run (mainloop);
   g_main_loop_unref (mainloop);
 
