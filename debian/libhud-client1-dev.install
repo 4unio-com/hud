@@ -1,3 +1,3 @@
 debian/tmp/usr/include/libhud-client-1/*
-debian/tmp/usr/lib/libhud-client.so
-debian/tmp/usr/lib/pkgconfig/hud-client-1.pc
+debian/tmp/usr/lib/*/libhud-client.so
+debian/tmp/usr/lib/*/pkgconfig/hud-client-1.pc
