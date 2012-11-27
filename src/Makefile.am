@@ -88,6 +88,7 @@ hud_service_CFLAGS = \
 	-Wall -Werror
 hud_service_LDADD = \
 	libhud-service.la	\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 
