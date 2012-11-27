@@ -1,15 +1,8 @@
 #!/usr/bin/make -f
 
-export AUTOPOINT = true
-export DISPLAY = 
+%:
+	dh --with autoreconf $@
 
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/gnome.mk
-include /usr/share/cdbs/1/rules/autoreconf.mk
-
-DEB_CONFIGURE_EXTRA_FLAGS = --disable-static
-
-DEB_MAKE_CHECK_TARGET := check
-
-LDFLAGS += -Wl,-z,defs -Wl,--as-needed
+override_dh_autoreconf:
+	NOCONFIGURE=1 dh_autoreconf ./autogen.sh
 
