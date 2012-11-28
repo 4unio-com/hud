@@ -804,6 +804,7 @@ struct _HudActionDescription
 {
   GObject parent_instance;
 
+  gchar *identifier;
   gchar *action;
   GVariant *target;
   GHashTable *attrs;
@@ -818,6 +819,7 @@ hud_action_description_finalize (GObject *object)
 {
   HudActionDescription *description = HUD_ACTION_DESCRIPTION (object);
 
+  g_free (description->identifier);
   g_free (description->action);
   if (description->target)
     g_variant_unref (description->target);
@@ -853,6 +855,17 @@ hud_action_description_new (const gchar *action_name,
   description = g_object_new (HUD_TYPE_ACTION_DESCRIPTION, NULL);
   description->action = g_strdup (action_name);
   description->target = action_target ? g_variant_ref_sink (action_target) : NULL;
+
+  if (description->target)
+    {
+      gchar *targetstr;
+
+      targetstr = g_variant_print (action_target, TRUE);
+      description->identifier = g_strdup_printf ("%s(%s)", action_name, targetstr);
+      g_free (targetstr);
+    }
+  else
+    description->identifier = g_strdup_printf ("%s()", action_name);
 
   return description;
 }
