@@ -1,9 +1,40 @@
 <SECTION>
 <FILE>query</FILE>
 HudClientQuery
+HudClientQueryClass
+hud_client_query_execute_command
+hud_client_query_get_appstack_model
+hud_client_query_get_query
+hud_client_query_get_results_model
+hud_client_query_new
+hud_client_query_new_for_connection
+hud_client_query_set_query
+<SUBSECTION Standard>
+HudClientQueryPrivate
+HUD_CLIENT_QUERY
+HUD_CLIENT_QUERY_CLASS
+HUD_CLIENT_QUERY_GET_CLASS
+HUD_CLIENT_TYPE_QUERY
+HUD_CLIENT_IS_QUERY
+HUD_CLIENT_IS_QUERY_CLASS
+hud_client_query_get_type
 </SECTION>
 
 <SECTION>
 <FILE>connection</FILE>
 HudClientConnection
+HudClientConnectionClass
+hud_client_connection_get_address
+hud_client_connection_get_ref
+hud_client_connection_new
+hud_client_connection_new_query
+<SUBSECTION Standard>
+HudClientConnectionPrivate
+HUD_CLIENT_CONNECTION
+HUD_CLIENT_CONNECTION_CLASS
+HUD_CLIENT_CONNECTION_GET_CLASS
+HUD_CLIENT_IS_CONNECTION
+HUD_CLIENT_IS_CONNECTION_CLASS
+HUD_CLIENT_TYPE_CONNECTION
+hud_client_connection_get_type
 </SECTION>
