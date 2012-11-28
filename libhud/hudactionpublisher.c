@@ -66,7 +66,7 @@ hud_action_publisher_finalize (GObject *object)
 static void
 hud_action_publisher_init (HudActionPublisher *publisher)
 {
-  publisher->description_sequence = g_sequence_new ((GDestroyNotify) hud_action_description_unref);
+  publisher->description_sequence = g_sequence_new (g_object_unref);
   publisher->description_table = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
   publisher->eos = g_sequence_append (publisher->description_sequence, NULL);
 }
@@ -120,20 +120,6 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
   const gchar *name;
   GVariant *target;
 
-
-  {
-    GHashTableIter iter;
-    gpointer key, value;
-
-    g_print ("-- add action description --\n");
-    g_hash_table_iter_init (&iter, (gpointer) description);
-    while (g_hash_table_iter_next (&iter, &key, &value))
-      {
-        g_print ("  %s -> %s\n", (char *) key, g_variant_print (value, FALSE));
-      }
-    g_print ("--\n\n");
-  }
-
   name = hud_action_description_get_action_name (description);
   target = hud_action_description_get_action_target (description);
 
@@ -149,7 +135,7 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
       g_hash_table_insert (publisher->description_table, g_strdup (name), iter);
 
       /* Add the actual description */
-      g_sequence_insert_before (publisher->eos, hud_action_description_ref (description));
+      g_sequence_insert_before (publisher->eos, g_object_ref (description));
 
       /* Signal that we added two items */
       g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), g_sequence_iter_get_position (iter), 0, 2);
@@ -718,7 +704,7 @@ end_element (GMarkupParseContext  *context,
   else if (g_str_equal (element_name, "action"))
     {
       hud_action_publisher_add_description (state->publisher, state->description);
-      hud_action_description_unref (state->description);
+      g_object_unref (state->description);
       state->description = NULL;
     }
 
@@ -812,30 +798,63 @@ hud_action_publisher_add_actions_from_file (HudActionPublisher *publisher,
    */
 }
 
+typedef GObjectClass HudActionDescriptionClass;
+
+struct _HudActionDescription
+{
+  GObject parent_instance;
+
+  gchar *action;
+  GVariant *target;
+  GHashTable *attrs;
+};
+
+guint hud_action_description_changed_signal;
+
+G_DEFINE_TYPE (HudActionDescription, hud_action_description, G_TYPE_OBJECT)
+
+static void
+hud_action_description_finalize (GObject *object)
+{
+  HudActionDescription *description = HUD_ACTION_DESCRIPTION (object);
+
+  g_free (description->action);
+  if (description->target)
+    g_variant_unref (description->target);
+  g_hash_table_unref (description->attrs);
+
+  G_OBJECT_CLASS (hud_action_description_parent_class)
+    ->finalize (object);
+}
+
+static void
+hud_action_description_init (HudActionDescription *description)
+{
+  description->attrs = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
+}
+
+static void
+hud_action_description_class_init (HudActionDescriptionClass *class)
+{
+  class->finalize = hud_action_description_finalize;
+
+  hud_action_description_changed_signal = g_signal_new ("changed", HUD_TYPE_ACTION_DESCRIPTION,
+                                                        G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED, 0, NULL, NULL,
+                                                        g_cclosure_marshal_VOID__STRING,
+                                                        G_TYPE_NONE, 1, G_TYPE_STRING);
+}
+
 HudActionDescription *
 hud_action_description_new (const gchar *action_name,
                             GVariant    *action_target)
 {
   HudActionDescription *description;
 
-  /* Our dirty little secret: a HudActionDescription is just a GHashTable */
-  description = (gpointer) g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
-  hud_action_description_set_attribute (description, "action", "s", action_name);
-  hud_action_description_set_attribute_value (description, "target", action_target);
+  description = g_object_new (HUD_TYPE_ACTION_DESCRIPTION, NULL);
+  description->action = g_strdup (action_name);
+  description->target = action_target ? g_variant_ref_sink (action_target) : NULL;
 
   return description;
-}
-
-HudActionDescription *
-hud_action_description_ref (HudActionDescription *description)
-{
-  return (gpointer) g_hash_table_ref ((gpointer) description);
-}
-
-void
-hud_action_description_unref (HudActionDescription *description)
-{
-  g_hash_table_unref ((gpointer) description);
 }
 
 void
@@ -843,10 +862,19 @@ hud_action_description_set_attribute_value (HudActionDescription *description,
                                             const gchar          *attribute_name,
                                             GVariant             *value)
 {
+  /* Don't allow setting the action or target as these form the
+   * identity of the description and are stored separately...
+   */
+  g_return_if_fail (!g_str_equal (attribute_name, "action"));
+  g_return_if_fail (!g_str_equal (attribute_name, "target"));
+
   if (value)
-    g_hash_table_insert ((gpointer) description, g_strdup (attribute_name), g_variant_ref_sink (value));
+    g_hash_table_insert (description->attrs, g_strdup (attribute_name), g_variant_ref_sink (value));
   else
-    g_hash_table_remove ((gpointer) description, attribute_name);
+    g_hash_table_remove (description->attrs, attribute_name);
+
+  g_signal_emit (description, hud_action_description_changed_signal,
+                 g_quark_try_string (attribute_name), attribute_name);
 }
 
 void
@@ -874,11 +902,11 @@ hud_action_description_set_attribute (HudActionDescription *description,
 const gchar *
 hud_action_description_get_action_name (HudActionDescription *description)
 {
-  return g_variant_get_string (g_hash_table_lookup ((gpointer) description, "action"), NULL);
+  return description->action;
 }
 
 GVariant *
 hud_action_description_get_action_target (HudActionDescription *description)
 {
-  return g_hash_table_lookup ((gpointer) description, "target");
+  return description->target;
 }

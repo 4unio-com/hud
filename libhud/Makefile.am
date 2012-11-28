@@ -26,7 +26,7 @@ libhud_la_CFLAGS = \
 	$(COVERAGE_CFLAGS) \
 	-I $(top_srcdir) \
 	-D G_LOG_DOMAIN=\"libhud\" \
-	-Wall -Werror
+	-Wall
 
 libhud_la_LIBADD = \
 	$(HUD_LIBS)
