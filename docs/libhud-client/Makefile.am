@@ -25,13 +25,10 @@ GTKDOC_LIBS = \
 	$(top_builddir)/libhud-client/libhud-client.la \
 	$(HUD_LIBS)
 
-TESTS = gtkdoc-in-srcdir
-
-gtkdoc-in-srcdir: Makefile.am
-	@echo "#!/bin/sh" > $@
-	@echo "cd \"$(srcdir)\"" >> $@
-	@echo "$(GTKDOC_CHECK)" >> $@
-	@chmod +x $@
-
-DISTCLEANFILES = gtkdoc-in-srcdir
+if ENABLE_GTK_DOC
+TESTS_ENVIRONMENT = cd $(srcdir) && \
+  DOC_MODULE=$(DOC_MODULE) DOC_MAIN_SGML_FILE=$(DOC_MAIN_SGML_FILE) \
+  SRCDIR=$(abs_srcdir) BUILDDIR=$(abs_builddir)
+TESTS = $(GTKDOC_CHECK)
+endif
 
