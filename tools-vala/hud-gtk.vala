@@ -27,8 +27,7 @@ namespace HudGtk {
 			model.set(iter, 1, results.get_string(result_iter, 3)); /* Description */
 			model.set(iter, 2, results.get_string(result_iter, 5)); /* Shortcut */
 			model.set(iter, 3, results.get_string(result_iter, 6)); /* Distance */
-			model.set(iter, 4, ""); /* NULL */
-			model.set(iter, 5, results.get_value(result_iter, 0)); /* Key */
+			model.set(iter, 4, results.get_value(result_iter, 0)); /* Key */
 		}
 
 		void results_row_removed (Dee.Model results, Dee.ModelIter result_iter) {
@@ -52,7 +51,7 @@ namespace HudGtk {
 			Variant key;
 
 			model.get_iter (out iter, path);
-			model.get (iter, 5, out key);
+			model.get (iter, 4, out key);
 
 			query.execute_command(key, 0);
 		}
