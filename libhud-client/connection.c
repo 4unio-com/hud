@@ -181,6 +181,14 @@ hud_client_connection_finalize (GObject *object)
 	return;
 }
 
+/**
+ * hud_client_connection_get_ref:
+ *
+ * Gets a reference to the default object that connects to the
+ * default HUD service.
+ *
+ * Return value: (transfer reference): Refence to a #HudClientConnection
+ */
 HudClientConnection *
 hud_client_connection_get_ref (void)
 {
@@ -195,6 +203,19 @@ hud_client_connection_get_ref (void)
 	}
 }
 
+/**
+ * hud_client_connection_new:
+ * @dbus_address: Address on DBus for the HUD service
+ * @dbus_path: Path to the object to create stuff
+ *
+ * Builds a HUD Connection object that can be used to connect to a
+ * custom HUD service.  For the most part, this should only be used
+ * in testing, though there might be other uses.  It is likely if you're
+ * using this function you'd also be interested in
+ * hud_client_query_new_for_connection()
+ *
+ * Return value: (transfer reference): A new #HudClientConnection
+ */
 HudClientConnection *
 hud_client_connection_new (gchar * dbus_address, gchar * dbus_path)
 {
@@ -204,6 +225,19 @@ hud_client_connection_new (gchar * dbus_address, gchar * dbus_path)
 			NULL));
 }
 
+/**
+ * hud_client_connection_new_query:
+ * @connection: A #HudClientConnection
+ * @query: The initial query string
+ * @query_path: (transfer full): Place to put the path for the new query
+ * @results_name: (transfer full): Place to put the #DeeModel name for the results
+ * @appstack_name: (transfer full): Place to put the #DeeModel name for the appstack
+ *
+ * Function to create a new query in the HUD service and pass back
+ * the information needed to create a #HudClientQuery object.
+ *
+ * Return value: Whether we were able to create the query
+ */
 gboolean
 hud_client_connection_new_query (HudClientConnection * connection, const gchar * query, gchar ** query_path, gchar ** results_name, gchar ** appstack_name)
 {
@@ -221,6 +255,14 @@ hud_client_connection_new_query (HudClientConnection * connection, const gchar *
 		NULL); /* GError */
 }
 
+/**
+ * hud_client_connection_get_address:
+ * @connection: A #HudClientConnection
+ *
+ * Accessor to get the address of the HUD service.
+ *
+ * Return value: A DBus address
+ */
 const gchar *
 hud_client_connection_get_address (HudClientConnection * connection)
 {

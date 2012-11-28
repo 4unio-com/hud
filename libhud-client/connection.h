@@ -38,10 +38,25 @@ typedef struct _HudClientConnection         HudClientConnection;
 typedef struct _HudClientConnectionClass    HudClientConnectionClass;
 typedef struct _HudClientConnectionPrivate  HudClientConnectionPrivate ;
 
+/**
+ * HudClientConnectionClass:
+ * @parent_class: #GObjectClass
+ *
+ * Class information for #HudClientConnection
+ */
 struct _HudClientConnectionClass {
 	GObjectClass parent_class;
 };
 
+/**
+ * HudClientConnection:
+ * @parent: #GObject
+ * @priv: Private variables
+ *
+ * Object to make a generic connection to a HUD service.  For the most
+ * part people should just create a #HudClientQuery and that'll use the
+ * default HUD service.  For most folks that should be enough.
+ */
 struct _HudClientConnection {
 	GObject parent;
 	HudClientConnectionPrivate * priv;
