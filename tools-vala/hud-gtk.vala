@@ -23,11 +23,11 @@ namespace HudGtk {
 			Gtk.TreeIter iter;
 			model.insert(out iter, (int)pos);
 
-			model.set(iter, 0, results.get_value(result_iter, 1)); /* Command */
-			model.set(iter, 1, results.get_value(result_iter, 3)); /* Description */
-			model.set(iter, 2, results.get_value(result_iter, 5)); /* Shortcut */
-			model.set(iter, 3, results.get_value(result_iter, 6)); /* Distance */
-			model.set(iter, 4, results.get_value(result_iter, 4)); /* Highlights */
+			model.set(iter, 0, results.get_string(result_iter, 1)); /* Command */
+			model.set(iter, 1, results.get_string(result_iter, 3)); /* Description */
+			model.set(iter, 2, results.get_string(result_iter, 5)); /* Shortcut */
+			model.set(iter, 3, results.get_string(result_iter, 6)); /* Distance */
+			model.set(iter, 4, ""); /* NULL */
 			model.set(iter, 5, results.get_value(result_iter, 0)); /* Key */
 		}
 
