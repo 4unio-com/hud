@@ -17,6 +17,7 @@ namespace HudGtk {
 		DBusConnection session;
 		Gtk.ListStore model;
 		Variant? query_key;
+		HudClient.Query query;
 
 		void populate_model (Variant update) {
 				foreach (var result in update.get_child_value (1)) {
@@ -40,32 +41,7 @@ namespace HudGtk {
 
 		void entry_text_changed (Object object, ParamSpec pspec) {
 			var entry = object as Gtk.Entry;
-
-			if (query_key != null) {
-				try {
-					session.call_sync ("com.canonical.hud", "/com/canonical/hud", "com.canonical.hud",
-					                   "CloseQuery", new Variant ("(v)", query_key), null, 0, -1, null);
-				} catch (Error e) {
-					warning (e.message);
-				}
-			}
-
-			query_key = null;
-			model.clear ();
-
-			if (entry.text == "") {
-				return;
-			}
-
-			try {
-				var session = Bus.get_sync (BusType.SESSION, null);
-				var reply = session.call_sync ("com.canonical.hud", "/com/canonical/hud", "com.canonical.hud",
-				                               "StartQuery", new Variant ("(si)", entry.text, 15),
-				                               new VariantType ("(sa(sssssv)v)"), 0, -1, null);
-				populate_model (reply);
-			} catch (Error e) {
-				warning (e.message);
-			}
+			query.set_query(entry.text);
 		}
 
 		void view_activated (Gtk.TreeView view, Gtk.TreePath path, Gtk.TreeViewColumn column) {
@@ -95,6 +71,8 @@ namespace HudGtk {
 			} catch (Error e) {
 				error (e.message);
 			}
+
+			query = new HudClient.Query("");
 
 			session.signal_subscribe ("com.canonical.hud", "com.canonical.hud", "UpdatedQuery",
 			                          "/com/canonical/hud", null, DBusSignalFlags.NONE, updated_query);
