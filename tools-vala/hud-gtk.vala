@@ -14,29 +14,32 @@ namespace HudGtk {
 	}
 
 	class Window : Gtk.ApplicationWindow {
-		DBusConnection session;
 		Gtk.ListStore model;
-		Variant? query_key;
 		HudClient.Query query;
+		
+		void results_row_added (Dee.Model results, Dee.ModelIter result_iter) {
+			var pos = results.get_position(result_iter);
 
-		void populate_model (Variant update) {
-				foreach (var result in update.get_child_value (1)) {
-					Gtk.TreeIter iter;
+			Gtk.TreeIter iter;
+			model.insert(out iter, (int)pos);
 
-					model.append (out iter);
-					for (var i = 0; i < 5; i++) {
-						model.set (iter, i, result.get_child_value (i).get_string ());
-					}
-					model.set (iter, 5, result.get_child_value (5).get_variant ());
-				}
-				query_key = update.get_child_value (2);
+			model.set(iter, 0, results.get_value(result_iter, 1)); /* Command */
+			model.set(iter, 1, results.get_value(result_iter, 3)); /* Description */
+			model.set(iter, 2, results.get_value(result_iter, 5)); /* Shortcut */
+			model.set(iter, 3, results.get_value(result_iter, 6)); /* Distance */
+			model.set(iter, 4, results.get_value(result_iter, 4)); /* Highlights */
+			model.set(iter, 5, results.get_value(result_iter, 0)); /* Key */
 		}
 
-		void updated_query (DBusConnection connection, string sender_name, string object_path, string interface_name, string signal_name, Variant parameters) {
-			if (query_key != null && parameters.get_child_value (2).equal (query_key)) {
-				model.clear ();
-				populate_model (parameters);
-			}
+		void results_row_removed (Dee.Model results, Dee.ModelIter result_iter) {
+			var pos = results.get_position(result_iter);
+
+			string spath = "%d";
+			spath = spath.printf(pos);
+			Gtk.TreePath path = new Gtk.TreePath.from_string(spath);
+			Gtk.TreeIter iter;
+			model.get_iter(out iter, path);
+			model.remove(iter);
 		}
 
 		void entry_text_changed (Object object, ParamSpec pspec) {
@@ -51,12 +54,7 @@ namespace HudGtk {
 			model.get_iter (out iter, path);
 			model.get (iter, 5, out key);
 
-			try {
-				session.call_sync ("com.canonical.hud", "/com/canonical/hud", "com.canonical.hud",
-				                   "ExecuteQuery", new Variant ("(vu)", key, 0), null, 0, -1, null);
-			} catch (Error e) {
-				warning (e.message);
-			}
+			query.execute_command(key, 0);
 		}
 
 		public Window (Gtk.Application application) {
@@ -66,16 +64,16 @@ namespace HudGtk {
 			var builder = new Gtk.Builder ();
 			try {
 				new CellRendererVariant ();
-				session = Bus.get_sync (BusType.SESSION, null);
 				builder.add_from_file (HUD_GTK_DATADIR + "/hud-gtk.ui");
+				query = new HudClient.Query("");
 			} catch (Error e) {
 				error (e.message);
 			}
 
-			query = new HudClient.Query("");
+			Dee.Model results = query.get_results_model();
+			results.row_added.connect (results_row_added);
+			results.row_removed.connect (results_row_removed);
 
-			session.signal_subscribe ("com.canonical.hud", "com.canonical.hud", "UpdatedQuery",
-			                          "/com/canonical/hud", null, DBusSignalFlags.NONE, updated_query);
 			model = builder.get_object ("liststore") as Gtk.ListStore;
 			builder.get_object ("entry").notify["text"].connect (entry_text_changed);
 			(builder.get_object ("treeview") as Gtk.TreeView).row_activated.connect (view_activated);
