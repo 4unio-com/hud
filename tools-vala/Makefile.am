@@ -28,6 +28,7 @@ hud_gtk_CFLAGS = \
 	$(HUD_CFLAGS)
 
 hud_gtk_LDADD = \
+	$(top_builddir)/libhud-client/libhud-client.la \
 	$(gtk_LIBS) \
 	$(HUD_LIBS)
 
