@@ -97,3 +97,40 @@ CLEANFILES = \
 	$(BUILD_SOURCES) \
 	hud-client-$(API_VERSION).pc
 
+##########################
+# Introspection
+##########################
+
+include $(INTROSPECTION_MAKEFILE)
+INTROSPECTION_GIRS =
+INTROSPECTION_SCANNER_ARGS = \
+	--add-include-path=$(top_srcdir) \
+	--add-include-path=$(srcdir) \
+	-I $(top_srcdir) -I $(srcdir)
+INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir) --includedir=$(srcdir)
+
+if HAVE_INTROSPECTION
+
+# NOTE: 1 here is $API_VERSION
+
+HudClient_1_gir_INCLUDES = Dee-1.0
+HudClient_1_gir_CFLAGS = \
+	-D HUD_CLIENT_COMPILATION \
+	$(HUD_CFLAGS)
+HudClient_1_gir_LIBS = $(builddir)/libhud-client.la
+HudClient_1_gir_EXPORT_PACKAGES = hud-client-$(API_VERSION)
+HudClient_1_gir_SCANNERFLAGS = --c-include "hud-client.h"
+HudClient_1_gir_FILES = $(libhud_client_la_SOURCES)
+
+INTROSPECTION_GIRS += HudClient-1.gir
+
+endif
+
+girdir = $(datadir)/gir-1.0
+gir_DATA = $(INTROSPECTION_GIRS)
+
+typelibdir = $(libdir)/girepository-1.0
+typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
+
+CLEANFILES += $(gir_DATA) $(typelib_DATA)
+

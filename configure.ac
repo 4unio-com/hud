@@ -54,6 +54,12 @@ AC_CONFIG_MACRO_DIR(m4)
 GLIB_GSETTINGS
 
 ###########################
+# GObject Introspection
+###########################
+
+GOBJECT_INTROSPECTION_CHECK([0.9.5])
+
+###########################
 # Dependencies
 ###########################
 
