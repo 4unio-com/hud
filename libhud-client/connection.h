@@ -50,8 +50,6 @@ struct _HudClientConnectionClass {
 
 /**
  * HudClientConnection:
- * @parent: #GObject
- * @priv: Private variables
  *
  * Object to make a generic connection to a HUD service.  For the most
  * part people should just create a #HudClientQuery and that'll use the

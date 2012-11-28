@@ -52,8 +52,6 @@ struct _HudClientQueryClass {
 
 /**
  * HudClientQuery:
- * @parent: #GObject
- * @priv: Private variables
  *
  * Object to track a query and the models for that query.  Should
  * be unref'd when a client is done using the query so that applications
