@@ -98,9 +98,21 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
          libhud-client1 (= ${binary:Version}),
          libglib2.0-dev
+Recommends: libhud-client1-doc
 Multi-Arch: same
 Description: private library for implementing a HUD frontend
  Interface for querying the HUD and getting results.
  .
  This package contains files that are needed to build applications.
+
+Package: libhud-client1-doc
+Section: doc
+Architecture: all
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libhud-client1-dev (= ${binary:Version})
+Description: private library for implementing a HUD frontend
+ Interface for querying the HUD and getting results.
+ .
+ This package contains developer documentation.
 
