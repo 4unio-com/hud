@@ -13,8 +13,10 @@ CFILE_GLOB = $(DOC_SOURCE_DIR)/*.c
 
 IGNORE_HFILES = \
 	query-iface.h \
+	service-iface.h
+
+IGNORE_CFILES = \
 	query-iface.c \
-	service-iface.h \
 	service-iface.c
 
 GTKDOC_CFLAGS = -I$(top_srcdir)/libhud-client -I$(top_srcdir) $(HUD_CFLAGS)
