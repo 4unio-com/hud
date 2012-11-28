@@ -14,11 +14,20 @@ EXTRA_DIST += hud-gtk.ui
 hud_gtk_SOURCES = \
 	hud-gtk.vala
 
-hud_gtk_VALAFLAGS = --pkg gtk+-3.0
+hud_gtk_VALAFLAGS = \
+	--pkg gtk+-3.0 \
+	--pkg Dee-1.0 \
+	--pkg HudClient-1 \
+	--vapidir $(top_builddir)/libhud-client
+
 hud_gtk_CFLAGS = \
 	-DHUD_GTK_DATADIR=\""$(hudgtkdatadir)"\" \
-	$(gtk_CFLAGS)
+	-I $(top_srcdir) \
+	-I $(top_srcdir)/libhud-client \
+	$(gtk_CFLAGS) \
+	$(HUD_CFLAGS)
 
 hud_gtk_LDADD = \
-	$(gtk_LIBS)
+	$(gtk_LIBS) \
+	$(HUD_LIBS)
 
