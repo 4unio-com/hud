@@ -251,10 +251,8 @@ test_query_performance (void)
 
           start_time = g_get_monotonic_time ();
           query = hud_query_new (source, part_search, 1u<<30);
-          g_print ("%-60s: %dus (%d hits)\n", part_search,
-                   (int) (g_get_monotonic_time () - start_time),
-                   hud_query_get_n_results (query));
-          hud_query_close (query);
+          g_print ("%-60s: %dus\n", part_search,
+                   (int) (g_get_monotonic_time () - start_time));
           g_object_unref (query);
           g_free (part_search);
         }

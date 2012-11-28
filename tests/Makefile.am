@@ -34,13 +34,12 @@ test_distance_SOURCES = \
 
 test_distance_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_distance_LDADD = \
-	../src/libhud-service.a		\
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 DISTCLEANFILES += $(DISTANCE_XML_REPORT)
@@ -55,12 +54,12 @@ TESTS += \
 check_PROGRAMS += \
 	test-result-highlighting
 
-DISTANCE_XML_REPORT = test-result-highlighting.xml
+HIGHLIGHTING_XML_REPORT = test-result-highlighting.xml
 
 test-result-highlighting-test: test-result-highlighting Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
-	@echo gtester --verbose -k -o $(DISTANCE_XML_REPORT) $(builddir)/test-result-highlighting >> $@
+	@echo gtester --verbose -k -o $(HIGHLIGHTING_XML_REPORT) $(builddir)/test-result-highlighting >> $@
 	@chmod +x $@
 
 test_result_highlighting_SOURCES = \
@@ -68,16 +67,15 @@ test_result_highlighting_SOURCES = \
 
 test_result_highlighting_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_result_highlighting_LDADD = \
-	../src/libhud-service.a		\
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
-DISTCLEANFILES += $(DISTANCE_XML_REPORT)
+DISTCLEANFILES += $(HIGHLIGHTING_XML_REPORT)
 
 ######################
 # Test Usage DB Simple
@@ -109,14 +107,13 @@ test_usage_db_simple_SOURCES = \
 
 test_usage_db_simple_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_usage_db_simple_LDADD = \
-	../src/libhud-service.a		\
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 DISTCLEANFILES += $(USAGE_DB_SIMPLE_XML_REPORT)
@@ -152,14 +149,13 @@ test_usage_db_old_SOURCES = \
 
 test_usage_db_old_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_usage_db_old_LDADD = \
-	../src/libhud-service.a		\
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 DISTCLEANFILES += $(USAGE_DB_OLD_XML_REPORT)
@@ -197,14 +193,13 @@ test_usage_db_ancient_SOURCES = \
 
 test_usage_db_ancient_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_usage_db_ancient_LDADD = \
-	../src/libhud-service.a		\
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 EXTRA_DIST += \
@@ -242,14 +237,13 @@ test_usage_db_testapp_SOURCES = \
 
 test_usage_db_testapp_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_usage_db_testapp_LDADD = \
-	../src/libhud-service.a		\
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 EXTRA_DIST += \
@@ -349,13 +343,12 @@ test_bad_app_info_SOURCES = \
 
 test_bad_app_info_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_bad_app_info_LDADD = \
-	../src/libhud-service.a		\
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 #########################
@@ -373,13 +366,12 @@ test_load_app_info_SOURCES = \
 
 test_load_app_info_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_load_app_info_LDADD = \
-	../src/libhud-service.a		\
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 test-good-app-info-tons-of-entries: good-app-info/tons-of-entries.hud-app-info test-load-app-info test-usage-dump-entries.sql Makefile.am
@@ -409,6 +401,7 @@ TESTS += \
 
 test-dbus-message-count: test-dbus-message-count.in
 	@sed \
+		-e "s|\@indicatordir\@|$(INDICATORDIR)|" \
 		-e "s|\@top_builddir\@|$(top_builddir)|" \
 		-e "s|\@builddir\@|$(builddir)|" \
 		-e "s|\@srcdir\@|$(srcdir)|" \
@@ -434,7 +427,7 @@ hud_performance_CFLAGS = \
 	-I$(top_srcdir)/src		\
 	$(HUD_CFLAGS)
 hud_performance_LDADD = \
-	../src/libhud-service.a		\
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 hud_performance_SOURCES = \
 	hud-performance.c	\

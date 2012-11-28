@@ -10,7 +10,13 @@ dbus_services_DATA = com.canonical.hud.service
 %.service: %.service.in
 	sed -e "s|\@pkglibexecdir\@|$(pkglibexecdir)|" $< > $@
 
+dbus_interfacesdir = $(DBUSIFACEDIR)
+dbus_interfaces_DATA = \
+	com.canonical.hud.query.xml \
+	com.canonical.hud.xml
+
 EXTRA_DIST = \
+	$(dbus_interfaces_DATA) \
 	com.canonical.hud.Application.xml \
 	$(dbus_services_DATA:.service=.service.in) \
 	$(gsettings_SCHEMAS)

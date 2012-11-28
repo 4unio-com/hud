@@ -106,8 +106,9 @@ hud_debug_source_unuse (HudSource *hud_source)
 
 static void
 hud_debug_source_search (HudSource    *hud_source,
-                         GPtrArray    *results_array,
-                         HudTokenList *search_string)
+                         HudTokenList *search_string,
+                         void        (*append_func) (HudResult * result, gpointer user_data),
+                         gpointer      user_data)
 {
   HudDebugSource *source = HUD_DEBUG_SOURCE (hud_source);
 
@@ -117,7 +118,7 @@ hud_debug_source_search (HudSource    *hud_source,
 
       result = hud_result_get_if_matched (source->item, search_string, 0);
       if (result != NULL)
-        g_ptr_array_add (results_array, result);
+        append_func(result, user_data);
     }
 }
 

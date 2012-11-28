@@ -29,18 +29,16 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <curses.h>
 
-#include "shared-values.h"
-#include "hud.interface.h"
+#include <hud-client.h>
 
 
 static void print_suggestions(const char * query);
-static GDBusProxy * proxy = NULL;
-static GVariant * last_key = NULL;
 static void update(char *string);
 void sighandler(int);
 
 WINDOW *twindow = NULL;
 int use_curses = 0;
+static HudClientQuery * client_query = NULL;
 
 int
 main (int argc, char *argv[])
@@ -54,25 +52,6 @@ main (int argc, char *argv[])
 	char *line = (char*) malloc(256 * sizeof(char));
 
 	signal(SIGINT, sighandler);
-
-	GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
-	g_return_val_if_fail(session != NULL, 1);
-
-	GDBusNodeInfo * nodeinfo = g_dbus_node_info_new_for_xml(hud_interface, NULL);
-	g_return_val_if_fail(nodeinfo != NULL, 1);
-
-	GDBusInterfaceInfo * ifaceinfo = g_dbus_node_info_lookup_interface(nodeinfo, DBUS_IFACE);
-	g_return_val_if_fail(ifaceinfo != NULL, 1);
-
-	proxy = g_dbus_proxy_new_sync(session,
-	                              G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-	                              ifaceinfo,
-	                              DBUS_NAME,
-	                              DBUS_PATH,
-	                              DBUS_IFACE,
-	                              NULL, NULL);
-	g_return_val_if_fail(proxy != NULL, 1);
-
 
 	// reading from pipe
 	if (!isatty (STDIN_FILENO) ) {
@@ -151,8 +130,7 @@ main (int argc, char *argv[])
 	
 	free(line);
 
-	g_dbus_node_info_unref(nodeinfo);
-	g_object_unref(session);
+	g_clear_object(&client_query);
 
 	return 0;
 }
@@ -171,70 +149,65 @@ update( char *string ){
 	refresh();
 }
 
+static void
+wait_for_sync_notify (GObject * object, GParamSpec * pspec, gpointer user_data)
+{
+	GMainLoop * loop = (GMainLoop *)user_data;
+	g_main_loop_quit(loop);
+	return;
+}
+
+static gboolean
+wait_for_sync (DeeModel * model)
+{
+	if (dee_shared_model_is_synchronized(DEE_SHARED_MODEL(model))) {
+		return TRUE;
+	}
+
+	GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+
+	glong sig = g_signal_connect(G_OBJECT(model), "notify::synchronized", G_CALLBACK(wait_for_sync_notify), loop);
+
+	g_main_loop_run(loop);
+	g_main_loop_unref(loop);
+
+	g_signal_handler_disconnect(G_OBJECT(model), sig);
+
+	return dee_shared_model_is_synchronized(DEE_SHARED_MODEL(model));
+}
 
 static void 
 print_suggestions (const char *query)
 {
-	GError * error = NULL;
-	GVariantBuilder querybuilder;
-	g_variant_builder_init(&querybuilder, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value(&querybuilder, g_variant_new_string(query));
-	g_variant_builder_add_value(&querybuilder, g_variant_new_int32(5));
-
-	GVariant * suggests = g_dbus_proxy_call_sync(proxy,
-	                                             "StartQuery",
-	                                             g_variant_builder_end(&querybuilder),
-	                                             G_DBUS_CALL_FLAGS_NONE,
-	                                             -1,
-	                                             NULL,
-	                                             &error);
-
-	if (error != NULL) {
-		g_warning("Unable to get suggestions: %s", error->message);
-		g_error_free(error);
-		return ;
+	if (client_query == NULL) {
+		client_query = hud_client_query_new(query);
+	} else {
+		hud_client_query_set_query(client_query, query);
 	}
 
-	GVariant * target = g_variant_get_child_value(suggests, 0);
-	g_variant_unref(target);
+	DeeModel * model = hud_client_query_get_results_model(client_query);
+	g_return_if_fail(wait_for_sync(model));
 
-	GVariant * suggestions = g_variant_get_child_value(suggests, 1);
-	GVariantIter iter;
-	g_variant_iter_init(&iter, suggestions);
-	gchar * suggestion = NULL;
-	gchar * appicon = NULL;
-	gchar * icon = NULL;
-	gchar * complete = NULL;
-	gchar * accel = NULL;
-	GVariant * key = NULL;
-
-	last_key = NULL;
-
-	int i=0;
-	char *clean_line;
-
-	while (g_variant_iter_loop(&iter, "(sssssv)", &suggestion, &appicon, &icon, &complete, &accel, &key)) {
+	DeeModelIter * iter = NULL;
+	int i = 0;
+	for (iter = dee_model_get_first_iter(model); !dee_model_is_last(model, iter); iter = dee_model_next(model, iter), i++) {
+		const gchar * suggestion = dee_model_get_string(model, iter, 1);
 		if( use_curses)
 			mvwprintw(twindow, 9 + i, 15, "%s", suggestion);
 		else{
+			gchar * clean_line = NULL;
 			pango_parse_markup(suggestion, -1, 0, NULL, &clean_line, NULL, NULL);
 			printf("\t%s\n", clean_line);
 			free(clean_line);
 		}
-		i++;
 
 	}
-
-	g_variant_unref(suggestions);
-
-	/* NOTE: Ignoring the Query Key as we're not handling the signal now
-	   and just letting it timeout. */
 
 	return;
 }
 
 void sighandler(int signal){
 	endwin();
-	g_object_unref(proxy);
+	g_clear_object(&client_query);
 	exit(EXIT_SUCCESS);
 }
