@@ -71,6 +71,21 @@ gboolean                hud_client_connection_new_query  (HudClientConnection * 
                                                           gchar ** appstack_name);
 const gchar *           hud_client_connection_get_address (HudClientConnection * connection);
 
+/**
+	SECTION:connection
+	@short_description: Provide a connection to the HUD service
+	@stability: Unstable
+	@include: libhud-client/connection.h
+
+	The connection is an object to maintain a connection to the default
+	objects on the HUD service.  It provides access to the functionality
+	there and can be used to create queries.
+
+	Most users should not bother with a connection, it will be created
+	by the #HudClientQuery if one is not provided.  Most usage is for
+	testing and using custom HUD services.
+*/
+
 G_END_DECLS
 
 #endif

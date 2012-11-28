@@ -78,6 +78,22 @@ void               hud_client_query_execute_command       (HudClientQuery *     
                                                            GVariant *              command_key,
                                                            guint                   timestamp);
 
+/**
+	SECTION:query
+	@short_description: Query the HUD service for entries
+	@stability: Unstable
+	@include: libhud-client/query.h
+
+	A query is an open query to the HUD service which provides
+	Dee models for the results.  The query can update without changing
+	the search string (the application changes the entires) or can
+	be udated by calling hud_client_query_set_query().
+
+	When the usage of the Query is complete it should be unreferenced
+	as that will communicate to the applications that the HUD is closed
+	and they should not update their items.
+*/
+
 G_END_DECLS
 
 #endif
