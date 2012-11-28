@@ -134,3 +134,21 @@ typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
 CLEANFILES += $(gir_DATA) $(typelib_DATA)
 
+##########################
+# Vapi
+##########################
+
+if HAVE_VALA
+if HAVE_INTROSPECTION
+
+vapidir = $(datadir)/vala/vapi
+vapi_DATA = HudClient-1.vapi
+
+HudClient-1.vapi: HudClient-1.gir
+	$(VALA_API_GEN) --pkg gio-2.0 --library=HudClient-1 $<
+
+CLEANFILES += $(vapi_DATA)
+
+endif
+endif
+
