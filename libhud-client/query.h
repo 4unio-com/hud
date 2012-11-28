@@ -40,16 +40,31 @@ typedef struct _HudClientQuery         HudClientQuery;
 typedef struct _HudClientQueryClass    HudClientQueryClass;
 typedef struct _HudClientQueryPrivate  HudClientQueryPrivate;
 
+/**
+ * HudClientQueryClass:
+ * @parent_class: #GObjectClass
+ *
+ * Class information for #HudClientQuery
+ */
 struct _HudClientQueryClass {
 	GObjectClass parent_class;
 };
 
+/**
+ * HudClientQuery:
+ * @parent: #GObject
+ * @priv: Private variables
+ *
+ * Object to track a query and the models for that query.  Should
+ * be unref'd when a client is done using the query so that applications
+ * can be told that the HUD is no longer open.
+ */
 struct _HudClientQuery {
 	GObject parent;
 	HudClientQueryPrivate * priv;
 };
 
-GType hud_client_query_get_type (void);
+GType              hud_client_query_get_type              (void);
 
 HudClientQuery *   hud_client_query_new                   (const gchar *           query);
 HudClientQuery *   hud_client_query_new_for_connection    (const gchar *           query,

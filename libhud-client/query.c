@@ -173,6 +173,15 @@ hud_client_query_finalize (GObject *object)
 	return;
 }
 
+/**
+ * hud_client_query_new:
+ * @query: String to build the initial set of results from
+ *
+ * Startes a query with the HUD using a specific string.  This
+ * will block until the query is created.
+ *
+ * Return value: (transfer full): A new #HudClientQuery object
+ */
 HudClientQuery *
 hud_client_query_new (const gchar * query)
 {
@@ -182,6 +191,17 @@ hud_client_query_new (const gchar * query)
 	));
 }
 
+/**
+ * hud_client_query_new_for_connection:
+ * @query: String to build the initial set of results from
+ * @connection: A custom #HudClientConnection to a non-default HUD service
+ *
+ * Very similar to hud_client_query_new() except that it uses a
+ * custom connection.  This is mostly for testing, though it is
+ * available if you need it.
+ *
+ * Return value: (transfer full): A new #HudClientQuery object
+ */
 HudClientQuery *
 hud_client_query_new_for_connection (const gchar * query, HudClientConnection * connection)
 {
@@ -192,6 +212,14 @@ hud_client_query_new_for_connection (const gchar * query, HudClientConnection * 
 	));
 }
 
+/**
+ * hud_client_query_set_query:
+ * @cquery: A #HudClientQuery
+ * @query: New query string
+ *
+ * This revises the query to be the new query string.  Updates can
+ * be seen through the #DeeModel's.
+ */
 void
 hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 {
@@ -237,6 +265,14 @@ hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 	return;
 }
 
+/**
+ * hud_client_query_get_query:
+ * @cquery: A #HudClientQuery
+ * 
+ * Accessor for the current query string.
+ *
+ * Return value: (transfer none): Query string
+ */
 const gchar *
 hud_client_query_get_query (HudClientQuery * cquery)
 {
@@ -245,6 +281,14 @@ hud_client_query_get_query (HudClientQuery * cquery)
 	return cquery->priv->query;
 }
 
+/**
+ * hud_client_query_get_results_model:
+ * @cquery: A #HudClientQuery
+ *
+ * Accessor for the current results model.
+ *
+ * Return value: (transfer none): Results Model
+ */
 DeeModel *
 hud_client_query_get_results_model (HudClientQuery * cquery)
 {
@@ -253,6 +297,14 @@ hud_client_query_get_results_model (HudClientQuery * cquery)
 	return cquery->priv->results;
 }
 
+/**
+ * hud_client_query_get_appstack_model:
+ * @cquery: A #HudClientQuery
+ *
+ * Accessor for the current appstack model.
+ *
+ * Return value: (transfer none): Appstack Model
+ */
 DeeModel *
 hud_client_query_get_appstack_model (HudClientQuery * cquery)
 {
@@ -261,6 +313,16 @@ hud_client_query_get_appstack_model (HudClientQuery * cquery)
 	return cquery->priv->appstack;
 }
 
+/**
+ * hud_client_query_execute_command:
+ * @cquery: A #HudClientQuery
+ * @command_key: The key from the results model for the entry to activate
+ * @timestamp: Timestamp for the user event
+ *
+ * Executes a particular entry from the results model.  The @command_key
+ * should be grabbed from the table and passed to this function to activate
+ * it.  This function will block until the command is activated.
+ */
 void
 hud_client_query_execute_command (HudClientQuery * cquery, GVariant * command_key, guint timestamp)
 {
