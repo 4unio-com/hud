@@ -24,3 +24,14 @@ GTKDOC_CFLAGS = -I$(top_srcdir)/libhud-client -I$(top_srcdir) $(HUD_CFLAGS)
 GTKDOC_LIBS = \
 	$(top_builddir)/libhud-client/libhud-client.la \
 	$(HUD_LIBS)
+
+TESTS = gtkdoc-in-srcdir
+
+gtkdoc-in-srcdir: Makefile.am
+	@echo "#!/bin/sh" > $@
+	@echo "cd \"$(srcdir)\"" >> $@
+	@echo "$(GTKDOC_CHECK)" >> $@
+	@chmod +x $@
+
+DISTCLEANFILES = gtkdoc-in-srcdir
+
