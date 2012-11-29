@@ -14,6 +14,7 @@ TESTS = \
 LIBHUD_XML_REPORT = libhud-client-test.xml
 libhud-client-tester: libhud-client-test Makefile.am
 	@echo "#!/bin/bash" > $@
+	@echo . $(abs_top_srcdir)/tests/run-xvfb.sh >> $@
 	@echo gtester --verbose -k -o $(LIBHUD_XML_REPORT) $(abs_builddir)/libhud-client-test >> $@
 	@chmod +x $@
 
