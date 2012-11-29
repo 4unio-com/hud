@@ -69,8 +69,6 @@ struct _HudOperationClass
 
 GType                   hud_operation_get_type                          (void) G_GNUC_CONST;
 
-HudOperation *          hud_operation_new                               (gpointer      user_data);
-
 void                    hud_operation_setup                             (HudOperation *operation,
                                                                          GVariant     *parameters);
 

@@ -97,6 +97,19 @@ hud_operation_new (gpointer user_data)
   return operation;
 }
 
+/**
+ * hud_operation_setup:
+ * @operation: a new #HudOperation
+ * @parameters: the setup parameters
+ *
+ * Performs the initial setup for the operation -- assigning initial
+ * values to all of the parameters.
+ *
+ * You don't need to call this function in the normal case.  It is only
+ * needed If you override create_operation on #HudAction, in which case
+ * you should call it on your #HudOperation subclass before adding it
+ * back to the action using hud_action_set_operation().
+ **/
 void
 hud_operation_setup (HudOperation *operation,
                      GVariant     *parameters)
@@ -110,6 +123,16 @@ hud_operation_setup (HudOperation *operation,
     g_action_group_change_action_state (G_ACTION_GROUP (operation->priv->group), name, value);
 }
 
+/**
+ * hud_operation_get_user_data:
+ * @operation: a #HudOperation
+ *
+ * Requests the "user data" associated with a #HudOperation.
+ *
+ * If @operation is associated with a #HudAction created with a
+ * #HudActionEntry (the normal case) then this is the user_data that was
+ * passed as the last argument to hud_action_entries_install().
+ **/
 gpointer
 hud_operation_get_user_data (HudOperation *operation)
 {
@@ -128,6 +151,19 @@ hud_operation_ended (HudOperation *operation)
   g_signal_emit (operation, hud_operation_signals[SIGNAL_ENDED], 0);
 }
 
+/**
+ * hud_operation_get_int:
+ * @operation: a #HudOperation
+ * @action_name: the name of an action in @operation
+ *
+ * This is a convenience API for querying the state of a int32-valued
+ * action within @operation.
+ *
+ * It is an error to call this function if @action_name does not exist
+ * or if its state is not an integer.
+ *
+ * Returns: the value of the state of the named action
+ **/
 gint
 hud_operation_get_int (HudOperation *operation,
                        const gchar  *action_name)
@@ -142,6 +178,19 @@ hud_operation_get_int (HudOperation *operation,
   return value;
 }
 
+/**
+ * hud_operation_get_uint:
+ * @operation: a #HudOperation
+ * @action_name: the name of an action in @operation
+ *
+ * This is a convenience API for querying the state of a uint32-valued
+ * action within @operation.
+ *
+ * It is an error to call this function if @action_name does not exist
+ * or if its state is not an unsigned integer.
+ *
+ * Returns: the value of the state of the named action
+ **/
 guint
 hud_operation_get_uint (HudOperation *operation,
                         const gchar  *action_name)
@@ -156,6 +205,19 @@ hud_operation_get_uint (HudOperation *operation,
   return value;
 }
 
+/**
+ * hud_operation_get_boolean:
+ * @operation: a #HudOperation
+ * @action_name: the name of an action in @operation
+ *
+ * This is a convenience API for querying the state of a boolean-valued
+ * action within @operation.
+ *
+ * It is an error to call this function if @action_name does not exist
+ * or if its state is not boolean-valued.
+ *
+ * Returns: the value of the state of the named action
+ **/
 gboolean
 hud_operation_get_boolean (HudOperation *operation,
                            const gchar  *action_name)
@@ -170,6 +232,19 @@ hud_operation_get_boolean (HudOperation *operation,
   return value;
 }
 
+/**
+ * hud_operation_get_double:
+ * @operation: a #HudOperation
+ * @action_name: the name of an action in @operation
+ *
+ * This is a convenience API for querying the state of a double-valued
+ * action within @operation.
+ *
+ * It is an error to call this function if @action_name does not exist
+ * or if its state is not double-valued.
+ *
+ * Returns: the value of the state of the named action
+ **/
 gdouble
 hud_operation_get_double (HudOperation *operation,
                           const gchar  *action_name)

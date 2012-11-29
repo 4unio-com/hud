@@ -360,6 +360,16 @@ hud_action_iface_init (GActionInterface *iface)
   iface->activate = hud_action_activate;
 }
 
+/**
+ * hud_action_new:
+ * @name: the action name
+ *
+ * Creates a new #HudAction with the given name.
+ *
+ * It's probably easier in most cases to use
+ * hud_action_entries_install() to bulk-create many instances of
+ * #HudAction.
+ */
 HudAction *
 hud_action_new (const gchar  *name)
 {
@@ -368,6 +378,16 @@ hud_action_new (const gchar  *name)
                        NULL);
 }
 
+/**
+ * hud_action_set_enabled:
+ * @action: a #HudAction
+ * @enabled: if the action is enabled
+ *
+ * Sets if @action is enabled.
+ *
+ * If an action is disabled then it will not appear in HUD search
+ * results.
+ **/
 void
 hud_action_set_enabled (HudAction *action,
                         gboolean   enabled)
@@ -381,18 +401,53 @@ hud_action_set_enabled (HudAction *action,
     }
 }
 
+/**
+ * hud_action_get_is_active:
+ * @action: a #HudAction
+ *
+ * Checks if the action is active.
+ *
+ * Active means that the operation is in-progress in the HUD UI (and we
+ * have a HudOperation object existing locally).
+ *
+ * Returns: %TRUE if active
+ **/
 gboolean
 hud_action_get_is_active (HudAction *action)
 {
   return action->priv->operation != NULL;
 }
 
+/**
+ * hud_action_get_operation:
+ * @action: a #HudAction
+ *
+ * Gets the operation currently associated with the action, which may be
+ * none.
+ *
+ * Returns: (transfer none): a #HudOperation or %NULL
+ **/
 HudOperation *
 hud_action_get_operation (HudAction *action)
 {
   return action->priv->operation;
 }
 
+/**
+ * hud_action_set_operation:
+ * @action: a #HudAction
+ * @operation: (allow none): a #HudOperation or %NULL
+ *
+ * Sets or unsets the #HudOperation on #HudAction.
+ *
+ * A #HudOperation should only be associated with a #HudAction when the
+ * operation is "in progress" (ie: the HUD is open and this action is
+ * selected).
+ *
+ * You do not need to call this function.  It's only useful in cases
+ * where you have overridden the operation creation process (via the
+ * "create-operation" signal).
+ **/
 void
 hud_action_set_operation (HudAction    *action,
                           HudOperation *operation)
@@ -429,6 +484,27 @@ hud_action_set_operation (HudAction    *action,
   g_object_notify (G_OBJECT (action), "state");
 }
 
+/**
+ * hud_action_entries_install:
+ * @map: a #GActionMap
+ * @entries: a pointer to an array of action entries
+ * @n_entries: the length of @entries
+ * @user_data: the user data to signal handlers
+ *
+ * Install a set of actions, according to an array of #HudActionEntry
+ * structs.
+ *
+ * For each struct, we create the named action and arrange that the
+ * given signal handlers will be connected to the #HudOperation object
+ * that is created when the action is activated.  @user_data is used as
+ * the user_data for these signal handlers.
+ *
+ * Additionally, if an array of #GActionEntry is given, it is used to
+ * populate the #HudOperation when it is first created.  The callbacks
+ * specified in that array will receive the #HudOperation itself as
+ * their user_data, but the original @user_data (as given to this
+ * function) will be accessible via hud_operation_get_user_data().
+ **/
 void
 hud_action_entries_install (GActionMap           *map,
                             const HudActionEntry *entries,

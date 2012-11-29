@@ -33,6 +33,7 @@ struct _HudOperationPrivate
 
 #include "hudoperation.h"
 
+HudOperation *          hud_operation_new                               (gpointer      user_data);
 void                    hud_operation_started                           (HudOperation *operation);
 void                    hud_operation_ended                             (HudOperation *operation);
 
