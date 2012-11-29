@@ -10,6 +10,7 @@ start_hud_service (DbusTestService ** service, GDBusConnection ** session)
 
 	/* HUD Service */
 	DbusTestProcess * huds = dbus_test_process_new(HUD_SERVICE);
+	dbus_test_task_set_name(DBUS_TEST_TASK(huds), "HUD Service");
 	dbus_test_service_add_task(*service, DBUS_TEST_TASK(huds));
 	g_object_unref(huds);
 
@@ -20,7 +21,7 @@ start_hud_service (DbusTestService ** service, GDBusConnection ** session)
 	g_object_unref(dummy);
 
 	/* Get HUD up and running and us on that bus */
-	g_debug("Staring up HUD service");
+	g_debug("Starting up HUD service");
 	dbus_test_service_start_tasks(*service);
 
 	/* Set us not to exit when the service goes */
