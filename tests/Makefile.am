@@ -27,6 +27,7 @@ test-distance-test: test-distance Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
 	@echo gtester --verbose -k -o $(DISTANCE_XML_REPORT) $(builddir)/test-distance >> $@
+	@echo gtester2xunit $(DISTANCE_XML_REPORT) >> $@
 	@chmod +x $@
 
 test_distance_SOURCES = \
@@ -41,9 +42,12 @@ test_distance_CFLAGS = \
 
 test_distance_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
-DISTCLEANFILES += $(DISTANCE_XML_REPORT)
+DISTCLEANFILES += \
+	$(DISTANCE_XML_REPORT) \
+	$(DISTANCE_XML_REPORT:.xml=-xunit.xml)
 
 ######################
 # Test Result Highlighting
@@ -55,12 +59,13 @@ TESTS += \
 check_PROGRAMS += \
 	test-result-highlighting
 
-DISTANCE_XML_REPORT = test-result-highlighting.xml
+RESULT_XML_REPORT = test-result-highlighting.xml
 
 test-result-highlighting-test: test-result-highlighting Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
-	@echo gtester --verbose -k -o $(DISTANCE_XML_REPORT) $(builddir)/test-result-highlighting >> $@
+	@echo gtester --verbose -k -o $(RESULT_XML_REPORT) $(builddir)/test-result-highlighting >> $@
+	@echo gtester2xunit $(RESULT_XML_REPORT) >> $@
 	@chmod +x $@
 
 test_result_highlighting_SOURCES = \
@@ -75,9 +80,12 @@ test_result_highlighting_CFLAGS = \
 
 test_result_highlighting_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
-DISTCLEANFILES += $(DISTANCE_XML_REPORT)
+DISTCLEANFILES += \
+	$(RESULT_XML_REPORT) \
+	$(RESULT_XML_REPORT:.xml=-xunit.xml)
 
 ######################
 # Test Usage DB Simple
@@ -102,6 +110,7 @@ test-usage-db-simple-test: test-usage-db-simple test-usage-db-simple.sql Makefil
 	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_DB_SIMPLE_XML_REPORT) $(abs_builddir)/test-usage-db-simple >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-simple.dir.\* >> $@
+	@echo gtester2xunit $(abs_builddir)/$(USAGE_DB_SIMPLE_XML_REPORT) >> $@
 	@chmod +x $@
 
 test_usage_db_simple_SOURCES = \
@@ -117,9 +126,13 @@ test_usage_db_simple_CFLAGS = \
 
 test_usage_db_simple_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
-DISTCLEANFILES += $(USAGE_DB_SIMPLE_XML_REPORT)
+DISTCLEANFILES += \
+	$(USAGE_DB_SIMPLE_XML_REPORT) \
+	$(USAGE_DB_SIMPLE_XML_REPORT:.xml=-xunit.xml)
+
 EXTRA_DIST += test-usage-db-simple.sql
 
 ######################
@@ -142,9 +155,10 @@ test-usage-db-old-test: test-usage-db-old test-usage-db-old.sql Makefile.am
 	@echo export HUD_CACHE_DIR=\`pwd\` >> $@
 	@echo export GSETTINGS_BACKEND=memory >> $@
 	@echo export GSETTINGS_SCHEMA_DIR=\`pwd\` >> $@
-	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_DB_SIMPLE_XML_REPORT) $(abs_builddir)/test-usage-db-old >> $@
+	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_DB_OLD_XML_REPORT) $(abs_builddir)/test-usage-db-old >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-old.dir.\* >> $@
+	@echo gtester2xunit $(abs_builddir)/$(USAGE_DB_OLD_XML_REPORT) >> $@
 	@chmod +x $@
 
 test_usage_db_old_SOURCES = \
@@ -160,9 +174,13 @@ test_usage_db_old_CFLAGS = \
 
 test_usage_db_old_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
-DISTCLEANFILES += $(USAGE_DB_OLD_XML_REPORT)
+DISTCLEANFILES += \
+	$(USAGE_DB_OLD_XML_REPORT) \
+	$(USAGE_DB_OLD_XML_REPORT:.xml=-xunit.xml)
+
 EXTRA_DIST += test-usage-db-old.sql
 
 #######################
@@ -205,6 +223,7 @@ test_usage_db_ancient_CFLAGS = \
 
 test_usage_db_ancient_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 EXTRA_DIST += \
@@ -235,6 +254,7 @@ test-usage-db-testapp-test: test-usage-db-testapp good-app-info/testapp.desktop.
 	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_TESTAPP_XML_REPORT) $(abs_builddir)/test-usage-db-testapp >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-testapp.dir.\* >> $@
+	@echo gtester2xunit $(abs_builddir)/$(USAGE_TESTAPP_XML_REPORT) >> $@
 	@chmod +x $@
 
 test_usage_db_testapp_SOURCES = \
@@ -250,13 +270,16 @@ test_usage_db_testapp_CFLAGS = \
 
 test_usage_db_testapp_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 EXTRA_DIST += \
 	good-app-info/testapp100.desktop.hud-app-info \
 	good-app-info/testapp.desktop.hud-app-info
 
-DISTCLEANFILES += $(USAGE_TESTAPP_XML_REPORT)
+DISTCLEANFILES += \
+	$(USAGE_TESTAPP_XML_REPORT) \
+	$(USAGE_TESTAPP_XML_REPORT:.xml=-xunit.xml)
 
 ######################
 # Test Usage DB Off
@@ -265,7 +288,7 @@ DISTCLEANFILES += $(USAGE_TESTAPP_XML_REPORT)
 TESTS += \
 	test-usage-db-off-test
 
-USAGE_OFF_XML_REPORT = $(abs_builddir)/test-usage-db-off.xml
+USAGE_OFF_XML_REPORT = test-usage-db-off.xml
 
 test-usage-db-off-test: test-usage-db-testapp good-app-info/testapp.desktop.hud-app-info good-app-info/testapp100.desktop.hud-app-info Makefile.am
 	@echo "#!/bin/bash -e" > $@
@@ -276,13 +299,16 @@ test-usage-db-off-test: test-usage-db-testapp good-app-info/testapp.desktop.hud-
 	@echo export HUD_NO_STORE_USAGE_DATA=1 >> $@
 	@echo export GSETTINGS_BACKEND=memory >> $@
 	@echo export GSETTINGS_SCHEMA_DIR=\`pwd\` >> $@
-	@echo gtester --verbose -k -o $(abs_buildir)/$(USAGE_OFF_XML_REPORT) $(abs_builddir)/test-usage-db-testapp >> $@
+	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_OFF_XML_REPORT) $(abs_builddir)/test-usage-db-testapp >> $@
 	@echo test \! -e indicator-appmenu/hud-usage-log.sqlite >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-off.dir.\* >> $@
+	@echo gtester2xunit $(abs_builddir)/$(USAGE_OFF_XML_REPORT) >> $@
 	@chmod +x $@
 
-DISTCLEANFILES += $(USAGE_OFF_XML_REPORT)
+DISTCLEANFILES += \
+	$(USAGE_OFF_XML_REPORT) \
+	$(USAGE_OFF_XML_REPORT:.xml=-xunit.xml)
 
 #########################
 # Test Bad App Info
@@ -356,6 +382,7 @@ test_bad_app_info_CFLAGS = \
 
 test_bad_app_info_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 #########################
@@ -380,6 +407,7 @@ test_load_app_info_CFLAGS = \
 
 test_load_app_info_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 test-good-app-info-tons-of-entries: good-app-info/tons-of-entries.hud-app-info test-load-app-info test-usage-dump-entries.sql Makefile.am
@@ -436,6 +464,7 @@ hud_performance_CFLAGS = \
 	$(HUD_CFLAGS)
 hud_performance_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 hud_performance_SOURCES = \
 	hud-performance.c	\
