@@ -18,7 +18,10 @@
 
 #define G_LOG_DOMAIN "hudquery"
 
+#include <dee.h>
+
 #include "hudquery.h"
+#include "hud-query-iface.h"
 
 #include "hudresult.h"
 
@@ -55,67 +58,99 @@ struct _HudQuery
   gint num_results;
   guint refresh_id;
 
-  GPtrArray *results;
+  guint querynumber; /* Incrementing count, which one were we? */
+  HudQueryIfaceComCanonicalHudQuery * skel;
+  gchar * object_path;
+
+  DeeModel * results_model;
+  gchar * results_name;
+  DeeModelTag * results_tag;
+
+  DeeModel * appstack_model;
+  gchar * appstack_name;
 };
 
 typedef GObjectClass HudQueryClass;
 
 G_DEFINE_TYPE (HudQuery, hud_query, G_TYPE_OBJECT)
+
 static guint hud_query_changed_signal;
 
-static HudQuery *last_created_query;
+static guint query_count = 0;
 
-static void
-hud_query_find_max_usage (gpointer data,
-                          gpointer user_data)
-{
-  guint *max_usage = user_data;
-  HudResult *result = data;
-  HudItem *item;
-  guint usage;
+static const gchar * results_model_schema[] = {
+	"v", /* Command ID */
+	"s", /* Command Name */
+	"a(ii)", /* Highlights in command name */
+	"s", /* Description */
+	"a(ii)", /* Highlights in description */
+	"s", /* Shortcut */
+	"u", /* Distance */
+};
 
-  item = hud_result_get_item (result);
-  usage = hud_item_get_usage (item);
-
-  *max_usage = MAX (*max_usage, usage);
-}
+static const gchar * appstack_model_schema[] = {
+	"s", /* Application ID */
+	"s", /* Icon Name */
+};
 
 static gint
-hud_query_compare_results (gconstpointer a,
-                           gconstpointer b,
-                           gpointer      user_data)
+compare_func (GVariant   ** a,
+              GVariant   ** b,
+              gpointer      user_data)
 {
-  HudResult *result_a = *(HudResult * const *) a;
-  HudResult *result_b = *(HudResult * const *) b;
-  gint max_usage = GPOINTER_TO_INT (user_data);
   guint distance_a;
   guint distance_b;
 
-  distance_a = hud_result_get_distance (result_a, max_usage);
-  distance_b = hud_result_get_distance (result_b, max_usage);
+  distance_a = g_variant_get_uint32(a[6]);
+  distance_b = g_variant_get_uint32(b[6]);
 
   return distance_a - distance_b;
+}
+
+/* Add a HudResult to the list of results */
+static void
+results_list_populate (HudResult * result, gpointer user_data)
+{
+	HudQuery * query = (HudQuery *)user_data;
+	HudItem * item = hud_result_get_item(result);
+	gchar * context = NULL; /* Need to free this one, sucks, practical reality */
+
+	GVariant * columns[G_N_ELEMENTS(results_model_schema) + 1];
+	columns[0] = g_variant_new_variant(g_variant_new_uint64(hud_item_get_id(item)));
+	columns[1] = g_variant_new_string(hud_item_get_command(item));
+	columns[2] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+	columns[3] = g_variant_new_string(context = hud_item_get_context(item));
+	columns[4] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+	columns[5] = g_variant_new_string(hud_item_get_shortcut(item));
+	columns[6] = g_variant_new_uint32(hud_result_get_distance(result, 0)); /* TODO: Figure out max usage */
+	columns[7] = NULL;
+
+	g_free(context);
+
+	DeeModelIter * iter = dee_model_insert_row_sorted(query->results_model,
+	                                                  columns /* variants */,
+	                                                  compare_func, NULL);
+
+	dee_model_set_tag(query->results_model, iter, query->results_tag, result);
+
+	return;
 }
 
 static void
 hud_query_refresh (HudQuery *query)
 {
-  guint max_usage = 0;
   guint64 start_time;
 
   start_time = g_get_monotonic_time ();
 
-  g_ptr_array_set_size (query->results, 0);
+  dee_model_clear(query->results_model);
 
   if (hud_token_list_get_length (query->token_list) != 0)
-    hud_source_search (query->source, query->results, query->token_list);
-
-  g_ptr_array_foreach (query->results, hud_query_find_max_usage, &max_usage);
-  g_ptr_array_sort_with_data (query->results, hud_query_compare_results, GINT_TO_POINTER (max_usage));
-  if (query->results->len > query->num_results)
-    g_ptr_array_set_size (query->results, query->num_results);
+    hud_source_search (query->source, query->token_list, results_list_populate, query);
 
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
+
+  g_object_set(G_OBJECT(query->skel), "current-query", query->search_string, NULL);
 }
 
 static gboolean
@@ -148,6 +183,12 @@ hud_query_finalize (GObject *object)
 
   g_debug ("Destroyed query '%s'", query->search_string);
 
+  /* TODO: move to destroy */
+  g_clear_object(&query->skel);
+  g_clear_object(&query->results_model);
+  /* NOTE: ^^ Kills results_tag as well */
+  g_clear_object(&query->appstack_model);
+
   if (query->refresh_id)
     g_source_remove (query->refresh_id);
 
@@ -156,15 +197,133 @@ hud_query_finalize (GObject *object)
   g_object_unref (query->source);
   hud_token_list_free (query->token_list);
   g_free (query->search_string);
-  g_ptr_array_unref (query->results);
+
+  g_clear_pointer(&query->object_path, g_free);
+  g_clear_pointer(&query->results_name, g_free);
+  g_clear_pointer(&query->appstack_name, g_free);
 
   G_OBJECT_CLASS (hud_query_parent_class)
     ->finalize (object);
 }
 
+/* Handle the DBus function UpdateQuery */
+static gboolean
+handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, const gchar * search_string, gpointer user_data)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
+	HudQuery * query = HUD_QUERY(user_data);
+
+	g_debug("Updating Query to: '%s'", search_string);
+
+	/* Clear the last query */
+	g_clear_pointer(&query->search_string, g_free);
+	hud_token_list_free (query->token_list);
+	query->token_list = NULL;
+
+	/* Grab the data from this one */
+	query->search_string = g_strdup (search_string);
+	query->token_list = hud_token_list_new_from_string (query->search_string);
+
+	/* Refresh it all */
+	hud_query_refresh (query);
+
+	/* Tell DBus everything is going to be A-OK */
+	GVariant * modelrev = g_variant_new_int32(0);
+	g_dbus_method_invocation_return_value(invocation, g_variant_new_tuple(&modelrev, 1));
+
+	return TRUE;
+}
+
+/* Handle getting execute from DBus */
+static gboolean
+handle_execute (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, GVariant * command_id, guint timestamp, gpointer user_data)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
+	//HudQuery * query = HUD_QUERY(user_data);
+
+	/* Do good */
+	GVariant * inner = g_variant_get_variant(command_id);
+	guint64 id = g_variant_get_uint64(inner);
+	g_variant_unref(inner);
+
+	HudItem * item = hud_item_lookup(id);
+
+	if (item == NULL) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS, "Item specified by command key does not exist");
+		return TRUE;
+	}
+
+	GVariantBuilder platform;
+	g_variant_builder_init(&platform, G_VARIANT_TYPE_DICTIONARY);
+
+	GVariantBuilder entry;
+	g_variant_builder_init(&entry, G_VARIANT_TYPE_DICT_ENTRY);
+	g_variant_builder_add_value(&entry, g_variant_new_string("desktop-startup-id"));
+	gchar * timestr = g_strdup_printf("_TIME%d", timestamp);
+	g_variant_builder_add_value(&entry, g_variant_new_variant(g_variant_new_string(timestr)));
+	g_free(timestr);
+
+	g_variant_builder_add_value(&platform, g_variant_builder_end(&entry));
+
+	hud_item_activate(item, g_variant_builder_end(&platform));
+
+	g_dbus_method_invocation_return_value(invocation, NULL);
+
+	return TRUE;
+}
+
+/* Handle the DBus function UpdateQuery */
+static gboolean
+handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
+	HudQuery * query = HUD_QUERY(user_data);
+
+	/* Unref the query */
+	g_object_unref(query);
+
+	/* NOTE: Don't use the query after this, it may not exist */
+	query = NULL;
+
+	/* Tell DBus we're dying */
+	g_dbus_method_invocation_return_value(invocation, NULL);
+
+	return TRUE;
+}
+
 static void
 hud_query_init (HudQuery *query)
 {
+  query->querynumber = query_count++;
+
+  query->skel = hud_query_iface_com_canonical_hud_query_skeleton_new();
+
+  /* NOTE: Connect to the functions before putting on the bus. */
+  g_signal_connect(G_OBJECT(query->skel), "handle-update-query", G_CALLBACK(handle_update_query), query);
+  g_signal_connect(G_OBJECT(query->skel), "handle-close-query", G_CALLBACK(handle_close_query), query);
+  g_signal_connect(G_OBJECT(query->skel), "handle-execute-command", G_CALLBACK(handle_execute), query);
+
+  query->object_path = g_strdup_printf("/com/canonical/hud/query%d", query->querynumber);
+  g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),
+                                   g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
+                                   query->object_path,
+                                   NULL);
+
+  query->results_name = g_strdup_printf("com.canonical.hud.query%d.results", query->querynumber);
+  query->results_model = dee_shared_model_new(query->results_name);
+  dee_model_set_schema_full(query->results_model, results_model_schema, G_N_ELEMENTS(results_model_schema));
+  query->results_tag = dee_model_register_tag(query->results_model, g_object_unref);
+
+  query->appstack_name = g_strdup_printf("com.canonical.hud.query%d.appstack", query->querynumber);
+  query->appstack_model = dee_shared_model_new(query->appstack_name);
+  dee_model_set_schema_full(query->appstack_model, appstack_model_schema, G_N_ELEMENTS(appstack_model_schema));
+
+  g_object_set(G_OBJECT(query->skel),
+               "appstack-model", query->appstack_name,
+               "results-model", query->results_name,
+               NULL);
+
+  return;
 }
 
 static void
@@ -211,7 +370,6 @@ hud_query_new (HudSource   *source,
 
   query = g_object_new (HUD_TYPE_QUERY, NULL);
   query->source = g_object_ref (source);
-  query->results = g_ptr_array_new_with_free_func (g_object_unref);
   query->search_string = g_strdup (search_string);
   query->token_list = hud_token_list_new_from_string (query->search_string);
   query->num_results = num_results;
@@ -222,98 +380,53 @@ hud_query_new (HudSource   *source,
 
   g_signal_connect_object (source, "changed", G_CALLBACK (hud_query_source_changed), query, 0);
 
-  g_clear_object (&last_created_query);
-  last_created_query = g_object_ref (query);
-
   return query;
 }
 
 /**
- * hud_query_get_query_key:
+ * hud_query_get_path:
  * @query: a #HudQuery
  *
- * Returns the query key for @HudQuery.
+ * Gets the path that the query object is exported to DBus on.
  *
- * Each #HudQuery has a unique identifying key that is assigned when the
- * query is created.
- *
- * FIXME: This is a lie.
- *
- * Returns: (transfer none): the query key for @query
- **/
-GVariant *
-hud_query_get_query_key (HudQuery *query)
+ * Return value: A dbus object path
+ */
+const gchar *
+hud_query_get_path (HudQuery    *query)
 {
-  static GVariant *query_key;
+	g_return_val_if_fail(HUD_IS_QUERY(query), NULL);
 
-  if (query_key == NULL)
-    query_key = g_variant_ref_sink (g_variant_new_string ("query key"));
-
-  return query_key;
+	return query->object_path;
 }
 
 /**
- * hud_query_lookup:
- * @query_key: a query key
+ * hud_query_get_results_name:
+ * @query: a #HudQuery
  *
- * Finds the query that has the given @query_key.
+ * Gets the DBus name that the shared results model is using
  *
- * Returns: (transfer none): the query, or %NULL if no such query exists
- **/
-HudQuery *
-hud_query_lookup (GVariant *query_key)
+ * Return value: A dbus name
+ */
+const gchar *
+hud_query_get_results_name (HudQuery    *query)
 {
-  return last_created_query;
+	g_return_val_if_fail(HUD_IS_QUERY(query), NULL);
+
+	return query->results_name;
 }
 
 /**
- * hud_query_close:
+ * hud_query_get_appstack_name:
  * @query: a #HudQuery
  *
- * Closes a #HudQuery.
+ * Gets the DBus name that the appstack model is using
  *
- * This drops the query from the internal list of queries.  Future use
- * of hud_query_lookup() to find this query will fail.
- *
- * You must still release your own reference on @query, if you have one.
- * This only drops the internal reference.
- **/
-void
-hud_query_close (HudQuery *query)
+ * Return value: A dbus name
+ */
+const gchar *
+hud_query_get_appstack_name (HudQuery * query)
 {
-  if (query == last_created_query)
-    g_clear_object (&last_created_query);
-}
+	g_return_val_if_fail(HUD_IS_QUERY(query), NULL);
 
-/**
- * hud_query_get_n_results:
- * @query: a #HudQuery
- *
- * Gets the number of results in @query.
- *
- * Returns: the number of results
- **/
-guint
-hud_query_get_n_results (HudQuery *query)
-{
-  return query->results->len;
-}
-
-/**
- * hud_query_get_result_by_index:
- * @query: a #HudQuery
- * @i: the index of the result
- *
- * Gets the @i<!-- -->th result from @query.
- *
- * @i must be less than the number of results in the query.  See
- * hud_query_get_n_results().
- *
- * Returns: (transfer none): the #HudResult at position @i
- **/
-HudResult *
-hud_query_get_result_by_index (HudQuery *query,
-                               guint     i)
-{
-  return query->results->pdata[i];
+	return query->appstack_name;
 }

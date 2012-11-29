@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node name="/">
+	<interface name="com.canonical.hud">
+<!-- Properties -->
+		<property name="OpenQueries" type="ao" access="read" />
+
+<!-- Functions -->
+		<method name="StartQuery">
+			<!-- in -->
+			<arg type="s" name="query" direction="in" />
+			<!-- out -->
+			<arg type="o" name="queryObject" direction="out" />
+			<arg type="s" name="resultsName" direction="out" />
+			<arg type="s" name="appstackName" direction="out" />
+			<arg type="i" name="modelRevision" direction="out" />
+		</method>
+
+<!-- End of interesting stuff -->
+
+	</interface>
+</node>

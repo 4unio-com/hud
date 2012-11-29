@@ -35,14 +35,12 @@ test_distance_SOURCES = \
 
 test_distance_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_distance_LDADD = \
-	../src/libhud-service.a		\
-	$(COVERAGE_LDFLAGS) \
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 DISTCLEANFILES += \
@@ -73,14 +71,12 @@ test_result_highlighting_SOURCES = \
 
 test_result_highlighting_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_result_highlighting_LDADD = \
-	../src/libhud-service.a		\
-	$(COVERAGE_LDFLAGS) \
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 DISTCLEANFILES += \
@@ -118,15 +114,13 @@ test_usage_db_simple_SOURCES = \
 
 test_usage_db_simple_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_usage_db_simple_LDADD = \
-	../src/libhud-service.a		\
-	$(COVERAGE_LDFLAGS) \
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 DISTCLEANFILES += \
@@ -166,15 +160,13 @@ test_usage_db_old_SOURCES = \
 
 test_usage_db_old_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_usage_db_old_LDADD = \
-	../src/libhud-service.a		\
-	$(COVERAGE_LDFLAGS) \
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 DISTCLEANFILES += \
@@ -215,15 +207,13 @@ test_usage_db_ancient_SOURCES = \
 
 test_usage_db_ancient_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_usage_db_ancient_LDADD = \
-	../src/libhud-service.a		\
-	$(COVERAGE_LDFLAGS) \
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 EXTRA_DIST += \
@@ -262,15 +252,13 @@ test_usage_db_testapp_SOURCES = \
 
 test_usage_db_testapp_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_usage_db_testapp_LDADD = \
-	../src/libhud-service.a		\
-	$(COVERAGE_LDFLAGS) \
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 EXTRA_DIST += \
@@ -375,14 +363,12 @@ test_bad_app_info_SOURCES = \
 
 test_bad_app_info_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_bad_app_info_LDADD = \
-	../src/libhud-service.a		\
-	$(COVERAGE_LDFLAGS) \
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 #########################
@@ -400,14 +386,12 @@ test_load_app_info_SOURCES = \
 
 test_load_app_info_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_load_app_info_LDADD = \
-	../src/libhud-service.a		\
-	$(COVERAGE_LDFLAGS) \
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 
 test-good-app-info-tons-of-entries: good-app-info/tons-of-entries.hud-app-info test-load-app-info test-usage-dump-entries.sql Makefile.am
@@ -463,8 +447,7 @@ hud_performance_CFLAGS = \
 	-I$(top_srcdir)/src		\
 	$(HUD_CFLAGS)
 hud_performance_LDADD = \
-	../src/libhud-service.a		\
-	$(COVERAGE_LDFLAGS) \
+	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS)
 hud_performance_SOURCES = \
 	hud-performance.c	\
