@@ -69,10 +69,12 @@ struct _HudOperationClass
 
 GType                   hud_operation_get_type                          (void) G_GNUC_CONST;
 
-HudOperation *          hud_operation_new                               (void);
+HudOperation *          hud_operation_new                               (gpointer      user_data);
 
 void                    hud_operation_setup                             (HudOperation *operation,
                                                                          GVariant     *parameters);
+
+gpointer                hud_operation_get_user_data                     (HudOperation *operation);
 
 gboolean                hud_operation_get_boolean                       (HudOperation *operation,
                                                                          const gchar  *action_name);

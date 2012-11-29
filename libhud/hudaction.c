@@ -201,7 +201,7 @@ hud_action_real_create_operation (HudAction *action,
     {
       HudOperation *operation;
 
-      operation = hud_operation_new ();
+      operation = hud_operation_new (action->priv->user_data);
       hud_operation_setup (operation, parameters);
       hud_action_set_operation (action, operation);
       g_object_unref (operation);

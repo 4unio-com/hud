@@ -87,9 +87,14 @@ hud_operation_class_init (HudOperationClass *class)
 }
 
 HudOperation *
-hud_operation_new (void)
+hud_operation_new (gpointer user_data)
 {
-  return g_object_new (HUD_TYPE_OPERATION, NULL);
+  HudOperation *operation;
+
+  operation = g_object_new (HUD_TYPE_OPERATION, NULL);
+  operation->priv->user_data = user_data;
+
+  return operation;
 }
 
 void
@@ -103,6 +108,12 @@ hud_operation_setup (HudOperation *operation,
   g_variant_iter_init (&iter, parameters);
   while (g_variant_iter_loop (&iter, "{&sv}", &name, &value))
     g_action_group_change_action_state (G_ACTION_GROUP (operation->priv->group), name, value);
+}
+
+gpointer
+hud_operation_get_user_data (HudOperation *operation)
+{
+  return operation->priv->user_data;
 }
 
 void

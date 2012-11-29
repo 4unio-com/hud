@@ -28,6 +28,7 @@
 struct _HudOperationPrivate
 {
   GSimpleActionGroup *group;
+  gpointer            user_data;
 };
 
 #include "hudoperation.h"
