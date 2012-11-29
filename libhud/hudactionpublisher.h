@@ -51,7 +51,7 @@ HudActionPublisher *    hud_action_publisher_get                        (void);
 void                    hud_action_publisher_add_action_description     (HudActionPublisher    *publisher,
                                                                          HudActionDescription  *description);
 
-void                    hud_action_publisher_add_actions_from_file      (HudActionPublisher    *publisher,
+void                    hud_action_publisher_add_descriptions_from_file (HudActionPublisher    *publisher,
                                                                          const gchar           *filename);
 
 

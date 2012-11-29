@@ -86,6 +86,13 @@ hud_action_publisher_class_init (HudActionPublisherClass *class)
                                                                   G_TYPE_NONE, 1, G_TYPE_VARIANT);
 }
 
+/**
+ * hud_action_publisher_get:
+ *
+ * Gets the process-wide singleton instance of the #HudActionPublisher.
+ *
+ * Returns: (transfer none): the #HudActionPublisher
+ **/
 HudActionPublisher *
 hud_action_publisher_get (void)
 {
@@ -112,6 +119,22 @@ variant_equal0 (GVariant *a,
 
 #define g_menu_model_items_changed(x,...)
 
+/**
+ * hud_action_publisher_add_description:
+ * @publisher: the #HudActionPublisher
+ * @description: an action description
+ *
+ * Adds @description to the list of actions that the application exports
+ * to the HUD.
+ *
+ * If the application is already exporting an action with the same name
+ * and target value as @description then it will be replaced.
+ *
+ * You should only use this API for situations like recent documents and
+ * bookmarks.  Most actions in an application are more static in nature
+ * and are better handled with
+ * hud_action_publisher_add_descriptions_from_file().
+ */
 void
 hud_action_publisher_add_description (HudActionPublisher   *publisher,
                                       HudActionDescription *description)
@@ -167,6 +190,15 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
     }
 }
 
+/**
+ * hud_action_publisher_remove_description:
+ * @publisher: the #HudActionPublisher
+ * @action_name: an action name
+ * @action_target: (allow none): an action target
+ *
+ * Removes the action descriptions that has the name @action_name and
+ * the target value @action_target (including the possibility of %NULL).
+ **/
 void
 hud_action_publisher_remove_description (HudActionPublisher *publisher,
                                          const gchar        *action_name,
@@ -221,6 +253,14 @@ hud_action_publisher_remove_description (HudActionPublisher *publisher,
     }
 }
 
+/**
+ * hud_action_publisher_remove_descriptions:
+ * @publisher: the #HudActionPublisher
+ * @action_name: an action name
+ *
+ * Removes all action descriptions that has the name @action_name and
+ * any target value.
+ **/
 void
 hud_action_publisher_remove_descriptions (HudActionPublisher *publisher,
                                           const gchar        *action_name)
@@ -765,9 +805,19 @@ end_element (GMarkupParseContext  *context,
     }
 }
 
+/**
+ * hud_action_publisher_add_descriptions_from_file:
+ * @publisher: the #HudActionPublisher
+ * @filename: the filename of the XML file describing the actions
+ *
+ * Adds action descriptions from an XML file.
+ *
+ * If any error occurs while attempting to open or parse the file, the
+ * program will abort.
+ **/
 void
-hud_action_publisher_add_actions_from_file (HudActionPublisher *publisher,
-                                            const gchar        *filename)
+hud_action_publisher_add_descriptions_from_file (HudActionPublisher *publisher,
+                                                 const gchar        *filename)
 {
   GMarkupParser parser = {
     start_element,
@@ -797,6 +847,13 @@ hud_action_publisher_add_actions_from_file (HudActionPublisher *publisher,
    * otherwise we would have hit the g_error() above.
    */
 }
+
+/**
+ * HudActionDescription:
+ *
+ * A description of an action that is accessible from the HUD.  This is
+ * an opaque structure type and all accesses must be made via the API.
+ **/
 
 typedef GObjectClass HudActionDescriptionClass;
 
@@ -846,6 +903,21 @@ hud_action_description_class_init (HudActionDescriptionClass *class)
                                                         G_TYPE_NONE, 1, G_TYPE_STRING);
 }
 
+/**
+ * hud_action_description_new:
+ * @action_name: a (namespaced) action name
+ * @action_target: an action target
+ *
+ * Creates a new #HudActionDescription.
+ *
+ * The situations in which you want to do this are limited to "dynamic"
+ * types of actions -- things like bookmarks or recent documents.
+ *
+ * Use hud_action_publisher_add_descriptions_from_file() to take care of
+ * the bulk of the actions in your application.
+ *
+ * Returns: a new #HudActionDescription with no attributes
+ **/
 HudActionDescription *
 hud_action_description_new (const gchar *action_name,
                             GVariant    *action_target)
@@ -870,6 +942,21 @@ hud_action_description_new (const gchar *action_name,
   return description;
 }
 
+/**
+ * hud_action_description_set_attribute_value:
+ * @description: a #HudActionDescription
+ * @attribute_name: an attribute name
+ * @value: (allow none): the new value for the attribute
+ *
+ * Sets or unsets an attribute on @description.
+ *
+ * You may not change the "action" or "target" attributes.
+ *
+ * If @value is non-%NULL then it is the new value for attribute.  A
+ * %NULL @value unsets @attribute_name.
+ *
+ * @value is consumed if it is floating.
+ **/
 void
 hud_action_description_set_attribute_value (HudActionDescription *description,
                                             const gchar          *attribute_name,
@@ -890,6 +977,23 @@ hud_action_description_set_attribute_value (HudActionDescription *description,
                  g_quark_try_string (attribute_name), attribute_name);
 }
 
+/**
+ * hud_action_description_set_attribute:
+ * @description: a #HudActionDescription
+ * @attribute_name: an attribute name
+ * @format_string: (allow none): a #GVariant format string
+ * @...: arguments to @format_string
+ *
+ * Sets or unsets an attribute on @description.
+ *
+ * You may not change the "action" or "target" attributes.
+ *
+ * If @format_string is non-%NULL then this call is equivalent to
+ * g_variant_new() and hud_action_description_set_attribute_value().
+ *
+ * If @format_string is %NULL then this call is equivalent to
+ * hud_action_description_set_attribute_value() with a %NULL value.
+ **/
 void
 hud_action_description_set_attribute (HudActionDescription *description,
                                       const gchar          *attribute_name,
@@ -912,12 +1016,37 @@ hud_action_description_set_attribute (HudActionDescription *description,
   hud_action_description_set_attribute_value (description, attribute_name, value);
 }
 
+/**
+ * hud_action_description_get_action_name:
+ * @description: a #HudActionDescription
+ *
+ * Gets the action name of @description.
+ *
+ * This, together with the action target, uniquely identify an action
+ * description.
+ *
+ * Returns: (transfer none): the action name
+ **/
 const gchar *
 hud_action_description_get_action_name (HudActionDescription *description)
 {
   return description->action;
 }
 
+/**
+ * hud_action_description_get_action_target:
+ * @description: a #HudActionDescription
+ *
+ * Gets the action target of @description (ie: the #GVariant that will
+ * be passed to invocations of the action).
+ *
+ * This may be %NULL.
+ *
+ * This, together with the action name, uniquely identify an action
+ * description.
+ *
+ * Returns: (transfer none): the target value
+ **/
 GVariant *
 hud_action_description_get_action_target (HudActionDescription *description)
 {
