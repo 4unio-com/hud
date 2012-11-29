@@ -25,6 +25,7 @@
 #include "hudactionpublisher.h"
 
 #include <gio/gio.h>
+#include <string.h>
 
 typedef struct
 {
@@ -40,9 +41,7 @@ struct _HudActionPublisher
   GObject parent_instance;
 
   GSimpleActionGroup *actions;
-  GSequence *description_sequence;
-  GHashTable *description_table;
-  GSequenceIter *eos;
+  GSequence *descriptions;
   HudAux *aux;
 };
 
@@ -57,6 +56,23 @@ guint hud_action_publisher_signals[N_SIGNALS];
 
 G_DEFINE_TYPE (HudActionPublisher, hud_action_publisher, G_TYPE_OBJECT)
 
+typedef GObjectClass HudActionDescriptionClass;
+
+struct _HudActionDescription
+{
+  GObject parent_instance;
+
+  gchar *identifier;
+  gchar *action;
+  GVariant *target;
+  GHashTable *attrs;
+};
+
+guint hud_action_description_changed_signal;
+
+G_DEFINE_TYPE (HudActionDescription, hud_action_description, G_TYPE_OBJECT)
+
+
 static void
 hud_action_publisher_finalize (GObject *object)
 {
@@ -66,9 +82,7 @@ hud_action_publisher_finalize (GObject *object)
 static void
 hud_action_publisher_init (HudActionPublisher *publisher)
 {
-  publisher->description_sequence = g_sequence_new (g_object_unref);
-  publisher->description_table = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
-  publisher->eos = g_sequence_append (publisher->description_sequence, NULL);
+  publisher->descriptions = g_sequence_new (g_object_unref);
 }
 
 static void
@@ -104,17 +118,59 @@ hud_action_publisher_get (void)
   return publisher;
 }
 
-static gboolean
-variant_equal0 (GVariant *a,
-                GVariant *b)
+static gchar *
+format_identifier (const gchar *action_name,
+                   GVariant    *action_target)
 {
-  if (a == b)
-    return TRUE;
+  gchar *targetstr;
+  gchar *identifier;
 
-  if (!a || !b)
-    return FALSE;
+  if (action_target)
+    {
+      targetstr = g_variant_print (action_target, TRUE);
+      identifier = g_strdup_printf ("%s(%s)", action_name, targetstr);
+      g_free (targetstr);
+    }
 
-  return g_variant_equal (a, b);
+  else
+    identifier = g_strdup_printf ("%s()", action_name);
+
+  return identifier;
+}
+
+static gint
+compare_descriptions (gconstpointer a,
+                      gconstpointer b,
+                      gpointer      user_data)
+{
+  const HudActionDescription *da = a;
+  const HudActionDescription *db = b;
+
+  return strcmp (da->identifier, db->identifier);
+}
+
+static void
+description_changed (HudActionDescription *description,
+                     const gchar          *attribute_name,
+                     gpointer              user_data)
+{
+  HudActionPublisher *publisher = user_data;
+  GSequenceIter *iter;
+
+  iter = g_sequence_lookup (publisher->descriptions, description, compare_descriptions, NULL);
+  g_assert (g_sequence_get (iter) == description);
+
+  g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), g_sequence_iter_get_position (iter), 1, 1);
+}
+
+static void
+disconnect_handler (gpointer data,
+                    gpointer user_data)
+{
+  HudActionPublisher *publisher = user_data;
+  HudActionDescription *description = data;
+
+  g_signal_handlers_disconnect_by_func (description, description_changed, publisher);
 }
 
 #define g_menu_model_items_changed(x,...)
@@ -140,54 +196,28 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
                                       HudActionDescription *description)
 {
   GSequenceIter *iter;
-  const gchar *name;
-  GVariant *target;
 
-  name = hud_action_description_get_action_name (description);
-  target = hud_action_description_get_action_target (description);
-
-  iter = g_hash_table_lookup (publisher->description_table, name);
+  iter = g_sequence_lookup (publisher->descriptions, description, compare_descriptions, NULL);
 
   if (iter == NULL)
     {
-      /* We do not have any actions with this name.
-       *
-       * Add the header for this action name.
-       */
-      iter = g_sequence_insert_before (publisher->eos, NULL);
-      g_hash_table_insert (publisher->description_table, g_strdup (name), iter);
+      /* We are not replacing -- add new. */
+      iter = g_sequence_insert_sorted (publisher->descriptions, description, compare_descriptions, NULL);
 
-      /* Add the actual description */
-      g_sequence_insert_before (publisher->eos, g_object_ref (description));
-
-      /* Signal that we added two items */
-      g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), g_sequence_iter_get_position (iter), 0, 2);
+      /* Signal that we added the items */
+      g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), g_sequence_iter_get_position (iter), 0, 1);
     }
   else
     {
-      HudActionDescription *item;
+      /* We are replacing an existing item. */
+      disconnect_handler (g_sequence_get (iter), publisher);
+      g_sequence_set (iter, description);
 
-      while ((item = g_sequence_get (iter)))
-        if (variant_equal0 (hud_action_description_get_action_target (item), target))
-          break;
-
-      if (item != NULL)
-        {
-          /* Replacing an existing item with the same action name/target */
-          g_sequence_set (iter, g_object_ref (description));
-
-          /* A replace is 1 remove and 1 add */
-          g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), g_sequence_iter_get_position (iter), 1, 1);
-        }
-      else
-        {
-          /* Adding a new item (with unique target value) */
-          iter = g_sequence_insert_before (iter, g_object_ref (description));
-
-          /* Just one add this time */
-          g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), g_sequence_iter_get_position (iter), 0, 1);
-        }
+      /* A replace is 1 remove and 1 add */
+      g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), g_sequence_iter_get_position (iter), 1, 1);
     }
+
+  g_signal_connect (description, "changed", G_CALLBACK (description_changed), publisher);
 }
 
 /**
@@ -204,52 +234,22 @@ hud_action_publisher_remove_description (HudActionPublisher *publisher,
                                          const gchar        *action_name,
                                          GVariant           *action_target)
 {
-  HudActionDescription *item;
-  GSequenceIter *header;
-  GSequenceIter *start;
+  HudActionDescription tmp;
   GSequenceIter *iter;
-  GSequenceIter *next;
 
-  header = g_hash_table_lookup (publisher->description_table, action_name);
+  tmp.identifier = format_identifier (action_name, action_target);
+  iter = g_sequence_lookup (publisher->descriptions, &tmp, compare_descriptions, NULL);
+  g_free (tmp.identifier);
 
-  /* No descriptions with this action name? */
-  if (!header)
-    return;
-
-  /* Don't search the header itself... */
-  start = iter = g_sequence_iter_next (header);
-  while ((item = g_sequence_get (iter)))
+  if (iter)
     {
-      if (variant_equal0 (hud_action_description_get_action_target (item), action_target))
-        break;
+      gint position;
 
-      iter = g_sequence_iter_next (iter);
-    }
-
-  /* No description with this action target? */
-  if (item == NULL)
-    return;
-
-  /* Okay.  We found our item (and iter).
-   *
-   * Is it the only one for this name (ie: is it the start one and there
-   * is no following one)?
-   */
-  next = g_sequence_iter_next (iter);
-  if (iter == start && g_sequence_get (next) == NULL)
-    {
-      /* It was the only one.  Remove it and the header. */
-      g_hash_table_remove (publisher->description_table, action_name);
-      g_sequence_remove_range (start, next);
-
-      /* Signal both removes */
-      g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), g_sequence_iter_get_position (next), 2, 0);
-    }
-  else
-    {
-      /* There were others.  Only do one remove. */
+      position = g_sequence_iter_get_position (iter);
+      disconnect_handler (g_sequence_get (iter), publisher);
       g_sequence_remove (iter);
-      g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), g_sequence_iter_get_position (next), 1, 0);
+
+      g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), position, 1, 0);
     }
 }
 
@@ -265,28 +265,27 @@ void
 hud_action_publisher_remove_descriptions (HudActionPublisher *publisher,
                                           const gchar        *action_name)
 {
-  GSequenceIter *header;
-  GSequenceIter *end;
-  gint p, r;
+  HudActionDescription before, after;
+  GSequenceIter *start, *end;
 
-  header = g_hash_table_lookup (publisher->description_table, action_name);
-  if (!header)
-    return;
+  before.identifier = (gchar *) action_name;
+  after.identifier = g_strconcat (action_name, "~", NULL);
+  start = g_sequence_search (publisher->descriptions, &before, compare_descriptions, NULL);
+  end = g_sequence_search (publisher->descriptions, &after, compare_descriptions, NULL);
+  g_free (after.identifier);
 
-  g_hash_table_remove (publisher->description_table, action_name);
+  if (start != end)
+    {
+      gint s, e;
 
-  end = g_sequence_iter_next (header);
-  while (g_sequence_get (end))
-    end = g_sequence_iter_next (end);
+      s = g_sequence_iter_get_position (start);
+      e = g_sequence_iter_get_position (end);
+      g_sequence_foreach_range (start, end, disconnect_handler, publisher);
+      g_sequence_remove_range (start, end);
 
-  p = g_sequence_iter_get_position (header);
-  r = g_sequence_iter_get_position (end) - p;
-  g_sequence_remove_range (header, end);
-
-  g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), p, r, 0);
+      g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), s, e - s, 0);
+    }
 }
-
-#include <string.h>
 
 static gboolean
 backport_g_action_parse_detailed_name (const gchar  *detailed_name,
@@ -855,22 +854,6 @@ hud_action_publisher_add_descriptions_from_file (HudActionPublisher *publisher,
  * an opaque structure type and all accesses must be made via the API.
  **/
 
-typedef GObjectClass HudActionDescriptionClass;
-
-struct _HudActionDescription
-{
-  GObject parent_instance;
-
-  gchar *identifier;
-  gchar *action;
-  GVariant *target;
-  GHashTable *attrs;
-};
-
-guint hud_action_description_changed_signal;
-
-G_DEFINE_TYPE (HudActionDescription, hud_action_description, G_TYPE_OBJECT)
-
 static void
 hud_action_description_finalize (GObject *object)
 {
@@ -927,17 +910,7 @@ hud_action_description_new (const gchar *action_name,
   description = g_object_new (HUD_TYPE_ACTION_DESCRIPTION, NULL);
   description->action = g_strdup (action_name);
   description->target = action_target ? g_variant_ref_sink (action_target) : NULL;
-
-  if (description->target)
-    {
-      gchar *targetstr;
-
-      targetstr = g_variant_print (action_target, TRUE);
-      description->identifier = g_strdup_printf ("%s(%s)", action_name, targetstr);
-      g_free (targetstr);
-    }
-  else
-    description->identifier = g_strdup_printf ("%s()", action_name);
+  description->identifier = format_identifier (action_name, action_target);
 
   return description;
 }
