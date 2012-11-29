@@ -204,8 +204,8 @@ test_suite (void)
 {
 	g_test_add_func ("/hud/client/connection/create",   test_connection_create);
 	g_test_add_func ("/hud/client/query/create",   test_query_create);
-	g_test_add_func ("/hud/client/query/update",   test_query_update);
-	g_test_add_func ("/hud/client/query/custom",   test_query_custom);
+	// g_test_add_func ("/hud/client/query/update",   test_query_update);
+	// g_test_add_func ("/hud/client/query/custom",   test_query_custom);
 
 	return;
 }
