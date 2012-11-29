@@ -42,6 +42,7 @@ test_distance_CFLAGS = \
 
 test_distance_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 DISTCLEANFILES += \
@@ -79,6 +80,7 @@ test_result_highlighting_CFLAGS = \
 
 test_result_highlighting_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 DISTCLEANFILES += \
@@ -124,6 +126,7 @@ test_usage_db_simple_CFLAGS = \
 
 test_usage_db_simple_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 DISTCLEANFILES += \
@@ -171,6 +174,7 @@ test_usage_db_old_CFLAGS = \
 
 test_usage_db_old_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 DISTCLEANFILES += \
@@ -219,6 +223,7 @@ test_usage_db_ancient_CFLAGS = \
 
 test_usage_db_ancient_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 EXTRA_DIST += \
@@ -265,6 +270,7 @@ test_usage_db_testapp_CFLAGS = \
 
 test_usage_db_testapp_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 EXTRA_DIST += \
@@ -376,6 +382,7 @@ test_bad_app_info_CFLAGS = \
 
 test_bad_app_info_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 #########################
@@ -400,6 +407,7 @@ test_load_app_info_CFLAGS = \
 
 test_load_app_info_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
 test-good-app-info-tons-of-entries: good-app-info/tons-of-entries.hud-app-info test-load-app-info test-usage-dump-entries.sql Makefile.am
@@ -429,6 +437,7 @@ TESTS += \
 
 test-dbus-message-count: test-dbus-message-count.in
 	@sed \
+		-e "s|\@indicatordir\@|$(INDICATORDIR)|" \
 		-e "s|\@top_builddir\@|$(top_builddir)|" \
 		-e "s|\@builddir\@|$(builddir)|" \
 		-e "s|\@srcdir\@|$(srcdir)|" \
@@ -455,6 +464,7 @@ hud_performance_CFLAGS = \
 	$(HUD_CFLAGS)
 hud_performance_LDADD = \
 	../src/libhud-service.a		\
+	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 hud_performance_SOURCES = \
 	hud-performance.c	\
