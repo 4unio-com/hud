@@ -121,9 +121,10 @@ hud_webapp_source_should_search_app (BamfApplication *application,
 }
 
 static void
-hud_webapp_source_search (HudSource   *hud_source,
-			  GPtrArray   *results_array,
-			  HudTokenList *token_list)
+hud_webapp_source_search (HudSource    *hud_source,
+                          HudTokenList *token_list,
+                          void        (*append_func) (HudResult * result, gpointer user_data),
+                          gpointer      user_data)
 {
   HudWebappSource *source;
   GList *walk;
@@ -141,7 +142,7 @@ hud_webapp_source_search (HudSource   *hud_source,
 
       if (hud_webapp_source_should_search_app (application_source->application, active_xid))
 	{
-	  hud_source_search (application_source->collector, results_array, token_list);
+	  hud_source_search (application_source->collector, token_list, append_func, user_data);
 	}
 
     }

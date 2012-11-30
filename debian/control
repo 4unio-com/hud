@@ -1,0 +1,121 @@
+Source: hud
+Section: gnome
+Priority: optional
+Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
+Build-Depends: debhelper (>= 9.0),
+               dh-autoreconf,
+               libgtk-3-dev,
+               gnome-doc-utils,
+               intltool,
+               libdbusmenu-glib-dev (>= 0.5.90),
+               libdbusmenu-gtk3-dev (>= 0.5.90),
+               libdbusmenu-jsonloader-dev (>= 0.5.90),
+               libbamf3-dev (>= 0.2.53),
+               libdee-dev,
+               libsqlite3-dev,
+               sqlite3,
+               dbus-test-runner,
+               libreadline-dev,
+               libncurses5-dev,
+               libappindicator3-dev,
+               indicator-application (>= 0.4.90),
+               xvfb,
+               valac-0.16,
+               indicator-appmenu,
+               libdbustest1-dev,
+               dbus-test-runner,
+               metacity,
+               bamfdaemon,
+               gnome-common,
+               gtk-doc-tools,
+               bustle,
+Standards-Version: 3.9.2
+Homepage: http://launchpad.net/hud
+Vcs-Bzr: http://bazaar.launchpad.net/~ubuntu-desktop/hud/ubuntu
+Vcs-Browser: https://code.launchpad.net/~ubuntu-desktop/hud/ubuntu
+
+Package: hud
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: indicator-appmenu (< 13)
+Description: Backend for the Unity HUD
+ .
+ This package provides a service for Unity's HUD
+
+Package: hud-tools
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         hud (= ${binary:Version}),
+         sqlite3
+Conflicts: indicator-appmenu-tools (< 13)
+Description: Tools for debuging HUD.
+ .
+ This package provides tools for working with HUD.
+
+Package: libhud1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Recommends: hud (= ${binary:Version})
+Description: library for exporting items to the Unity HUD
+ Allows applications to add items into the HUD without requiring a
+ menubar or other parsed GUI elements.
+ .
+ This package contains shared libraries to be used by applications.
+
+Package: libhud1-dev
+Section: libdevel
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libhud1 (= ${binary:Version}),
+         libglib2.0-dev
+Multi-Arch: same
+Description: library for exporting items to the Unity HUD
+ Allows applications to add items into the HUD without requiring a
+ menubar or other parsed GUI elements.
+ .
+ This package contains files that are needed to build applications.
+
+Package: libhud-client1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Recommends: hud (= ${binary:Version})
+Description: private library for implementing a HUD frontend
+ Interface for querying the HUD and getting results.
+ .
+ This package contains shared libraries to be used by applications.
+
+Package: libhud-client1-dev
+Section: libdevel
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libhud-client1 (= ${binary:Version}),
+         libglib2.0-dev
+Recommends: libhud-client1-doc
+Multi-Arch: same
+Description: private library for implementing a HUD frontend
+ Interface for querying the HUD and getting results.
+ .
+ This package contains files that are needed to build applications.
+
+Package: libhud-client1-doc
+Section: doc
+Architecture: all
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libhud-client1-dev (= ${binary:Version})
+Description: private library for implementing a HUD frontend
+ Interface for querying the HUD and getting results.
+ .
+ This package contains developer documentation.
+

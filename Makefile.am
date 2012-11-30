@@ -5,6 +5,8 @@ SUBDIRS = \
 	po \
 	src \
 	libhud \
+	libhud-client \
+	tools \
 	docs
 
 if BUILD_TESTS
@@ -14,6 +16,8 @@ SUBDIRS += \
 endif
 
 tests: src
+
+tools: libhud-client
 
 DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-localinstall --enable-deprecations
 

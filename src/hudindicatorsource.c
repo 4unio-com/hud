@@ -150,15 +150,16 @@ hud_indicator_source_unuse (HudSource *hud_source)
 
 static void
 hud_indicator_source_search (HudSource    *hud_source,
-                             GPtrArray    *results_array,
-                             HudTokenList *search_string)
+                             HudTokenList *search_string,
+                             void        (*append_func) (HudResult * result, gpointer user_data),
+                             gpointer      user_data)
 {
   HudIndicatorSource *source = HUD_INDICATOR_SOURCE (hud_source);
   gint i;
 
   for (i = 0; i < source->n_indicators; i++)
     if (source->indicators[i].collector)
-      hud_source_search (source->indicators[i].collector, results_array, search_string);
+      hud_source_search (source->indicators[i].collector, search_string, append_func, user_data);
 }
 
 static void
