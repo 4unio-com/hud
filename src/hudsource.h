@@ -20,6 +20,7 @@
 #define __HUD_SOURCE_H__
 
 #include "huditem.h"
+#include "hudresult.h"
 
 #define HUD_TYPE_SOURCE                                     (hud_source_get_type ())
 #define HUD_SOURCE(inst)                                    (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
@@ -39,8 +40,9 @@ struct _HudSourceInterface
   void (* use)    (HudSource    *source);
   void (* unuse)  (HudSource    *source);
   void (* search) (HudSource    *source,
-                   GPtrArray    *results_array,
-                   HudTokenList *search_tokens);
+                   HudTokenList *search_tokens,
+                   void        (*append_func) (HudResult * result, gpointer user_data),
+                   gpointer      user_data);
 };
 
 GType                   hud_source_get_type                             (void);
@@ -49,8 +51,9 @@ void                    hud_source_use                                  (HudSour
 void                    hud_source_unuse                                (HudSource    *source);
 
 void                    hud_source_search                               (HudSource    *source,
-                                                                         GPtrArray    *results_array,
-                                                                         HudTokenList *search_tokens);
+                                                                         HudTokenList *search_tokens,
+                                                                         void        (*append_func) (HudResult * result, gpointer user_data),
+                                                                         gpointer      user_data);
 
 void                    hud_source_changed                              (HudSource    *source);
 

@@ -65,6 +65,7 @@ PKG_CHECK_MODULES([HUD],[
 		dbusmenu-glib-0.4 >= $DBUSMENU_GLIB_REQUIRED_VERSION
 		libbamf3 
 		sqlite3 >= $SQLITE_REQUIRED_VERSION
+		dee-1.0
 ])
 
 GTK_REQUIRED_VERSION=3.0
@@ -113,6 +114,10 @@ AM_CONDITIONAL(BUILD_TESTS, test x${have_dbusmenu_jsonloader} = xyes)
 
 AC_SUBST(INDICATORTEST_CFLAGS)
 AC_SUBST(INDICATORTEST_LIBS)
+
+PKG_CHECK_MODULES(DBUSTEST, dbustest-1)
+AC_SUBST(DBUSTEST_CFLAGS)
+AC_SUBST(DBUSTEST_LIBS)
 
 ###########################
 # gcov coverage reporting
@@ -168,6 +173,13 @@ else
 fi
 AC_SUBST(DBUSSERVICEDIR)
 
+if test "x$with_localinstall" = "xyes"; then
+	DBUSIFACEDIR="${datadir}/dbus-1/interfaces/"
+else
+	DBUSIFACEDIR=`$PKG_CONFIG --variable=interfaces_dir dbus-1`
+fi
+AC_SUBST(DBUSIFACEDIR)
+
 ##############################
 # Custom Junk
 ##############################
@@ -208,13 +220,17 @@ Makefile
 src/Makefile
 libhud/Makefile
 libhud/tests/Makefile
+libhud-client/Makefile
+libhud-client/tests/Makefile
 data/Makefile
 po/Makefile.in
 tools-vala/Makefile
+tools/Makefile
 tests/Makefile
 docs/Makefile
 docs/man/Makefile
 docs/devel/Makefile
+docs/libhud-client/Makefile
 ])
 
 ###########################

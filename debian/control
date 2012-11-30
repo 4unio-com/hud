@@ -11,6 +11,7 @@ Build-Depends: debhelper (>= 9.0),
                libdbusmenu-gtk3-dev (>= 0.5.90),
                libdbusmenu-jsonloader-dev (>= 0.5.90),
                libbamf3-dev (>= 0.2.53),
+               libdee-dev,
                libsqlite3-dev,
                sqlite3,
                dbus-test-runner,
@@ -21,6 +22,8 @@ Build-Depends: debhelper (>= 9.0),
                xvfb,
                valac-0.16,
                indicator-appmenu,
+               libdbustest1-dev,
+               dbus-test-runner,
                metacity,
                bamfdaemon,
                gnome-common,
@@ -77,4 +80,42 @@ Description: library for exporting items to the Unity HUD
  menubar or other parsed GUI elements.
  .
  This package contains files that are needed to build applications.
+
+Package: libhud-client1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Recommends: hud (= ${binary:Version})
+Description: private library for implementing a HUD frontend
+ Interface for querying the HUD and getting results.
+ .
+ This package contains shared libraries to be used by applications.
+
+Package: libhud-client1-dev
+Section: libdevel
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libhud-client1 (= ${binary:Version}),
+         libglib2.0-dev
+Recommends: libhud-client1-doc
+Multi-Arch: same
+Description: private library for implementing a HUD frontend
+ Interface for querying the HUD and getting results.
+ .
+ This package contains files that are needed to build applications.
+
+Package: libhud-client1-doc
+Section: doc
+Architecture: all
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libhud-client1-dev (= ${binary:Version})
+Description: private library for implementing a HUD frontend
+ Interface for querying the HUD and getting results.
+ .
+ This package contains developer documentation.
 

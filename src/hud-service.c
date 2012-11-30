@@ -34,85 +34,35 @@
 #include "hudsourcelist.h"
 #include "hudsettings.h"
 
-#include "hud.interface.h"
+#include "hud-iface.h"
 #include "shared-values.h"
 #include "hudquery.h"
 
-/* The return value of 'StartQuery' and the signal parameters for
- * 'UpdatedQuery' are the same, so use a utility function for both.
- */
+/* Describe the important values in the query */
 GVariant *
 describe_query (HudQuery *query)
 {
   GVariantBuilder builder;
-  gint n, i;
 
-  n = hud_query_get_n_results (query);
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_TUPLE);
 
-  g_variant_builder_init (&builder, G_VARIANT_TYPE ("(sa(sssssv)v)"));
-
-  /* Target */
-  g_variant_builder_add (&builder, "s", "");
-
-  /* List of results */
-  g_variant_builder_open (&builder, G_VARIANT_TYPE ("a(sssssv)"));
-  for (i = 0; i < n; i++)
-    {
-      HudResult *result = hud_query_get_result_by_index (query, i);
-      HudItem *item;
-
-      item = hud_result_get_item (result);
-
-      g_variant_builder_add (&builder, "(sssssv)",
-                             hud_result_get_html_description (result),
-                             hud_item_get_app_icon (item),
-                             hud_item_get_item_icon (item),
-                             "" /* complete text */ , "" /* accel */,
-                             g_variant_new_uint64 (hud_item_get_id (item)));
-    }
-  g_variant_builder_close (&builder);
-
-  /* Query key */
-  g_variant_builder_add (&builder, "v", hud_query_get_query_key (query));
+  g_variant_builder_add_value(&builder, g_variant_new_object_path(hud_query_get_path(query)));
+  g_variant_builder_add_value(&builder, g_variant_new_string(hud_query_get_results_name(query)));
+  g_variant_builder_add_value(&builder, g_variant_new_string(hud_query_get_appstack_name(query)));
+  g_variant_builder_add_value(&builder, g_variant_new_int32(0)); /* TODO: Get model rev */
 
   return g_variant_builder_end (&builder);
 }
 
 static void
-query_changed (HudQuery *query,
-               gpointer  user_data)
+query_destroyed (gpointer data, GObject * old_object)
 {
-  GDBusConnection *connection = user_data;
-
-  g_debug ("emit UpdatedQuery signal");
-
-  g_dbus_connection_emit_signal (connection, NULL, DBUS_PATH,
-                                 DBUS_IFACE, "UpdatedQuery",
-                                 describe_query (query), NULL);
+	GPtrArray * list = (GPtrArray *)data;
+	g_ptr_array_remove(list, old_object);
+	return;
 }
 
-static GVariant *
-unpack_platform_data (GVariant *parameters)
-{
-  GVariant *platform_data;
-  gchar *startup_id;
-  guint32 timestamp;
-
-  g_variant_get_child (parameters, 1, "u", &timestamp);
-  startup_id = g_strdup_printf ("_TIME%u", timestamp);
-  platform_data = g_variant_new_parsed ("{'desktop-startup-id': < %s >}", startup_id);
-  g_free (startup_id);
-
-  return g_variant_ref_sink (platform_data);
-}
-
-static gboolean
-drop_query_timeout (gpointer user_data)
-{
-  g_object_unref (user_data);
-
-  return G_SOURCE_REMOVE;
-}
+static GPtrArray * query_list = NULL;
 
 static void
 bus_method (GDBusConnection       *connection,
@@ -128,108 +78,64 @@ bus_method (GDBusConnection       *connection,
 
   if (g_str_equal (method_name, "StartQuery"))
     {
+      GVariant * vsearch;
       const gchar *search_string;
-      gint num_results;
       HudQuery *query;
 
-      g_variant_get (parameters, "(&si)", &search_string, &num_results);
-      g_debug ("'StartQuery' from %s: '%s', %d", sender, search_string, num_results);
-      query = hud_query_new (source, search_string, num_results);
-      g_signal_connect_object (query, "changed", G_CALLBACK (query_changed), connection, 0);
+      vsearch = g_variant_get_child_value (parameters, 0);
+      search_string = g_variant_get_string(vsearch, NULL);
+      g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
+
+      query = hud_query_new (source, search_string, 10);
       g_dbus_method_invocation_return_value (invocation, describe_query (query));
-      g_object_unref (query);
-    }
 
-  else if (g_str_equal (method_name, "ExecuteQuery"))
+      g_ptr_array_add(query_list, query);
+      g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
+
+      g_variant_unref(vsearch);
+    }
+  else
     {
-      GVariant *platform_data;
-      GVariant *item_key;
-      guint64 key_value;
-      HudItem *item;
-
-      g_variant_get_child (parameters, 0, "v", &item_key);
-
-      if (!g_variant_is_of_type (item_key, G_VARIANT_TYPE_UINT64))
-        {
-          g_debug ("'ExecuteQuery' from %s: incorrect item key (not uint64)", sender);
-          g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS,
-                                                 "item key has invalid format");
-          g_variant_unref (item_key);
-          return;
-        }
-
-      key_value = g_variant_get_uint64 (item_key);
-      g_variant_unref (item_key);
-
-      item = hud_item_lookup (key_value);
-      g_debug ("'ExecuteQuery' from %s, item #%"G_GUINT64_FORMAT": %p", sender, key_value, item);
-
-      if (item == NULL)
-        {
-          g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS,
-                                                 "item specified by item key does not exist");
-          return;
-        }
-
-      platform_data = unpack_platform_data (parameters);
-      hud_item_activate (item, platform_data);
-      g_variant_unref (platform_data);
-
-      g_dbus_method_invocation_return_value (invocation, NULL);
+      g_warn_if_reached();
     }
 
-  else if (g_str_equal (method_name, "CloseQuery"))
-    {
-      GVariant *query_key;
-      HudQuery *query;
+  return;
+}
 
-      g_debug ("Got 'CloseQuery' from %s", sender);
+/* Gets properties for DBus */
+static GVariant *
+bus_get_prop (GDBusConnection * connection, const gchar * sender, const gchar * object_path, const gchar * interface_name, const gchar * property_name, GError ** error, gpointer user_data)
+{
+	// HudSource *source = user_data;
 
-      g_variant_get (parameters, "(v)", &query_key);
-      query = hud_query_lookup (query_key);
-      g_variant_unref (query_key);
+	if (g_str_equal(property_name, "OpenQueries")) {
+		if (query_list->len == 0) {
+			return g_variant_new_array(G_VARIANT_TYPE_OBJECT_PATH, NULL, 0);
+		}
 
-      if (query != NULL)
-        {
-          g_signal_handlers_disconnect_by_func (query, query_changed, connection);
-          /* Unity does 'CloseQuery' immediately followed by
-           * 'StartQuery' on every keystroke.  Delay the destruction of
-           * the query for a moment just in case a 'StartQuery' is on the
-           * way.
-           *
-           * That way we can avoid allowing the use count to drop to
-           * zero only to be increased again back to 1.  This prevents a
-           * bunch of dbusmenu "closed"/"opened" calls being sent.
-           */
-          g_timeout_add (1000, drop_query_timeout, g_object_ref (query));
-          hud_query_close (query);
-        }
+		int i;
+		GVariantBuilder builder;
+		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
 
-      /* always success -- they may have just been closing a timed out query */
-      g_dbus_method_invocation_return_value (invocation, NULL);
-    }
+		for (i = 0; i < query_list->len; i++) {
+			HudQuery * query = g_ptr_array_index(query_list, i);
+			g_variant_builder_add_value(&builder, g_variant_new_object_path(hud_query_get_path(query)));
+		}
+
+		return g_variant_builder_end(&builder);
+	} else {
+		g_warn_if_reached();
+	}
+
+	return NULL;
 }
 
 static GMainLoop *mainloop = NULL;
-
-static GDBusInterfaceInfo *
-get_iface_info (void)
-{
-  GDBusInterfaceInfo *iface_info;
-  GDBusNodeInfo *node_info;
-  GError *error = NULL;
-
-  node_info = g_dbus_node_info_new_for_xml (hud_interface, &error);
-  g_assert_no_error (error);
-
-  iface_info = g_dbus_node_info_lookup_interface (node_info, DBUS_IFACE);
-  g_assert (iface_info != NULL);
-
-  g_dbus_interface_info_ref (iface_info);
-  g_dbus_node_info_unref (node_info);
-
-  return iface_info;
-}
+static GDBusInterfaceVTable vtable = {
+	.method_call = bus_method,
+	.get_property = bus_get_prop,
+	.set_property = NULL
+};
 
 static void
 bus_acquired_cb (GDBusConnection *connection,
@@ -237,14 +143,11 @@ bus_acquired_cb (GDBusConnection *connection,
                  gpointer         user_data)
 {
   HudSource *source = user_data;
-  GDBusInterfaceVTable vtable = {
-    bus_method
-  };
   GError *error = NULL;
 
   g_debug ("Bus acquired (guid %s)", g_dbus_connection_get_guid (connection));
 
-  if (!g_dbus_connection_register_object (connection, DBUS_PATH, get_iface_info (), &vtable, source, NULL, &error))
+  if (!g_dbus_connection_register_object (connection, DBUS_PATH, hud_iface_com_canonical_hud_interface_info (), &vtable, source, NULL, &error))
     {
       g_warning ("Unable to register path '"DBUS_PATH"': %s", error->message);
       g_main_loop_quit (mainloop);
@@ -269,6 +172,14 @@ name_lost_cb (GDBusConnection *connection,
   g_main_loop_quit (mainloop);
 }
 
+static void
+sigterm_graceful_exit (int signal)
+{
+  g_warning("SIGTERM recieved");
+  g_main_loop_quit(mainloop);
+  return;
+}
+
 int
 main (int argc, char **argv)
 {
@@ -283,6 +194,7 @@ main (int argc, char **argv)
 
   hud_settings_init ();
 
+  query_list = g_ptr_array_new();
   source_list = hud_source_list_new ();
 
   /* we will eventually pull GtkMenu out of this, so keep it around */
@@ -327,11 +239,15 @@ main (int argc, char **argv)
                   bus_acquired_cb, name_acquired_cb, name_lost_cb, source_list, NULL);
 
   mainloop = g_main_loop_new (NULL, FALSE);
+
+  signal(SIGTERM, sigterm_graceful_exit);
+  
   g_main_loop_run (mainloop);
   g_main_loop_unref (mainloop);
 
   g_object_unref (window_source);
   g_object_unref (source_list);
+  g_ptr_array_free(query_list, TRUE);
 
   return 0;
 }
