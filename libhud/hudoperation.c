@@ -67,21 +67,17 @@ hud_operation_class_init (HudOperationClass *class)
 
   g_type_class_add_private (class, sizeof (HudOperationPrivate));
 
-  hud_operation_signals[SIGNAL_PREPARE] = g_signal_new ("prepare", HUD_TYPE_OPERATION, G_SIGNAL_RUN_FIRST,
-                                                        G_STRUCT_OFFSET (HudOperationClass, start),
-                                                        NULL, NULL, g_cclosure_marshal_VOID__VOID,
-                                                        G_TYPE_NONE, 0);
   hud_operation_signals[SIGNAL_STARTED] = g_signal_new ("started", HUD_TYPE_OPERATION, G_SIGNAL_RUN_FIRST,
-                                                        G_STRUCT_OFFSET (HudOperationClass, start),
+                                                        G_STRUCT_OFFSET (HudOperationClass, started),
                                                         NULL, NULL, g_cclosure_marshal_VOID__VOID,
                                                         G_TYPE_NONE, 0);
   hud_operation_signals[SIGNAL_CHANGED] = g_signal_new ("changed", HUD_TYPE_OPERATION,
                                                         G_SIGNAL_RUN_FIRST | G_SIGNAL_DETAILED,
-                                                        G_STRUCT_OFFSET (HudOperationClass, update),
+                                                        G_STRUCT_OFFSET (HudOperationClass, changed),
                                                         NULL, NULL, g_cclosure_marshal_VOID__STRING,
                                                         G_TYPE_NONE, 1, G_TYPE_STRING);
   hud_operation_signals[SIGNAL_ENDED] = g_signal_new ("ended", HUD_TYPE_OPERATION, G_SIGNAL_RUN_FIRST,
-                                                      G_STRUCT_OFFSET (HudOperationClass, end),
+                                                      G_STRUCT_OFFSET (HudOperationClass, ended),
                                                       NULL, NULL, g_cclosure_marshal_VOID__VOID,
                                                       G_TYPE_NONE, 0);
 }
@@ -123,6 +119,19 @@ hud_operation_setup (HudOperation *operation,
     g_action_group_change_action_state (G_ACTION_GROUP (operation->priv->group), name, value);
 }
 
+static void
+hud_operation_action_state_changed (GActionGroup *action_group,
+                                    const gchar  *action_name,
+                                    GVariant     *state,
+                                    gpointer      user_data)
+{
+  HudOperation *operation = user_data;
+
+  g_assert (action_group == G_ACTION_GROUP (operation->priv->group));
+
+  g_signal_emit (operation, hud_operation_signals[SIGNAL_CHANGED], g_quark_try_string (action_name), action_name);
+}
+
 /**
  * hud_operation_get_user_data:
  * @operation: a #HudOperation
@@ -142,6 +151,8 @@ hud_operation_get_user_data (HudOperation *operation)
 void
 hud_operation_started (HudOperation *operation)
 {
+  g_signal_connect (operation->priv->group, "action-state-changed",
+                    G_CALLBACK (hud_operation_action_state_changed), operation);
   g_signal_emit (operation, hud_operation_signals[SIGNAL_STARTED], 0);
 }
 
@@ -149,6 +160,7 @@ void
 hud_operation_ended (HudOperation *operation)
 {
   g_signal_emit (operation, hud_operation_signals[SIGNAL_ENDED], 0);
+  g_signal_handlers_disconnect_by_func (operation->priv->group, hud_operation_action_state_changed, operation);
 }
 
 /**

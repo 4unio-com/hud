@@ -102,6 +102,18 @@ hud_action_operation_updated (HudAction *action)
   g_object_notify (G_OBJECT (action), "state");
 }
 
+/* This does the same as g_variant_new("mv") but produces an array
+ * instead (since we can't send the 'm' over D-Bus).
+ */
+static GVariant *
+fake_mv (GVariant *value)
+{
+  if (value)
+    value = g_variant_new_variant (value);
+
+  return g_variant_new_array (G_VARIANT_TYPE_VARIANT, &value, value != NULL);
+}
+
 static GVariant *
 hud_action_get_state (GAction *g_action)
 {
@@ -125,16 +137,12 @@ hud_action_get_state (GAction *g_action)
         {
           const GVariantType *parameter_type;
           gchar *typestring;
-          GVariant *state;
 
           parameter_type = g_action_group_get_action_parameter_type (group, actions[i]);
-          typestring = g_variant_type_dup_string (parameter_type);
-          state = g_action_group_get_action_state (group, actions[i]);
-
-          g_variant_builder_add (&builder, "{s(bgav)}", actions[i],
-                                 g_action_group_get_action_enabled (group, actions[i]), typestring,
-                                 g_variant_new_array (G_VARIANT_TYPE_VARIANT, &state, state ? 1 : 0));
-
+          typestring = parameter_type ? g_variant_type_dup_string (parameter_type) : g_strdup ("");
+          g_variant_builder_add (&builder, "{s(bg@av)}", actions[i],
+                                 g_action_group_get_action_enabled (group, actions[i]),
+                                 typestring, fake_mv (g_action_group_get_action_state (group, actions[i])));
           g_free (typestring);
         }
 
@@ -160,6 +168,10 @@ hud_action_activate (GAction  *g_action,
   const gchar *name;
   GVariantIter *iter;
   GVariant *args;
+
+  /* We are our own GAction implementation, so we must guard against this... */
+  if (!value || !g_variant_is_of_type (value, G_VARIANT_TYPE ("(ssav)")))
+    return;
 
   g_variant_get (value, "(&s&sav)", &op, &name, &iter);
   if (!g_variant_iter_next (iter, "v", &args))
@@ -202,6 +214,34 @@ hud_action_real_create_operation (HudAction *action,
       HudOperation *operation;
 
       operation = hud_operation_new (action->priv->user_data);
+
+      /* We only consider HudActionEntry in the case that we have the
+       * default create_operation handler.  That's fine, since
+       * HudActionEntry cannot produce subclasses of HudAction.
+       *
+       * If someone subclasses HudAction then they can deal with this
+       * sort of thing in their own way from their own create_operation
+       * handler.
+       */
+      if (action->priv->entry)
+        {
+          const HudActionEntry *entry = action->priv->entry;
+          gpointer user_data = action->priv->user_data;
+
+          if (entry->started)
+            g_signal_connect (operation, "started", G_CALLBACK (entry->started), user_data);
+          if (entry->changed)
+            g_signal_connect (operation, "changed", G_CALLBACK (entry->changed), user_data);
+          if (entry->ended)
+            g_signal_connect (operation, "ended", G_CALLBACK (entry->ended), user_data);
+
+          if (entry->prepare)
+            entry->prepare (operation, user_data);
+
+          g_action_map_add_action_entries (G_ACTION_MAP (operation->priv->group),
+                                           entry->action_entries, entry->n_actions, operation);
+        }
+
       hud_operation_setup (operation, parameters);
       hud_action_set_operation (action, operation);
       g_object_unref (operation);

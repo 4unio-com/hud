@@ -55,16 +55,12 @@ struct _HudOperationClass
 {
   GSimpleActionGroupClass parent_class;
 
-  void (* start)    (HudOperation *operation);
+  void (* started)  (HudOperation *operation);
 
-  void (* update)   (HudOperation *operation,
+  void (* changed)  (HudOperation *operation,
                      const gchar  *parameter_name);
 
-  void (* response) (HudOperation *operation,
-                     const gchar  *response_id,
-                     GVariant     *response_data);
-
-  void (* end)      (HudOperation *operation);
+  void (* ended)    (HudOperation *operation);
 };
 
 GType                   hud_operation_get_type                          (void) G_GNUC_CONST;
