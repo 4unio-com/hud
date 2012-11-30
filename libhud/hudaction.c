@@ -242,7 +242,9 @@ hud_action_real_create_operation (HudAction *action,
                                            entry->action_entries, entry->n_actions, operation);
         }
 
-      hud_operation_setup (operation, parameters);
+      if (parameters)
+        hud_operation_setup (operation, parameters);
+
       hud_action_set_operation (action, operation);
       g_object_unref (operation);
     }
