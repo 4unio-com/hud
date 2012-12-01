@@ -42,7 +42,7 @@ gimp_app_apply_blur (GSimpleAction *action,
 
 static const GActionEntry blur_actions[] = {
   { "gaussian", toggle_cb,    NULL, "false", set_state_cb },
-  { "radius",   set_state_cb, "f",  "0.0",   set_state_cb },
+  { "radius",   set_state_cb, "d",  "0.0",   set_state_cb },
   { "apply",    gimp_app_apply_blur }
 };
 
