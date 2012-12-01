@@ -20,6 +20,20 @@ typedef struct
   GVariant *state;
 } Action;
 
+static void
+action_free (gpointer data)
+{
+  Action *action = data;
+
+  if (action->parameter_type)
+    g_variant_type_free (action->parameter_type);
+
+  if (action->state)
+    g_variant_unref (action->state);
+
+  g_slice_free (Action, action);
+}
+
 static void yo_dawg_i_heard_you_like_action_group_iface_init (GActionGroupInterface *iface);
 G_DEFINE_TYPE_WITH_CODE (YoDawgIHeardYouLikeActionGroup, yo_dawg_i_heard_you_like_action_group, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, yo_dawg_i_heard_you_like_action_group_iface_init))
@@ -288,7 +302,7 @@ yo_dawg_i_heard_you_like_action_group_finalize (GObject *object)
 static void
 yo_dawg_i_heard_you_like_action_group_init (YoDawgIHeardYouLikeActionGroup *group)
 {
-  group->actions = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
+  group->actions = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, action_free);
 }
 
 static void
