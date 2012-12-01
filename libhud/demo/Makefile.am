@@ -5,6 +5,9 @@ gimp_LDADD = ../libhud.la $(HUD_LIBS)
 
 consumer_CFLAGS = $(HUD_CFLAGS)
 consumer_LDADD = $(HUD_LIBS)
+consumer_VALAFLAGS = --pkg gtk+-3.0
 consumer_SOURCES = \
 	yodawgiheardyoulikeactiongroup.c		\
-	consumer.c
+	yodawgiheardyoulikeactiongroup.vapi		\
+	gvtk.vala					\
+	consumer.vala

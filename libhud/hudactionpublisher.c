@@ -199,6 +199,9 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
 
   iter = g_sequence_lookup (publisher->descriptions, description, compare_descriptions, NULL);
 
+  if (g_hash_table_lookup (description->attrs, "operation"))
+    g_print ("operation: %s\n", g_variant_print (g_hash_table_lookup (description->attrs, "operation"), TRUE));
+
   if (iter == NULL)
     {
       /* We are not replacing -- add new. */
