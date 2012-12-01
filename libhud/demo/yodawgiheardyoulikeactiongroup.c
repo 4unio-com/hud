@@ -248,7 +248,7 @@ yo_dawg_i_heard_you_like_action_group_state_changed (GActionGroup *parent,
                     }
                   else
                     {
-                      if (!g_variant_equal (action->state, state))
+                      if (!g_variant_equal (action->state, action_state))
                         {
                           g_variant_unref (action->state);
                           action->state = g_variant_ref (action_state);
@@ -257,9 +257,6 @@ yo_dawg_i_heard_you_like_action_group_state_changed (GActionGroup *parent,
                         }
                     }
                 }
-
-              if (action_state)
-                g_variant_unref (action_state);
             }
         }
 
