@@ -199,9 +199,6 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
 
   iter = g_sequence_lookup (publisher->descriptions, description, compare_descriptions, NULL);
 
-  if (g_hash_table_lookup (description->attrs, "operation"))
-    g_print ("operation: %s\n", g_variant_print (g_hash_table_lookup (description->attrs, "operation"), TRUE));
-
   if (iter == NULL)
     {
       /* We are not replacing -- add new. */
@@ -219,6 +216,8 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
       /* A replace is 1 remove and 1 add */
       g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), g_sequence_iter_get_position (iter), 1, 1);
     }
+
+  g_object_ref (description);
 
   g_signal_connect (description, "changed", G_CALLBACK (description_changed), publisher);
 }
@@ -496,6 +495,9 @@ backport_g_markup_string_parser_end (GMarkupParseContext *context)
   else
     result = g_string_free (state->str, FALSE);
 
+  g_free (state->context);
+  g_free (state->domain);
+
   g_slice_free (StringParserState, state);
 
   return result;
@@ -604,7 +606,7 @@ start_element (GMarkupParseContext  *context,
           const gchar *gettext_context;
           gboolean translatable;
 
-          if (COLLECT (STRDUP,             "name", &name,
+          if (COLLECT (STRING,             "name", &name,
                        OPTIONAL | BOOLEAN, "translatable", &translatable,
                        OPTIONAL | STRING,  "context", &gettext_context,
                        OPTIONAL | STRING,  "comments", NULL, /* ignore, just for translators */
@@ -826,19 +828,18 @@ hud_action_publisher_add_descriptions_from_file (HudActionPublisher *publisher,
     end_element,
     backport_g_markup_parser_reject_text
   };
+  ParserState state = {
+    publisher
+  };
   GMarkupParseContext *context;
   GError *error = NULL;
-  ParserState *state;
   gchar *contents;
   gsize size;
-
-  state = g_slice_new0 (ParserState);
-  state->publisher = publisher;
 
   if (!g_file_get_contents (filename, &contents, &size, &error))
     g_error ("Failed to open file %s: %s", filename, error->message);
 
-  context = g_markup_parse_context_new (&parser, 0, state, NULL);
+  context = g_markup_parse_context_new (&parser, 0, &state, NULL);
   if (!g_markup_parse_context_parse (context, contents, size, &error) ||
       !g_markup_parse_context_end_parse (context, &error))
     g_error ("Failed to parse action description XML from %s: %s", filename, error->message);
