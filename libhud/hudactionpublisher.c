@@ -27,12 +27,20 @@
 #include <gio/gio.h>
 #include <string.h>
 
+typedef GMenuModelClass HudAuxClass;
+
 typedef struct
 {
-  GObject parent_instance;
+  GMenuModel parent_instance;
 
   HudActionPublisher *publisher;
 } HudAux;
+
+static void hud_aux_init_action_group_iface (GActionGroupInterface *iface);
+static void hud_aux_init_remote_action_group_iface (GRemoteActionGroupInterface *iface);
+G_DEFINE_TYPE_WITH_CODE (HudAux, hud_aux, G_TYPE_MENU_MODEL,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, hud_aux_init_action_group_iface)
+                         G_IMPLEMENT_INTERFACE (G_TYPE_REMOTE_ACTION_GROUP, hud_aux_init_remote_action_group_iface))
 
 typedef GObjectClass HudActionPublisherClass;
 
@@ -73,6 +81,67 @@ guint hud_action_description_changed_signal;
 G_DEFINE_TYPE (HudActionDescription, hud_action_description, G_TYPE_OBJECT)
 
 
+static gboolean
+hud_aux_is_mutable (GMenuModel *model)
+{
+  return TRUE;
+}
+
+static gint
+hud_aux_get_n_items (GMenuModel *model)
+{
+  HudAux *aux = (HudAux *) model;
+
+  return g_sequence_get_length (aux->publisher->descriptions);
+}
+
+static void
+hud_aux_get_item_attributes (GMenuModel  *model,
+                             gint         item_index,
+                             GHashTable **attributes)
+{
+  HudAux *aux = (HudAux *) model;
+  GSequenceIter *iter;
+  HudActionDescription *description;
+
+  iter = g_sequence_get_iter_at_pos (aux->publisher->descriptions, item_index);
+  description = g_sequence_get (iter);
+
+  *attributes = g_hash_table_ref (description->attrs);
+}
+
+static void
+hud_aux_get_item_links (GMenuModel  *model,
+                        gint         item_index,
+                        GHashTable **links)
+{
+  *links = g_hash_table_new (NULL, NULL);
+}
+
+static void
+hud_aux_init (HudAux *aux)
+{
+}
+
+static void
+hud_aux_init_action_group_iface (GActionGroupInterface *iface)
+{
+}
+
+static void
+hud_aux_init_remote_action_group_iface (GRemoteActionGroupInterface *iface)
+{
+}
+
+static void
+hud_aux_class_init (HudAuxClass *class)
+{
+  class->is_mutable = hud_aux_is_mutable;
+  class->get_n_items = hud_aux_get_n_items;
+  class->get_item_attributes = hud_aux_get_item_attributes;
+  class->get_item_links = hud_aux_get_item_links;
+}
+
 static void
 hud_action_publisher_finalize (GObject *object)
 {
@@ -83,6 +152,12 @@ static void
 hud_action_publisher_init (HudActionPublisher *publisher)
 {
   publisher->descriptions = g_sequence_new (g_object_unref);
+  publisher->aux = g_object_new (hud_aux_get_type (), NULL);
+  publisher->aux->publisher = publisher;
+
+  g_dbus_connection_export_menu_model (g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL),
+                                       "/menu", G_MENU_MODEL (publisher->aux), NULL);
+
 }
 
 static void
@@ -172,8 +247,6 @@ disconnect_handler (gpointer data,
 
   g_signal_handlers_disconnect_by_func (description, description_changed, publisher);
 }
-
-#define g_menu_model_items_changed(x,...)
 
 /**
  * hud_action_publisher_add_description:
