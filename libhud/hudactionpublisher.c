@@ -911,10 +911,18 @@ hud_action_description_new (const gchar *action_name,
 {
   HudActionDescription *description;
 
+  g_return_val_if_fail (action_name != NULL, NULL);
+
   description = g_object_new (HUD_TYPE_ACTION_DESCRIPTION, NULL);
   description->action = g_strdup (action_name);
   description->target = action_target ? g_variant_ref_sink (action_target) : NULL;
   description->identifier = format_identifier (action_name, action_target);
+
+  g_hash_table_insert (description->attrs, g_strdup ("action"),
+                       g_variant_ref_sink (g_variant_new_string (action_name)));
+
+  if (action_target)
+    g_hash_table_insert (description->attrs, g_strdup ("target"), g_variant_ref (action_target));
 
   return description;
 }
