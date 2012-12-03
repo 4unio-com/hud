@@ -29,6 +29,7 @@ Build-Depends: debhelper (>= 9.0),
                gnome-common,
                gtk-doc-tools,
                bustle,
+               gtester2xunit,
 Standards-Version: 3.9.2
 Homepage: http://launchpad.net/hud
 Vcs-Bzr: http://bazaar.launchpad.net/~ubuntu-desktop/hud/ubuntu
