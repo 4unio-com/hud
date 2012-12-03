@@ -58,6 +58,8 @@ libhud_service_la_SOURCES = \
 	hudstringlist.c		\
 	huditem.h		\
 	huditem.c		\
+	hudkeywordmapping.h		\
+	hudkeywordmapping.c		\
 	hudresult.h		\
 	hudresult.c		\
 	load-app-info.h \

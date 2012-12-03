@@ -150,6 +150,7 @@ hud_item_setup_usage (HudItem *item)
 gpointer
 hud_item_construct (GType          g_type,
                     HudStringList *tokens,
+                    HudStringList *token_list,
                     const gchar   *desktop_file,
                     const gchar   *app_icon,
                     gboolean       enabled)
@@ -162,7 +163,7 @@ hud_item_construct (GType          g_type,
   item->priv->app_icon = g_strdup (app_icon);
   item->priv->enabled = enabled;
   item->priv->id = hud_item_next_id++;
-  item->priv->token_list = hud_token_list_new_from_string_list (tokens);
+  item->priv->token_list = hud_token_list_new_from_string_list (token_list);
 
   g_hash_table_insert (hud_item_table, &item->priv->id, item);
 
@@ -192,7 +193,7 @@ hud_item_new (HudStringList *tokens,
               const gchar   *app_icon,
               gboolean       enabled)
 {
-  return hud_item_construct (HUD_TYPE_ITEM, tokens, desktop_file, app_icon, enabled);
+  return hud_item_construct (HUD_TYPE_ITEM, tokens, tokens, desktop_file, app_icon, enabled);
 }
 
 /**

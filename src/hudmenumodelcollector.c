@@ -21,6 +21,7 @@
 #include "hudsource.h"
 #include "hudresult.h"
 #include "huditem.h"
+#include "hudkeywordmapping.h"
 
 #include <libbamf/libbamf.h>
 #include <gio/gio.h>
@@ -103,6 +104,9 @@ struct _HudMenuModelCollector
   gchar *icon;
   guint penalty;
 
+  /* Class to map labels to keywords */
+  HudKeywordMapping* keyword_mapping;
+
   /* Each time we see a new menumodel added we add it to 'models', start
    * watching it for changes and add its contents to 'items', possibly
    * finding more menumodels to do the same to.
@@ -152,9 +156,32 @@ hud_menu_model_context_get_label (HudMenuModelContext *context,
   HudStringList *parent_tokens = context ? context->tokens : NULL;
 
   if (label)
-    return hud_string_list_cons_label (label, parent_tokens);
+    return hud_string_list_cons_label(label, parent_tokens);
   else
     return hud_string_list_ref (parent_tokens);
+}
+
+static HudStringList *
+hud_menu_model_context_get_tokens (HudMenuModelContext *context,
+                                  const gchar         *label,
+                                  HudKeywordMapping   *keyword_mapping)
+{
+  HudStringList *tokens = context ? context->tokens : NULL;
+
+  if (label)
+  {
+    GPtrArray *keywords = hud_keyword_mapping_transform (keyword_mapping,
+        label);
+    gint i;
+    for (i = 0; i < keywords->len; i++)
+    {
+      tokens = hud_string_list_cons_label (
+          (gchar*) g_ptr_array_index(keywords, i), tokens);
+    }
+    return tokens;
+  }
+  else
+    return hud_string_list_ref (tokens);
 }
 
 static HudMenuModelContext *
@@ -180,7 +207,8 @@ hud_menu_model_context_unref (HudMenuModelContext *context)
 static HudMenuModelContext *
 hud_menu_model_context_new (HudMenuModelContext *parent,
                             const gchar         *namespace,
-                            const gchar         *label)
+                            const gchar         *label,
+                            HudKeywordMapping   *keyword_mapping)
 {
   HudMenuModelContext *context;
 
@@ -190,7 +218,7 @@ hud_menu_model_context_new (HudMenuModelContext *parent,
 
   context = g_slice_new (HudMenuModelContext);
   context->action_namespace = hud_menu_model_context_get_action_name (parent, namespace);
-  context->tokens = hud_menu_model_context_get_label (parent, label);
+  context->tokens = hud_menu_model_context_get_label (parent, label); // TODO, still need to figure out this one
   context->ref_count = 1;
 
   return context;
@@ -248,7 +276,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
   const gchar *stripped_action_name;
   gchar *full_action_name;
   GDBusActionGroup *group = NULL;
-  HudStringList *full_label;
+  HudStringList *full_label, *tokens;
 
   full_action_name = hud_menu_model_context_get_action_name (context, action_name);
 
@@ -281,13 +309,15 @@ hud_model_item_new (HudMenuModelCollector *collector,
     }
 
   full_label = hud_menu_model_context_get_label (context, label);
+  tokens = hud_menu_model_context_get_tokens(context, label, collector->keyword_mapping);
 
-  item = hud_item_construct (hud_model_item_get_type (), full_label, collector->desktop_file, collector->icon, TRUE);
+  item = hud_item_construct (hud_model_item_get_type (), full_label, tokens, collector->desktop_file, collector->icon, TRUE);
   item->group = g_object_ref (group);
   item->action_name = g_strdup (stripped_action_name);
   item->target = target ? g_variant_ref_sink (target) : NULL;
 
   hud_string_list_unref (full_label);
+  hud_string_list_unref (tokens);
   g_free (full_action_name);
 
   return HUD_ITEM (item);
@@ -458,7 +488,7 @@ hud_menu_model_collector_add_model (HudMenuModelCollector *collector,
    */
   g_object_set_qdata_full (G_OBJECT (model),
                            hud_menu_model_collector_context_quark (),
-                           hud_menu_model_context_new (parent_context, action_namespace, label),
+                           hud_menu_model_context_new (parent_context, action_namespace, label, collector->keyword_mapping),
                            (GDestroyNotify) hud_menu_model_context_unref);
 
   n_items = g_menu_model_get_n_items (model);
@@ -557,6 +587,7 @@ hud_menu_model_collector_finalize (GObject *object)
   g_free (collector->prefix);
   g_free (collector->desktop_file);
   g_free (collector->icon);
+  g_object_unref (collector->keyword_mapping);
 
   g_ptr_array_unref (collector->items);
 
@@ -693,6 +724,9 @@ hud_menu_model_collector_get (BamfWindow  *window,
   collector->desktop_file = g_strdup (desktop_file);
   collector->icon = g_strdup (icon);
 
+  collector->keyword_mapping = hud_keyword_mapping_new();
+  hud_keyword_mapping_load(collector->keyword_mapping, collector->desktop_file);
+
   /* when the action groups change, we could end up having items
    * enabled/disabled.  how to deal with that?
    */
@@ -749,6 +783,9 @@ hud_menu_model_collector_new_for_endpoint (const gchar *application_id,
   collector->desktop_file = g_strdup (application_id);
   collector->icon = g_strdup (icon);
   collector->penalty = penalty;
+
+  collector->keyword_mapping = hud_keyword_mapping_new();
+  hud_keyword_mapping_load(collector->keyword_mapping, collector->desktop_file);
 
   hud_menu_model_collector_add_model (collector, G_MENU_MODEL (collector->app_menu), NULL, NULL, prefix);
 

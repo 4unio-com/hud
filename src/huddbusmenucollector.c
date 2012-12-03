@@ -27,6 +27,7 @@
 #include "hudappmenuregistrar.h"
 #include "hudresult.h"
 #include "hudsource.h"
+#include "hudkeywordmapping.h"
 
 /**
  * SECTION:huddbusmenucollector
@@ -160,9 +161,10 @@ static HudDbusmenuItem *
 hud_dbusmenu_item_new (HudStringList    *context,
                        const gchar      *desktop_file,
                        const gchar      *icon,
+                       HudKeywordMapping *keyword_mapping,
                        DbusmenuMenuitem *menuitem)
 {
-  HudStringList *tokens;
+  HudStringList *full_label, *tokens;
   HudDbusmenuItem *item;
   const gchar *type;
   const gchar *prop;
@@ -174,13 +176,22 @@ hud_dbusmenu_item_new (HudStringList    *context,
   if (prop && dbusmenu_menuitem_property_exist (menuitem, prop))
     {
       const gchar *label;
+      gint i;
 
       label = dbusmenu_menuitem_property_get (menuitem, prop);
-      tokens = hud_string_list_cons_label (label, context);
+      full_label = hud_string_list_cons_label (label, context);
+      tokens = hud_string_list_ref (context);
+      GPtrArray *keywords = hud_keyword_mapping_transform(keyword_mapping, label);
+      for (i = 0; i < keywords->len; i++)
+      {
+        tokens = hud_string_list_cons_label (
+            (gchar*) g_ptr_array_index(keywords, i), tokens);
+      }
       enabled = TRUE;
     }
   else
     {
+      full_label = hud_string_list_ref (context);
       tokens = hud_string_list_ref (context);
       enabled = FALSE;
     }
@@ -196,9 +207,10 @@ hud_dbusmenu_item_new (HudStringList    *context,
   if (enabled)
     enabled &= !dbusmenu_menuitem_property_exist (menuitem, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY);
 
-  item = hud_item_construct (hud_dbusmenu_item_get_type (), tokens, desktop_file, icon, enabled);
+  item = hud_item_construct (hud_dbusmenu_item_get_type (), full_label, tokens, desktop_file, icon, enabled);
   item->menuitem = g_object_ref (menuitem);
 
+  hud_string_list_unref (full_label);
   hud_string_list_unref (tokens);
 
   return item;
@@ -219,6 +231,7 @@ struct _HudDbusmenuCollector
   gboolean alive;
   gint use_count;
   gboolean reentrance_check;
+  HudKeywordMapping* keyword_mapping;
 };
 
 typedef GObjectClass HudDbusmenuCollectorClass;
@@ -380,7 +393,8 @@ hud_dbusmenu_collector_property_changed (DbusmenuMenuitem *menuitem,
   was_open = item->is_opened;
   g_hash_table_remove (collector->items, menuitem);
 
-  item = hud_dbusmenu_item_new (context, collector->application_id, collector->icon, menuitem);
+  item = hud_dbusmenu_item_new (context, collector->application_id,
+      collector->icon, collector->keyword_mapping, menuitem);
 
   if (collector->use_count && !was_open && dbusmenu_menuitem_property_exist (menuitem, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY))
     {
@@ -401,7 +415,8 @@ hud_dbusmenu_collector_add_item (HudDbusmenuCollector *collector,
   HudDbusmenuItem *item;
   GList *child;
 
-  item = hud_dbusmenu_item_new (context, collector->application_id, collector->icon, menuitem);
+  item = hud_dbusmenu_item_new (context, collector->application_id,
+      collector->icon, collector->keyword_mapping, menuitem);
   context = hud_item_get_tokens (HUD_ITEM (item));
 
   g_signal_connect (menuitem, "property-changed", G_CALLBACK (hud_dbusmenu_collector_property_changed), collector);
@@ -533,6 +548,7 @@ hud_dbusmenu_collector_finalize (GObject *object)
 
   g_free (collector->application_id);
   g_free (collector->icon);
+  g_object_unref (collector->keyword_mapping);
 
   hud_string_list_unref (collector->prefix);
   g_clear_object (&collector->client);
@@ -604,6 +620,8 @@ hud_dbusmenu_collector_new_for_endpoint (const gchar *application_id,
     collector->prefix = hud_string_list_cons (prefix, NULL);
   collector->penalty = penalty;
   hud_dbusmenu_collector_setup_endpoint (collector, bus_name, object_path);
+  collector->keyword_mapping = hud_keyword_mapping_new();
+  hud_keyword_mapping_load(collector->keyword_mapping, collector->application_id);
 
   collector->alive = TRUE;
 
@@ -632,6 +650,9 @@ hud_dbusmenu_collector_new_for_window (BamfWindow  *window,
   collector->application_id = g_strdup (desktop_file);
   collector->icon = g_strdup (icon);
   collector->xid = bamf_window_get_xid (window);
+  collector->keyword_mapping = hud_keyword_mapping_new();
+  hud_keyword_mapping_load(collector->keyword_mapping, collector->application_id);
+
   g_debug ("dbusmenu on %d", collector->xid);
   hud_app_menu_registrar_add_observer (hud_app_menu_registrar_get (), collector->xid,
                                        hud_dbusmenu_collector_registrar_observer_func, collector);
