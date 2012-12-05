@@ -122,15 +122,19 @@ static const HudActionEntry hud_entries[] = {
 static void
 gimp_app_startup (GApplication *app)
 {
+  HudActionPublisher *publisher;
+
   G_APPLICATION_CLASS (gimp_app_parent_class)
     ->startup (app);
 
   g_print ("Hello, my name is %s\n", g_dbus_connection_get_unique_name (g_application_get_dbus_connection (app)));
 
+  publisher = hud_action_publisher_new_for_application (app);
+
   g_action_map_add_action_entries (G_ACTION_MAP (app), app_actions, G_N_ELEMENTS (app_actions), app);
   hud_action_entries_install (G_ACTION_MAP (app), hud_entries, G_N_ELEMENTS (hud_entries), app);
 
-  hud_action_publisher_add_descriptions_from_file (hud_action_publisher_get (), "gimp.xml");
+  hud_action_publisher_add_descriptions_from_file (publisher, "gimp.xml");
 }
 
 static void
@@ -155,7 +159,14 @@ gimp_app_class_init (GimpAppClass *class)
 int
 main (int argc, char **argv)
 {
+  GApplication *app;
+  gint status;
+
   g_type_init ();
 
-  return g_application_run (g_object_new (gimp_app_get_type (), NULL), argc, argv);
+  app = g_object_new (gimp_app_get_type (), "application-id", "com.example.gimp", NULL);
+  status = g_application_run (app, argc, argv);
+  g_object_unref (app);
+
+  return status;
 }

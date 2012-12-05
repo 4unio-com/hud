@@ -25,7 +25,7 @@
 #ifndef __HUD_ACTION_PUBLISHER_H__
 #define __HUD_ACTION_PUBLISHER_H__
 
-#include <glib-object.h>
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
@@ -46,7 +46,9 @@ typedef struct _HudActionPublisher                          HudActionPublisher;
 
 GType                   hud_action_publisher_get_type                   (void) G_GNUC_CONST;
 
-HudActionPublisher *    hud_action_publisher_get                        (void);
+HudActionPublisher *    hud_action_publisher_new_with_application_id    (const gchar           *application_id);
+
+HudActionPublisher *    hud_action_publisher_new_for_application        (GApplication          *application);
 
 void                    hud_action_publisher_add_action_description     (HudActionPublisher    *publisher,
                                                                          HudActionDescription  *description);

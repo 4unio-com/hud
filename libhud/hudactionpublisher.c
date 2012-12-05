@@ -24,7 +24,8 @@
 
 #include "hudactionpublisher.h"
 
-#include <gio/gio.h>
+#include "hudmanager.h"
+
 #include <string.h>
 
 typedef GMenuModelClass HudAuxClass;
@@ -48,7 +49,12 @@ struct _HudActionPublisher
 {
   GObject parent_instance;
 
-  GSimpleActionGroup *actions;
+  GDBusConnection *bus;
+  GApplication *application;
+  gchar *application_id;
+  gint export_id;
+  gchar *path;
+
   GSequence *descriptions;
   HudAux *aux;
 };
@@ -151,13 +157,33 @@ hud_action_publisher_finalize (GObject *object)
 static void
 hud_action_publisher_init (HudActionPublisher *publisher)
 {
+  static guint64 next_id;
+
   publisher->descriptions = g_sequence_new (g_object_unref);
   publisher->aux = g_object_new (hud_aux_get_type (), NULL);
   publisher->aux->publisher = publisher;
+  publisher->bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
 
-  g_dbus_connection_export_menu_model (g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL),
-                                       "/menu", G_MENU_MODEL (publisher->aux), NULL);
+  if (!publisher->bus)
+    return;
 
+  do
+    {
+      guint64 id = next_id++;
+
+      if (id)
+        publisher->path = g_strdup_printf ("/com/canonical/hud/publisher");
+      else
+        publisher->path = g_strdup_printf ("/com/canonical/hud/publisher%" G_GUINT64_FORMAT, id);
+
+      publisher->export_id = g_dbus_connection_export_menu_model (publisher->bus, publisher->path,
+                                                                  G_MENU_MODEL (publisher->aux), NULL);
+
+      if (!publisher->export_id)
+        /* try again... */
+        g_free (publisher->path);
+    }
+  while (publisher->path == NULL);
 }
 
 static void
@@ -176,19 +202,73 @@ hud_action_publisher_class_init (HudActionPublisherClass *class)
 }
 
 /**
- * hud_action_publisher_get:
+ * hud_action_publisher_new_with_application_id:
+ * @application_id: an application ID
  *
- * Gets the process-wide singleton instance of the #HudActionPublisher.
+ * Creates a new #HudActionPublisher with the given application ID.
  *
- * Returns: (transfer none): the #HudActionPublisher
+ * Application IDs should look like D-Bus names (eg:
+ * "com.canonical.SoftwareCentre").
+ *
+ * If you use this API you must register the action groups that your
+ * application uses with hud_action_publisher_add_action_group().
+ *
+ * Returns: a new #HudActionPublisher
  **/
 HudActionPublisher *
-hud_action_publisher_get (void)
+hud_action_publisher_new_with_application_id (const gchar *application_id)
 {
-  static HudActionPublisher *publisher;
+  HudActionPublisher *publisher;
 
-  if (!publisher)
-    publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
+  g_return_val_if_fail (application_id != NULL, NULL);
+
+  publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
+  publisher->application_id = g_strdup (application_id);
+
+  hud_manager_say_hello (application_id, publisher->path);
+
+  return publisher;
+}
+
+/**
+ * hud_action_publisher_new_for_application:
+ * @application: a #GApplication
+ *
+ * Creates a new #HudActionPublisher for the given @application.
+ * @application must have an application ID.
+ *
+ * You should call this from the startup() vfunc (or signal) for
+ * @application.
+ *
+ * The action group for the application will automatically be added as a
+ * potential target ("app") for actions described by action descriptions added
+ * to the publisher.  For example, if @application has a "quit" action
+ * then action descriptions can speak of "app.quit".
+ *
+ * If @application is a #GtkApplication then any #GtkApplicationWindow
+ * added to the application will also be added as a potential target
+ * ("win") for actions.  For example, if a #GtkApplicationWindow
+ * features an action "fullscreen" then action descriptions can speak of
+ * "win.fullscreen".
+ *
+ * @application must have no windows at the time that this function is
+ * called.
+ *
+ * Returns: a new #HudActionPublisher
+ **/
+HudActionPublisher *
+hud_action_publisher_new_for_application (GApplication *application)
+{
+  HudActionPublisher *publisher;
+
+  g_return_val_if_fail (G_IS_APPLICATION (application), NULL);
+  g_return_val_if_fail (g_application_get_application_id (application), NULL);
+
+  publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
+  publisher->application = g_object_ref (application);
+  publisher->application_id = g_strdup (g_application_get_application_id (application));
+
+  hud_manager_say_hello (publisher->application_id, publisher->path);
 
   return publisher;
 }
