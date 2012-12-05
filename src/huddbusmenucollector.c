@@ -180,7 +180,7 @@ hud_dbusmenu_item_new (HudStringList    *context,
 
       label = dbusmenu_menuitem_property_get (menuitem, prop);
       full_label = hud_string_list_cons_label (label, context);
-      tokens = hud_string_list_ref (context);
+      tokens = NULL;
       GPtrArray *keywords = hud_keyword_mapping_transform(keyword_mapping, label);
       for (i = 0; i < keywords->len; i++)
       {
@@ -192,7 +192,7 @@ hud_dbusmenu_item_new (HudStringList    *context,
   else
     {
       full_label = hud_string_list_ref (context);
-      tokens = hud_string_list_ref (context);
+      tokens = NULL;
       enabled = FALSE;
     }
 

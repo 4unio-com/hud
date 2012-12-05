@@ -162,11 +162,10 @@ hud_menu_model_context_get_label (HudMenuModelContext *context,
 }
 
 static HudStringList *
-hud_menu_model_context_get_tokens (HudMenuModelContext *context,
-                                  const gchar         *label,
+hud_menu_model_context_get_tokens (const gchar         *label,
                                   HudKeywordMapping   *keyword_mapping)
 {
-  HudStringList *tokens = context ? context->tokens : NULL;
+  HudStringList *tokens = NULL;
 
   if (label)
   {
@@ -181,7 +180,7 @@ hud_menu_model_context_get_tokens (HudMenuModelContext *context,
     return tokens;
   }
   else
-    return hud_string_list_ref (tokens);
+    return NULL;
 }
 
 static HudMenuModelContext *
@@ -309,7 +308,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
     }
 
   full_label = hud_menu_model_context_get_label (context, label);
-  tokens = hud_menu_model_context_get_tokens(context, label, collector->keyword_mapping);
+  tokens = hud_menu_model_context_get_tokens(label, collector->keyword_mapping);
 
   item = hud_item_construct (hud_model_item_get_type (), full_label, tokens, collector->desktop_file, collector->icon, TRUE);
   item->group = g_object_ref (group);

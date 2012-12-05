@@ -63,12 +63,14 @@ gpointer                hud_item_construct                              (GType  
                                                                          const gchar   *app_icon,
                                                                          gboolean       enabled);
 HudItem *               hud_item_new                                    (HudStringList *tokens,
+                                                                         HudStringList *keywords,
                                                                          const gchar   *desktop_file,
                                                                          const gchar   *app_icon,
                                                                          gboolean       enabled);
 void                    hud_item_activate                               (HudItem       *item,
                                                                          GVariant      *platform_data);
 HudStringList *         hud_item_get_tokens                             (HudItem       *item);
+HudStringList *         hud_item_get_keywords                             (HudItem       *item);
 const gchar *           hud_item_get_app_icon                           (HudItem       *item);
 const gchar *           hud_item_get_item_icon                          (HudItem       *item);
 guint                   hud_item_get_usage                              (HudItem       *item);

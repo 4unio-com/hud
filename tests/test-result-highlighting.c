@@ -57,7 +57,7 @@ test_result_highlighting_base (void)
 	
 	search_tokens = hud_token_list_new_from_string ("bar");
 	
-	item = hud_item_new (item_tokens, NULL, NULL, TRUE);
+	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
 	
@@ -84,7 +84,7 @@ test_result_highlighting_baseutf8 (void)
 	
 	search_tokens = hud_token_list_new_from_string ("ẃêỳᶉ∂");
 	
-	item = hud_item_new (item_tokens, NULL, NULL, TRUE);
+	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
 	
@@ -96,6 +96,64 @@ test_result_highlighting_baseutf8 (void)
 	hud_string_list_unref (item_tokens);
 	
 	return;
+}
+
+static void
+test_result_highlighting_extra_keywords (void)
+{
+  HudItem *item;
+  HudStringList *item_tokens, *item_keywords;
+  HudTokenList *search_tokens;
+
+  item_tokens = add_item_to_hud_string_list ("File", NULL);
+  item_tokens = add_item_to_hud_string_list ("Open Tab", item_tokens);
+
+  item_keywords = add_item_to_hud_string_list ("Gimme a Tab Bro", NULL);
+  item_keywords = add_item_to_hud_string_list ("Giv Tab Plz", item_keywords);
+
+  search_tokens = hud_token_list_new_from_string ("plz");
+
+  item = hud_item_new (item_tokens, item_keywords, NULL, NULL, TRUE);
+
+  HudResult *result = hud_result_new (item, search_tokens, 0);
+  g_print("RESULT: [%s]\n", hud_result_get_html_description (result));
+  g_assert (strcmp (hud_result_get_html_description (result), "File &gt; Open Tab (Giv Tab <b>Plz</b>)") == 0);
+
+  hud_token_list_free (search_tokens);
+  g_object_unref (result);
+  g_object_unref (item);
+  hud_string_list_unref (item_tokens);
+
+  return;
+}
+
+static void
+test_result_highlighting_extra_keywords_multiple_hits (void)
+{
+  HudItem *item;
+  HudStringList *item_tokens, *item_keywords;
+  HudTokenList *search_tokens;
+
+  item_tokens = add_item_to_hud_string_list ("File", NULL);
+  item_tokens = add_item_to_hud_string_list ("Open Tab", item_tokens);
+
+  item_keywords = add_item_to_hud_string_list ("Gimme a Tab Bro", NULL);
+  item_keywords = add_item_to_hud_string_list ("Giv Tab Plz", item_keywords);
+
+  search_tokens = hud_token_list_new_from_string ("bro plz");
+
+  item = hud_item_new (item_tokens, item_keywords, NULL, NULL, TRUE);
+
+  HudResult *result = hud_result_new (item, search_tokens, 0);
+  g_print("RESULT: [%s]\n", hud_result_get_html_description (result));
+  g_assert (strcmp (hud_result_get_html_description (result), "File &gt; Open Tab (Gimme a Tab <b>Bro</b>; Giv Tab <b>Plz</b>)") == 0);
+
+  hud_token_list_free (search_tokens);
+  g_object_unref (result);
+  g_object_unref (item);
+  hud_string_list_unref (item_tokens);
+
+  return;
 }
 
 static void
@@ -111,7 +169,7 @@ test_result_highlighting_gt (void)
 	
 	search_tokens = hud_token_list_new_from_string ("gt");
 	
-	item = hud_item_new (item_tokens, NULL, NULL, TRUE);
+	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
 	g_assert (strcmp (hud_result_get_html_description (result), "foo &gt; bar &gt; <b>gt</b>") == 0);
@@ -136,7 +194,7 @@ test_result_highlighting_apos1 (void)
 
 	search_tokens = hud_token_list_new_from_string ("d'in");
 
-	item = hud_item_new (item_tokens, NULL, NULL, TRUE);
+	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
 	g_assert (strcmp (hud_result_get_html_description (result), "<b>d&apos;interes</b> &gt; a") == 0);
@@ -161,7 +219,7 @@ test_result_highlighting_apos2 (void)
 
 	search_tokens = hud_token_list_new_from_string ("a");
 
-	item = hud_item_new (item_tokens, NULL, NULL, TRUE);
+	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
 	g_assert (strcmp (hud_result_get_html_description (result), "d&apos;interes &gt; <b>a</b>") == 0);
@@ -180,6 +238,8 @@ test_result_highlighting_suite (void)
 {
 	g_test_add_func ("/hud/highlighting/base",          test_result_highlighting_base);
 	g_test_add_func ("/hud/highlighting/baseutf8",      test_result_highlighting_baseutf8);
+	g_test_add_func ("/hud/highlighting/extra_keywords",test_result_highlighting_extra_keywords);
+	g_test_add_func ("/hud/highlighting/extra_keywords_multiple_hits",test_result_highlighting_extra_keywords_multiple_hits);
 	g_test_add_func ("/hud/highlighting/gt",            test_result_highlighting_gt);
 	g_test_add_func ("/hud/highlighting/apos1",         test_result_highlighting_apos1);
 	g_test_add_func ("/hud/highlighting/apos2",         test_result_highlighting_apos2);
