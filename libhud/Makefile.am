@@ -16,6 +16,8 @@ libhudinclude_HEADERS = \
 libhud_la_SOURCES = \
 	hud-service-iface.h	\
 	hud-service-iface.c	\
+	hudmanager.h		\
+	hudmanager.c		\
 	hudoperation-private.h	\
 	hudoperation.c		\
 	hudaction.c		\
