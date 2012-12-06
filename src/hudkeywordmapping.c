@@ -66,9 +66,23 @@ hud_keyword_mapping_class_init (HudKeywordMappingClass *klass)
 }
 
 static void
+hud_keyword_mapping_key_destroyed (gpointer data)
+{
+  g_free ((gchar*) data);
+}
+
+static void
+hud_keyword_mapping_value_destroyed (gpointer data)
+{
+  g_ptr_array_free((GPtrArray*) data, TRUE);
+}
+
+static void
 hud_keyword_mapping_init (HudKeywordMapping *self)
 {
-  self->mappings = g_hash_table_new(g_str_hash, g_str_equal);
+  self->mappings = g_hash_table_new_full (g_str_hash, g_str_equal,
+      (GDestroyNotify) hud_keyword_mapping_key_destroyed,
+      (GDestroyNotify) hud_keyword_mapping_value_destroyed);
 }
 
 /**
@@ -127,9 +141,9 @@ GPtrArray* hud_keyword_mapping_transform(HudKeywordMapping *self, const gchar* l
 
   if (!results)
   {
-    results = g_ptr_array_new();
+    results = g_ptr_array_new_full(1, g_free);
     g_ptr_array_add(results, g_strdup(label));
-    g_hash_table_insert(self->mappings, (gpointer) label, (gpointer) results);
+    g_hash_table_insert(self->mappings, (gpointer) g_strdup(label), (gpointer) results);
 
   }
 
@@ -207,7 +221,7 @@ hud_keyword_mapping_load_xml_mappings(HudKeywordMapping* self,
     xmlNodeSetPtr nodes)
 {
   xmlNodePtr cur, child;
-  gint size, i, j;
+  gint size, i;
   size = (nodes) ? nodes->nodeNr : 0;
 
   for (i = 0; i < size; ++i)
@@ -221,7 +235,7 @@ hud_keyword_mapping_load_xml_mappings(HudKeywordMapping* self,
       cur = nodes->nodeTab[i];
 
       original = (gchar*) xmlGetProp (cur, (xmlChar*) "original");
-      original_translated = _((gchar*) original);
+      original_translated = g_strdup (_((gchar*) original));
 
       /* First try to translate hud-keywords:original. If it comes back without
        * translation, then read the keywords from the XML file.
@@ -242,6 +256,7 @@ hud_keyword_mapping_load_xml_mappings(HudKeywordMapping* self,
       }
       else
       {
+        gint j;
         gchar** split = g_strsplit (keywords_translated, ";", 0);
 
         /* Go through each of the keywords */
@@ -257,8 +272,7 @@ hud_keyword_mapping_load_xml_mappings(HudKeywordMapping* self,
       g_hash_table_insert (self->mappings, (gpointer) original_translated,
           (gpointer) keywords);
 
-      if (original != original_translated)
-        g_free (original);
+      g_free (original);
       g_free (original_to_lookup);
     }
   }

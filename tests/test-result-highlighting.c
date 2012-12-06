@@ -61,7 +61,7 @@ test_result_highlighting_base (void)
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
 	
-	g_assert (strcmp (hud_result_get_html_description (result), "foo &gt; <b>bar</b> &gt; mango") == 0);
+	g_assert_cmpstr (hud_result_get_html_description (result), ==, "foo &gt; <b>bar</b> &gt; mango");
 	
 	hud_token_list_free (search_tokens);
 	g_object_unref (result);
@@ -88,7 +88,7 @@ test_result_highlighting_baseutf8 (void)
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
 	
-	g_assert (strcmp (hud_result_get_html_description (result), "foo &gt; <b>ẃêỳᶉ∂</b> &gt; mango") == 0);
+	g_assert_cmpstr (hud_result_get_html_description (result), ==, "foo &gt; <b>ẃêỳᶉ∂</b> &gt; mango");
 	
 	hud_token_list_free (search_tokens);
 	g_object_unref (result);
@@ -116,13 +116,13 @@ test_result_highlighting_extra_keywords (void)
   item = hud_item_new (item_tokens, item_keywords, NULL, NULL, TRUE);
 
   HudResult *result = hud_result_new (item, search_tokens, 0);
-  g_print("RESULT: [%s]\n", hud_result_get_html_description (result));
-  g_assert (strcmp (hud_result_get_html_description (result), "File &gt; Open Tab (Giv Tab <b>Plz</b>)") == 0);
+  g_assert_cmpstr (hud_result_get_html_description (result), ==, "File &gt; Open Tab (Giv Tab <b>Plz</b>)");
 
   hud_token_list_free (search_tokens);
   g_object_unref (result);
   g_object_unref (item);
   hud_string_list_unref (item_tokens);
+  hud_string_list_unref (item_keywords);
 
   return;
 }
@@ -145,13 +145,13 @@ test_result_highlighting_extra_keywords_multiple_hits (void)
   item = hud_item_new (item_tokens, item_keywords, NULL, NULL, TRUE);
 
   HudResult *result = hud_result_new (item, search_tokens, 0);
-  g_print("RESULT: [%s]\n", hud_result_get_html_description (result));
-  g_assert (strcmp (hud_result_get_html_description (result), "File &gt; Open Tab (Gimme a Tab <b>Bro</b>; Giv Tab <b>Plz</b>)") == 0);
+  g_assert_cmpstr(hud_result_get_html_description (result), ==, "File &gt; Open Tab (Gimme a Tab <b>Bro</b>; Giv Tab <b>Plz</b>)");
 
   hud_token_list_free (search_tokens);
   g_object_unref (result);
   g_object_unref (item);
   hud_string_list_unref (item_tokens);
+  hud_string_list_unref (item_keywords);
 
   return;
 }
@@ -172,7 +172,7 @@ test_result_highlighting_gt (void)
 	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
-	g_assert (strcmp (hud_result_get_html_description (result), "foo &gt; bar &gt; <b>gt</b>") == 0);
+	g_assert_cmpstr (hud_result_get_html_description (result), ==, "foo &gt; bar &gt; <b>gt</b>");
 	
 	hud_token_list_free (search_tokens);
 	g_object_unref (result);
@@ -197,7 +197,7 @@ test_result_highlighting_apos1 (void)
 	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
-	g_assert (strcmp (hud_result_get_html_description (result), "<b>d&apos;interes</b> &gt; a") == 0);
+	g_assert_cmpstr (hud_result_get_html_description (result), ==, "<b>d&apos;interes</b> &gt; a");
 
 	hud_token_list_free (search_tokens);
 	g_object_unref (result);
@@ -222,7 +222,7 @@ test_result_highlighting_apos2 (void)
 	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
-	g_assert (strcmp (hud_result_get_html_description (result), "d&apos;interes &gt; <b>a</b>") == 0);
+	g_assert_cmpstr (hud_result_get_html_description (result), ==, "d&apos;interes &gt; <b>a</b>");
 
 	hud_token_list_free (search_tokens);
 	g_object_unref (result);
