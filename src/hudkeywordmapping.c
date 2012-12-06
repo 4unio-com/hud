@@ -84,20 +84,21 @@ hud_keyword_mapping_new (void)
   return g_object_new (HUD_TYPE_KEYWORD_MAPPING, NULL);
 }
 
-void hud_keyword_mapping_load(HudKeywordMapping *self,
-    const gchar *desktop_file)
+void
+hud_keyword_mapping_load (HudKeywordMapping *self,
+    const gchar *desktop_file, const gchar *datadir, const gchar *localedir)
 {
   /* Now expand the label into multiple keywords */
   gchar *basename = g_path_get_basename(desktop_file);
   gchar **names = g_strsplit(basename, ".", 0);
   gchar *mapping_filename = g_strdup_printf("%s.xml", names[0]);
-  gchar *mapping_path = g_build_filename(DATADIR, "hud", "keywords",
+  gchar *mapping_path = g_build_filename(datadir, "hud", "keywords",
       mapping_filename, NULL );
   const xmlChar* expr = (xmlChar*) "//keywordMapping/mapping";
 
   /* Set the textdomain to match the program we're translating */
-  g_debug("Setting textdomain = (\"%s\", \"%s\")", names[0], GNOMELOCALEDIR);
-  bindtextdomain (names[0], GNOMELOCALEDIR);
+  g_debug("Setting textdomain = (\"%s\", \"%s\")", names[0], localedir);
+  bindtextdomain (names[0], localedir);
   textdomain (names[0]);
 
   /* Do the main job */
@@ -126,7 +127,6 @@ GPtrArray* hud_keyword_mapping_transform(HudKeywordMapping *self, const gchar* l
 
   if (!results)
   {
-//    g_warning("Could not find keywords for: %s", label);
     results = g_ptr_array_new();
     g_ptr_array_add(results, g_strdup(label));
     g_hash_table_insert(self->mappings, (gpointer) label, (gpointer) results);
@@ -227,12 +227,9 @@ hud_keyword_mapping_load_xml_mappings(HudKeywordMapping* self,
        * translation, then read the keywords from the XML file.
        */
       original_to_lookup = g_strconcat ("hud-keywords:", original, NULL );
-      keywords_translated = _(original_to_lookup);
+      keywords_translated = gettext(original_to_lookup);
       if (original_to_lookup == keywords_translated)
       {
-        /* Make sure we add the original in, too */
-        g_ptr_array_add(keywords, original_translated);
-
         /* Go through each of the keywords */
         for (child = cur->children; child; child = child->next)
         {
@@ -246,9 +243,6 @@ hud_keyword_mapping_load_xml_mappings(HudKeywordMapping* self,
       else
       {
         gchar** split = g_strsplit (keywords_translated, ";", 0);
-
-        /* Make sure we add the original in, too */
-        g_ptr_array_add (keywords, original_translated);
 
         /* Go through each of the keywords */
         for (j = 0; split[j] != NULL; j++)

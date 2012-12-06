@@ -29,6 +29,8 @@
 #include "hudsource.h"
 #include "hudkeywordmapping.h"
 
+#include "config.h"
+
 /**
  * SECTION:huddbusmenucollector
  * @title: HudDbusmenuCollector
@@ -621,7 +623,7 @@ hud_dbusmenu_collector_new_for_endpoint (const gchar *application_id,
   collector->penalty = penalty;
   hud_dbusmenu_collector_setup_endpoint (collector, bus_name, object_path);
   collector->keyword_mapping = hud_keyword_mapping_new();
-  hud_keyword_mapping_load(collector->keyword_mapping, collector->application_id);
+  hud_keyword_mapping_load(collector->keyword_mapping, collector->application_id, DATADIR, GNOMELOCALEDIR);
 
   collector->alive = TRUE;
 
@@ -651,7 +653,7 @@ hud_dbusmenu_collector_new_for_window (BamfWindow  *window,
   collector->icon = g_strdup (icon);
   collector->xid = bamf_window_get_xid (window);
   collector->keyword_mapping = hud_keyword_mapping_new();
-  hud_keyword_mapping_load(collector->keyword_mapping, collector->application_id);
+  hud_keyword_mapping_load(collector->keyword_mapping, collector->application_id, DATADIR, GNOMELOCALEDIR);
 
   g_debug ("dbusmenu on %d", collector->xid);
   hud_app_menu_registrar_add_observer (hud_app_menu_registrar_get (), collector->xid,

@@ -22,6 +22,7 @@
 #include "hudresult.h"
 #include "huditem.h"
 #include "hudkeywordmapping.h"
+#include "config.h"
 
 #include <libbamf/libbamf.h>
 #include <gio/gio.h>
@@ -724,7 +725,7 @@ hud_menu_model_collector_get (BamfWindow  *window,
   collector->icon = g_strdup (icon);
 
   collector->keyword_mapping = hud_keyword_mapping_new();
-  hud_keyword_mapping_load(collector->keyword_mapping, collector->desktop_file);
+  hud_keyword_mapping_load(collector->keyword_mapping, collector->desktop_file, DATADIR, GNOMELOCALEDIR);
 
   /* when the action groups change, we could end up having items
    * enabled/disabled.  how to deal with that?
@@ -784,7 +785,7 @@ hud_menu_model_collector_new_for_endpoint (const gchar *application_id,
   collector->penalty = penalty;
 
   collector->keyword_mapping = hud_keyword_mapping_new();
-  hud_keyword_mapping_load(collector->keyword_mapping, collector->desktop_file);
+  hud_keyword_mapping_load(collector->keyword_mapping, collector->desktop_file, DATADIR, GNOMELOCALEDIR);
 
   hud_menu_model_collector_add_model (collector, G_MENU_MODEL (collector->app_menu), NULL, NULL, prefix);
 

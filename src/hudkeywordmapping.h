@@ -44,7 +44,8 @@ GType hud_keyword_mapping_get_type(void);
 
 HudKeywordMapping *hud_keyword_mapping_new(void);
 
-void hud_keyword_mapping_load(HudKeywordMapping *self, const gchar *desktop_file);
+void hud_keyword_mapping_load (HudKeywordMapping *self,
+    const gchar *desktop_file, const gchar *datadir, const gchar *localedir);
 
 GPtrArray* hud_keyword_mapping_transform(HudKeywordMapping *self, const gchar* label);
 

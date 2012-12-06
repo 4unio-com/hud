@@ -84,6 +84,44 @@ DISTCLEANFILES += \
 	$(RESULT_XML_REPORT:.xml=-xunit.xml)
 
 ######################
+# Test Keyword Mapping
+######################
+
+TESTS += \
+	test-keyword-mapping-test
+
+check_PROGRAMS += \
+	test-keyword-mapping
+
+KEYWORD_XML_REPORT = test-keyword-mapping.xml
+
+test-keyword-mapping-test: test-keyword-mapping Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo "$(MSGFMT) --output-file keyword-mapping/locale/en_FAKELANG/LC_MESSAGES/gnome-terminal.mo keyword-mapping/gnome-terminal-en_FAKELANG.po" >> $@
+	@echo gtester --verbose -k -o $(RESULT_XML_REPORT) $(builddir)/test-keyword-mapping >> $@
+	@echo gtester2xunit $(RESULT_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_keyword_mapping_SOURCES = \
+	test-keyword-mapping.c
+
+test_keyword_mapping_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_keyword_mapping_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS)
+
+DISTCLEANFILES += \
+	$(KEYWORD_XML_REPORT) \
+	$(KEYWORD_XML_REPORT:.xml=-xunit.xml)
+
+######################
 # Test Usage DB Simple
 ######################
 
