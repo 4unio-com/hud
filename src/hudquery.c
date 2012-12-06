@@ -78,6 +78,8 @@ static guint hud_query_changed_signal;
 
 static guint query_count = 0;
 
+/* Schema that is used in the DeeModel representing
+   the results */
 static const gchar * results_model_schema[] = {
 	"v", /* Command ID */
 	"s", /* Command Name */
@@ -88,6 +90,8 @@ static const gchar * results_model_schema[] = {
 	"u", /* Distance */
 };
 
+/* Schema that is used in the DeeModel representing
+   the appstack */
 static const gchar * appstack_model_schema[] = {
 	"s", /* Application ID */
 	"s", /* Icon Name */
