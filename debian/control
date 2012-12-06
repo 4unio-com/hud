@@ -26,6 +26,8 @@ Build-Depends: debhelper (>= 9.0),
                gnome-common,
                gtk-doc-tools,
                bustle,
+               libpocketsphinx-dev,
+               libsphinxbase-dev,
 Standards-Version: 3.9.2
 Homepage: http://launchpad.net/hud
 Vcs-Bzr: http://bazaar.launchpad.net/~ubuntu-desktop/hud/ubuntu
@@ -33,7 +35,11 @@ Vcs-Browser: https://code.launchpad.net/~ubuntu-desktop/hud/ubuntu
 
 Package: hud
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         pocketsphinx-hmm-wsj1,
+         pocketsphinx-lm-wsj,
+         irstlm,
 Conflicts: indicator-appmenu (< 13)
 Description: Backend for the Unity HUD
  .
