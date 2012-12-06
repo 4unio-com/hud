@@ -149,8 +149,7 @@ hud_query_refresh (HudQuery *query)
 
   dee_model_clear(query->results_model);
 
-  if (hud_token_list_get_length (query->token_list) != 0)
-    hud_source_search (query->source, query->token_list, results_list_populate, query);
+  hud_source_search (query->source, query->token_list, results_list_populate, query);
 
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
 
@@ -199,7 +198,10 @@ hud_query_finalize (GObject *object)
   hud_source_unuse (query->source);
 
   g_object_unref (query->source);
-  hud_token_list_free (query->token_list);
+  if (query->token_list != NULL) {
+    hud_token_list_free (query->token_list);
+    query->token_list = NULL;
+  }
   g_free (query->search_string);
 
   g_clear_pointer(&query->object_path, g_free);
@@ -221,12 +223,17 @@ handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoca
 
 	/* Clear the last query */
 	g_clear_pointer(&query->search_string, g_free);
-	hud_token_list_free (query->token_list);
-	query->token_list = NULL;
+	if (query->token_list != NULL) {
+		hud_token_list_free (query->token_list);
+		query->token_list = NULL;
+	}
 
 	/* Grab the data from this one */
 	query->search_string = g_strdup (search_string);
-	query->token_list = hud_token_list_new_from_string (query->search_string);
+
+	if (query->search_string[0] != '\0') {
+		query->token_list = hud_token_list_new_from_string (query->search_string);
+	}
 
 	/* Refresh it all */
 	hud_query_refresh (query);
@@ -375,7 +382,12 @@ hud_query_new (HudSource   *source,
   query = g_object_new (HUD_TYPE_QUERY, NULL);
   query->source = g_object_ref (source);
   query->search_string = g_strdup (search_string);
-  query->token_list = hud_token_list_new_from_string (query->search_string);
+  query->token_list = NULL;
+  
+  if (query->search_string[0] != '\0') {
+    query->token_list = hud_token_list_new_from_string (query->search_string);
+  }
+
   query->num_results = num_results;
 
   hud_source_use (query->source);
