@@ -98,10 +98,8 @@ KEYWORD_XML_REPORT = test-keyword-mapping.xml
 test-keyword-mapping-test: test-keyword-mapping Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
-	@echo env >> $@
 	@echo "mkdir -p keyword-mapping/locale/en_FAKELANG/LC_MESSAGES " >> $@
 	@echo "$(MSGFMT) --check --verbose --output-file keyword-mapping/locale/en_FAKELANG/LC_MESSAGES/gnome-terminal.mo keyword-mapping/gnome-terminal-en_FAKELANG.po" >> $@
-	@echo "/usr/bin/strace $(builddir)/test-keyword-mapping" >> $@
 	@echo gtester --verbose -k -o $(RESULT_XML_REPORT) $(builddir)/test-keyword-mapping >> $@
 	@echo gtester2xunit $(RESULT_XML_REPORT) >> $@
 	@chmod +x $@

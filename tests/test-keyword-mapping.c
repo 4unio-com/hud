@@ -40,17 +40,21 @@ HudSettings hud_settings = {
 	.max_distance = 30
 };
 
-static gchar*
+static
+const gchar*
 get_language ()
 {
-  return getenv ("LANGUAGE");
+  return g_getenv ("LANGUAGE");
 }
 
+/**
+ *
+ */
 static void
 set_language (const gchar* language)
 {
   /* Change language.  */
-  setenv ("LANGUAGE", language, 1);
+  g_setenv ("LANGUAGE", language, 1);
 
   /* Make change known.  */
   {
@@ -83,7 +87,7 @@ test_keyword_mapping_open_tab_with_translation (void)
   HudKeywordMapping *mapping;
   GPtrArray* results;
 
-  gchar* original_language = get_language ();
+  const gchar* original_language = get_language ();
   mapping = hud_keyword_mapping_new ();
 
   /* Temporarily change to language to read in our translations */
@@ -99,8 +103,6 @@ test_keyword_mapping_open_tab_with_translation (void)
   g_assert_cmpstr((gchar*) g_ptr_array_index(results, 1), ==,
       "Gimme a Tab Bro");
   g_assert_cmpstr((gchar*) g_ptr_array_index(results, 2), ==, "Giv Tab Plz");
-
-
 
   g_object_unref (mapping);
 }
@@ -138,6 +140,7 @@ static void test_keyword_mapping_suite (void)
 gint
 main (gint argc, gchar * argv[])
 {
+  g_unsetenv("LC_ALL");
   setlocale (LC_ALL, "");
 
   /* Init libxml */
