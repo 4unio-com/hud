@@ -1,10 +1,12 @@
 #include "../hud.h"
 
+#include <gtk/gtk.h>
 
-typedef GApplicationClass GimpAppClass;
-typedef GApplication GimpApp;
 
-G_DEFINE_TYPE (GimpApp, gimp_app, G_TYPE_APPLICATION)
+typedef GtkApplicationClass GimpAppClass;
+typedef GtkApplication GimpApp;
+
+G_DEFINE_TYPE (GimpApp, gimp_app, GTK_TYPE_APPLICATION)
 
 /* helpers... */
 static void
@@ -152,8 +154,10 @@ gimp_app_init (GimpApp *ga)
 static void
 gimp_app_class_init (GimpAppClass *class)
 {
-  class->startup = gimp_app_startup;
-  class->activate = gimp_app_activate;
+  GApplicationClass *app_class = G_APPLICATION_CLASS (class);
+
+  app_class->startup = gimp_app_startup;
+  app_class->activate = gimp_app_activate;
 }
 
 int
