@@ -140,6 +140,7 @@ static void test_keyword_mapping_suite (void)
 gint
 main (gint argc, gchar * argv[])
 {
+  g_setenv("LANG", "en_US.UTF8", 1);
   g_unsetenv("LC_ALL");
   setlocale (LC_ALL, "");
 
