@@ -237,8 +237,8 @@ hud_action_publisher_new_with_application_id (const gchar *application_id)
  * Creates a new #HudActionPublisher for the given @application.
  * @application must have an application ID.
  *
- * You should call this from the startup() vfunc (or signal) for
- * @application.
+ * @application must be registered and non-remote.  You should call this
+ * from the startup() vfunc (or signal) for @application.
  *
  * The action group for the application will automatically be added as a
  * potential target ("app") for actions described by action descriptions added
@@ -263,12 +263,17 @@ hud_action_publisher_new_for_application (GApplication *application)
 
   g_return_val_if_fail (G_IS_APPLICATION (application), NULL);
   g_return_val_if_fail (g_application_get_application_id (application), NULL);
+  g_return_val_if_fail (g_application_get_is_registered (application), NULL);
+  g_return_val_if_fail (!g_application_get_is_remote (application), NULL);
 
   publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
   publisher->application = g_object_ref (application);
   publisher->application_id = g_strdup (g_application_get_application_id (application));
 
   hud_manager_say_hello (publisher->application_id, publisher->path);
+
+  hud_manager_add_actions (publisher->application_id, "app", NULL,
+                           g_application_get_dbus_object_path (application));
 
   return publisher;
 }
