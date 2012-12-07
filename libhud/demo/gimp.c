@@ -134,7 +134,6 @@ gimp_app_startup (GApplication *app)
   publisher = hud_action_publisher_new_for_application (app);
 
   g_action_map_add_action_entries (G_ACTION_MAP (app), app_actions, G_N_ELEMENTS (app_actions), app);
-  hud_action_entries_install (G_ACTION_MAP (app), hud_entries, G_N_ELEMENTS (hud_entries), app);
 
   hud_action_publisher_add_descriptions_from_file (publisher, "gimp.xml");
 }
@@ -142,8 +141,11 @@ gimp_app_startup (GApplication *app)
 static void
 gimp_app_activate (GApplication *app)
 {
-  g_print ("Showing main window...\n");
-  g_application_hold (app);
+  GtkWidget *window;
+
+  window = gtk_application_window_new (GTK_APPLICATION (app));
+  hud_action_entries_install (G_ACTION_MAP (window), hud_entries, G_N_ELEMENTS (hud_entries), window);
+  gtk_widget_show (window);
 }
 
 static void
