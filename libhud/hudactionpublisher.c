@@ -442,6 +442,59 @@ hud_action_publisher_remove_descriptions (HudActionPublisher *publisher,
     }
 }
 
+/**
+ * hud_action_publisher_add_action_group:
+ * @publisher: a #HudActionPublisher
+ * @prefix: the action prefix for the group (like "app")
+ * @identifier: (allow none): an identifier, or %NULL
+ * @object_path: the object path of the exported group
+ *
+ * Informs the HUD of the existance of an action group.
+ *
+ * The action group must be published on the shared session bus
+ * connection of this process at @object_path.
+ *
+ * The @prefix defines the type of action group.  Currently "app" and
+ * "win" are supported.  For example, if the exported action group
+ * contained a "quit" action and you wanted to refer to it as "app.quit"
+ * from action descriptions, then you would use the @prefix "app" here.
+ *
+ * @identifier is a piece of identifying information, depending on which
+ * @prefix is used.  Currently, this should be %NULL for the "app"
+ * @prefix and should be a uint32 specifying the window ID (eg: XID) for
+ * the "win" @prefix.
+ *
+ * You do not need to manually export your action groups if you are
+ * using #GApplication.
+ **/
+void
+hud_action_publisher_add_action_group (HudActionPublisher *publisher,
+                                       const gchar        *prefix,
+                                       GVariant           *identifier,
+                                       const gchar        *object_path)
+{
+  hud_manager_add_actions (publisher->application_id, prefix, identifier, object_path);
+}
+
+/**
+ * hud_action_publisher_remove_action_group:
+ * @publisher: a #HudActionPublisher
+ * @prefix: the action prefix for the group (like "app")
+ * @identifier: (allow none): an identifier, or %NULL
+ *
+ * Informs the HUD that an action group no longer exists.
+ *
+ * This reverses the effect of a previous call to
+ * hud_action_publisher_add_action_group() with the same parameters.
+ */
+void
+hud_action_publisher_remove_action_group (HudActionPublisher *publisher,
+                                          const gchar        *prefix,
+                                          GVariant           *identifier)
+{
+  hud_manager_remove_actions (publisher->application_id, prefix, identifier);
+}
+
 static gboolean
 backport_g_action_parse_detailed_name (const gchar  *detailed_name,
                                        gchar       **action_name,
