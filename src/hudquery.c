@@ -68,6 +68,9 @@ struct _HudQuery
 
   DeeModel * appstack_model;
   gchar * appstack_name;
+
+  GList * results_list; /* Should almost always be NULL except when refreshing the query */
+  guint max_usage; /* Used to make the GList search easier */
 };
 
 typedef GObjectClass HudQueryClass;
@@ -116,6 +119,29 @@ static void
 results_list_populate (HudResult * result, gpointer user_data)
 {
 	HudQuery * query = (HudQuery *)user_data;
+	query->results_list = g_list_prepend(query->results_list, result);
+	return;
+}
+
+/* Go through the list and find the item with the highest usage
+   that the others will be compared against */
+static void
+results_list_max_usage (gpointer data, gpointer user_data)
+{
+	HudResult * result = (HudResult *)data;
+	HudItem * item = hud_result_get_item(result);
+	guint * max_usage = (guint *)user_data;
+
+	*max_usage = MAX(*max_usage, hud_item_get_usage(item));
+	return;
+}
+
+/* Turn the results list into a DeeModel with sorting */
+static void
+results_list_to_model (gpointer data, gpointer user_data)
+{
+	HudResult * result = (HudResult *)data;
+	HudQuery * query = (HudQuery *)user_data;
 	HudItem * item = hud_result_get_item(result);
 	gchar * context = NULL; /* Need to free this one, sucks, practical reality */
 
@@ -126,7 +152,7 @@ results_list_populate (HudResult * result, gpointer user_data)
 	columns[3] = g_variant_new_string(context = hud_item_get_context(item));
 	columns[4] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
 	columns[5] = g_variant_new_string(hud_item_get_shortcut(item));
-	columns[6] = g_variant_new_uint32(hud_result_get_distance(result, 0)); /* TODO: Figure out max usage */
+	columns[6] = g_variant_new_uint32(hud_result_get_distance(result, query->max_usage));
 	columns[7] = NULL;
 
 	g_free(context);
@@ -148,8 +174,18 @@ hud_query_refresh (HudQuery *query)
   start_time = g_get_monotonic_time ();
 
   dee_model_clear(query->results_model);
+  query->results_list = NULL;
+  query->max_usage = 0;
 
   hud_source_search (query->source, query->token_list, results_list_populate, query);
+
+  g_list_foreach(query->results_list, results_list_max_usage, &query->max_usage);
+  g_debug("Max Usage: %d", query->max_usage);
+  g_list_foreach(query->results_list, results_list_to_model, query);
+
+  /* NOTE: Not freeing the items as the references are picked up by the DeeModel */
+  g_list_free(query->results_list);
+  query->results_list = NULL;
 
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
 
