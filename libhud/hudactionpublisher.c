@@ -256,6 +256,141 @@ hud_action_publisher_new_with_application_id (const gchar *application_id)
  *
  * Returns: a new #HudActionPublisher
  **/
+
+static GType hud_gtkapplication_gtype;
+static GType hud_gtkapplicationwindow_gtype;
+static guint (* hud_gdk_x11_window_get_xid) (gpointer window);
+static guint (* hud_gtk_application_window_get_id) (gpointer window);
+
+static gboolean
+hud_action_publisher_gtk_is_available (void)
+{
+  if (!hud_gtkapplication_gtype)
+    {
+      gpointer symbol = NULL;
+      GModule *self;
+
+      hud_gtkapplication_gtype = g_type_from_name ("GtkApplication");
+      if (!hud_gtkapplication_gtype)
+        return FALSE;
+
+      self = g_module_open (NULL, 0);
+      g_module_symbol (self, "gdk_x11_window_get_xid", &symbol);
+      hud_gdk_x11_window_get_xid = symbol;
+      g_module_symbol (self, "gtk_application_window_get_id", &symbol);
+      hud_gtk_application_window_get_id = symbol;
+
+      if (!hud_gtk_application_window_get_id || !hud_gdk_x11_window_get_xid)
+        g_error ("Your process has 'GtkApplication' but not 'gdk_x11_window_get_xid' "
+                 "or 'gtk_application_window_get_id'.  That's weird.");
+    }
+
+  return TRUE;
+}
+
+static void
+hud_action_publisher_get_window_details (gpointer   window, /* GtkApplicationWindow */
+                                         gchar    **object_path,
+                                         guint     *xid)
+{
+  GApplication *application;
+  gpointer gdk_window;
+
+  g_object_get (window,
+                "application", &application,
+                "window", &gdk_window,
+                NULL);
+  g_assert (window); /* we're inside a realize/unrealize pair... */
+  g_assert (application); /* otherwise why are we here...? */
+
+  /* FIXME: this won't work so well if we're not on X11...
+   *
+   * need code to deal with the other backends...
+   */
+  *xid = (* hud_gdk_x11_window_get_xid) (gdk_window);
+
+  if (object_path)
+    {
+      guint id;
+
+      id = (* hud_gtk_application_window_get_id) (window);
+      *object_path = g_strdup_printf ("%s/window/%u",
+                                      g_application_get_dbus_object_path (application), id);
+    }
+}
+
+static void
+hud_action_publisher_window_realize (gpointer window, /* GtkWidget */
+                                     gpointer user_data)
+{
+  HudActionPublisher *publisher = user_data;
+  gchar *object_path;
+  guint xid;
+
+  hud_action_publisher_get_window_details (window, &object_path, &xid);
+  hud_manager_add_actions (publisher->application_id, "win",
+                           g_variant_new_uint32 (xid), object_path);
+  g_free (object_path);
+}
+
+static void
+hud_action_publisher_window_unrealize (gpointer window, /* GtkWidget */
+                                       gpointer user_data)
+{
+  HudActionPublisher *publisher = user_data;
+  guint xid;
+
+  hud_action_publisher_get_window_details (window, NULL, &xid);
+  hud_manager_remove_actions (publisher->application_id, "win", g_variant_new_uint32 (xid));
+}
+
+static void
+hud_action_publisher_window_added (GApplication *application, /* really GtkApplication */
+                                   gpointer      window,      /* GtkWindow */
+                                   gpointer      user_data)
+{
+  HudActionPublisher *publisher = user_data;
+
+  /* We deal with this one separately because GtkApplicationWindow may
+   * not yet exist at the time that the HudActionPublisher is created.
+   */
+  if (!hud_gtkapplicationwindow_gtype)
+    hud_gtkapplicationwindow_gtype = g_type_from_name ("GtkApplicationWindow");
+
+  /* Can't do anything with this if it's not a GtkApplicationWindow and
+   * it's definitely not one if we don't have the type registered...
+   */
+  if (!hud_gtkapplicationwindow_gtype ||
+      !G_TYPE_CHECK_INSTANCE_TYPE (window, hud_gtkapplicationwindow_gtype))
+    return;
+
+  /* It's not possible that the window is already realized at the time
+   * that it is added to the application, so just watch for the signal.
+   */
+  g_signal_connect (window, "realize",
+                    G_CALLBACK (hud_action_publisher_window_realize), publisher);
+  g_signal_connect (window, "unrealize",
+                    G_CALLBACK (hud_action_publisher_window_unrealize), publisher);
+}
+
+static void
+hud_action_publisher_window_removed (GApplication *application, /* really GtkApplication */
+                                     gpointer      window,      /* GtkWindow */
+                                     gpointer      user_data)
+{
+  HudActionPublisher *publisher = user_data;
+
+  /* Just indiscriminately disconnect....
+   * If we didn't connect anything then nothing will happen.
+   *
+   * We're probably well on our way to destruction at this point, but it
+   * can't hurt to clean up properly just incase someone is doing
+   * something weird.
+   */
+  g_signal_handlers_disconnect_by_func (window, hud_action_publisher_window_realize, publisher);
+  g_signal_handlers_disconnect_by_func (window, hud_action_publisher_window_unrealize, publisher);
+}
+
 HudActionPublisher *
 hud_action_publisher_new_for_application (GApplication *application)
 {
@@ -274,6 +409,15 @@ hud_action_publisher_new_for_application (GApplication *application)
 
   hud_manager_add_actions (publisher->application_id, "app", NULL,
                            g_application_get_dbus_object_path (application));
+
+  if (hud_action_publisher_gtk_is_available () &&
+      G_TYPE_CHECK_INSTANCE_TYPE (application, hud_gtkapplication_gtype))
+    {
+      g_signal_connect (application, "window-added",
+                        G_CALLBACK (hud_action_publisher_window_added), publisher);
+      g_signal_connect (application, "window-removed",
+                        G_CALLBACK (hud_action_publisher_window_removed), publisher);
+    }
 
   return publisher;
 }
