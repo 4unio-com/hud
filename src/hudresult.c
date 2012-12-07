@@ -234,7 +234,7 @@ hud_result_new (HudItem      *item,
   result = g_object_new (HUD_TYPE_RESULT, NULL);
   result->item = g_object_ref (item);
 
-  result->distance = 1;
+  result->distance = 10;
   if (search_tokens != NULL) {
     result->distance = hud_token_list_distance (hud_item_get_token_list (item), search_tokens, &matched);
   }
