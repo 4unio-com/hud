@@ -155,6 +155,14 @@ hud_dbusmenu_item_get_label_property (const gchar *type)
   return g_hash_table_lookup (property_hash, type);
 }
 
+/* Check to see if a Dbusmenu Menuitem has a shortcut, and if
+   so make it into a pretty string. */
+static gchar *
+shortcut_string_for_menuitem (DbusmenuMenuitem * mi)
+{
+
+	return NULL;
+}
 
 static HudDbusmenuItem *
 hud_dbusmenu_item_new (HudStringList    *context,
@@ -166,10 +174,12 @@ hud_dbusmenu_item_new (HudStringList    *context,
   HudDbusmenuItem *item;
   const gchar *type;
   const gchar *prop;
+  gchar *shortcut;
   gboolean enabled;
 
   type = dbusmenu_menuitem_property_get (menuitem, DBUSMENU_MENUITEM_PROP_TYPE);
   prop = hud_dbusmenu_item_get_label_property (type);
+  shortcut = shortcut_string_for_menuitem(menuitem);
 
   if (prop && dbusmenu_menuitem_property_exist (menuitem, prop))
     {
@@ -196,10 +206,11 @@ hud_dbusmenu_item_new (HudStringList    *context,
   if (enabled)
     enabled &= !dbusmenu_menuitem_property_exist (menuitem, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY);
 
-  item = hud_item_construct (hud_dbusmenu_item_get_type (), tokens, NULL, desktop_file, icon, enabled);
+  item = hud_item_construct (hud_dbusmenu_item_get_type (), tokens, shortcut, desktop_file, icon, enabled);
   item->menuitem = g_object_ref (menuitem);
 
   hud_string_list_unref (tokens);
+  g_free(shortcut);
 
   return item;
 }
