@@ -28,12 +28,27 @@
 #include "hudkeywordmapping.h"
 #include "config.h"
 
+/**
+ * SECTION:hudkeywordmapping
+ * @title: HudKeywordMapping
+ * @short_description: Provides additional keywords for user actions.
+ *
+ * The #HudKeywordMapping service parses an XML file that provides a
+ * mapping for additional keywords that a user action can match on.
+ *
+ * It also consults gettext to see if a translation of the form
+ * "hud-keywords:<original action>" -> "keyword 1; keyword 2; keyword 3"
+ * exists.
+ *
+ * An instance of #HudKeywordMapping is created for each separate
+ * application.
+ **/
+
 struct _HudKeywordMapping
 {
   GObject parent_instance;
 
-  /* instance members */
-
+  /* Hash table storing the keyword mappings */
   GHashTable *mappings;
 };
 
@@ -98,6 +113,21 @@ hud_keyword_mapping_new (void)
   return g_object_new (HUD_TYPE_KEYWORD_MAPPING, NULL);
 }
 
+/**
+ * hud_keyword_mapping_load:
+ *
+ * Loads keyword mappings from the specified XML file for the given
+ * application. The XML file is searched for in the path
+ * "<datadir>/hud/keywords".
+ *
+ * Translations are performed using the locale information
+ * provided.
+ *
+ * @self: Instance of #HudKeywordMapping
+ * @desktop_file: Used to determine the identity of the application the mappings are for
+ * @datadir: The base directory that HUD data is stored in.
+ * @localedir: The directory to load the gettext locale from.
+ */
 void
 hud_keyword_mapping_load (HudKeywordMapping *self,
     const gchar *desktop_file, const gchar *datadir, const gchar *localedir)
@@ -131,9 +161,18 @@ hud_keyword_mapping_load (HudKeywordMapping *self,
 }
 
 /*
- * Do not free the GPtrArray* returned by this method.
+ * hud_keyword_mapping_transform:
+ *
+ * Consults the table of keywords and provides the list of keywords for given action.
+ *
+ * @self: Instance of #HudKeywordMapping.
+ * @label: The label of the action to provide keywords for.
+ *
+ * Returns: #GPtrArray of the keywords for the given action. Do not free
+ * this result.
  */
-GPtrArray* hud_keyword_mapping_transform(HudKeywordMapping *self, const gchar* label)
+GPtrArray*
+hud_keyword_mapping_transform(HudKeywordMapping *self, const gchar* label)
 {
   GPtrArray* results;
 
@@ -141,10 +180,8 @@ GPtrArray* hud_keyword_mapping_transform(HudKeywordMapping *self, const gchar* l
 
   if (!results)
   {
-    results = g_ptr_array_new_full(1, g_free);
-    g_ptr_array_add(results, g_strdup(label));
+    results = g_ptr_array_new_full(0, g_free);
     g_hash_table_insert(self->mappings, (gpointer) g_strdup(label), (gpointer) results);
-
   }
 
   return results;

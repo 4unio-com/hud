@@ -64,6 +64,28 @@ set_language (const gchar* language)
 }
 
 static void
+test_keyword_mapping_unknown_action (void)
+{
+  HudKeywordMapping *mapping;
+  GPtrArray *results, *results2;
+
+  mapping = hud_keyword_mapping_new ();
+  hud_keyword_mapping_load (mapping, "/foo/bar/gnome-terminal.desktop",
+      "keyword-mapping", "./keyword-mapping/locale");
+
+  results = hud_keyword_mapping_transform (mapping, "random action string");
+  g_assert_cmpint(results->len, ==, 0);
+
+  results2 = hud_keyword_mapping_transform (mapping, "random action string");
+  g_assert_cmpint(results2->len, ==, 0);
+
+  /* Check the keyword miss was cached */
+  g_assert(results == results2);
+
+  g_object_unref (mapping);
+}
+
+static void
 test_keyword_mapping_open_tab (void)
 {
   HudKeywordMapping *mapping;
@@ -129,6 +151,7 @@ test_keyword_mapping_open_terminal (void)
 /* Build the test suite */
 static void test_keyword_mapping_suite (void)
 {
+  g_test_add_func ("/hud/keyword/unknown_action", test_keyword_mapping_unknown_action);
   g_test_add_func ("/hud/keyword/open_tab", test_keyword_mapping_open_tab);
   g_test_add_func ("/hud/keyword/open_tab_with_translation",
       test_keyword_mapping_open_tab_with_translation);
