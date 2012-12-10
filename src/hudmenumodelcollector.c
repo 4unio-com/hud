@@ -157,7 +157,7 @@ hud_menu_model_context_get_label (HudMenuModelContext *context,
   HudStringList *parent_tokens = context ? context->tokens : NULL;
 
   if (label)
-    return hud_string_list_cons_label(label, parent_tokens);
+    return hud_string_list_cons_label (label, parent_tokens);
   else
     return hud_string_list_ref (parent_tokens);
 }
@@ -218,7 +218,7 @@ hud_menu_model_context_new (HudMenuModelContext *parent,
 
   context = g_slice_new (HudMenuModelContext);
   context->action_namespace = hud_menu_model_context_get_action_name (parent, namespace);
-  context->tokens = hud_menu_model_context_get_label (parent, label); // TODO, still need to figure out this one
+  context->tokens = hud_menu_model_context_get_label (parent, label);
   context->ref_count = 1;
 
   return context;
@@ -276,7 +276,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
   const gchar *stripped_action_name;
   gchar *full_action_name;
   GDBusActionGroup *group = NULL;
-  HudStringList *full_label, *tokens;
+  HudStringList *full_label, *keywords;
 
   full_action_name = hud_menu_model_context_get_action_name (context, action_name);
 
@@ -309,15 +309,15 @@ hud_model_item_new (HudMenuModelCollector *collector,
     }
 
   full_label = hud_menu_model_context_get_label (context, label);
-  tokens = hud_menu_model_context_get_tokens(label, collector->keyword_mapping);
+  keywords = hud_menu_model_context_get_tokens(label, collector->keyword_mapping);
 
-  item = hud_item_construct (hud_model_item_get_type (), full_label, tokens, collector->desktop_file, collector->icon, TRUE);
+  item = hud_item_construct (hud_model_item_get_type (), full_label, keywords, collector->desktop_file, collector->icon, TRUE);
   item->group = g_object_ref (group);
   item->action_name = g_strdup (stripped_action_name);
   item->target = target ? g_variant_ref_sink (target) : NULL;
 
   hud_string_list_unref (full_label);
-  hud_string_list_unref (tokens);
+  hud_string_list_unref (keywords);
   g_free (full_action_name);
 
   return HUD_ITEM (item);

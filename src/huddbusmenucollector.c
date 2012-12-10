@@ -166,7 +166,7 @@ hud_dbusmenu_item_new (HudStringList    *context,
                        HudKeywordMapping *keyword_mapping,
                        DbusmenuMenuitem *menuitem)
 {
-  HudStringList *full_label, *tokens;
+  HudStringList *full_label, *keywords;
   HudDbusmenuItem *item;
   const gchar *type;
   const gchar *prop;
@@ -182,19 +182,19 @@ hud_dbusmenu_item_new (HudStringList    *context,
 
       label = dbusmenu_menuitem_property_get (menuitem, prop);
       full_label = hud_string_list_cons_label (label, context);
-      tokens = NULL;
-      GPtrArray *keywords = hud_keyword_mapping_transform(keyword_mapping, label);
-      for (i = 0; i < keywords->len; i++)
+      keywords = NULL;
+      GPtrArray *mapping = hud_keyword_mapping_transform(keyword_mapping, label);
+      for (i = 0; i < mapping->len; i++)
       {
-        tokens = hud_string_list_cons_label (
-            (gchar*) g_ptr_array_index(keywords, i), tokens);
+        keywords = hud_string_list_cons_label (
+            (gchar*) g_ptr_array_index(mapping, i), keywords);
       }
       enabled = TRUE;
     }
   else
     {
       full_label = hud_string_list_ref (context);
-      tokens = NULL;
+      keywords = NULL;
       enabled = FALSE;
     }
 
@@ -209,11 +209,11 @@ hud_dbusmenu_item_new (HudStringList    *context,
   if (enabled)
     enabled &= !dbusmenu_menuitem_property_exist (menuitem, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY);
 
-  item = hud_item_construct (hud_dbusmenu_item_get_type (), full_label, tokens, desktop_file, icon, enabled);
+  item = hud_item_construct (hud_dbusmenu_item_get_type (), full_label, keywords, desktop_file, icon, enabled);
   item->menuitem = g_object_ref (menuitem);
 
   hud_string_list_unref (full_label);
-  hud_string_list_unref (tokens);
+  hud_string_list_unref (keywords);
 
   return item;
 }
