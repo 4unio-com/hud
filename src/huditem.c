@@ -136,6 +136,7 @@ hud_item_setup_usage (HudItem *item)
  * hud_item_construct:
  * @g_type: a #GType
  * @tokens: the search tokens for the item
+ * @shortcut: Keyboard shortcut for the item
  * @desktop_file: the desktop file of the provider of the item
  * @app_icon: the icon name for the application that created this item
  * @enabled: if the item is enabled
@@ -150,6 +151,7 @@ hud_item_setup_usage (HudItem *item)
 gpointer
 hud_item_construct (GType          g_type,
                     HudStringList *tokens,
+                    const gchar   *shortcut,
                     const gchar   *desktop_file,
                     const gchar   *app_icon,
                     gboolean       enabled)
@@ -175,6 +177,7 @@ hud_item_construct (GType          g_type,
 /**
  * hud_item_new:
  * @tokens: the search tokens for the item
+ * @shortcut: Keyboard shortcut for the item
  * @desktop_file: the desktop file of the provider of the item
  * @app_icon: the icon name for the application that created this item
  * @enabled: if the item is enabled
@@ -188,11 +191,12 @@ hud_item_construct (GType          g_type,
  **/
 HudItem *
 hud_item_new (HudStringList *tokens,
+              const gchar   *shortcut,
               const gchar   *desktop_file,
               const gchar   *app_icon,
               gboolean       enabled)
 {
-  return hud_item_construct (HUD_TYPE_ITEM, tokens, desktop_file, app_icon, enabled);
+  return hud_item_construct (HUD_TYPE_ITEM, tokens, shortcut, desktop_file, app_icon, enabled);
 }
 
 /**
