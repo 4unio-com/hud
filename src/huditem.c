@@ -59,6 +59,7 @@ struct _HudItemPrivate
   HudStringList *tokens;
   gchar *usage_tag;
   gchar *app_icon;
+  gchar *shortcut;
   gboolean enabled;
   guint usage;
   guint64 id;
@@ -77,6 +78,7 @@ hud_item_finalize (GObject *object)
   g_free (item->priv->desktop_file);
   g_free (item->priv->app_icon);
   g_free (item->priv->usage_tag);
+  g_free (item->priv->shortcut);
 
   G_OBJECT_CLASS (hud_item_parent_class)
     ->finalize (object);
@@ -162,6 +164,7 @@ hud_item_construct (GType          g_type,
   item->priv->tokens = hud_string_list_ref (tokens);
   item->priv->desktop_file = g_strdup (desktop_file);
   item->priv->app_icon = g_strdup (app_icon);
+  item->priv->shortcut = g_strdup (shortcut);
   item->priv->enabled = enabled;
   item->priv->id = hud_item_next_id++;
   item->priv->token_list = hud_token_list_new_from_string_list (tokens);
@@ -411,6 +414,5 @@ hud_item_get_shortcut (HudItem *item)
 {
 	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
 
-	/* TODO: Track shortcuts */
-	return "";
+	return item->priv->shortcut;
 }
