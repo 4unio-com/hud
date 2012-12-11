@@ -24,6 +24,7 @@
 
 #include <libbamf/libbamf.h>
 #include <gio/gio.h>
+#include <string.h>
 
 /**
  * SECTION:hudmenumodelcollector
@@ -354,7 +355,34 @@ hud_menu_model_collector_context_quark ()
 static gchar *
 format_accel_for_users (gchar * accel)
 {
-	return accel;
+	if (accel == NULL) {
+		return NULL;
+	}
+
+	GString * output = g_string_new("");
+	gchar * head = accel;
+
+	/* YEAH! String parsing, always my favorite. */
+	while (head[0] != '\0') {
+		if (head[0] == '<') {
+			/* We're in modifier land */
+			if (strncmp(head + 1, "Primary", strlen("Primary")) == 0) {
+				g_string_append(output, "Cntrl + ");
+				head += strlen("Primary") + 2;
+			} else {
+				/* Go to the close of the modifier */
+				head = g_strstr_len(head, -1, ">") + 1;
+			}
+			continue;
+		}
+
+		g_string_append(output, head);
+		break;
+	}
+
+	g_free(accel);
+
+	return g_string_free(output, FALSE);
 }
 
 static void
