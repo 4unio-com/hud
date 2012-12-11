@@ -935,8 +935,8 @@ start_element (GMarkupParseContext  *context,
 
           if (COLLECT (STRING, "name", &detailed_name))
             {
-              gchar *action_name;
-              GVariant *target;
+              gchar *action_name = NULL;
+              GVariant *target = NULL;
 
               if (!backport_g_action_parse_detailed_name (detailed_name, &action_name, &target, error))
                 return;

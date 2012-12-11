@@ -32,7 +32,7 @@ libhud_la_CFLAGS = \
 	-I . \
 	-I $(top_srcdir) \
 	-D G_LOG_DOMAIN=\"libhud\" \
-	-Wall
+	-Wall -Werror
 
 libhud_la_LIBADD = \
 	$(HUD_LIBS)
