@@ -17,8 +17,8 @@ libhudinclude_HEADERS = \
 	action-publisher.h
 
 libhud_la_SOURCES = \
-	hud-service-iface.h	\
-	hud-service-iface.c	\
+	service-iface.h	\
+	service-iface.c	\
 	manager.h		\
 	manager.c		\
 	operation-private.h	\
@@ -44,17 +44,17 @@ libhud_la_LDFLAGS = \
 	-no-undefined \
 	-export-symbols-regex "^[^_].*"
 
-hud-service-iface.c: $(top_srcdir)/data/com.canonical.hud.Application.xml
+service-iface.c: $(top_srcdir)/data/com.canonical.hud.Application.xml
 	$(AM_V_GEN) gdbus-codegen \
 		--interface-prefix com.canonical.hud.Application. \
-		--generate-c-code hud-service-iface \
+		--generate-c-code service-iface \
 		--c-namespace _HudService \
 		$^
-hud-service-iface.h: hud-service-iface.c
+service-iface.h: service-iface.c
 
 BUILT_SOURCES = \
-	hud-service-iface.h \
-	hud-service-iface.c
+	service-iface.h \
+	service-iface.c
 
 EXTRA_DIST = \
 	hud.pc.in
