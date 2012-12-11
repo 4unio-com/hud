@@ -366,9 +366,21 @@ format_accel_for_users (gchar * accel)
 	while (head[0] != '\0') {
 		if (head[0] == '<') {
 			/* We're in modifier land */
-			if (strncmp(head + 1, "Primary", strlen("Primary")) == 0) {
+			if (strncmp(head, "<Alt>", strlen("<Alt>")) == 0) {
+				g_string_append(output, "Alt + ");
+				head += strlen("<Alt>");
+			} else if (strncmp(head, "<Primary>", strlen("<Primary>")) == 0) {
 				g_string_append(output, "Cntrl + ");
-				head += strlen("Primary") + 2;
+				head += strlen("<Primary>");
+			} else if (strncmp(head, "<Control>", strlen("<Control>")) == 0) {
+				g_string_append(output, "Cntrl + ");
+				head += strlen("<Control>");
+			} else if (strncmp(head, "<Shift>", strlen("<Shift>")) == 0) {
+				g_string_append(output, "Shift + ");
+				head += strlen("<Shift>");
+			} else if (strncmp(head, "<Super>", strlen("<Super>")) == 0) {
+				g_string_append(output, "Super + ");
+				head += strlen("<Super>");
 			} else {
 				/* Go to the close of the modifier */
 				head = g_strstr_len(head, -1, ">") + 1;
