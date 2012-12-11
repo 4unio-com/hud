@@ -25,8 +25,12 @@
 #ifndef __HUD_H__
 #define __HUD_H__
 
+#define _HUD_H_INSIDE
+
 #include <libhud/operation.h>
 #include <libhud/action.h>
 #include <libhud/action-publisher.h>
+
+#undef _HUD_H_INSIDE
 
 #endif /* __HUD_H__ */
