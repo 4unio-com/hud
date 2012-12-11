@@ -12,19 +12,19 @@ libhud_include_base_HEADERS = \
 
 libhudincludedir = $(includedir)/libhud-$(API_VERSION)/libhud
 libhudinclude_HEADERS = \
-	hudoperation.h		\
-	hudaction.h		\
-	hudactionpublisher.h
+	operation.h		\
+	action.h		\
+	action-publisher.h
 
 libhud_la_SOURCES = \
 	hud-service-iface.h	\
 	hud-service-iface.c	\
-	hudmanager.h		\
-	hudmanager.c		\
-	hudoperation-private.h	\
-	hudoperation.c		\
-	hudaction.c		\
-	hudactionpublisher.c
+	manager.h		\
+	manager.c		\
+	operation-private.h	\
+	operation.c		\
+	action.c		\
+	action-publisher.c
 
 libhud_la_CFLAGS = \
 	$(HUD_CFLAGS) \

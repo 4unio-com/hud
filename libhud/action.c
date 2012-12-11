@@ -22,9 +22,9 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "hudaction.h"
+#include "action.h"
 
-#include "hudoperation-private.h"
+#include "operation-private.h"
 
 struct _HudActionPrivate {
   HudOperation *operation;

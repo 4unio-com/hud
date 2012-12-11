@@ -22,9 +22,9 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "hudactionpublisher.h"
+#include "action-publisher.h"
 
-#include "hudmanager.h"
+#include "manager.h"
 
 #include <string.h>
 

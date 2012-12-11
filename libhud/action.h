@@ -25,7 +25,7 @@
 #ifndef __HUD_ACTION_H__
 #define __HUD_ACTION_H__
 
-#include "hudoperation.h"
+#include "operation.h"
 
 G_BEGIN_DECLS
 
