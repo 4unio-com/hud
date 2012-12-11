@@ -22,9 +22,9 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "hudoperation.h"
+#include "operation.h"
 
-#include "hudoperation-private.h"
+#include "operation-private.h"
 
 G_DEFINE_TYPE (HudOperation, hud_operation, G_TYPE_SIMPLE_ACTION_GROUP)
 
