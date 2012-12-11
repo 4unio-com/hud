@@ -171,7 +171,7 @@ random_source_populate_table (GRand         *rand,
         /* At the maximum depth, prevent any items from being submenus. */
         is_submenu = FALSE;
 
-      item = hud_item_new (name, NULL, NULL, !is_submenu);
+      item = hud_item_new (name, NULL, NULL, NULL, !is_submenu);
       g_hash_table_add (items, item);
 
       if (is_submenu)
