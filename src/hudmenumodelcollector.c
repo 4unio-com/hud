@@ -349,6 +349,14 @@ hud_menu_model_collector_context_quark ()
   return context_quark;
 }
 
+/* Function to convert from the GMenu format for the accel to something
+   usable by humans. */
+static gchar *
+format_accel_for_users (gchar * accel)
+{
+	return accel;
+}
+
 static void
 hud_menu_model_collector_model_changed (GMenuModel *model,
                                         gint        position,
@@ -393,6 +401,8 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_ACTION, "s", &action);
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_LABEL, "s", &label);
       g_menu_model_get_item_attribute (model, i, "accel", "s", &accel);
+
+      accel = format_accel_for_users(accel);
 
       /* Check if this is an action.  Here's where we may end up
        * creating a HudItem.
