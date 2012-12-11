@@ -278,7 +278,8 @@ hud_webapp_source_register_application (HudWebappSource *source,
 static void
 hud_webapp_source_finalize (GObject *object)
 {
-  g_assert_not_reached ();
+
+  return;
 }
 
 static void

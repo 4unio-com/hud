@@ -349,8 +349,8 @@ hud_app_menu_registrar_name_vanished (GDBusConnection *connection,
 static void
 hud_app_menu_registrar_finalize (GObject *object)
 {
-  /* This is an immortal singleton.  If we're here, we have trouble. */
-  g_assert_not_reached ();
+
+  return;
 }
 
 static void

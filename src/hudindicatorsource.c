@@ -164,7 +164,8 @@ hud_indicator_source_search (HudSource    *hud_source,
 static void
 hud_indicator_source_finalize (GObject *object)
 {
-  g_assert_not_reached ();
+
+  return;
 }
 
 static void
