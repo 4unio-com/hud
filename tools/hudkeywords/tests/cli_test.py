@@ -14,10 +14,30 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import unittest
+import unittest, os, subprocess, tests
+from tempfile import mkstemp
 
-class Test(unittest.TestCase):
+class TestCli(unittest.TestCase):
 
-    def testName(self):
-        pass
+    def test_save(self):
+        subprocess.call(["bin/hudkeywords", "-i", self.infile, "-o", self.outfile], env={"PYTHONPATH": "."})
+        
+        with os.fdopen(self.outhandle, 'r') as f:
+            self.assertEqual(f.read(), tests.PO_OUTPUT)
+
+    def test_save_xml(self):
+        subprocess.call(["bin/hudkeywords", "-i", self.infile, "-x", self.outfile], env={"PYTHONPATH": "."})
+        
+        with os.fdopen(self.outhandle, 'r') as f:
+            self.assertEqual(f.read(), tests.XML_OUTPUT)
+
+    def setUp(self):
+        self.inhandle, self.infile = mkstemp()
+        with os.fdopen(self.inhandle, 'w') as f:
+            f.write(tests.INPUT)
+        self.outhandle, self.outfile = mkstemp()
+        
+    def tearDown(self):
+        os.remove(self.infile)
+        os.remove(self.outfile)
 
