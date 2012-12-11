@@ -6,12 +6,15 @@ lib_LTLIBRARIES = libhud.la
 ABI_VERSION = 1
 API_VERSION = 1
 
+libhud_include_basedir = $(includedir)/libhud-$(API_VERSION)/
+libhud_include_base_HEADERS = \
+	hud.h
+
 libhudincludedir = $(includedir)/libhud-$(API_VERSION)/libhud
 libhudinclude_HEADERS = \
 	hudoperation.h		\
 	hudaction.h		\
-	hudactionpublisher.h	\
-	hud.h
+	hudactionpublisher.h
 
 libhud_la_SOURCES = \
 	hud-service-iface.h	\
@@ -26,6 +29,7 @@ libhud_la_SOURCES = \
 libhud_la_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
+	-I . \
 	-I $(top_srcdir) \
 	-D G_LOG_DOMAIN=\"libhud\" \
 	-Wall

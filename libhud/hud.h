@@ -25,8 +25,8 @@
 #ifndef __HUD_H__
 #define __HUD_H__
 
-#include "hudoperation.h"
-#include "hudaction.h"
-#include "hudactionpublisher.h"
+#include <libhud/hudoperation.h>
+#include <libhud/hudaction.h>
+#include <libhud/hudactionpublisher.h>
 
 #endif /* __HUD_H__ */
