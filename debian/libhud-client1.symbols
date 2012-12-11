@@ -1,4 +1,4 @@
-libhud-client.so.1 libhud1 #MINVER#
+libhud-client.so.1 libhud-client1 #MINVER#
  hud_client_connection_get_address@Base 13.04.0
  hud_client_connection_get_ref@Base 13.04.0
  hud_client_connection_get_type@Base 13.04.0
