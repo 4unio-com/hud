@@ -113,6 +113,8 @@ if HAVE_INTROSPECTION
 
 # NOTE: 1 here is $API_VERSION
 
+HudClient-1.gir: libhud-client.la
+
 HudClient_1_gir_INCLUDES = Dee-1.0
 HudClient_1_gir_CFLAGS = \
 	-D HUD_CLIENT_COMPILATION \
