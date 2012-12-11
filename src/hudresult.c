@@ -104,6 +104,11 @@ hud_result_get_if_matched (HudItem      *item,
   if (!hud_item_get_enabled (item))
     return NULL;
 
+  /* If we're just a blank list, all should be included */
+  if (search_tokens == NULL) {
+    return hud_result_new (item, search_tokens, penalty);
+  }
+
   /* ignore the penalty in the max-distance calculation */
   if (hud_token_list_distance (hud_item_get_token_list (item), search_tokens, NULL) <= hud_settings.max_distance)
     return hud_result_new (item, search_tokens, penalty);
@@ -144,7 +149,7 @@ hud_result_format_tokens (GString          *string,
   head = hud_string_list_get_head (tokens);
   head_length = strlen (head);
 
-  while (**matches)
+  while (matches != NULL && *matches != NULL && **matches != NULL)
     {
       const gchar *matched_string;
       guint match_length;
@@ -221,15 +226,19 @@ hud_result_new (HudItem      *item,
                 HudTokenList *search_tokens,
                 guint         penalty)
 {
-  const HudToken **matched;
+  const HudToken **matched = NULL;
   HudResult *result;
 
   g_return_val_if_fail (HUD_IS_ITEM (item), NULL);
-  g_return_val_if_fail (search_tokens != NULL, NULL);
 
   result = g_object_new (HUD_TYPE_RESULT, NULL);
   result->item = g_object_ref (item);
-  result->distance = hud_token_list_distance (hud_item_get_token_list (item), search_tokens, &matched);
+
+  result->distance = 10;
+  if (search_tokens != NULL) {
+    result->distance = hud_token_list_distance (hud_item_get_token_list (item), search_tokens, &matched);
+  }
+
   result->description = hud_result_format_description (hud_item_get_tokens (item), matched);
   g_free (matched);
 
