@@ -22,11 +22,19 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#ifndef __HUD_H__
-#define __HUD_H__
+#ifndef __HUD_OPERATION_PRIVATE_H__
+#define __HUD_OPERATION_PRIVATE_H__
+
+struct _HudOperationPrivate
+{
+  GSimpleActionGroup *group;
+  gpointer            user_data;
+};
 
 #include "hudoperation.h"
-#include "hudaction.h"
-#include "hudactionpublisher.h"
 
-#endif /* __HUD_H__ */
+HudOperation *          hud_operation_new                               (gpointer      user_data);
+void                    hud_operation_started                           (HudOperation *operation);
+void                    hud_operation_ended                             (HudOperation *operation);
+
+#endif /* __HUD_OPERATION_PRIVATE_H__ */

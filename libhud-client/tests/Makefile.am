@@ -17,10 +17,12 @@ libhud-client-tester: libhud-client-test Makefile.am
 	@echo . $(abs_top_srcdir)/tests/run-xvfb.sh >> $@
 	@echo export G_MESSAGES_DEBUG=all >> $@
 	@echo gtester --verbose -k -o $(LIBHUD_XML_REPORT) $(abs_builddir)/libhud-client-test >> $@
+	@echo gtester2xunit $(LIBHUD_XML_REPORT) >> $@
 	@chmod +x $@
 
 CLEANFILES += \
 	$(LIBHUD_XML_REPORT) \
+	$(LIBHUD_XML_REPORT:.xml=-xunit.xml) \
 	libhud-client-tester
 
 libhud_client_test_SOURCES = \
