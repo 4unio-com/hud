@@ -242,6 +242,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
                     HudMenuModelContext   *context,
                     const gchar           *label,
                     const gchar           *action_name,
+                    const gchar           *accel,
                     GVariant              *target)
 {
   HudModelItem *item;
@@ -282,7 +283,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
 
   full_label = hud_menu_model_context_get_label (context, label);
 
-  item = hud_item_construct (hud_model_item_get_type (), full_label, NULL, collector->desktop_file, collector->icon, TRUE);
+  item = hud_item_construct (hud_model_item_get_type (), full_label, accel, collector->desktop_file, collector->icon, TRUE);
   item->group = g_object_ref (group);
   item->action_name = g_strdup (stripped_action_name);
   item->target = target ? g_variant_ref_sink (target) : NULL;
@@ -385,10 +386,13 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       gchar *label = NULL;
       gchar *action_namespace = NULL;
       gchar *action = NULL;
+      gchar *accel = NULL;
+
 
       g_menu_model_get_item_attribute (model, i, "action-namespace", "s", &action_namespace);
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_ACTION, "s", &action);
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_LABEL, "s", &label);
+      g_menu_model_get_item_attribute (model, i, "accel", "s", &accel);
 
       /* Check if this is an action.  Here's where we may end up
        * creating a HudItem.
@@ -400,7 +404,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
 
           target = g_menu_model_get_item_attribute_value (model, i, G_MENU_ATTRIBUTE_TARGET, NULL);
 
-          item = hud_model_item_new (collector, context, label, action, target);
+          item = hud_model_item_new (collector, context, label, action, accel, target);
 
           if (item)
             g_ptr_array_add (collector->items, item);
@@ -430,6 +434,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_free (action_namespace);
       g_free (action);
       g_free (label);
+      g_free (accel);
     }
 
   if (changed)
