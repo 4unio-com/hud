@@ -279,6 +279,7 @@ static void
 hud_webapp_source_finalize (GObject *object)
 {
 
+  G_OBJECT_CLASS(hud_webapp_source_parent_class)->finalize(object);
   return;
 }
 

@@ -391,6 +391,7 @@ static void
 hud_app_indicator_source_finalize (GObject *object)
 {
 
+  G_OBJECT_CLASS(hud_app_indicator_source_parent_class)->finalize(object);
   return;
 }
 

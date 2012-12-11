@@ -350,6 +350,7 @@ static void
 hud_app_menu_registrar_finalize (GObject *object)
 {
 
+  G_OBJECT_CLASS(hud_app_menu_registrar_parent_class)->finalize(object);
   return;
 }
 
