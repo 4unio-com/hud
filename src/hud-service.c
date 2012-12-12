@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <libintl.h>
-#include <libxml/parser.h>
 
 #include "hudappindicatorsource.h"
 #include "hudindicatorsource.h"
@@ -189,10 +188,6 @@ main (int argc, char **argv)
 
   g_type_init ();
 
-  /* Init libxml */
-  xmlInitParser();
-  LIBXML_TEST_VERSION
-
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
   textdomain (GETTEXT_PACKAGE);
@@ -253,9 +248,6 @@ main (int argc, char **argv)
   g_object_unref (window_source);
   g_object_unref (source_list);
   g_ptr_array_free(query_list, TRUE);
-
-  /* Shutdown libxml */
-  xmlCleanupParser();
 
   return 0;
 }

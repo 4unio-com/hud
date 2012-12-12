@@ -20,11 +20,6 @@
 
 #include <glib/gi18n.h>
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <libxml/xpath.h>
-#include <libxml/xpathInternals.h>
-
 #include "hudkeywordmapping.h"
 #include "config.h"
 
@@ -57,11 +52,16 @@ typedef GObjectClass HudKeywordMappingClass;
 G_DEFINE_TYPE(HudKeywordMapping, hud_keyword_mapping, G_TYPE_OBJECT);
 
 static gint
-hud_keyword_mapping_load_xml(HudKeywordMapping* self, const char* filename,
-    const xmlChar* xpathExpr);
+hud_keyword_mapping_load_xml(HudKeywordMapping* self, const char* filename);
 
 static void
-hud_keyword_mapping_load_xml_mappings(HudKeywordMapping* self, xmlNodeSetPtr nodes);
+hud_keyword_mapping_start_element (GMarkupParseContext *context,
+    const gchar *element_name, const gchar **attribute_names,
+    const gchar **attribute_values, gpointer user_data, GError **error);
+
+static void
+hud_keyword_mapping_end_element (GMarkupParseContext *context,
+    const gchar *element_name, gpointer user_data, GError **error);
 
 static void
 hud_keyword_mapping_finalize (GObject *object)
@@ -99,6 +99,28 @@ hud_keyword_mapping_init (HudKeywordMapping *self)
       (GDestroyNotify) hud_keyword_mapping_key_destroyed,
       (GDestroyNotify) hud_keyword_mapping_value_destroyed);
 }
+
+typedef enum
+{
+  HUD_KEYWORD_START,
+  HUD_KEYWORD_IN_KEYWORD_MAPPING,
+  HUD_KEYWORD_IN_MAPPING,
+  HUD_KEYWORD_IN_KEYWORD,
+  HUD_KEYWORD_IN_UNKNOWN
+} HudKeywordMappingParserState;
+
+typedef struct
+{
+  GHashTable *mappings;
+  HudKeywordMappingParserState state;
+  gchar *original_translated;
+  GPtrArray *keywords;
+  gint translation_found;
+} HudKeywordMappingParser;
+
+static GMarkupParser hud_keyword_mapping_parser =
+{ hud_keyword_mapping_start_element, hud_keyword_mapping_end_element,
+    NULL, NULL, NULL };
 
 /**
  * hud_keyword_mapping_new:
@@ -138,7 +160,6 @@ hud_keyword_mapping_load (HudKeywordMapping *self,
   gchar *mapping_filename = g_strdup_printf("%s.xml", names[0]);
   gchar *mapping_path = g_build_filename(datadir, "hud", "keywords",
       mapping_filename, NULL );
-  const xmlChar* expr = (xmlChar*) "//keywordMapping/mapping";
 
   /* Set the textdomain to match the program we're translating */
   g_debug("Setting textdomain = (\"%s\", \"%s\")", names[0], localedir);
@@ -146,7 +167,7 @@ hud_keyword_mapping_load (HudKeywordMapping *self,
   textdomain (names[0]);
 
   /* Do the main job */
-  if (hud_keyword_mapping_load_xml(self, mapping_path, expr) < 0)
+  if (hud_keyword_mapping_load_xml(self, mapping_path) < 0)
   {
     g_warning("Unable to load %s", mapping_path);
   }
@@ -199,118 +220,195 @@ hud_keyword_mapping_transform(HudKeywordMapping *self, const gchar* label)
  */
 static gint
 hud_keyword_mapping_load_xml(HudKeywordMapping* self,
-    const gchar* filename, const xmlChar* xpathExpr)
+    const gchar* filename)
 {
-  xmlDocPtr doc;
-  xmlXPathContextPtr xpathCtx;
-  xmlXPathObjectPtr xpathObj;
+  gchar *text;
+  gsize length;
+  GMarkupParseContext *context;
+  HudKeywordMappingParser parser = {self->mappings, HUD_KEYWORD_START, };
 
   g_assert(filename);
-  g_assert(xpathExpr);
 
-  /* Load XML document */
-  doc = xmlParseFile(filename);
-  if (doc == NULL )
+  context = g_markup_parse_context_new (&hud_keyword_mapping_parser, 0, &parser, NULL );
+
+  if (g_file_get_contents (filename, &text, &length, NULL ) == FALSE)
+  {
+    g_warning("Unable to read XML file \"%s\"", filename);
+    return (-1);
+  }
+
+  if (g_markup_parse_context_parse (context, text, length, NULL ) == FALSE)
   {
     g_warning("Unable to parse file \"%s\"", filename);
+    g_free (text);
+    g_markup_parse_context_free (context);
     return (-1);
   }
 
-  /* Create xpath evaluation context */
-  xpathCtx = xmlXPathNewContext(doc);
-  if (xpathCtx == NULL )
-  {
-    g_warning("Unable to create new XPath context");
-    xmlFreeDoc(doc);
-    return (-1);
-  }
-
-  /* Evaluate xpath expression */
-  xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
-  if (xpathObj == NULL )
-  {
-    g_warning("Unable to evaluate xpath expression \"%s\"", xpathExpr);
-    xmlXPathFreeContext(xpathCtx);
-    xmlFreeDoc(doc);
-    return (-1);
-  }
-
-  /* Load results */
-  hud_keyword_mapping_load_xml_mappings(self, xpathObj->nodesetval);
-
-  /* Cleanup */
-  xmlXPathFreeObject(xpathObj);
-  xmlXPathFreeContext(xpathCtx);
-  xmlFreeDoc(doc);
+  g_free (text);
+  g_markup_parse_context_free (context);
 
   return (0);
 }
 
-/**
- * hud_keyword_mapping_load_xml_mappings:
- * @self:     the keyword mapping to populate
- * @nodes:    set of result nodes giving us keywords
- *
- * Loads the keywords from the given XML result set.
- */
-static void
-hud_keyword_mapping_load_xml_mappings(HudKeywordMapping* self,
-    xmlNodeSetPtr nodes)
+static gchar*
+hud_keyword_mapping_get_attribute_value (const gchar* name,
+    const gchar **attribute_names, const gchar **attribute_values)
 {
-  xmlNodePtr cur, child;
-  gint size, i;
-  size = (nodes) ? nodes->nodeNr : 0;
+  const gchar **name_cursor = attribute_names;
+  const gchar **value_cursor = attribute_values;
 
-  for (i = 0; i < size; ++i)
+  while (*name_cursor)
   {
-    g_assert(nodes->nodeTab[i]);
+    if (strcmp (*name_cursor, name) == 0)
+      return g_strdup (*value_cursor);
 
-    if (nodes->nodeTab[i]->type == XML_ELEMENT_NODE)
-    {
-      gchar *original, *original_to_lookup, *original_translated, *keywords_translated;
-      GPtrArray *keywords = g_ptr_array_new_full(8, g_free);
-      cur = nodes->nodeTab[i];
+    name_cursor++;
+    value_cursor++;
+  }
 
-      original = (gchar*) xmlGetProp (cur, (xmlChar*) "original");
-      original_translated = g_strdup (_((gchar*) original));
+  return NULL;
+}
 
-      /* First try to translate hud-keywords:original. If it comes back without
-       * translation, then read the keywords from the XML file.
-       */
-      original_to_lookup = g_strconcat ("hud-keywords:", original, NULL );
-      keywords_translated = gettext(original_to_lookup);
-      if (original_to_lookup == keywords_translated)
-      {
-        /* Go through each of the keywords */
-        for (child = cur->children; child; child = child->next)
-        {
-          if (child->type == XML_ELEMENT_NODE)
-          {
-            xmlChar *keyword = xmlGetProp (child, (xmlChar*) "name");
-            g_ptr_array_add (keywords, (gpointer) keyword);
-          }
-        }
-      }
-      else
-      {
-        gint j;
-        gchar** split = g_strsplit (keywords_translated, ";", 0);
+static void
+hud_keyword_mapping_start_keyword (HudKeywordMappingParser *parser,
+    const gchar **attribute_names, const gchar **attribute_values)
+{
+  gchar *keyword;
 
-        /* Go through each of the keywords */
-        for (j = 0; split[j] != NULL; j++)
-        {
-          gchar* keyword = g_strstrip(split[j]);
-          g_ptr_array_add (keywords, (gpointer) g_strdup(keyword));
-        }
-
-        g_strfreev (split);
-      }
-
-      g_hash_table_insert (self->mappings, (gpointer) original_translated,
-          (gpointer) keywords);
-
-      g_free (original);
-      g_free (original_to_lookup);
-    }
+  if (!parser->translation_found)
+  {
+    keyword = hud_keyword_mapping_get_attribute_value ("name", attribute_names,
+        attribute_values);
+    g_ptr_array_add (parser->keywords, (gpointer) keyword);
   }
 }
+
+static void
+hud_keyword_mapping_start_mapping (HudKeywordMappingParser *parser,
+    const gchar **attribute_names, const gchar **attribute_values)
+{
+  gchar *original, *original_to_lookup, *keywords_translated;
+
+  original = hud_keyword_mapping_get_attribute_value ("original",
+      attribute_names, attribute_values);
+
+  parser->original_translated = g_strdup (_((gchar*) original));
+  parser->keywords = g_ptr_array_new_full (8, g_free);
+
+  /* First try to translate hud-keywords:original. If it comes back without
+   * translation, then read the keywords from the XML file.
+   */
+  original_to_lookup = g_strconcat ("hud-keywords:", original, NULL );
+  keywords_translated = gettext (original_to_lookup);
+
+  parser->translation_found = (original_to_lookup != keywords_translated);
+
+  /* If we find a translation we can parse it here. Otherwise we'll have to wait
+   * for the XML parser to move across each of our child elements.
+   */
+  if (parser->translation_found)
+  {
+    gint j;
+    gchar** split = g_strsplit (keywords_translated, ";", 0);
+
+    /* Go through each of the keywords */
+    for (j = 0; split[j] != NULL ; j++)
+    {
+      gchar* keyword = g_strstrip(split[j]);
+      g_ptr_array_add (parser->keywords, (gpointer) g_strdup (keyword));
+    }
+
+    g_strfreev (split);
+  }
+
+  g_free (original);
+  g_free (original_to_lookup);
+}
+
+/* The handler functions. */
+static void
+hud_keyword_mapping_start_element (GMarkupParseContext *context, const gchar *element_name,
+    const gchar **attribute_names, const gchar **attribute_values,
+    gpointer user_data, GError **error)
+{
+  HudKeywordMappingParser *parser = (HudKeywordMappingParser*) user_data;
+
+  switch (parser->state)
+  {
+  case HUD_KEYWORD_START:
+    if (strcmp (element_name, "keywordMapping") == 0)
+      parser->state = HUD_KEYWORD_IN_KEYWORD_MAPPING;
+    else
+      parser->state = HUD_KEYWORD_IN_UNKNOWN;
+    break;
+
+  case HUD_KEYWORD_IN_KEYWORD_MAPPING:
+    if (strcmp (element_name, "mapping") == 0)
+    {
+      parser->state = HUD_KEYWORD_IN_MAPPING;
+      hud_keyword_mapping_start_mapping (parser, attribute_names,
+          attribute_values);
+    }
+    else
+      parser->state = HUD_KEYWORD_IN_UNKNOWN;
+    break;
+
+  case HUD_KEYWORD_IN_MAPPING:
+    if (strcmp (element_name, "keyword") == 0)
+    {
+      parser->state = HUD_KEYWORD_IN_KEYWORD;
+      hud_keyword_mapping_start_keyword (parser, attribute_names,
+                attribute_values);
+    }
+    else
+      parser->state = HUD_KEYWORD_IN_UNKNOWN;
+    break;
+
+  case HUD_KEYWORD_IN_KEYWORD:
+    g_warning("Shouldn't be entering any child elements from a keyword element.");
+    parser->state = HUD_KEYWORD_IN_UNKNOWN;
+    break;
+
+  case HUD_KEYWORD_IN_UNKNOWN:
+    g_error("Hud keyword parsing failed. In unknown state.");
+    break;
+  }
+
+
+}
+
+static void
+hud_keyword_mapping_end_element (GMarkupParseContext *context, const gchar *element_name,
+    gpointer user_data, GError **error)
+{
+  HudKeywordMappingParser *parser = (HudKeywordMappingParser*) user_data;
+
+  switch (parser->state)
+  {
+  case HUD_KEYWORD_START:
+    g_error("Should not be able to return to start state in keyword parser");
+    break;
+
+  case HUD_KEYWORD_IN_KEYWORD_MAPPING:
+    parser->state = HUD_KEYWORD_START;
+    break;
+
+  case HUD_KEYWORD_IN_MAPPING:
+    parser->state = HUD_KEYWORD_IN_KEYWORD_MAPPING;
+
+    /* Build an entry from the collected keywords */
+    g_hash_table_insert (parser->mappings,
+        (gpointer) parser->original_translated, (gpointer) parser->keywords);
+    break;
+
+  case HUD_KEYWORD_IN_KEYWORD:
+    parser->state = HUD_KEYWORD_IN_MAPPING;
+    break;
+
+  case HUD_KEYWORD_IN_UNKNOWN:
+    g_warning("Hud keyword parsing failed. In unknown state.");
+    break;
+  }
+}
+

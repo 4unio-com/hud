@@ -66,7 +66,6 @@ PKG_CHECK_MODULES([HUD],[
 		libbamf3 
 		sqlite3 >= $SQLITE_REQUIRED_VERSION
 		dee-1.0
-		libxml-2.0
 ])
 
 GTK_REQUIRED_VERSION=3.0

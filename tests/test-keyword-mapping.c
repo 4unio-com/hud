@@ -20,7 +20,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib-object.h>
 #include <glib/gi18n.h>
 #include <locale.h>
-#include <libxml/parser.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -167,10 +166,6 @@ main (gint argc, gchar * argv[])
   g_unsetenv("LC_ALL");
   setlocale (LC_ALL, "");
 
-  /* Init libxml */
-  xmlInitParser ();
-  LIBXML_TEST_VERSION
-
   g_type_init ();
 
   g_test_init (&argc, &argv, NULL );
@@ -179,9 +174,6 @@ main (gint argc, gchar * argv[])
   test_keyword_mapping_suite ();
 
   gint result = g_test_run ();
-
-  /* Shutdown libxml */
-  xmlCleanupParser ();
 
   return result;
 }
