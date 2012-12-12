@@ -117,7 +117,7 @@ Section: doc
 Architecture: all
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         libhud-client1-dev (= ${binary:Version})
+         libhud-client1-dev (>= ${source:Version})
 Description: private library for implementing a HUD frontend
  Interface for querying the HUD and getting results.
  .
