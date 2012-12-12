@@ -92,11 +92,12 @@ TESTS += \
 	test-menu-input-tester
 
 check_PROGRAMS += \
+	dbusmenu-json-loader \
 	test-menu-input
 
 MENU_INPUT_XML_REPORT = test-menu-input.xml
 
-test-menu-input-tester: test-menu-input Makefile.am
+test-menu-input-tester: test-menu-input dbusmenu-json-loader Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
 	@echo gtester --verbose -k -o $(MENU_INPUT_XML_REPORT) $(builddir)/test-menu-input >> $@
@@ -115,6 +116,18 @@ test_menu_input_CFLAGS = \
 
 test_menu_input_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS)
+
+dbusmenu_json_loader_SOURCES = \
+	dbusmenu-json-loader.c
+
+dbusmenu_json_loader_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(DBUSMENU_JSON_CFLAGS) \
+	-Wall -Werror
+
+dbusmenu_json_loader_LDADD = \
+	$(DBUSMENU_JSON_LIBS) \
 	$(HUD_LIBS)
 
 DISTCLEANFILES += \

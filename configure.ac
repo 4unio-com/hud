@@ -73,6 +73,8 @@ PKG_CHECK_MODULES(gtk,[
 		gtk+-3.0 >= $GTK_REQUIRED_VERSION
 ])
 
+PKG_CHECK_MODULES([DBUSMENU_JSON], [dbusmenu-jsonloader-0.4])
+
 ###########################
 # CLI Dependencies
 ###########################
