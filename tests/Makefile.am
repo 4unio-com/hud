@@ -7,6 +7,7 @@ XFAIL_TESTS =
 
 DBUS_RUNNER=dbus-test-runner
 XVFB_RUN=". $(srcdir)/run-xvfb.sh"
+MOCK_JSON_APP=/usr/lib/indicator-appmenu/mock-json-app
 
 EXTRA_DIST += \
 	run-xvfb.sh
@@ -109,6 +110,7 @@ test_menu_input_CFLAGS = \
 	$(HUD_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
+	-D MOCK_JSON_APP=\"$(MOCK_JSON_APP)\" \
 	-Wall -Werror
 
 test_menu_input_LDADD = \
@@ -461,6 +463,7 @@ test-dbus-message-count: test-dbus-message-count.in
 		-e "s|\@top_builddir\@|$(top_builddir)|" \
 		-e "s|\@builddir\@|$(builddir)|" \
 		-e "s|\@srcdir\@|$(srcdir)|" \
+		-e "s|\@mockjsonapp\@|$(MOCK_JSON_APP)|" \
 		$< > $@
 	@chmod +x $@
 
