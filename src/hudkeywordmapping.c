@@ -212,7 +212,6 @@ hud_keyword_mapping_transform(HudKeywordMapping *self, const gchar* label)
  * hud_keyword_mapping_load_xml:
  * @self: The #HudKeywordMapping
  * @filename:   the input XML filename.
- * @xpathExpr:    the xpath expression for evaluation.
  *
  * Parses input XML file, evaluates XPath expression and loads the keyword hash.
  *
@@ -274,13 +273,11 @@ static void
 hud_keyword_mapping_start_keyword (HudKeywordMappingParser *parser,
     const gchar **attribute_names, const gchar **attribute_values)
 {
-  gchar *keyword;
-
   if (!parser->translation_found)
   {
-    keyword = hud_keyword_mapping_get_attribute_value ("name", attribute_names,
-        attribute_values);
-    g_ptr_array_add (parser->keywords, (gpointer) keyword);
+    g_ptr_array_add (parser->keywords,
+        hud_keyword_mapping_get_attribute_value ("name", attribute_names,
+            attribute_values));
   }
 }
 
@@ -326,7 +323,6 @@ hud_keyword_mapping_start_mapping (HudKeywordMappingParser *parser,
   g_free (original_to_lookup);
 }
 
-/* The handler functions. */
 static void
 hud_keyword_mapping_start_element (GMarkupParseContext *context, const gchar *element_name,
     const gchar **attribute_names, const gchar **attribute_values,
@@ -374,8 +370,6 @@ hud_keyword_mapping_start_element (GMarkupParseContext *context, const gchar *el
     g_error("Hud keyword parsing failed. In unknown state.");
     break;
   }
-
-
 }
 
 static void
@@ -411,4 +405,3 @@ hud_keyword_mapping_end_element (GMarkupParseContext *context, const gchar *elem
     break;
   }
 }
-
