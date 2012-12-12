@@ -34,12 +34,23 @@ HudSettings hud_settings = {
 	.max_distance = 30
 };
 
+/* Create a basic dbusmenu item and make sure we can get it through
+   the collector */
+static void
+test_menus_dbusmenu_base (void) 
+{
+
+
+
+	return;
+}
+
 
 /* Build the test suite */
 static void
 test_menu_input_suite (void)
 {
-	// g_test_add_func ("/hud/menus/dbusmenu/base",          test_menus_dbusmenu_base);
+	g_test_add_func ("/hud/menus/dbusmenu/base",          test_menus_dbusmenu_base);
 	return;
 }
 
