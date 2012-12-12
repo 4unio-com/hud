@@ -187,7 +187,7 @@ hud_client_connection_finalize (GObject *object)
  * Gets a reference to the default object that connects to the
  * default HUD service.
  *
- * Return value: (transfer reference): Refence to a #HudClientConnection
+ * Return value: (transfer full): Refence to a #HudClientConnection
  */
 HudClientConnection *
 hud_client_connection_get_ref (void)
@@ -214,7 +214,7 @@ hud_client_connection_get_ref (void)
  * using this function you'd also be interested in
  * hud_client_query_new_for_connection()
  *
- * Return value: (transfer reference): A new #HudClientConnection
+ * Return value: (transfer full): A new #HudClientConnection
  */
 HudClientConnection *
 hud_client_connection_new (gchar * dbus_address, gchar * dbus_path)

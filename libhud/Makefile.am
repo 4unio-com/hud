@@ -1,5 +1,5 @@
 
-SUBDIRS = tests
+SUBDIRS = . tests demo
 
 lib_LTLIBRARIES = libhud.la
 
@@ -8,20 +8,27 @@ API_VERSION = 1
 
 libhudincludedir = $(includedir)/libhud-$(API_VERSION)/libhud
 libhudinclude_HEADERS = \
+	hudoperation.h		\
+	hudaction.h		\
+	hudactionpublisher.h	\
 	hud.h
 
 libhud_la_SOURCES = \
-	hud-service-iface.h \
-	hud-service-iface.c \
-	hud.h \
-	hud.c
+	hud-service-iface.h	\
+	hud-service-iface.c	\
+	hudmanager.h		\
+	hudmanager.c		\
+	hudoperation-private.h	\
+	hudoperation.c		\
+	hudaction.c		\
+	hudactionpublisher.c
 
 libhud_la_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-I $(top_srcdir) \
 	-D G_LOG_DOMAIN=\"libhud\" \
-	-Wall -Werror
+	-Wall
 
 libhud_la_LIBADD = \
 	$(HUD_LIBS)
