@@ -96,6 +96,15 @@ test_menus_dbusmenu_base_search (HudResult * result, gpointer user_data)
 	return;
 }
 
+/* Timeout on our loop */
+static gboolean
+test_menus_dbusmenu_timeout (gpointer user_data)
+{
+	GMainLoop * loop = (GMainLoop *)user_data;
+	g_main_loop_quit(loop);
+	return FALSE;
+}
+
 /* Create a basic dbusmenu item and make sure we can get it through
    the collector */
 static void
@@ -114,6 +123,11 @@ test_menus_dbusmenu_base (void)
 	                                                                           LOADER_PATH);
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
+
+	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
+	g_timeout_add(100, test_menus_dbusmenu_timeout, temploop);
+	g_main_loop_run(temploop);
+	g_main_loop_unref(temploop);
 
 	gboolean found = FALSE;
 	hud_source_search(HUD_SOURCE(collector), NULL, test_menus_dbusmenu_base_search, &found);
