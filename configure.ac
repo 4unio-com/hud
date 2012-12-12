@@ -54,6 +54,28 @@ AC_CONFIG_MACRO_DIR(m4)
 GLIB_GSETTINGS
 
 ###########################
+# GObject Introspection
+###########################
+
+GOBJECT_INTROSPECTION_CHECK([0.9.5])
+
+###########################
+# Vala API Generation
+###########################
+
+AC_ARG_ENABLE([vala],
+    AC_HELP_STRING([--disable-vala], [Disable vala]),
+    [enable_vala=$enableval], [enable_vala=auto])
+
+AS_IF([test "x$enable_vala" != "xno"],[
+    AM_COND_IF([HAVE_INTROSPECTION],,[
+        AC_MSG_ERROR([Vala bindings require introspection support, please --enable-introspection])
+    ])  
+AC_PATH_PROG([VALA_API_GEN], [vapigen])
+])
+AM_CONDITIONAL([HAVE_VALA], [test -n "$VALA_API_GEN"])
+
+###########################
 # Dependencies
 ###########################
 
@@ -220,6 +242,7 @@ Makefile
 src/Makefile
 libhud/Makefile
 libhud/tests/Makefile
+libhud/demo/Makefile
 libhud-client/Makefile
 libhud-client/tests/Makefile
 data/Makefile
