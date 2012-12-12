@@ -84,6 +84,42 @@ DISTCLEANFILES += \
 	$(RESULT_XML_REPORT:.xml=-xunit.xml)
 
 ######################
+# Test Menu Input
+######################
+
+TESTS += \
+	test-menu-input-tester
+
+check_PROGRAMS += \
+	test-menu-input
+
+MENU_INPUT_XML_REPORT = test-menu-input.xml
+
+test-menu-input-tester: test-menu-input Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(MENU_INPUT_XML_REPORT) $(builddir)/test-menu-input >> $@
+	@echo gtester2xunit $(MENU_INPUT_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_menu_input_SOURCES = \
+	test-menu-input.c
+
+test_menu_input_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_menu_input_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS)
+
+DISTCLEANFILES += \
+	$(MENU_INPUT_XML_REPORT) \
+	$(MENU_INPUT_XML_REPORT:.xml=-xunit.xml)
+
+######################
 # Test Usage DB Simple
 ######################
 
