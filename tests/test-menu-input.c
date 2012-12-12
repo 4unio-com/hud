@@ -129,10 +129,14 @@ test_menus_dbusmenu_base (void)
 	g_main_loop_run(temploop);
 	g_main_loop_unref(temploop);
 
+	hud_source_use(HUD_SOURCE(collector));
+
 	gboolean found = FALSE;
 	hud_source_search(HUD_SOURCE(collector), NULL, test_menus_dbusmenu_base_search, &found);
 
 	g_assert(found);
+
+	hud_source_unuse(HUD_SOURCE(collector));
 
 	g_object_unref(service);
 	g_object_unref(session);
