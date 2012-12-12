@@ -8,7 +8,7 @@ dbus_servicesdir = $(DBUSSERVICEDIR)
 dbus_services_DATA = com.canonical.hud.service
 
 %.service: %.service.in
-	sed -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@
+	sed -e "s|\@pkglibexecdir\@|$(pkglibexecdir)|" $< > $@
 
 EXTRA_DIST = \
 	$(dbus_services_DATA:.service=.service.in) \

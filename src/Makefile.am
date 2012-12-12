@@ -11,7 +11,7 @@ bin_PROGRAMS = \
 bin_SCRIPTS = \
 	hud-list-applications
 
-libexec_PROGRAMS = \
+pkglibexec_PROGRAMS = \
 	hud-service
 
 include $(top_srcdir)/Makefile.am.marshal
