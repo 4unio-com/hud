@@ -22,6 +22,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <libdbustest/dbus-test.h>
 
+#include "huddbusmenucollector.h"
+#include "hudsource.h"
 #include "hudresult.h"
 #include "hudsettings.h"
 
@@ -72,6 +74,28 @@ start_dbusmenu_mock_app (DbusTestService ** service, GDBusConnection ** session,
 	return;
 }
 
+/* Gets called for each item in the collector, there should be only one */
+static void
+test_menus_dbusmenu_base_search (HudResult * result, gpointer user_data)
+{
+	g_assert(result != NULL);
+	g_assert(HUD_IS_RESULT(result));
+
+	HudItem * item = hud_result_get_item(result);
+	g_assert(item != NULL);
+	g_assert(HUD_IS_ITEM(item));
+
+	g_assert(g_strcmp0(hud_item_get_app_icon(item), "no-icon") == 0);
+	g_assert(g_strcmp0(hud_item_get_command(item), "Simple") == 0);
+
+	g_object_unref(result);
+
+	gboolean * found = (gboolean *)user_data;
+	*found = TRUE;
+
+	return;
+}
+
 /* Create a basic dbusmenu item and make sure we can get it through
    the collector */
 static void
@@ -82,7 +106,19 @@ test_menus_dbusmenu_base (void)
 
 	start_dbusmenu_mock_app(&service, &session, JSON_SIMPLE);
 
+	HudDbusmenuCollector * collector = hud_dbusmenu_collector_new_for_endpoint("test-id",
+	                                                                           "Prefix",
+	                                                                           "no-icon",
+	                                                                           0, /* penalty */
+	                                                                           LOADER_NAME,
+	                                                                           LOADER_PATH);
+	g_assert(collector != NULL);
+	g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
+	gboolean found = FALSE;
+	hud_source_search(HUD_SOURCE(collector), NULL, test_menus_dbusmenu_base_search, &found);
+
+	g_assert(found);
 
 	g_object_unref(service);
 	g_object_unref(session);
