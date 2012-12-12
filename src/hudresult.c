@@ -149,7 +149,7 @@ hud_result_format_tokens (GString          *string,
   head = hud_string_list_get_head (tokens);
   head_length = strlen (head);
 
-  while (**matches)
+  while (matches != NULL && *matches != NULL && **matches != NULL)
     {
       const gchar *matched_string;
       guint match_length;
@@ -223,7 +223,7 @@ hud_result_format_keywords (GString        *string,
     g_string_append (string, "; ");
   }
 
-  while (**matches)
+  while (matches != NULL && *matches != NULL && **matches != NULL)
   {
     const gchar *matched_string;
     guint match_length;
@@ -275,7 +275,7 @@ hud_result_format_description (HudStringList   *tokens,
 
   description = g_string_new (NULL);
   hud_result_format_tokens (description, tokens, &matches);
-  if (*matches)
+  if (matches != NULL && *matches != NULL)
   {
     gint count = 0;
     g_string_append (description, " (");
@@ -305,11 +305,10 @@ hud_result_new (HudItem      *item,
                 HudTokenList *search_tokens,
                 guint         penalty)
 {
-  const HudToken **matched;
+  const HudToken **matched = NULL;
   HudResult *result;
 
   g_return_val_if_fail (HUD_IS_ITEM (item), NULL);
-  g_return_val_if_fail (search_tokens != NULL, NULL);
 
   result = g_object_new (HUD_TYPE_RESULT, NULL);
   result->item = g_object_ref (item);
