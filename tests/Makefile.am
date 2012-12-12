@@ -109,13 +109,17 @@ test_menu_input_SOURCES = \
 
 test_menu_input_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-D MOCK_JSON_APP=\"$(MOCK_JSON_APP)\" \
+	-D DBUSMENU_JSON_LOADER=\"$(builddir)/dbusmenu-json-loader\" \
+	-D JSON_SIMPLE=\"$(srcdir)/test-menu-input-simple.json\" \
 	-Wall -Werror
 
 test_menu_input_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
 	$(HUD_LIBS)
 
 dbusmenu_json_loader_SOURCES = \
@@ -129,6 +133,9 @@ dbusmenu_json_loader_CFLAGS = \
 dbusmenu_json_loader_LDADD = \
 	$(DBUSMENU_JSON_LIBS) \
 	$(HUD_LIBS)
+
+EXTRA_DIST += \
+	test-menu-input-simple.json
 
 DISTCLEANFILES += \
 	$(MENU_INPUT_XML_REPORT) \

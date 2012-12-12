@@ -16,11 +16,17 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <glib.h>
 #include <glib-object.h>
+#include <gio/gio.h>
 
 #include <string.h>
 
+#include <libdbustest/dbus-test.h>
+
 #include "hudresult.h"
 #include "hudsettings.h"
+
+#define LOADER_NAME  "test.json.loader"
+#define LOADER_PATH  "/test/json/loader"
 
 /* hardcode some parameters so the test doesn't fail if the user
  * has bogus things in GSettings.
@@ -34,13 +40,52 @@ HudSettings hud_settings = {
 	.max_distance = 30
 };
 
+/* Start things up with a basic mock-json-app and wait until it starts */
+static void
+start_dbusmenu_mock_app (DbusTestService ** service, GDBusConnection ** session, const gchar * jsonfile)
+{
+	*service = dbus_test_service_new(NULL);
+
+	/* Loader */
+	DbusTestProcess * loader = dbus_test_process_new(DBUSMENU_JSON_LOADER);
+	dbus_test_process_append_param(loader, LOADER_NAME);
+	dbus_test_process_append_param(loader, LOADER_PATH);
+	dbus_test_process_append_param(loader, jsonfile);
+	dbus_test_task_set_name(DBUS_TEST_TASK(loader), "JSON Loader");
+	dbus_test_service_add_task(*service, DBUS_TEST_TASK(loader));
+	g_object_unref(loader);
+
+	/* Dummy */
+	DbusTestTask * dummy = dbus_test_task_new();
+	dbus_test_task_set_wait_for(dummy, LOADER_NAME);
+	dbus_test_service_add_task(*service, dummy);
+	g_object_unref(dummy);
+
+	/* Get loader up and running and us on that bus */
+	g_debug("Starting up Dbusmenu Loader");
+	dbus_test_service_start_tasks(*service);
+
+	/* Set us not to exit when the service goes */
+	*session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+	g_dbus_connection_set_exit_on_close(*session, FALSE);
+
+	return;
+}
+
 /* Create a basic dbusmenu item and make sure we can get it through
    the collector */
 static void
 test_menus_dbusmenu_base (void) 
 {
+	DbusTestService * service = NULL;
+	GDBusConnection * session = NULL;
+
+	start_dbusmenu_mock_app(&service, &session, JSON_SIMPLE);
 
 
+
+	g_object_unref(service);
+	g_object_unref(session);
 
 	return;
 }
