@@ -235,3 +235,7 @@ libhud-client-test
 libhud-client-test.xml
 libhud-client-tester
 *.gcno
+/.settings
+/.project
+/.pydevproject
+/.cproject
