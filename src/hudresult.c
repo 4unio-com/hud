@@ -104,6 +104,11 @@ hud_result_get_if_matched (HudItem      *item,
   if (!hud_item_get_enabled (item))
     return NULL;
 
+  /* If we're just a blank list, all should be included */
+  if (search_tokens == NULL) {
+    return hud_result_new (item, search_tokens, penalty);
+  }
+
   /* ignore the penalty in the max-distance calculation */
   if (hud_token_list_distance (hud_item_get_token_list (item), search_tokens, NULL) <= hud_settings.max_distance)
     return hud_result_new (item, search_tokens, penalty);
