@@ -649,9 +649,11 @@ hud_menu_model_collector_get (BamfWindow  *window,
 
   unique_bus_name = bamf_window_get_utf8_prop (window, "_GTK_UNIQUE_BUS_NAME");
 
-  if (!unique_bus_name)
+  if (!unique_bus_name) {
     /* If this isn't set, we won't get very far... */
+    g_object_unref(session);
     return NULL;
+  }
 
   collector = g_object_new (HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
   collector->session = session;
@@ -734,14 +736,13 @@ hud_menu_model_collector_new_for_endpoint (const gchar *application_id,
                                            const gchar *object_path)
 {
   HudMenuModelCollector *collector;
-  GDBusConnection *session;
 
   collector = g_object_new (HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
 
-  session = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
+  collector->session = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
 
-  collector->app_menu = g_dbus_menu_model_get (session, bus_name, object_path);
-  collector->application = g_dbus_action_group_get (session, bus_name, object_path);
+  collector->app_menu = g_dbus_menu_model_get (collector->session, bus_name, object_path);
+  collector->application = g_dbus_action_group_get (collector->session, bus_name, object_path);
 
   collector->is_application = FALSE;
   collector->prefix = g_strdup (prefix);
@@ -750,8 +751,6 @@ hud_menu_model_collector_new_for_endpoint (const gchar *application_id,
   collector->penalty = penalty;
 
   hud_menu_model_collector_add_model (collector, G_MENU_MODEL (collector->app_menu), NULL, NULL, prefix);
-
-  g_object_unref (session);
 
   return collector;
 }
