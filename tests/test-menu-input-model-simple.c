@@ -30,7 +30,16 @@ main (int argv, char ** argc)
 
 	g_type_init();
 
-	/* TODO: Setup menus */
+	GMenu * menu = g_menu_new();
+	g_menu_append(menu, "Simple", "simple");
+
+	GSimpleActionGroup * ag = g_simple_action_group_new();
+	g_simple_action_group_insert(ag, G_ACTION(g_simple_action_new("simple", G_VARIANT_TYPE_BOOLEAN)));
+
+	GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+
+	g_dbus_connection_export_action_group(session, argc[2], G_ACTION_GROUP(ag), NULL);
+	g_dbus_connection_export_menu_model(session, argc[2], G_MENU_MODEL(menu), NULL);
 
 	g_bus_own_name(G_BUS_TYPE_SESSION, argc[1], 0, NULL, NULL, NULL, NULL, NULL);
 
