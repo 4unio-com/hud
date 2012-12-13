@@ -115,6 +115,7 @@ test_menu_input_CFLAGS = \
 	-D MOCK_JSON_APP=\"$(MOCK_JSON_APP)\" \
 	-D DBUSMENU_JSON_LOADER=\"$(builddir)/dbusmenu-json-loader\" \
 	-D JSON_SIMPLE=\"$(srcdir)/test-menu-input-simple.json\" \
+	-D JSON_SHORTCUTS=\"$(srcdir)/test-menu-input-shortcuts.json\" \
 	-Wall -Werror
 
 test_menu_input_LDADD = \
@@ -135,7 +136,8 @@ dbusmenu_json_loader_LDADD = \
 	$(HUD_LIBS)
 
 EXTRA_DIST += \
-	test-menu-input-simple.json
+	test-menu-input-simple.json \
+	test-menu-input-shortcuts.json
 
 DISTCLEANFILES += \
 	$(MENU_INPUT_XML_REPORT) \
