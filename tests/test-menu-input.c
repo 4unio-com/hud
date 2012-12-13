@@ -164,6 +164,9 @@ struct {
 	gchar * shortcut;
 } shortcutdb[] = {
 	{.label = "Save",      .shortcut = "Ctrl + S"},
+	{.label = "Quiter",    .shortcut = "Ctrl + Alt + Q"},
+	{.label = "Emacs",     .shortcut = "Ctrl + X, Ctrl + W"},
+	{.label = "Close",     .shortcut = "Super + W"},
 	{.label = NULL,        .shortcut = NULL}
 };
 
