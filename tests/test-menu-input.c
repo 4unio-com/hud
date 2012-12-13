@@ -152,6 +152,7 @@ test_menus_dbusmenu_base (void)
 
 	hud_source_unuse(HUD_SOURCE(collector));
 
+	g_object_unref(collector);
 	g_object_unref(service);
 	g_object_unref(session);
 
@@ -230,6 +231,7 @@ test_menus_dbusmenu_shortcuts (void)
 		hud_source_unuse(HUD_SOURCE(collector));
 	}
 
+	g_object_unref(collector);
 	g_object_unref(service);
 	g_object_unref(session);
 
@@ -243,6 +245,7 @@ test_menu_input_suite (void)
 {
 	g_test_add_func ("/hud/menus/dbusmenu/base",          test_menus_dbusmenu_base);
 	g_test_add_func ("/hud/menus/dbusmenu/shortcuts",     test_menus_dbusmenu_shortcuts);
+
 	return;
 }
 
