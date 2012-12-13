@@ -48,16 +48,40 @@ msgstr ""
 XML_OUTPUT = r'''<?xml version='1.0' encoding='UTF-8'?>
 <keywordMapping>
   <mapping original="hello, world!">
-    <keyword name="Keyword1"/>
-    <keyword name="Keyword2"/>
+    <keyword name=""/>
+    <keyword name=""/>
   </mapping>
   <mapping original="another string">
-    <keyword name="Keyword1"/>
-    <keyword name="Keyword2"/>
+    <keyword name=""/>
+    <keyword name=""/>
   </mapping>
   <mapping original="another string 2">
-    <keyword name="Keyword1"/>
-    <keyword name="Keyword2"/>
+    <keyword name=""/>
+    <keyword name=""/>
+  </mapping>
+</keywordMapping>
+'''
+
+XML_INPUT = r'''<?xml version='1.0' encoding='UTF-8'?>
+<keywordMapping>
+  <mapping original="another string">
+    <keyword name="yo yo another"/>
+  </mapping>
+</keywordMapping>
+'''
+
+XML_OUTPUT_EXISTING = r'''<?xml version='1.0' encoding='UTF-8'?>
+<keywordMapping>
+  <mapping original="hello, world!">
+    <keyword name=""/>
+    <keyword name=""/>
+  </mapping>
+  <mapping original="another string">
+    <keyword name="yo yo another"/>
+  </mapping>
+  <mapping original="another string 2">
+    <keyword name=""/>
+    <keyword name=""/>
   </mapping>
 </keywordMapping>
 '''

@@ -34,15 +34,11 @@ import po
 __all__ = []
 __version__ = 1.0
 
-class CLIError(Exception):
+class CLIError(BaseException):
     '''Generic exception to raise and log different fatal errors.'''
     def __init__(self, msg):
         super(CLIError).__init__(type(self))
-        self.msg = "E: %s" % msg
-    def __str__(self):
-        return self.msg
-    def __unicode__(self):
-        return self.msg
+        self.msg = "Error: %s" % msg
 
 def main(argv=None): # IGNORE:C0111
     '''Command line options.'''
@@ -60,26 +56,24 @@ def main(argv=None): # IGNORE:C0111
     try:
         # Setup argument parser
         parser = ArgumentParser(description=program_shortdesc, formatter_class=RawDescriptionHelpFormatter)
+        parser.add_argument("pofile", help="The PO file to add hud-keyword: entries to")
         parser.add_argument("-v", "--verbose", dest="verbose", action="count", help="set verbosity level")
-        parser.add_argument("-i", "--input", dest="input", required=True, help="Input PO file to read")
-        parser.add_argument("-o", "--output", dest="output", help="Add the hud-keywords: entries into this PO file")
         parser.add_argument("-x", "--xmloutput", dest="xmloutput", help="Write out a keyword mapping file into this XML file")
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
         
         # Process arguments
         args = parser.parse_args()
         
-        if args.input and args.output and args.input == args.output:
-            raise CLIError("Input and output cannot be the same.")
+        if not os.path.exists(args.pofile):
+            raise CLIError("PO file [{}] does not exist.".format(args.pofile))
         
         if args.verbose > 0:
-            print("Reading PO input file [{}]".format(args.input))
-        po_file = po.PoFile(args.input)
+            print("Reading PO file [{}]".format(args.pofile))
+        po_file = po.PoFile(args.pofile)
         
-        if args.output:
-            if args.verbose > 0:
-                print("Writing to PO output file [{}]".format(args.output))
-            po_file.save(args.output)
+        if args.verbose > 0:
+            print("Updating PO file [{}]".format(args.pofile))
+        po_file.save(args.pofile)
         
         if args.xmloutput:
             if args.verbose > 0:
@@ -90,8 +84,13 @@ def main(argv=None): # IGNORE:C0111
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
         return 0
+    except CLIError, e:
+        indent = len(program_name) * " "
+        sys.stderr.write(program_name + ": " + e.msg + "\n")
+        sys.stderr.write(indent + "  for help use --help\n")
+        return 2
     except Exception, e:
         indent = len(program_name) * " "
         sys.stderr.write(program_name + ": " + repr(e) + "\n")
-        sys.stderr.write(indent + "  for help use --help")
+        sys.stderr.write(indent + "  for help use --help\n")
         return 2

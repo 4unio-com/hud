@@ -24,15 +24,26 @@ class TestPoFile(unittest.TestCase):
         po = PoFile(self.infile)
         po.save(self.outfile)
         with os.fdopen(self.outhandle, 'r') as f:
-            self.assertEqual(f.read(), tests.PO_OUTPUT)
+            self.assertMultiLineEqual(f.read(), tests.PO_OUTPUT)
 
     def test_save_xml(self):
         po = PoFile(self.infile)
         po.save_xml(self.outfile)
         with os.fdopen(self.outhandle, 'r') as f:
-            self.assertEqual(f.read(), tests.XML_OUTPUT)
+            self.assertMultiLineEqual(f.read(), tests.XML_OUTPUT)
+            
+    def test_save_xml_existing(self):
+        with open(self.outfile, 'w') as f:
+            f.write(tests.XML_INPUT)
+        
+        po = PoFile(self.infile)
+        po.save_xml(self.outfile)
+        
+        with open(self.outfile, 'r') as f:
+            self.assertMultiLineEqual(tests.XML_OUTPUT_EXISTING, f.read())
 
     def setUp(self):
+        self.maxDiff = None
         self.inhandle, self.infile = mkstemp()
         with os.fdopen(self.inhandle, 'w') as f:
             f.write(tests.INPUT)
