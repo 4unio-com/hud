@@ -42,6 +42,14 @@ HudSettings hud_settings = {
 	.max_distance = 30
 };
 
+/* If we can't get the name, we should error the test */
+static gboolean
+name_timeout (gpointer user_data)
+{
+	g_error("Unable to get name");
+	return FALSE;
+}
+
 /* Start things up with a basic mock-json-app and wait until it starts */
 static void
 start_dbusmenu_mock_app (DbusTestService ** service, GDBusConnection ** session, const gchar * jsonfile)
@@ -63,9 +71,15 @@ start_dbusmenu_mock_app (DbusTestService ** service, GDBusConnection ** session,
 	dbus_test_service_add_task(*service, dummy);
 	g_object_unref(dummy);
 
+	/* Setup timeout */
+	guint timeout_source = g_timeout_add_seconds(2, name_timeout, NULL);
+
 	/* Get loader up and running and us on that bus */
 	g_debug("Starting up Dbusmenu Loader");
 	dbus_test_service_start_tasks(*service);
+
+	/* Cleanup timeout */
+	g_source_remove(timeout_source);
 
 	/* Set us not to exit when the service goes */
 	*session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
