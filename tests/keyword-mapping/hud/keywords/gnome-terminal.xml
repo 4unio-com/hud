@@ -2,6 +2,7 @@
 <keywordMapping>
 	<mapping original="Open _Terminal">
 		<keyword name="New Terminal"/>
+		<keyword name=""/>
 		<keyword name="Another Terminal"/>
 	</mapping>
 	<mapping original="Open Ta_b">

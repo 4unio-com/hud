@@ -275,9 +275,11 @@ hud_keyword_mapping_start_keyword (HudKeywordMappingParser *parser,
 {
   if (!parser->translation_found)
   {
-    g_ptr_array_add (parser->keywords,
-        hud_keyword_mapping_get_attribute_value ("name", attribute_names,
-            attribute_values));
+    gchar* keyword = hud_keyword_mapping_get_attribute_value ("name", attribute_names,
+                attribute_values);
+    /* Check the keyword isn't empty */
+    if(keyword && keyword[0] != '\0')
+      g_ptr_array_add (parser->keywords, keyword);
   }
 }
 

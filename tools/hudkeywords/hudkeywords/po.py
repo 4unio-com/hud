@@ -30,7 +30,7 @@ class PoFile:
     def _add_keyword_entries(self):
         new_entries = []
         
-        for entry in self.po:
+        for entry in self.po.translated_entries():
             new_entry = polib.POEntry(
                 msgid=u'hud-keywords:{}'.format(entry.msgid),
                 msgstr=u'',
@@ -47,9 +47,9 @@ class PoFile:
     def save_xml(self, path):
         keyword_mapping = Element('keywordMapping')
         
-        for entry in self.original:
+        for entry in self.original.translated_entries():
             mapping = SubElement(keyword_mapping, 'mapping', original=entry.msgid)
-            SubElement(mapping, 'keyword', name='Keyword1')
-            SubElement(mapping, 'keyword', name='Keyword2')
+            SubElement(mapping, 'keyword', name='')
+            SubElement(mapping, 'keyword', name='')
             
         ElementTree(keyword_mapping).write(path, encoding='utf-8', xml_declaration=True, pretty_print=True)
