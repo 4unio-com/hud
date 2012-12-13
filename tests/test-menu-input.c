@@ -23,6 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libdbustest/dbus-test.h>
 
 #include "huddbusmenucollector.h"
+#include "hudmenumodelcollector.h"
 #include "hudsource.h"
 #include "hudresult.h"
 #include "hudsettings.h"
@@ -112,7 +113,7 @@ test_menus_dbusmenu_base_search (HudResult * result, gpointer user_data)
 
 /* Timeout on our loop */
 static gboolean
-test_menus_dbusmenu_timeout (gpointer user_data)
+test_menus_timeout (gpointer user_data)
 {
 	GMainLoop * loop = (GMainLoop *)user_data;
 	g_main_loop_quit(loop);
@@ -139,7 +140,7 @@ test_menus_dbusmenu_base (void)
 	g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
 	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
-	g_timeout_add(100, test_menus_dbusmenu_timeout, temploop);
+	g_timeout_add(100, test_menus_timeout, temploop);
 	g_main_loop_run(temploop);
 	g_main_loop_unref(temploop);
 
@@ -216,7 +217,7 @@ test_menus_dbusmenu_shortcuts (void)
 	g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
 	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
-	g_timeout_add(100, test_menus_dbusmenu_timeout, temploop);
+	g_timeout_add(100, test_menus_timeout, temploop);
 	g_main_loop_run(temploop);
 	g_main_loop_unref(temploop);
 
@@ -241,6 +242,81 @@ test_menus_dbusmenu_shortcuts (void)
 	return;
 }
 
+/* Start things up with a basic mock-json-app and wait until it starts */
+static void
+start_model_mock_app (DbusTestService ** service, GDBusConnection ** session, const gchar * appname)
+{
+	*service = dbus_test_service_new(NULL);
+
+	/* Loader */
+	DbusTestProcess * loader = dbus_test_process_new(appname);
+	dbus_test_process_append_param(loader, LOADER_NAME);
+	dbus_test_process_append_param(loader, LOADER_PATH);
+	dbus_test_task_set_name(DBUS_TEST_TASK(loader), "Mock Model");
+	dbus_test_service_add_task(*service, DBUS_TEST_TASK(loader));
+	g_object_unref(loader);
+
+	/* Dummy */
+	DbusTestTask * dummy = dbus_test_task_new();
+	dbus_test_task_set_wait_for(dummy, LOADER_NAME);
+	dbus_test_service_add_task(*service, dummy);
+	g_object_unref(dummy);
+
+	/* Setup timeout */
+	guint timeout_source = g_timeout_add_seconds(2, name_timeout, NULL);
+
+	/* Get mock up and running and us on that bus */
+	g_debug("Starting up Model Mock");
+	dbus_test_service_start_tasks(*service);
+
+	/* Cleanup timeout */
+	g_source_remove(timeout_source);
+
+	/* Set us not to exit when the service goes */
+	*session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+	g_dbus_connection_set_exit_on_close(*session, FALSE);
+
+	return;
+}
+
+/* Find an item in the base menu model */
+static void
+test_menus_model_base (void) 
+{
+	DbusTestService * service = NULL;
+	GDBusConnection * session = NULL;
+
+	start_model_mock_app(&service, &session, MODEL_SIMPLE);
+
+	HudMenuModelCollector * collector = hud_menu_model_collector_new_for_endpoint("test-id",
+	                                                                              "Prefix",
+	                                                                              "no-icon",
+	                                                                              0, /* penalty */
+	                                                                              LOADER_NAME,
+	                                                                              LOADER_PATH);
+	g_assert(collector != NULL);
+	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
+	g_timeout_add(100, test_menus_timeout, temploop);
+	g_main_loop_run(temploop);
+	g_main_loop_unref(temploop);
+
+	hud_source_use(HUD_SOURCE(collector));
+
+	gboolean found = FALSE;
+	hud_source_search(HUD_SOURCE(collector), NULL, test_menus_dbusmenu_base_search, &found);
+
+	g_assert(found);
+
+	hud_source_unuse(HUD_SOURCE(collector));
+
+	g_object_unref(collector);
+	g_object_unref(service);
+	g_object_unref(session);
+
+	return;
+}
 
 /* Build the test suite */
 static void
@@ -248,6 +324,7 @@ test_menu_input_suite (void)
 {
 	g_test_add_func ("/hud/menus/dbusmenu/base",          test_menus_dbusmenu_base);
 	g_test_add_func ("/hud/menus/dbusmenu/shortcuts",     test_menus_dbusmenu_shortcuts);
+	g_test_add_func ("/hud/menus/model/base",             test_menus_model_base);
 
 	return;
 }
