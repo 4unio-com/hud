@@ -1,0 +1,14 @@
+libhud-client.so.1 libhud-client1 #MINVER#
+ hud_client_connection_get_address@Base 13.04.0
+ hud_client_connection_get_ref@Base 13.04.0
+ hud_client_connection_get_type@Base 13.04.0
+ hud_client_connection_new@Base 13.04.0
+ hud_client_connection_new_query@Base 13.04.0
+ hud_client_query_execute_command@Base 13.04.0
+ hud_client_query_get_appstack_model@Base 13.04.0
+ hud_client_query_get_query@Base 13.04.0
+ hud_client_query_get_results_model@Base 13.04.0
+ hud_client_query_get_type@Base 13.04.0
+ hud_client_query_new@Base 13.04.0
+ hud_client_query_new_for_connection@Base 13.04.0
+ hud_client_query_set_query@Base 13.04.0
