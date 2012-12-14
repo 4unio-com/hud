@@ -8,7 +8,15 @@ hud (13.04.0-0ubuntu1~ppa2) quantal; urgency=low
 
 hud (13.04.0-0ubuntu1~ppa1) quantal; urgency=low
 
+  [ Ted Gould ]
   * First version
     * Now independent of indicator-appmenu
 
+  [ Michael Terry ]
+  * Switch to dh9
+  * Update copyright to DEP-5
+  * Use valac-0.18 instead of valac-0.16
+  * Require raring's version of bustle for the --count argument
+
  -- Ted Gould <ted@ubuntu.com>  Wed, 24 Oct 2012 15:43:27 +0200
+

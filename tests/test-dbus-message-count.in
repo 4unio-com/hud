@@ -15,4 +15,4 @@ dbus-test-runner \
 	--task @srcdir@/test-dbus-message-count-send-query --wait-for com.canonical.AppMenu.Registrar --task-name query
 
 sleep 1
-bustle-count test-dbus-message-count.bustle
+bustle --count test-dbus-message-count.bustle
