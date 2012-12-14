@@ -31,7 +31,7 @@ struct _HudOperationPrivate
   gpointer            user_data;
 };
 
-#include "hudoperation.h"
+#include "operation.h"
 
 HudOperation *          hud_operation_new                               (gpointer      user_data);
 void                    hud_operation_started                           (HudOperation *operation);

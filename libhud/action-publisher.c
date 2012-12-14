@@ -22,9 +22,9 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "hudactionpublisher.h"
+#include "action-publisher.h"
 
-#include "hudmanager.h"
+#include "manager.h"
 
 #include <string.h>
 
@@ -39,7 +39,7 @@ typedef struct
 
 static void hud_aux_init_action_group_iface (GActionGroupInterface *iface);
 static void hud_aux_init_remote_action_group_iface (GRemoteActionGroupInterface *iface);
-G_DEFINE_TYPE_WITH_CODE (HudAux, hud_aux, G_TYPE_MENU_MODEL,
+G_DEFINE_TYPE_WITH_CODE (HudAux, _hud_aux, G_TYPE_MENU_MODEL,
                          G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, hud_aux_init_action_group_iface)
                          G_IMPLEMENT_INTERFACE (G_TYPE_REMOTE_ACTION_GROUP, hud_aux_init_remote_action_group_iface))
 
@@ -125,7 +125,7 @@ hud_aux_get_item_links (GMenuModel  *model,
 }
 
 static void
-hud_aux_init (HudAux *aux)
+_hud_aux_init (HudAux *aux)
 {
 }
 
@@ -140,7 +140,7 @@ hud_aux_init_remote_action_group_iface (GRemoteActionGroupInterface *iface)
 }
 
 static void
-hud_aux_class_init (HudAuxClass *class)
+_hud_aux_class_init (HudAuxClass *class)
 {
   class->is_mutable = hud_aux_is_mutable;
   class->get_n_items = hud_aux_get_n_items;
@@ -160,7 +160,7 @@ hud_action_publisher_init (HudActionPublisher *publisher)
   static guint64 next_id;
 
   publisher->descriptions = g_sequence_new (g_object_unref);
-  publisher->aux = g_object_new (hud_aux_get_type (), NULL);
+  publisher->aux = g_object_new (_hud_aux_get_type (), NULL);
   publisher->aux->publisher = publisher;
   publisher->bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
 
@@ -935,8 +935,8 @@ start_element (GMarkupParseContext  *context,
 
           if (COLLECT (STRING, "name", &detailed_name))
             {
-              gchar *action_name;
-              GVariant *target;
+              gchar *action_name = NULL;
+              GVariant *target = NULL;
 
               if (!backport_g_action_parse_detailed_name (detailed_name, &action_name, &target, error))
                 return;

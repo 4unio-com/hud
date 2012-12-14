@@ -10,6 +10,7 @@ Build-Depends: bamfdaemon,
                gir1.2-dee-1.0,
                gnome-common,
                gnome-doc-utils,
+               gobject-introspection,
                gtester2xunit,
                gtk-doc-tools,
                indicator-application (>= 0.4.90),
@@ -120,7 +121,7 @@ Section: doc
 Architecture: all
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         libhud-client1-dev (= ${binary:Version})
+         libhud-client1-dev (>= ${source:Version})
 Description: private library for implementing a HUD frontend
  Interface for querying the HUD and getting results.
  .
