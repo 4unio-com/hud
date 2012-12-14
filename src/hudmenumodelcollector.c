@@ -370,10 +370,10 @@ format_accel_for_users (gchar * accel)
 				g_string_append(output, "Alt + ");
 				head += strlen("<Alt>");
 			} else if (strncmp(head, "<Primary>", strlen("<Primary>")) == 0) {
-				g_string_append(output, "Cntrl + ");
+				g_string_append(output, "Ctrl + ");
 				head += strlen("<Primary>");
 			} else if (strncmp(head, "<Control>", strlen("<Control>")) == 0) {
-				g_string_append(output, "Cntrl + ");
+				g_string_append(output, "Ctrl + ");
 				head += strlen("<Control>");
 			} else if (strncmp(head, "<Shift>", strlen("<Shift>")) == 0) {
 				g_string_append(output, "Shift + ");
