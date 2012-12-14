@@ -94,11 +94,12 @@ TESTS += \
 check_PROGRAMS += \
 	dbusmenu-json-loader \
 	test-menu-input-model-simple \
+	test-menu-input-model-shortcuts \
 	test-menu-input
 
 MENU_INPUT_XML_REPORT = test-menu-input.xml
 
-test-menu-input-tester: test-menu-input dbusmenu-json-loader test-menu-input-model-simple Makefile.am
+test-menu-input-tester: test-menu-input dbusmenu-json-loader test-menu-input-model-simple test-menu-input-model-shortcuts Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
 	@echo gtester --verbose -k -o $(MENU_INPUT_XML_REPORT) $(builddir)/test-menu-input >> $@
@@ -115,6 +116,7 @@ test_menu_input_CFLAGS = \
 	-I$(top_builddir)/src \
 	-D MOCK_JSON_APP=\"$(MOCK_JSON_APP)\" \
 	-D MODEL_SIMPLE=\"$(builddir)/test-menu-input-model-simple\" \
+	-D MODEL_SHORTCUTS=\"$(builddir)/test-menu-input-model-shortcuts\" \
 	-D DBUSMENU_JSON_LOADER=\"$(builddir)/dbusmenu-json-loader\" \
 	-D JSON_SIMPLE=\"$(srcdir)/test-menu-input-simple.json\" \
 	-D JSON_SHORTCUTS=\"$(srcdir)/test-menu-input-shortcuts.json\" \
@@ -145,6 +147,16 @@ test_menu_input_model_simple_CFLAGS = \
 	-Wall -Werror
 
 test_menu_input_model_simple_LDADD = \
+	$(HUD_LIBS)
+
+test_menu_input_model_shortcuts_SOURCES = \
+	test-menu-input-model-shortcuts.c
+
+test_menu_input_model_shortcuts_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-Wall -Werror
+
+test_menu_input_model_shortcuts_LDADD = \
 	$(HUD_LIBS)
 
 EXTRA_DIST += \
