@@ -34,15 +34,15 @@ main (int argv, char ** argc)
 	GMenuItem * mi = NULL;
 
 	mi = g_menu_item_new("Save", "save");
-	g_menu_item_set_attribute(mi, "accel", "<Control>S");
+	g_menu_item_set_attribute_value(mi, "accel", g_variant_new_string("<Control>S"));
 	g_menu_append_item(menu, mi);
 
 	mi = g_menu_item_new("Quiter", "quiter");
-	g_menu_item_set_attribute(mi, "accel", "<Primary><Alt>Q");
+	g_menu_item_set_attribute_value(mi, "accel", g_variant_new_string("<Primary><Alt>Q"));
 	g_menu_append_item(menu, mi);
 
 	mi = g_menu_item_new("Close", "close");
-	g_menu_item_set_attribute(mi, "accel", "<Super>W");
+	g_menu_item_set_attribute_value(mi, "accel", g_variant_new_string("<Super>W"));
 	g_menu_append_item(menu, mi);
 
 	GSimpleActionGroup * ag = g_simple_action_group_new();

@@ -163,11 +163,12 @@ test_menus_dbusmenu_base (void)
 struct {
 	gchar * label;
 	gchar * shortcut;
+	gboolean model_support;
 } shortcutdb[] = {
-	{.label = "Save",      .shortcut = "Ctrl + S"},
-	{.label = "Quiter",    .shortcut = "Ctrl + Alt + Q"},
-	{.label = "Emacs",     .shortcut = "Ctrl + X, Ctrl + W"},
-	{.label = "Close",     .shortcut = "Super + W"},
+	{.label = "Save",      .shortcut = "Ctrl + S",            .model_support = TRUE},
+	{.label = "Quiter",    .shortcut = "Ctrl + Alt + Q",      .model_support = TRUE},
+	{.label = "Emacs",     .shortcut = "Ctrl + X, Ctrl + W",  .model_support = FALSE},
+	{.label = "Close",     .shortcut = "Super + W",           .model_support = TRUE},
 	{.label = NULL,        .shortcut = NULL}
 };
 
@@ -318,6 +319,54 @@ test_menus_model_base (void)
 	return;
 }
 
+/* Create model items with various shortcuts */
+static void
+test_menus_model_shortcuts (void) 
+{
+	DbusTestService * service = NULL;
+	GDBusConnection * session = NULL;
+
+	start_model_mock_app(&service, &session, MODEL_SHORTCUTS);
+
+	HudMenuModelCollector * collector = hud_menu_model_collector_new_for_endpoint("test-id",
+	                                                                              "Prefix",
+	                                                                              "no-icon",
+	                                                                              0, /* penalty */
+	                                                                              LOADER_NAME,
+	                                                                              LOADER_PATH);
+	g_assert(collector != NULL);
+	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
+	g_timeout_add(100, test_menus_timeout, temploop);
+	g_main_loop_run(temploop);
+	g_main_loop_unref(temploop);
+
+	int i;
+	for (i = 0; shortcutdb[i].label != NULL; i++) {
+		if (!shortcutdb[i].model_support) {
+			continue;
+		}
+
+		hud_source_use(HUD_SOURCE(collector));
+
+		guint item = i;
+		HudTokenList * tl = hud_token_list_new_from_string(shortcutdb[i].label);
+		hud_source_search(HUD_SOURCE(collector), tl, test_menus_dbusmenu_shortcut_search, &item);
+
+		g_assert(item == -1);
+		hud_token_list_free(tl);
+
+		hud_source_unuse(HUD_SOURCE(collector));
+	}
+
+	g_object_unref(collector);
+	g_object_unref(service);
+	g_object_unref(session);
+
+	return;
+}
+
 /* Build the test suite */
 static void
 test_menu_input_suite (void)
@@ -325,6 +374,7 @@ test_menu_input_suite (void)
 	g_test_add_func ("/hud/menus/dbusmenu/base",          test_menus_dbusmenu_base);
 	g_test_add_func ("/hud/menus/dbusmenu/shortcuts",     test_menus_dbusmenu_shortcuts);
 	g_test_add_func ("/hud/menus/model/base",             test_menus_model_base);
+	g_test_add_func ("/hud/menus/model/shortcuts",        test_menus_model_shortcuts);
 
 	return;
 }
