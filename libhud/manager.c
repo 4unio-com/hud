@@ -22,7 +22,7 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "hudmanager.h"
+#include "manager.h"
 
 void
 hud_manager_say_hello (const gchar *application_id,

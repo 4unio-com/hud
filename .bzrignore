@@ -235,3 +235,13 @@ libhud-client-test
 libhud-client-test.xml
 libhud-client-tester
 *.gcno
+libhud/libhud_la-action-publisher.lo
+libhud/libhud_la-action.lo
+libhud/libhud_la-manager.lo
+libhud/libhud_la-operation.lo
+libhud/libhud_la-service-iface.lo
+libhud/demo/consumer
+libhud/demo/consumer.c
+libhud/demo/consumer_vala.stamp
+libhud/demo/gimp
+libhud/demo/gvtk.c
