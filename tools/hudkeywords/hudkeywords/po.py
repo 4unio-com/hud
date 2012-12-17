@@ -81,7 +81,7 @@ class PoFile:
         keyword_mapping = Element('keywordMapping')
         
         for entry in self.original:
-            # Not point adding obsolete entries
+            # No point adding obsolete entries
             if entry.obsolete:
                 continue
             
