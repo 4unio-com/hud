@@ -65,8 +65,9 @@ G_DEFINE_TYPE_WITH_CODE (RandomSource, random_source, G_TYPE_OBJECT,
 
 static void
 random_source_search (HudSource    *hud_source,
-                      GPtrArray    *results_array,
-                      HudTokenList *search_tokens)
+    HudTokenList *search_tokens,
+    void        (*append_func) (HudResult * result, gpointer user_data),
+    gpointer      user_data)
 {
   RandomSource *source = (RandomSource *) hud_source;
   GHashTableIter iter;
@@ -79,7 +80,7 @@ random_source_search (HudSource    *hud_source,
 
       result = hud_result_get_if_matched (item, search_tokens, 0);
       if (result)
-        g_ptr_array_add (results_array, result);
+        append_func(result, user_data);
     }
 }
 
