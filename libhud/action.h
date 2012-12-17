@@ -22,10 +22,14 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
+#if !defined (_HUD_H_INSIDE) && !defined (HUD_COMPILATION)
+#error "Only <hud.h> can be included directly."
+#endif
+
 #ifndef __HUD_ACTION_H__
 #define __HUD_ACTION_H__
 
-#include "hudoperation.h"
+#include "operation.h"
 
 G_BEGIN_DECLS
 
