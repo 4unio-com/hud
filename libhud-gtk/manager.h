@@ -25,7 +25,35 @@
 #ifndef __HUD_GTK_MANAGER_H__
 #define __HUD_GTK_MANAGER_H__
 
-#include <glib.h>
+#include <gtk/gtk.h>
 #include <hud.h>
+
+G_BEGIN_DECLS
+
+#define HUD_GTK_TYPE_MANAGER            (hud_gtk_manager_get_type ())
+#define HUD_GTK_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), HUD_GTK_TYPE_MANAGER, HudGtkManager))
+#define HUD_GTK_MANAGER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), HUD_GTK_TYPE_MANAGER, HudGtkManagerClass))
+#define HUD_GTK_IS_MANAGER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HUD_GTK_TYPE_MANAGER))
+#define HUD_GTK_IS_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HUD_GTK_TYPE_MANAGER))
+#define HUD_GTK_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_GTK_TYPE_MANAGER, HudGtkManagerClass))
+
+typedef struct _HudGtkManager         HudGtkManager;
+typedef struct _HudGtkManagerClass    HudGtkManagerClass;
+typedef struct _HudGtkManagerPrivate  HudGtkManagerPrivate;
+
+struct _HudGtkManagerClass {
+	HudManagerClass parent_class;
+};
+
+struct _HudGtkManager {
+	HudManager parent;
+	HudGtkManagerPrivate * priv;
+};
+
+GType hud_gtk_manager_get_type (void);
+
+HudGtkManager *    hud_gtk_manager_new     (GtkApplication * app);
+
+G_END_DECLS
 
 #endif /* __HUD_GTK_MANAGER_H__ */
