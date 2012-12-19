@@ -36,10 +36,19 @@ struct _HudManagerPrivate {
 #define HUD_MANAGER_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_TYPE_MANAGER, HudManagerPrivate))
 
+enum {
+	PROP_0 = 0,
+	PROP_APP_ID,
+	PROP_APPLICATION,
+};
+
 static void hud_manager_class_init (HudManagerClass *klass);
 static void hud_manager_init       (HudManager *self);
 static void hud_manager_dispose    (GObject *object);
 static void hud_manager_finalize   (GObject *object);
+static void set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec);
+static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec);
+
 
 G_DEFINE_TYPE (HudManager, hud_manager, G_TYPE_OBJECT);
 
@@ -53,6 +62,20 @@ hud_manager_class_init (HudManagerClass *klass)
 
 	object_class->dispose = hud_manager_dispose;
 	object_class->finalize = hud_manager_finalize;
+	object_class->set_property = set_property;
+	object_class->get_property = get_property;
+
+	g_object_class_install_property (object_class, PROP_APP_ID,
+	                                 g_param_spec_string(HUD_MANAGER_PROP_APP_ID, "ID for the application, typically the desktop file name",
+	                                              "A unique identifier for the application.  Usually this aligns with the desktop file name or package name of the app.",
+	                                              NULL,
+	                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property (object_class, PROP_APPLICATION,
+	                                 g_param_spec_object(HUD_MANAGER_PROP_APPLICATION, "Instance of #GApplication if used for this application",
+	                                              "GApplication object",
+	                                              G_TYPE_APPLICATION,
+	                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	return;
 }
@@ -86,6 +109,53 @@ hud_manager_finalize (GObject *object)
 	g_clear_pointer(&manager->priv->application_id, g_free);
 
 	G_OBJECT_CLASS (hud_manager_parent_class)->finalize (object);
+	return;
+}
+
+/* Standard setting of props */
+static void
+set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
+{
+	HudManager * manager = HUD_MANAGER(obj);
+
+	switch (id) {
+	case PROP_APP_ID:
+		g_clear_pointer(&manager->priv->application_id, g_free);
+		manager->priv->application_id = g_value_dup_string(value);
+		break;
+	case PROP_APPLICATION:
+		g_clear_object(&manager->priv->application);
+		g_clear_pointer(&manager->priv->application_id, g_free);
+
+		manager->priv->application = g_value_dup_object(value);
+		manager->priv->application_id = g_strdup(g_application_get_application_id(manager->priv->application));
+		break;
+	default:
+		g_warning("Unknown property %d.", id);
+		return;
+	}
+
+	return;
+}
+
+/* Standard getting of props */
+static void
+get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
+{
+	HudManager * manager = HUD_MANAGER(obj);
+
+	switch (id) {
+	case PROP_APP_ID:
+		g_value_set_string(value, manager->priv->application_id);
+		break;
+	case PROP_APPLICATION:
+		g_value_set_object(value, manager->priv->application);
+		break;
+	default:
+		g_warning("Unknown property %d.", id);
+		return;
+	}
+
 	return;
 }
 
