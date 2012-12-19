@@ -52,7 +52,9 @@ struct _HudGtkManager {
 
 GType hud_gtk_manager_get_type (void);
 
-HudGtkManager *    hud_gtk_manager_new     (GtkApplication * app);
+HudGtkManager *         hud_gtk_manager_new               (GtkApplication *  app);
+HudActionPublisher *    hud_gtk_manager_get_publisher     (HudGtkManager *   manager,
+                                                           GVariant *        id);
 
 G_END_DECLS
 
