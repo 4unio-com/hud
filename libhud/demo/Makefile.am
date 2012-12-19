@@ -1,4 +1,4 @@
-noinst_PROGRAMS = gimp consumer
+check_PROGRAMS = gimp consumer
 
 gimp_CFLAGS = $(HUD_CFLAGS) -I$(top_srcdir) -I$(top_srcdir)/libhud
 gimp_LDADD = $(top_builddir)/libhud/libhud.la $(HUD_LIBS)
