@@ -120,8 +120,12 @@ set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
 
 	switch (id) {
 	case PROP_APP_ID:
-		g_clear_pointer(&manager->priv->application_id, g_free);
-		manager->priv->application_id = g_value_dup_string(value);
+		if (manager->priv->application == NULL) {
+			g_clear_pointer(&manager->priv->application_id, g_free);
+			manager->priv->application_id = g_value_dup_string(value);
+		} else {
+			g_warning("Application ID being set on HUD Manager already initialized with a GApplication");
+		}
 		break;
 	case PROP_APPLICATION:
 		g_clear_object(&manager->priv->application);
