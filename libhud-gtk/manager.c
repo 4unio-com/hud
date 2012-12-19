@@ -31,7 +31,8 @@
 #include <gdk/gdkx.h>
 
 struct _HudGtkManagerPrivate {
-	GtkApplication * app;
+	/* We'll need this later */
+	int dummy;
 };
 
 #define HUD_GTK_MANAGER_GET_PRIVATE(o) \
@@ -39,8 +40,11 @@ struct _HudGtkManagerPrivate {
 
 static void hud_gtk_manager_class_init (HudGtkManagerClass *klass);
 static void hud_gtk_manager_init       (HudGtkManager *self);
+static void hud_gtk_manager_constructed (GObject *object);
 static void hud_gtk_manager_dispose    (GObject *object);
 static void hud_gtk_manager_finalize   (GObject *object);
+static void window_added (GApplication *application, gpointer window, gpointer user_data);
+static void window_removed (GApplication *application, gpointer window, gpointer user_data);
 
 G_DEFINE_TYPE (HudGtkManager, hud_gtk_manager, HUD_TYPE_MANAGER);
 
@@ -52,6 +56,7 @@ hud_gtk_manager_class_init (HudGtkManagerClass *klass)
 
 	g_type_class_add_private (klass, sizeof (HudGtkManagerPrivate));
 
+	object_class->constructed = hud_gtk_manager_constructed;
 	object_class->dispose = hud_gtk_manager_dispose;
 	object_class->finalize = hud_gtk_manager_finalize;
 
@@ -66,13 +71,30 @@ hud_gtk_manager_init (HudGtkManager *self)
 	return;
 }
 
+/* Get all our vars and start building! */
+static void
+hud_gtk_manager_constructed (GObject *object)
+{
+	GtkApplication * app = NULL;
+
+	g_object_get(object,
+	             HUD_MANAGER_PROP_APPLICATION, &app,
+	             NULL);
+
+	g_return_if_fail(GTK_IS_APPLICATION(app));
+
+	g_signal_connect (app, "window-added",
+	                  G_CALLBACK (window_added), object);
+	g_signal_connect (app, "window-removed",
+	                  G_CALLBACK (window_removed), object);
+
+	return;
+}
+
 /* Clean up refs */
 static void
 hud_gtk_manager_dispose (GObject *object)
 {
-	HudGtkManager * self = HUD_GTK_MANAGER(object);
-
-	g_clear_object(&self->priv->app);
 
 	G_OBJECT_CLASS (hud_gtk_manager_parent_class)->dispose (object);
 	return;
@@ -217,16 +239,9 @@ hud_gtk_manager_new (GtkApplication * app)
 {
 	g_return_val_if_fail(GTK_IS_APPLICATION(app), NULL);
 
-	HudGtkManager * self = g_object_new(HUD_GTK_TYPE_MANAGER, NULL);
-
-	self->priv->app = g_object_ref(G_OBJECT(app));
-
-	g_signal_connect (app, "window-added",
-	                  G_CALLBACK (window_added), self);
-	g_signal_connect (app, "window-removed",
-	                  G_CALLBACK (window_removed), self);
-
-	return self;
+	return g_object_new(HUD_GTK_TYPE_MANAGER,
+	                    HUD_MANAGER_PROP_APPLICATION, app,
+	                    NULL);
 }
 
 /**
