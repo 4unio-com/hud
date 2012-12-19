@@ -22,15 +22,18 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "manager.h"
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
+#include "manager.h"
+#include "action-publisher.h"
+
 struct _HudManagerPrivate {
 	gchar * application_id;
+
 	GApplication * application;
+	HudActionPublisher * app_pub;
 };
 
 #define HUD_MANAGER_GET_PRIVATE(o) \
@@ -44,6 +47,7 @@ enum {
 
 static void hud_manager_class_init (HudManagerClass *klass);
 static void hud_manager_init       (HudManager *self);
+static void hud_manager_constructed (GObject *object);
 static void hud_manager_dispose    (GObject *object);
 static void hud_manager_finalize   (GObject *object);
 static void set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec);
@@ -60,6 +64,7 @@ hud_manager_class_init (HudManagerClass *klass)
 
 	g_type_class_add_private (klass, sizeof (HudManagerPrivate));
 
+	object_class->constructed = hud_manager_constructed;
 	object_class->dispose = hud_manager_dispose;
 	object_class->finalize = hud_manager_finalize;
 	object_class->set_property = set_property;
@@ -88,12 +93,29 @@ hud_manager_init (HudManager *self)
 	return;
 }
 
+/* Construct the object */
+static void
+hud_manager_constructed (GObject * object)
+{
+	HudManager * manager = HUD_MANAGER(object);
+
+	if (manager->priv->application) {
+		manager->priv->app_pub = hud_action_publisher_new_for_id(NULL);
+
+		hud_action_publisher_add_action_group(manager->priv->app_pub, "app", NULL, g_application_get_dbus_object_path (manager->priv->application));
+		hud_manager_add_actions(manager, manager->priv->app_pub);
+	}
+
+	return;
+}
+
 /* Clean up refs */
 static void
 hud_manager_dispose (GObject *object)
 {
 	HudManager * manager = HUD_MANAGER(object);
 
+	g_clear_object(&manager->priv->app_pub);
 	g_clear_object(&manager->priv->application);
 
 	G_OBJECT_CLASS (hud_manager_parent_class)->dispose (object);
