@@ -30,6 +30,7 @@
 #include <libhud/operation.h>
 #include <libhud/action.h>
 #include <libhud/action-publisher.h>
+#include <libhud/manager.h>
 
 #undef _HUD_H_INSIDE
 
