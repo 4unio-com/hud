@@ -24,6 +24,7 @@
 
 #include <libbamf/libbamf.h>
 #include <gio/gio.h>
+#include <string.h>
 
 /**
  * SECTION:hudmenumodelcollector
@@ -242,6 +243,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
                     HudMenuModelContext   *context,
                     const gchar           *label,
                     const gchar           *action_name,
+                    const gchar           *accel,
                     GVariant              *target)
 {
   HudModelItem *item;
@@ -282,7 +284,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
 
   full_label = hud_menu_model_context_get_label (context, label);
 
-  item = hud_item_construct (hud_model_item_get_type (), full_label, collector->desktop_file, collector->icon, TRUE);
+  item = hud_item_construct (hud_model_item_get_type (), full_label, accel, collector->desktop_file, collector->icon, TRUE);
   item->group = g_object_ref (group);
   item->action_name = g_strdup (stripped_action_name);
   item->target = target ? g_variant_ref_sink (target) : NULL;
@@ -348,6 +350,53 @@ hud_menu_model_collector_context_quark ()
   return context_quark;
 }
 
+/* Function to convert from the GMenu format for the accel to something
+   usable by humans. */
+static gchar *
+format_accel_for_users (gchar * accel)
+{
+	if (accel == NULL) {
+		return NULL;
+	}
+
+	GString * output = g_string_new("");
+	gchar * head = accel;
+
+	/* YEAH! String parsing, always my favorite. */
+	while (head[0] != '\0') {
+		if (head[0] == '<') {
+			/* We're in modifier land */
+			if (strncmp(head, "<Alt>", strlen("<Alt>")) == 0) {
+				g_string_append(output, "Alt + ");
+				head += strlen("<Alt>");
+			} else if (strncmp(head, "<Primary>", strlen("<Primary>")) == 0) {
+				g_string_append(output, "Ctrl + ");
+				head += strlen("<Primary>");
+			} else if (strncmp(head, "<Control>", strlen("<Control>")) == 0) {
+				g_string_append(output, "Ctrl + ");
+				head += strlen("<Control>");
+			} else if (strncmp(head, "<Shift>", strlen("<Shift>")) == 0) {
+				g_string_append(output, "Shift + ");
+				head += strlen("<Shift>");
+			} else if (strncmp(head, "<Super>", strlen("<Super>")) == 0) {
+				g_string_append(output, "Super + ");
+				head += strlen("<Super>");
+			} else {
+				/* Go to the close of the modifier */
+				head = g_strstr_len(head, -1, ">") + 1;
+			}
+			continue;
+		}
+
+		g_string_append(output, head);
+		break;
+	}
+
+	g_free(accel);
+
+	return g_string_free(output, FALSE);
+}
+
 static void
 hud_menu_model_collector_model_changed (GMenuModel *model,
                                         gint        position,
@@ -385,10 +434,15 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       gchar *label = NULL;
       gchar *action_namespace = NULL;
       gchar *action = NULL;
+      gchar *accel = NULL;
+
 
       g_menu_model_get_item_attribute (model, i, "action-namespace", "s", &action_namespace);
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_ACTION, "s", &action);
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_LABEL, "s", &label);
+      g_menu_model_get_item_attribute (model, i, "accel", "s", &accel);
+
+      accel = format_accel_for_users(accel);
 
       /* Check if this is an action.  Here's where we may end up
        * creating a HudItem.
@@ -400,7 +454,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
 
           target = g_menu_model_get_item_attribute_value (model, i, G_MENU_ATTRIBUTE_TARGET, NULL);
 
-          item = hud_model_item_new (collector, context, label, action, target);
+          item = hud_model_item_new (collector, context, label, action, accel, target);
 
           if (item)
             g_ptr_array_add (collector->items, item);
@@ -430,6 +484,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_free (action_namespace);
       g_free (action);
       g_free (label);
+      g_free (accel);
     }
 
   if (changed)
@@ -650,9 +705,11 @@ hud_menu_model_collector_get (BamfWindow  *window,
 
   unique_bus_name = bamf_window_get_utf8_prop (window, "_GTK_UNIQUE_BUS_NAME");
 
-  if (!unique_bus_name)
+  if (!unique_bus_name) {
     /* If this isn't set, we won't get very far... */
+    g_object_unref(session);
     return NULL;
+  }
 
   collector = g_object_new (HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
   collector->session = session;
@@ -735,14 +792,13 @@ hud_menu_model_collector_new_for_endpoint (const gchar *application_id,
                                            const gchar *object_path)
 {
   HudMenuModelCollector *collector;
-  GDBusConnection *session;
 
   collector = g_object_new (HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
 
-  session = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
+  collector->session = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
 
-  collector->app_menu = g_dbus_menu_model_get (session, bus_name, object_path);
-  collector->application = g_dbus_action_group_get (session, bus_name, object_path);
+  collector->app_menu = g_dbus_menu_model_get (collector->session, bus_name, object_path);
+  collector->application = g_dbus_action_group_get (collector->session, bus_name, object_path);
 
   collector->is_application = FALSE;
   collector->prefix = g_strdup (prefix);
@@ -751,8 +807,6 @@ hud_menu_model_collector_new_for_endpoint (const gchar *application_id,
   collector->penalty = penalty;
 
   hud_menu_model_collector_add_model (collector, G_MENU_MODEL (collector->app_menu), NULL, NULL, prefix);
-
-  g_object_unref (session);
 
   return collector;
 }

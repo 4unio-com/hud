@@ -155,6 +155,50 @@ hud_dbusmenu_item_get_label_property (const gchar *type)
   return g_hash_table_lookup (property_hash, type);
 }
 
+/* Check to see if a Dbusmenu Menuitem has a shortcut, and if
+   so make it into a pretty string. */
+static gchar *
+shortcut_string_for_menuitem (DbusmenuMenuitem * mi)
+{
+	if (!dbusmenu_menuitem_property_exist(mi, DBUSMENU_MENUITEM_PROP_SHORTCUT)) {
+		return NULL;
+	}
+
+	GVariant * shortcut = dbusmenu_menuitem_property_get_variant(mi, DBUSMENU_MENUITEM_PROP_SHORTCUT);
+	GString * output = g_string_new("");
+	gint keypress = 0;
+
+	for (keypress = 0; keypress < g_variant_n_children(shortcut); keypress++) {
+		GVariant * key = g_variant_get_child_value(shortcut, keypress);
+
+		if (output->len > 0) {
+			g_string_append(output, ", ");
+		}
+
+		int subkey = 0;
+		for (subkey = 0; subkey < g_variant_n_children(key); subkey++) {
+			GVariant * skeyv = g_variant_get_child_value(key, subkey);
+			const gchar * button = g_variant_get_string(skeyv, NULL);
+			g_variant_unref(skeyv); /* We can do this because we know it's parent is held, and this makes things a bit cleaner further down */
+
+			if (g_strcmp0(button, DBUSMENU_MENUITEM_SHORTCUT_ALT) == 0) {
+				g_string_append(output, "Alt + ");
+			} else if (g_strcmp0(button, DBUSMENU_MENUITEM_SHORTCUT_CONTROL) == 0) {
+				g_string_append(output, "Ctrl + ");
+			} else if (g_strcmp0(button, DBUSMENU_MENUITEM_SHORTCUT_SHIFT) == 0) {
+				g_string_append(output, "Shift + ");
+			} else if (g_strcmp0(button, DBUSMENU_MENUITEM_SHORTCUT_SUPER) == 0) {
+				g_string_append(output, "Super + "); /* TODO: Can we detect if this is Apple or Windows or Ubuntu? */
+			} else {
+				g_string_append(output, button);
+			}
+		}
+
+		g_variant_unref(key);
+	}
+
+	return g_string_free(output, FALSE);
+}
 
 static HudDbusmenuItem *
 hud_dbusmenu_item_new (HudStringList    *context,
@@ -166,10 +210,12 @@ hud_dbusmenu_item_new (HudStringList    *context,
   HudDbusmenuItem *item;
   const gchar *type;
   const gchar *prop;
+  gchar *shortcut;
   gboolean enabled;
 
   type = dbusmenu_menuitem_property_get (menuitem, DBUSMENU_MENUITEM_PROP_TYPE);
   prop = hud_dbusmenu_item_get_label_property (type);
+  shortcut = shortcut_string_for_menuitem(menuitem);
 
   if (prop && dbusmenu_menuitem_property_exist (menuitem, prop))
     {
@@ -196,10 +242,11 @@ hud_dbusmenu_item_new (HudStringList    *context,
   if (enabled)
     enabled &= !dbusmenu_menuitem_property_exist (menuitem, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY);
 
-  item = hud_item_construct (hud_dbusmenu_item_get_type (), tokens, desktop_file, icon, enabled);
+  item = hud_item_construct (hud_dbusmenu_item_get_type (), tokens, shortcut, desktop_file, icon, enabled);
   item->menuitem = g_object_ref (menuitem);
 
   hud_string_list_unref (tokens);
+  g_free(shortcut);
 
   return item;
 }
