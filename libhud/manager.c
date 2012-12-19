@@ -24,6 +24,64 @@
 
 #include "manager.h"
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+struct _HudManagerPrivate {
+	int dummy;
+};
+
+#define HUD_MANAGER_GET_PRIVATE(o) \
+(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_TYPE_MANAGER, HudManagerPrivate))
+
+static void hud_manager_class_init (HudManagerClass *klass);
+static void hud_manager_init       (HudManager *self);
+static void hud_manager_dispose    (GObject *object);
+static void hud_manager_finalize   (GObject *object);
+
+G_DEFINE_TYPE (HudManager, hud_manager, G_TYPE_OBJECT);
+
+/* Initialize Class */
+static void
+hud_manager_class_init (HudManagerClass *klass)
+{
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+	g_type_class_add_private (klass, sizeof (HudManagerPrivate));
+
+	object_class->dispose = hud_manager_dispose;
+	object_class->finalize = hud_manager_finalize;
+
+	return;
+}
+
+/* Initialize Instance */
+static void
+hud_manager_init (HudManager *self)
+{
+
+	return;
+}
+
+/* Clean up refs */
+static void
+hud_manager_dispose (GObject *object)
+{
+
+	G_OBJECT_CLASS (hud_manager_parent_class)->dispose (object);
+	return;
+}
+
+/* Free Memory */
+static void
+hud_manager_finalize (GObject *object)
+{
+
+	G_OBJECT_CLASS (hud_manager_parent_class)->finalize (object);
+	return;
+}
+
 void
 hud_manager_say_hello (const gchar *application_id,
                        const gchar *description_path)
