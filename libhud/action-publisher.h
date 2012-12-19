@@ -50,7 +50,7 @@ typedef struct _HudActionPublisher                          HudActionPublisher;
 
 GType                   hud_action_publisher_get_type                   (void) G_GNUC_CONST;
 
-HudActionPublisher *    hud_action_publisher_new_for_application        (GApplication          *application);
+HudActionPublisher *    hud_action_publisher_new_for_id                 (GVariant              *id);
 
 void                    hud_action_publisher_add_action_description     (HudActionPublisher    *publisher,
                                                                          HudActionDescription  *description);

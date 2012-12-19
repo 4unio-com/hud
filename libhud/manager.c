@@ -29,7 +29,8 @@
 #endif
 
 struct _HudManagerPrivate {
-	int dummy;
+	gchar * application_id;
+	GApplication * application;
 };
 
 #define HUD_MANAGER_GET_PRIVATE(o) \
@@ -68,6 +69,9 @@ hud_manager_init (HudManager *self)
 static void
 hud_manager_dispose (GObject *object)
 {
+	HudManager * manager = HUD_MANAGER(object);
+
+	g_clear_object(&manager->priv->application);
 
 	G_OBJECT_CLASS (hud_manager_parent_class)->dispose (object);
 	return;
@@ -77,6 +81,9 @@ hud_manager_dispose (GObject *object)
 static void
 hud_manager_finalize (GObject *object)
 {
+	HudManager * manager = HUD_MANAGER(object);
+
+	g_clear_pointer(&manager->priv->application_id, g_free);
 
 	G_OBJECT_CLASS (hud_manager_parent_class)->finalize (object);
 	return;
@@ -95,13 +102,35 @@ hud_manager_new (const gchar * application_id)
 {
 	g_return_val_if_fail(application_id != NULL, NULL);
 
-	return g_object_new(HUD_TYPE_MANAGER, NULL);
+	return g_object_new(HUD_TYPE_MANAGER,
+	                    HUD_MANAGER_PROP_APP_ID, application_id,
+	                    NULL);
 }
+
+/**
+ * hud_manager_new_for_application:
+ * @application: #GApplication that we can use to get the ID and some actions from
+ *
+ * Creates a new #HudManager object using the application ID in th
+ * @application object.  Also exports the default actions there in
+ * the "app" namespace.
+ *
+ * Return value: (transfer full): New #HudManager
+ */
+HudManager *
+hud_manager_new_for_application (GApplication * application)
+{
+	g_return_val_if_fail(G_IS_APPLICATION(application), NULL);
+
+	return g_object_new(HUD_TYPE_MANAGER,
+	                    HUD_MANAGER_PROP_APPLICATION, application,
+	                    NULL);
+}
+
 
 /**
  * hud_manager_add_actions:
  * @manager: A #HudManager object
- * @id: (allow none): Identifier of the user object where these actions are
  * @pub: Action publisher object tracking the descriptions and action groups
  *
  * Sets up a set of actions and descriptions for a specific user
@@ -109,7 +138,7 @@ hud_manager_new (const gchar * application_id)
  * application works.
  */
 void
-hud_manager_add_actions (HudManager * manager, GVariant * id, HudActionPublisher * pub)
+hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 {
 	g_return_if_fail(HUD_IS_MANAGER(manager));
 
