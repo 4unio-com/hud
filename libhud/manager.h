@@ -27,6 +27,8 @@
 
 #include <glib-object.h>
 
+#include "action-publisher.h"
+
 G_BEGIN_DECLS
 
 #define HUD_TYPE_MANAGER            (hud_manager_get_type ())
@@ -51,19 +53,14 @@ struct _HudManager {
 
 GType                   hud_manager_get_type                            (void);
 
-void                    hud_manager_say_hello                           (const gchar *application_id,
-                                                                         const gchar *description_path);
+HudManager *            hud_manager_new                                 (const gchar * application_id);
 
-void                    hud_manager_say_goodbye                         (const gchar *application_id);
+void                    hud_manager_add_actions                         (HudManager * manager,
+                                                                         GVariant * id,
+                                                                         HudActionPublisher * pub);
 
-void                    hud_manager_add_actions                         (const gchar *application_id,
-                                                                         const gchar *prefix,
-                                                                         GVariant    *identifier,
-                                                                         const gchar *object_path);
-
-void                    hud_manager_remove_actions                      (const gchar *application_id,
-                                                                         const gchar *prefix,
-                                                                         GVariant    *identifier);
+void                    hud_manager_remove_actions                      (HudManager * manager,
+                                                                         HudActionPublisher * pub);
 
 G_END_DECLS
 

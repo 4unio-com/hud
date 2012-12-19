@@ -82,58 +82,53 @@ hud_manager_finalize (GObject *object)
 	return;
 }
 
-void
-hud_manager_say_hello (const gchar *application_id,
-                       const gchar *description_path)
+/**
+ * hud_manager_new:
+ * @application_id: Unique identifier of the application, usually desktop file name
+ *
+ * Creates a new #HudManager object.
+ *
+ * Return value: (transfer full): New #HudManager
+ */
+HudManager *
+hud_manager_new (const gchar * application_id)
 {
-  g_message ("Application '%s' describes actions at '%s'", application_id, description_path);
+	g_return_val_if_fail(application_id != NULL, NULL);
+
+	return g_object_new(HUD_TYPE_MANAGER, NULL);
 }
 
+/**
+ * hud_manager_add_actions:
+ * @manager: A #HudManager object
+ * @id: (allow none): Identifier of the user object where these actions are
+ * @pub: Action publisher object tracking the descriptions and action groups
+ *
+ * Sets up a set of actions and descriptions for a specific user
+ * context.  This could be a window or a tab, depending on how the
+ * application works.
+ */
 void
-hud_manager_say_goodbye (const gchar *application_id)
+hud_manager_add_actions (HudManager * manager, GVariant * id, HudActionPublisher * pub)
 {
-  g_message ("Application '%s' is removing its action descriptions", application_id);
+	g_return_if_fail(HUD_IS_MANAGER(manager));
+
+	return;
 }
 
+/**
+ * hud_manager_remove_actions:
+ * @manager: A #HudManager object
+ * @pub: Action publisher object tracking the descriptions and action groups
+ *
+ * Removes actions for being watched by the HUD.  Should be done when the object
+ * is remove.  Does not require @pub to be a valid object so it can be used
+ * with weak pointer style destroy.
+ */
 void
-hud_manager_add_actions (const gchar *application_id,
-                         const gchar *prefix,
-                         GVariant    *identifier,
-                         const gchar *object_path)
+hud_manager_remove_actions (HudManager * manager, HudActionPublisher * pub)
 {
-  gchar *identifier_str;
+	g_return_if_fail(HUD_IS_MANAGER(manager));
 
-  if (identifier)
-    {
-      identifier_str = g_variant_print (g_variant_ref_sink (identifier), TRUE);
-      g_variant_unref (identifier);
-    }
-  else
-    identifier_str = g_strdup ("(nil)");
-
-  g_message ("Application '%s' has '%s' (identifier '%s') actions at '%s'",
-             application_id, prefix, identifier_str, object_path);
-
-  g_free (identifier_str);
-}
-
-void
-hud_manager_remove_actions (const gchar *application_id,
-                            const gchar *prefix,
-                            GVariant    *identifier)
-{
-  gchar *identifier_str;
-
-  if (identifier)
-    {
-      identifier_str = g_variant_print (g_variant_ref_sink (identifier), TRUE);
-      g_variant_unref (identifier);
-    }
-  else
-    identifier_str = g_strdup ("(nil)");
-
-  g_message ("Application '%s' drops '%s' (identifier '%s') actions",
-             application_id, prefix, identifier_str);
-
-  g_free (identifier_str);
+	return;
 }
