@@ -28,12 +28,19 @@
 
 #include "manager.h"
 #include "action-publisher.h"
+#include "service-iface.h"
+#include "app-iface.h"
 
 struct _HudManagerPrivate {
 	gchar * application_id;
 
 	GApplication * application;
 	HudActionPublisher * app_pub;
+
+	GCancellable * connection_cancel;
+	GDBusConnection * session;
+	_HudServiceComCanonicalHud * service_proxy;
+	_HudAppIfaceComCanonicalHudApplication * app_proxy;
 };
 
 #define HUD_MANAGER_GET_PRIVATE(o) \
@@ -52,7 +59,7 @@ static void hud_manager_dispose    (GObject *object);
 static void hud_manager_finalize   (GObject *object);
 static void set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec);
 static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec);
-
+static void bus_get_cb (GObject * obj, GAsyncResult * res, gpointer user_data);
 
 G_DEFINE_TYPE (HudManager, hud_manager, G_TYPE_OBJECT);
 
@@ -89,6 +96,12 @@ hud_manager_class_init (HudManagerClass *klass)
 static void
 hud_manager_init (HudManager *self)
 {
+	self->priv->connection_cancel = g_cancellable_new();
+
+	g_bus_get(G_BUS_TYPE_SESSION,
+	          self->priv->connection_cancel,
+	          bus_get_cb,
+	          self);
 
 	return;
 }
@@ -114,6 +127,15 @@ static void
 hud_manager_dispose (GObject *object)
 {
 	HudManager * manager = HUD_MANAGER(object);
+
+	if (manager->priv->connection_cancel) {
+		g_cancellable_cancel(manager->priv->connection_cancel);
+		g_clear_object(&manager->priv->connection_cancel);
+	}
+
+	g_clear_object(&manager->priv->session);
+	g_clear_object(&manager->priv->service_proxy);
+	g_clear_object(&manager->priv->app_proxy);
 
 	g_clear_object(&manager->priv->app_pub);
 	g_clear_object(&manager->priv->application);
@@ -181,6 +203,109 @@ get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
 		g_warning("Unknown property %d.", id);
 		return;
 	}
+
+	return;
+}
+
+/* Application proxy callback */
+static void
+application_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
+{
+	GError * error = NULL;
+	_HudAppIfaceComCanonicalHudApplication * proxy = _hud_app_iface_com_canonical_hud_application_proxy_new_finish(res, &error);
+
+	if (error != NULL) {
+		g_error("Unable to get app proxy: %s", error->message);
+		g_error_free(error);
+		return;
+	}
+
+	HudManager * manager = HUD_MANAGER(user_data);
+	manager->priv->app_proxy = proxy;
+
+	return;
+}
+
+/* Callback from getting the HUD service proxy */
+static void
+register_app_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
+{
+	GError * error = NULL;
+	gchar * object = NULL;
+
+	_hud_service_com_canonical_hud_call_register_application_finish ((_HudServiceComCanonicalHud *)obj,
+		&object,
+		res,
+		&error);
+
+	if (error != NULL) {
+		g_error("Unable to register app: %s", error->message);
+		g_error_free(error);
+		return;
+	}
+
+	HudManager * manager = HUD_MANAGER(user_data);
+	_hud_app_iface_com_canonical_hud_application_proxy_new(manager->priv->session,
+		G_DBUS_PROXY_FLAGS_NONE,
+		"com.canonical.hud",
+		object,
+		manager->priv->connection_cancel,
+		application_proxy_cb,
+		manager);
+
+	g_free(object);
+
+	return;
+}
+
+/* Callback from getting the HUD service proxy */
+static void
+service_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
+{
+	GError * error = NULL;
+	_HudServiceComCanonicalHud * proxy = _hud_service_com_canonical_hud_proxy_new_finish(res, &error);
+
+	if (error != NULL) {
+		g_error("Unable to get session bus: %s", error->message);
+		g_error_free(error);
+		return;
+	}
+
+	HudManager * manager = HUD_MANAGER(user_data);
+	manager->priv->service_proxy = proxy;
+
+	_hud_service_com_canonical_hud_call_register_application(proxy,
+		manager->priv->application_id,
+		manager->priv->connection_cancel,
+		register_app_cb,
+		manager);
+
+	return;
+}
+
+/* Callback from getting the session bus */
+static void
+bus_get_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
+{
+	GError * error = NULL;
+	GDBusConnection * con = g_bus_get_finish(res, &error);
+
+	if (error != NULL) {
+		g_error("Unable to get session bus: %s", error->message);
+		g_error_free(error);
+		return;
+	}
+
+	HudManager * manager = HUD_MANAGER(user_data);
+	manager->priv->session = con;
+
+	_hud_service_com_canonical_hud_proxy_new(con,
+	                                         G_DBUS_PROXY_FLAGS_NONE,
+	                                         "com.canonical.hud",
+	                                         "/com/canonical/hud",
+	                                         manager->priv->connection_cancel,
+	                                         service_proxy_cb,
+	                                         manager);
 
 	return;
 }
