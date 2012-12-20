@@ -10,5 +10,7 @@
 	 "shortcut": [["Control", "X"], ["Control", "W"]]},
 	{"id": 4,
 	 "label": "Close",
-	 "shortcut": [["Super", "W"]]}
+	 "shortcut": [["Super", "W"]]},
+	{"id": 5,
+	 "label": "Nothing"}
 ]}

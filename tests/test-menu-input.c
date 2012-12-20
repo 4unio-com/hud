@@ -169,6 +169,7 @@ struct {
 	{.label = "Quiter",    .shortcut = "Ctrl + Alt + Q",      .model_support = TRUE},
 	{.label = "Emacs",     .shortcut = "Ctrl + X, Ctrl + W",  .model_support = FALSE},
 	{.label = "Close",     .shortcut = "Super + W",           .model_support = TRUE},
+	{.label = "Nothing",   .shortcut = "",                    .model_support = TRUE},
 	{.label = NULL,        .shortcut = NULL}
 };
 
