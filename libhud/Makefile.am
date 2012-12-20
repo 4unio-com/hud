@@ -1,4 +1,9 @@
 
+CLEANFILES =
+DISTCLEANFILES =
+BUILT_SOURCES =
+EXTRA_DIST =
+
 SUBDIRS = . tests demo
 
 lib_LTLIBRARIES = libhud.la
@@ -23,6 +28,8 @@ libhud_la_SOURCES = \
 	service-iface.c	\
 	manager.h		\
 	manager.c		\
+	marshal.h \
+	marshal.c \
 	operation-private.h	\
 	operation.c		\
 	action.c		\
@@ -47,6 +54,11 @@ libhud_la_LDFLAGS = \
 	-no-undefined \
 	-export-symbols-regex "^[^_].*"
 
+include $(top_srcdir)/Makefile.am.marshal
+
+glib_marshal_list = marshal.list
+glib_marshal_prefix = _hud_marshal
+
 service-iface.c: $(top_srcdir)/data/com.canonical.hud.xml
 	$(AM_V_GEN) gdbus-codegen \
 		--interface-prefix com.canonical.hud. \
@@ -63,13 +75,13 @@ app-iface.c: $(top_srcdir)/data/com.canonical.hud.Application.xml
 		$^
 app-iface.h: app-iface.c
 
-BUILT_SOURCES = \
+BUILT_SOURCES += \
 	app-iface.h \
 	app-iface.c \
 	service-iface.h \
 	service-iface.c
 
-EXTRA_DIST = \
+EXTRA_DIST += \
 	hud.pc.in
 
 pkgconfig_DATA = hud-$(API_VERSION).pc
@@ -83,7 +95,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 		-e "s:\@VERSION\@:$(VERSION):" \
 		$< > $@
 
-CLEANFILES = \
+CLEANFILES += \
 	$(BUILD_SOURCES) \
 	hud-$(API_VERSION).pc
 

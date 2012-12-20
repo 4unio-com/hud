@@ -14,8 +14,6 @@ bin_SCRIPTS = \
 pkglibexec_PROGRAMS = \
 	hud-service
 
-include $(top_srcdir)/Makefile.am.marshal
-
 noinst_LTLIBRARIES = \
 	libhud-service-generated.la \
 	libhud-service.la

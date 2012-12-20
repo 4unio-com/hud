@@ -39,6 +39,9 @@ G_BEGIN_DECLS
 #define HUD_IS_ACTION_PUBLISHER(inst)                       (G_TYPE_CHECK_INSTANCE_TYPE ((inst),                     \
                                                              HUD_TYPE_ACTION_PUBLISHER))
 
+#define HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_ADDED      "action-group-added"
+#define HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_REMOVED    "action-group-removed"
+
 #define HUD_TYPE_ACTION_DESCRIPTION                         (hud_action_description_get_type ())
 #define HUD_ACTION_DESCRIPTION(inst)                        (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
                                                              HUD_TYPE_ACTION_DESCRIPTION, HudActionDescription))

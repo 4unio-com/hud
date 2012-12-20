@@ -25,6 +25,7 @@
 #include "action-publisher.h"
 
 #include "manager.h"
+#include "marshal.h"
 
 #include <string.h>
 
@@ -62,6 +63,8 @@ enum
 {
   SIGNAL_BEFORE_EMIT,
   SIGNAL_AFTER_EMIT,
+  SIGNAL_ACTION_GROUP_ADDED,
+  SIGNAL_ACTION_GROUP_REMOVED,
   N_SIGNALS
 };
 
@@ -198,6 +201,14 @@ hud_action_publisher_class_init (HudActionPublisherClass *class)
                                                                   G_SIGNAL_RUN_LAST, 0, NULL, NULL,
                                                                   g_cclosure_marshal_VOID__VARIANT,
                                                                   G_TYPE_NONE, 1, G_TYPE_VARIANT);
+  hud_action_publisher_signals[SIGNAL_ACTION_GROUP_ADDED] = g_signal_new (HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_ADDED, HUD_TYPE_ACTION_PUBLISHER,
+                                                                  G_SIGNAL_RUN_LAST, 0, NULL, NULL,
+                                                                  _hud_marshal_VOID__STRING_STRING,
+                                                                  G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_STRING);
+  hud_action_publisher_signals[SIGNAL_ACTION_GROUP_REMOVED] = g_signal_new (HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_REMOVED, HUD_TYPE_ACTION_PUBLISHER,
+                                                                  G_SIGNAL_RUN_LAST, 0, NULL, NULL,
+                                                                  _hud_marshal_VOID__STRING_STRING,
+                                                                  G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_STRING);
 }
 
 /**
