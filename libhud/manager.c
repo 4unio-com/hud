@@ -41,6 +41,10 @@ struct _HudManagerPrivate {
 	GDBusConnection * session;
 	_HudServiceComCanonicalHud * service_proxy;
 	_HudAppIfaceComCanonicalHudApplication * app_proxy;
+
+	GList * todo_add;
+	GList * todo_remove;
+	guint todo_idle;
 };
 
 #define HUD_MANAGER_GET_PRIVATE(o) \
@@ -133,6 +137,17 @@ hud_manager_dispose (GObject *object)
 		g_clear_object(&manager->priv->connection_cancel);
 	}
 
+	g_list_free_full(manager->priv->todo_add, g_object_unref);
+	manager->priv->todo_add = NULL;
+
+	g_list_free_full(manager->priv->todo_remove, g_object_unref);
+	manager->priv->todo_remove = NULL;
+
+	if (manager->priv->todo_idle != 0) {
+		g_source_remove(manager->priv->todo_idle);
+		manager->priv->todo_idle = 0;
+	}
+
 	g_clear_object(&manager->priv->session);
 	g_clear_object(&manager->priv->service_proxy);
 	g_clear_object(&manager->priv->app_proxy);
@@ -207,6 +222,15 @@ get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
 	return;
 }
 
+/* Take the todo queues and make them into DBus messages */
+static void
+process_todo_queues (HudManager * manager)
+{
+	/* TODO handle queues */
+
+	return;
+}
+
 /* Application proxy callback */
 static void
 application_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
@@ -224,6 +248,8 @@ application_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	manager->priv->app_proxy = proxy;
 
 	g_clear_object(&manager->priv->connection_cancel);
+
+	process_todo_queues(manager);
 
 	return;
 }
@@ -350,6 +376,18 @@ hud_manager_new_for_application (GApplication * application)
 	                    NULL);
 }
 
+/* Idle handler */
+static gboolean
+todo_handler (gpointer user_data)
+{
+	HudManager * manager = HUD_MANAGER(user_data);
+
+	process_todo_queues(manager);
+
+	manager->priv->todo_idle = 0;
+
+	return FALSE;
+}
 
 /**
  * hud_manager_add_actions:
@@ -364,6 +402,13 @@ void
 hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 {
 	g_return_if_fail(HUD_IS_MANAGER(manager));
+
+	manager->priv->todo_add = g_list_append(manager->priv->todo_add, g_object_ref(pub));
+
+	/* Should be if we're all set up */
+	if (manager->priv->connection_cancel == NULL && manager->priv->todo_idle == 0) {
+		manager->priv->todo_idle = g_idle_add(todo_handler, manager);
+	}
 
 	return;
 }
@@ -381,6 +426,13 @@ void
 hud_manager_remove_actions (HudManager * manager, HudActionPublisher * pub)
 {
 	g_return_if_fail(HUD_IS_MANAGER(manager));
+
+	manager->priv->todo_remove = g_list_append(manager->priv->todo_remove, g_object_ref(pub));
+
+	/* Should be if we're all set up */
+	if (manager->priv->connection_cancel == NULL && manager->priv->todo_idle == 0) {
+		manager->priv->todo_idle = g_idle_add(todo_handler, manager);
+	}
 
 	return;
 }
