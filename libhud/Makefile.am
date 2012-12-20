@@ -22,14 +22,8 @@ libhudinclude_HEADERS = \
 	action-publisher.h
 
 libhud_la_SOURCES = \
-	app-iface.h	\
-	app-iface.c	\
-	service-iface.h	\
-	service-iface.c	\
 	manager.h		\
 	manager.c		\
-	marshal.h \
-	marshal.c \
 	operation-private.h	\
 	operation.c		\
 	action.c		\
@@ -45,7 +39,8 @@ libhud_la_CFLAGS = \
 	-Wall -Werror
 
 libhud_la_LIBADD = \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	libhud-generated.la
 
 libhud_la_LDFLAGS = \
 	$(HUD_LDFLAGS) \
@@ -54,10 +49,37 @@ libhud_la_LDFLAGS = \
 	-no-undefined \
 	-export-symbols-regex "^[^_].*"
 
+#################################
+# Generated Code
+#################################
+
+noinst_LTLIBRARIES = libhud-generated.la
+
+libhud_generated_la_SOURCES = \
+	app-iface.h	\
+	app-iface.c	\
+	service-iface.h	\
+	service-iface.c	\
+	marshal.h \
+	marshal.c
+
+libhud_generated_la_CFLAGS = \
+	$(HUD_CFLAGS)
+
+libhud_generated_la_LIBADD = \
+	$(HUD_LIBS)
+
+libhud_generated_la_LDFLAGS = \
+	$(HUD_LDFLAGS)
+
+# Marshalling
+
 include $(top_srcdir)/Makefile.am.marshal
 
 glib_marshal_list = marshal.list
 glib_marshal_prefix = _hud_marshal
+
+# DBus Ifaces
 
 service-iface.c: $(top_srcdir)/data/com.canonical.hud.xml
 	$(AM_V_GEN) gdbus-codegen \
@@ -80,6 +102,10 @@ BUILT_SOURCES += \
 	app-iface.c \
 	service-iface.h \
 	service-iface.c
+
+#################################
+# Package Config
+#################################
 
 EXTRA_DIST += \
 	hud.pc.in
