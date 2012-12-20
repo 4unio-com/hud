@@ -57,7 +57,7 @@ test_result_highlighting_base (void)
 	
 	search_tokens = hud_token_list_new_from_string ("bar");
 	
-	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
+	item = hud_item_new (item_tokens, NULL, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
 	
@@ -84,7 +84,7 @@ test_result_highlighting_baseutf8 (void)
 	
 	search_tokens = hud_token_list_new_from_string ("ẃêỳᶉ∂");
 	
-	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
+	item = hud_item_new (item_tokens, NULL, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
 	
@@ -113,7 +113,7 @@ test_result_highlighting_extra_keywords (void)
 
   search_tokens = hud_token_list_new_from_string ("plz");
 
-  item = hud_item_new (item_tokens, item_keywords, NULL, NULL, TRUE);
+  item = hud_item_new (item_tokens, item_keywords, NULL, NULL, NULL, TRUE);
 
   HudResult *result = hud_result_new (item, search_tokens, 0);
   g_assert_cmpstr (hud_result_get_html_description (result), ==, "File &gt; Open Tab (Giv Tab <b>Plz</b>)");
@@ -142,7 +142,7 @@ test_result_highlighting_extra_keywords_multiple_hits (void)
 
   search_tokens = hud_token_list_new_from_string ("bro plz");
 
-  item = hud_item_new (item_tokens, item_keywords, NULL, NULL, TRUE);
+  item = hud_item_new (item_tokens, item_keywords, NULL, NULL, NULL, TRUE);
 
   HudResult *result = hud_result_new (item, search_tokens, 0);
   g_assert_cmpstr(hud_result_get_html_description (result), ==, "File &gt; Open Tab (Gimme a Tab <b>Bro</b>; Giv Tab <b>Plz</b>)");
@@ -169,7 +169,7 @@ test_result_highlighting_gt (void)
 	
 	search_tokens = hud_token_list_new_from_string ("gt");
 	
-	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
+	item = hud_item_new (item_tokens, NULL, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
 	g_assert_cmpstr (hud_result_get_html_description (result), ==, "foo &gt; bar &gt; <b>gt</b>");
@@ -194,7 +194,7 @@ test_result_highlighting_apos1 (void)
 
 	search_tokens = hud_token_list_new_from_string ("d'in");
 
-	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
+	item = hud_item_new (item_tokens, NULL, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
 	g_assert_cmpstr (hud_result_get_html_description (result), ==, "<b>d&apos;interes</b> &gt; a");
@@ -219,7 +219,7 @@ test_result_highlighting_apos2 (void)
 
 	search_tokens = hud_token_list_new_from_string ("a");
 
-	item = hud_item_new (item_tokens, NULL, NULL, NULL, TRUE);
+	item = hud_item_new (item_tokens, NULL, NULL, NULL, NULL, TRUE);
 
 	HudResult *result = hud_result_new (item, search_tokens, 0);
 	g_assert_cmpstr (hud_result_get_html_description (result), ==, "d&apos;interes &gt; <b>a</b>");

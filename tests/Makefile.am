@@ -7,6 +7,7 @@ XFAIL_TESTS =
 
 DBUS_RUNNER=dbus-test-runner
 XVFB_RUN=". $(srcdir)/run-xvfb.sh"
+MOCK_JSON_APP=/usr/lib/indicator-appmenu/mock-json-app
 
 EXTRA_DIST += \
 	run-xvfb.sh
@@ -82,6 +83,89 @@ test_result_highlighting_LDADD = \
 DISTCLEANFILES += \
 	$(RESULT_XML_REPORT) \
 	$(RESULT_XML_REPORT:.xml=-xunit.xml)
+
+######################
+# Test Menu Input
+######################
+
+TESTS += \
+	test-menu-input-tester
+
+check_PROGRAMS += \
+	dbusmenu-json-loader \
+	test-menu-input-model-simple \
+	test-menu-input-model-shortcuts \
+	test-menu-input
+
+MENU_INPUT_XML_REPORT = test-menu-input.xml
+
+test-menu-input-tester: test-menu-input dbusmenu-json-loader test-menu-input-model-simple test-menu-input-model-shortcuts Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(MENU_INPUT_XML_REPORT) $(builddir)/test-menu-input >> $@
+	@echo gtester2xunit $(MENU_INPUT_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_menu_input_SOURCES = \
+	test-menu-input.c
+
+test_menu_input_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-D MOCK_JSON_APP=\"$(MOCK_JSON_APP)\" \
+	-D MODEL_SIMPLE=\"$(builddir)/test-menu-input-model-simple\" \
+	-D MODEL_SHORTCUTS=\"$(builddir)/test-menu-input-model-shortcuts\" \
+	-D DBUSMENU_JSON_LOADER=\"$(builddir)/dbusmenu-json-loader\" \
+	-D JSON_SIMPLE=\"$(srcdir)/test-menu-input-simple.json\" \
+	-D JSON_SHORTCUTS=\"$(srcdir)/test-menu-input-shortcuts.json\" \
+	-Wall -Werror
+
+test_menu_input_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
+	$(HUD_LIBS)
+
+dbusmenu_json_loader_SOURCES = \
+	dbusmenu-json-loader.c
+
+dbusmenu_json_loader_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(DBUSMENU_JSON_CFLAGS) \
+	-Wall -Werror
+
+dbusmenu_json_loader_LDADD = \
+	$(DBUSMENU_JSON_LIBS) \
+	$(HUD_LIBS)
+
+test_menu_input_model_simple_SOURCES = \
+	test-menu-input-model-simple.c
+
+test_menu_input_model_simple_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-Wall -Werror
+
+test_menu_input_model_simple_LDADD = \
+	$(HUD_LIBS)
+
+test_menu_input_model_shortcuts_SOURCES = \
+	test-menu-input-model-shortcuts.c
+
+test_menu_input_model_shortcuts_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-Wall -Werror
+
+test_menu_input_model_shortcuts_LDADD = \
+	$(HUD_LIBS)
+
+EXTRA_DIST += \
+	test-menu-input-simple.json \
+	test-menu-input-shortcuts.json
+
+DISTCLEANFILES += \
+	$(MENU_INPUT_XML_REPORT) \
+	$(MENU_INPUT_XML_REPORT:.xml=-xunit.xml)
 
 ######################
 # Test Keyword Mapping
@@ -464,6 +548,7 @@ test-dbus-message-count: test-dbus-message-count.in
 		-e "s|\@top_builddir\@|$(top_builddir)|" \
 		-e "s|\@builddir\@|$(builddir)|" \
 		-e "s|\@srcdir\@|$(srcdir)|" \
+		-e "s|\@mockjsonapp\@|$(MOCK_JSON_APP)|" \
 		$< > $@
 	@chmod +x $@
 

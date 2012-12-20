@@ -60,6 +60,7 @@ struct _HudItemPrivate
   HudStringList *keywords;
   gchar *usage_tag;
   gchar *app_icon;
+  gchar *shortcut;
   gboolean enabled;
   guint usage;
   guint64 id;
@@ -79,6 +80,7 @@ hud_item_finalize (GObject *object)
   g_free (item->priv->desktop_file);
   g_free (item->priv->app_icon);
   g_free (item->priv->usage_tag);
+  g_free (item->priv->shortcut);
 
   G_OBJECT_CLASS (hud_item_parent_class)
     ->finalize (object);
@@ -138,6 +140,7 @@ hud_item_setup_usage (HudItem *item)
  * hud_item_construct:
  * @g_type: a #GType
  * @tokens: the search tokens for the item
+ * @shortcut: Keyboard shortcut for the item
  * @desktop_file: the desktop file of the provider of the item
  * @app_icon: the icon name for the application that created this item
  * @enabled: if the item is enabled
@@ -153,6 +156,7 @@ gpointer
 hud_item_construct (GType          g_type,
                     HudStringList *tokens,
                     HudStringList *keywords,
+                    const gchar   *shortcut,
                     const gchar   *desktop_file,
                     const gchar   *app_icon,
                     gboolean       enabled)
@@ -164,6 +168,7 @@ hud_item_construct (GType          g_type,
   item->priv->keywords = hud_string_list_ref (keywords);
   item->priv->desktop_file = g_strdup (desktop_file);
   item->priv->app_icon = g_strdup (app_icon);
+  item->priv->shortcut = g_strdup (shortcut);
   item->priv->enabled = enabled;
   item->priv->id = hud_item_next_id++;
   item->priv->token_list = hud_token_list_new_from_string_list (tokens, keywords);
@@ -179,6 +184,7 @@ hud_item_construct (GType          g_type,
 /**
  * hud_item_new:
  * @tokens: the search tokens for the item
+ * @shortcut: Keyboard shortcut for the item
  * @desktop_file: the desktop file of the provider of the item
  * @app_icon: the icon name for the application that created this item
  * @enabled: if the item is enabled
@@ -193,11 +199,12 @@ hud_item_construct (GType          g_type,
 HudItem *
 hud_item_new (HudStringList *tokens,
               HudStringList *keywords,
+              const gchar   *shortcut,
               const gchar   *desktop_file,
               const gchar   *app_icon,
               gboolean       enabled)
 {
-  return hud_item_construct (HUD_TYPE_ITEM, tokens, keywords, desktop_file, app_icon, enabled);
+  return hud_item_construct (HUD_TYPE_ITEM, tokens, keywords, shortcut, desktop_file, app_icon, enabled);
 }
 
 /**
@@ -428,6 +435,5 @@ hud_item_get_shortcut (HudItem *item)
 {
 	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
 
-	/* TODO: Track shortcuts */
-	return "";
+	return item->priv->shortcut;
 }
