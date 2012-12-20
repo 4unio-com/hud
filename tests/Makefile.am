@@ -207,6 +207,43 @@ DISTCLEANFILES += \
 	$(KEYWORD_XML_REPORT:.xml=-xunit.xml)
 
 ######################
+# Test String List
+######################
+
+TESTS += \
+	test-string-list-test
+
+check_PROGRAMS += \
+	test-string-list
+
+STRING_LIST_XML_REPORT = test-string-list.xml
+
+test-string-list-test: test-string-list Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(STRING_LIST_XML_REPORT) $(builddir)/test-string-list >> $@
+	@echo gtester2xunit $(STRING_LIST_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_string_list_SOURCES = \
+	test-string-list.c
+
+test_string_list_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_string_list_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS)
+
+DISTCLEANFILES += \
+	$(STRING_LIST_XML_REPORT) \
+	$(STRING_LIST_XML_REPORT:.xml=-xunit.xml)
+
+######################
 # Test Usage DB Simple
 ######################
 
