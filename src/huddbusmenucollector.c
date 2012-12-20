@@ -161,7 +161,7 @@ static gchar *
 shortcut_string_for_menuitem (DbusmenuMenuitem * mi)
 {
 	if (!dbusmenu_menuitem_property_exist(mi, DBUSMENU_MENUITEM_PROP_SHORTCUT)) {
-		return NULL;
+		return g_strdup("");
 	}
 
 	GVariant * shortcut = dbusmenu_menuitem_property_get_variant(mi, DBUSMENU_MENUITEM_PROP_SHORTCUT);

@@ -198,7 +198,7 @@ hud_app_menu_registrar_dbus_signal (GDBusConnection *connection,
       if (!g_variant_is_of_type (parameters, G_VARIANT_TYPE ("(u)")))
         return;
 
-      g_variant_get (parameters, 0, "u", &xid);
+      g_variant_get (parameters, "(u)", &xid);
 
       g_debug ("xid %u disappeared", xid);
 

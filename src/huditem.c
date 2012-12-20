@@ -412,7 +412,7 @@ hud_item_get_context (HudItem *item)
 const gchar *
 hud_item_get_shortcut (HudItem *item)
 {
-	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
+	g_return_val_if_fail(HUD_IS_ITEM(item), "");
 
 	return item->priv->shortcut;
 }
