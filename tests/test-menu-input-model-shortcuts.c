@@ -45,6 +45,9 @@ main (int argv, char ** argc)
 	g_menu_item_set_attribute_value(mi, "accel", g_variant_new_string("<Super>W"));
 	g_menu_append_item(menu, mi);
 
+	mi = g_menu_item_new("Nothing", "nothing");
+	g_menu_append_item(menu, mi);
+
 	GSimpleActionGroup * ag = g_simple_action_group_new();
 	g_simple_action_group_insert(ag, G_ACTION(g_simple_action_new("save", G_VARIANT_TYPE_BOOLEAN)));
 	g_simple_action_group_insert(ag, G_ACTION(g_simple_action_new("quiter", G_VARIANT_TYPE_BOOLEAN)));
