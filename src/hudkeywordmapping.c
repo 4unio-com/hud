@@ -169,7 +169,7 @@ hud_keyword_mapping_load (HudKeywordMapping *self,
   /* Do the main job */
   if (hud_keyword_mapping_load_xml(self, mapping_path) < 0)
   {
-    g_warning("Unable to load %s", mapping_path);
+    g_debug("Unable to load %s", mapping_path);
   }
 
   g_free(basename);
@@ -232,7 +232,7 @@ hud_keyword_mapping_load_xml(HudKeywordMapping* self,
 
   if (g_file_get_contents (filename, &text, &length, NULL ) == FALSE)
   {
-    g_warning("Unable to read XML file \"%s\"", filename);
+    g_debug("Unable to read XML file \"%s\"", filename);
     return (-1);
   }
 
