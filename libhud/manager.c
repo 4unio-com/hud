@@ -223,6 +223,8 @@ application_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	HudManager * manager = HUD_MANAGER(user_data);
 	manager->priv->app_proxy = proxy;
 
+	g_clear_object(&manager->priv->connection_cancel);
+
 	return;
 }
 
