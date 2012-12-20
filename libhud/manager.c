@@ -42,9 +42,11 @@ struct _HudManagerPrivate {
 	_HudServiceComCanonicalHud * service_proxy;
 	_HudAppIfaceComCanonicalHudApplication * app_proxy;
 
-	GList * todo_add;
-	GList * todo_remove;
+	GVariantBuilder * todo_add_acts;
+	GVariantBuilder * todo_add_desc;
 	guint todo_idle;
+
+	GList * publishers;
 };
 
 #define HUD_MANAGER_GET_PRIVATE(o) \
@@ -126,6 +128,27 @@ hud_manager_constructed (GObject * object)
 	return;
 }
 
+/* Clearing out a builder by finishing and freeing the results */
+static void
+variant_builder_dispose (gpointer user_data)
+{
+	if (user_data == NULL) {
+		return;
+	}
+
+	GVariantBuilder * builder;
+	builder = (GVariantBuilder *)user_data;
+
+	GVariant * output;
+	output = g_variant_builder_end(builder);
+
+	g_variant_ref_sink(output);
+	g_variant_unref(output);
+
+	g_variant_builder_unref(builder);
+	return;
+}
+
 /* Clean up refs */
 static void
 hud_manager_dispose (GObject *object)
@@ -137,11 +160,8 @@ hud_manager_dispose (GObject *object)
 		g_clear_object(&manager->priv->connection_cancel);
 	}
 
-	g_list_free_full(manager->priv->todo_add, g_object_unref);
-	manager->priv->todo_add = NULL;
-
-	g_list_free_full(manager->priv->todo_remove, g_object_unref);
-	manager->priv->todo_remove = NULL;
+	g_clear_pointer(&manager->priv->todo_add_acts, variant_builder_dispose);
+	g_clear_pointer(&manager->priv->todo_add_desc, variant_builder_dispose);
 
 	if (manager->priv->todo_idle != 0) {
 		g_source_remove(manager->priv->todo_idle);
@@ -222,11 +242,64 @@ get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
 	return;
 }
 
+/* Callback from adding sources */
+static void
+add_sources_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
+{
+	GError * error = NULL;
+	_hud_app_iface_com_canonical_hud_application_call_add_sources_finish((_HudAppIfaceComCanonicalHudApplication *)obj, res, &error);
+
+	if (error != NULL) {
+		g_error("Unable to add sources: %s", error->message);
+		g_error_free(error);
+
+		/* TODO: Handle error */
+		return;
+	}
+
+	return;
+}
+
 /* Take the todo queues and make them into DBus messages */
 static void
 process_todo_queues (HudManager * manager)
 {
-	/* TODO handle queues */
+	if (manager->priv->todo_add_acts == NULL && manager->priv->todo_add_desc == NULL) {
+		/* Nothing to process */
+		return;
+	}
+
+	GVariant * actions = NULL;
+	GVariant * descriptions = NULL;
+
+	/* Build an actions list */
+	if (manager->priv->todo_add_acts != NULL) {
+		actions = g_variant_builder_end(manager->priv->todo_add_acts);
+		g_variant_builder_unref(manager->priv->todo_add_acts);
+		manager->priv->todo_add_acts = NULL;
+	} else {
+		actions = g_variant_new_array(G_VARIANT_TYPE("(vso)"), NULL, 0);
+	}
+
+	/* Build a descriptions list */
+	if (manager->priv->todo_add_desc != NULL) {
+		descriptions = g_variant_builder_end(manager->priv->todo_add_desc);
+		g_variant_builder_unref(manager->priv->todo_add_desc);
+		manager->priv->todo_add_desc = NULL;
+	} else {
+		descriptions = g_variant_new_array(G_VARIANT_TYPE("(vo)"), NULL, 0);
+	}
+
+	/* Should never happen, but let's get useful error messages if it does */
+	g_return_if_fail(actions != NULL);
+	g_return_if_fail(descriptions != NULL);
+
+	_hud_app_iface_com_canonical_hud_application_call_add_sources(manager->priv->app_proxy,
+		actions,
+		descriptions,
+		NULL, /* cancelable */
+		add_sources_cb,
+		manager);
 
 	return;
 }
@@ -402,8 +475,53 @@ void
 hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 {
 	g_return_if_fail(HUD_IS_MANAGER(manager));
+	g_return_if_fail(HUD_IS_ACTION_PUBLISHER(pub));
 
-	manager->priv->todo_add = g_list_append(manager->priv->todo_add, g_object_ref(pub));
+	/* Add to our list of publishers */
+	manager->priv->publishers = g_list_prepend(manager->priv->publishers, g_object_ref(pub));
+
+	/* Set up watching for new groups */
+	/* TODO */
+
+	/* Send the current groups out */
+	GVariant * id = hud_action_publisher_get_id(pub);
+	GList * ags_list = hud_action_publisher_get_action_groups(pub);
+
+	/* Build the variant builder if it doesn't exist */
+	if (ags_list != NULL && manager->priv->todo_add_acts == NULL) {
+		manager->priv->todo_add_acts = g_variant_builder_new(G_VARIANT_TYPE_ARRAY);
+	}
+
+	/* Grab the action groups and add them to the todo queue */
+	GList * paction_group = NULL;
+	for (paction_group = ags_list; paction_group != NULL; paction_group = g_list_next(paction_group)) {
+		HudActionPublisherActionGroupSet * set = (HudActionPublisherActionGroupSet *)paction_group->data;
+
+		g_variant_builder_open(manager->priv->todo_add_acts, G_VARIANT_TYPE_TUPLE);
+
+		g_variant_builder_add_value(manager->priv->todo_add_acts, g_variant_new_variant(id));
+		g_variant_builder_add_value(manager->priv->todo_add_acts, g_variant_new_string(set->prefix));
+		g_variant_builder_add_value(manager->priv->todo_add_acts, g_variant_new_object_path(set->path));
+
+		g_variant_builder_close(manager->priv->todo_add_acts);
+	}
+
+	/* Grab the description and add them to the todo queue */
+	const gchar * descpath = hud_action_publisher_get_description_path(pub);
+
+	/* Build the variant builder if it doesn't exist */
+	if (descpath != NULL && manager->priv->todo_add_desc == NULL) {
+		manager->priv->todo_add_desc = g_variant_builder_new(G_VARIANT_TYPE_ARRAY);
+	}
+
+	if (descpath != NULL) {
+		g_variant_builder_open(manager->priv->todo_add_desc, G_VARIANT_TYPE_TUPLE);
+
+		g_variant_builder_add_value(manager->priv->todo_add_acts, g_variant_new_variant(id));
+		g_variant_builder_add_value(manager->priv->todo_add_acts, g_variant_new_object_path(descpath));
+
+		g_variant_builder_close(manager->priv->todo_add_desc);
+	}
 
 	/* Should be if we're all set up */
 	if (manager->priv->connection_cancel == NULL && manager->priv->todo_idle == 0) {
@@ -427,12 +545,7 @@ hud_manager_remove_actions (HudManager * manager, HudActionPublisher * pub)
 {
 	g_return_if_fail(HUD_IS_MANAGER(manager));
 
-	manager->priv->todo_remove = g_list_append(manager->priv->todo_remove, g_object_ref(pub));
-
-	/* Should be if we're all set up */
-	if (manager->priv->connection_cancel == NULL && manager->priv->todo_idle == 0) {
-		manager->priv->todo_idle = g_idle_add(todo_handler, manager);
-	}
+	/* TODO: We need DBus API for this */
 
 	return;
 }

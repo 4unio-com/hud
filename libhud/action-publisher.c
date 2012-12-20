@@ -1042,6 +1042,54 @@ hud_action_publisher_add_descriptions_from_file (HudActionPublisher *publisher,
 }
 
 /**
+ * hud_action_publisher_get_id:
+ * @publisher: A #HudActionPublisher object
+ *
+ * Grabs the ID for this publisher
+ *
+ * Return value: (transfer none): The ID this publisher was created with
+ */
+GVariant *
+hud_action_publisher_get_id (HudActionPublisher    *publisher)
+{
+	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
+	/* TODO: Flesh out */
+	return NULL;
+}
+
+/**
+ * hud_action_publisher_get_action_groups:
+ * @publisher: A #HudActionPublisher object
+ *
+ * Grabs the action groups for this publisher
+ *
+ * Return value: (transfer container) (element-type HudActionPublisherActionGroupSet *): The groups in this publisher
+ */
+GList *
+hud_action_publisher_get_action_groups (HudActionPublisher    *publisher)
+{
+	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
+	/* TODO: Flesh out */
+	return NULL;
+}
+
+/**
+ * hud_action_publisher_get_description_path:
+ * @publisher: A #HudActionPublisher object
+ *
+ * Grabs the object path of the description for this publisher
+ *
+ * Return value: The object path of the descriptions
+ */
+const gchar *
+hud_action_publisher_get_description_path (HudActionPublisher    *publisher)
+{
+	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
+	/* TODO: Flesh out */
+	return NULL;
+}
+
+/**
  * HudActionDescription:
  *
  * A description of an action that is accessible from the HUD.  This is

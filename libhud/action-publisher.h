@@ -47,6 +47,12 @@ G_BEGIN_DECLS
 
 typedef struct _HudActionDescription                        HudActionDescription;
 typedef struct _HudActionPublisher                          HudActionPublisher;
+typedef struct _HudActionPublisherActionGroupSet            HudActionPublisherActionGroupSet;
+
+struct _HudActionPublisherActionGroupSet {
+	gchar * prefix;
+	gchar * path;
+};
 
 GType                   hud_action_publisher_get_type                   (void) G_GNUC_CONST;
 
@@ -65,7 +71,11 @@ void                    hud_action_publisher_add_action_group           (HudActi
 void                    hud_action_publisher_remove_action_group        (HudActionPublisher    *publisher,
                                                                          const gchar           *prefix,
                                                                          GVariant              *identifier);
+GVariant *              hud_action_publisher_get_id                     (HudActionPublisher    *publisher);
+GList *                 hud_action_publisher_get_action_groups          (HudActionPublisher    *publisher);
+const gchar *           hud_action_publisher_get_description_path       (HudActionPublisher    *publisher);
 
+/* Description */
 HudActionDescription *  hud_action_description_new                      (const gchar           *action_name,
                                                                          GVariant              *action_target);
 HudActionDescription *  hud_action_description_ref                      (HudActionDescription  *description);
