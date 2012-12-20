@@ -100,8 +100,8 @@ test-keyword-mapping-test: test-keyword-mapping Makefile.am
 	@echo $(XVFB_RUN) >> $@
 	@echo "mkdir -p keyword-mapping/locale/en_FAKELANG/LC_MESSAGES " >> $@
 	@echo "$(MSGFMT) --check --verbose --output-file keyword-mapping/locale/en_FAKELANG/LC_MESSAGES/gnome-terminal.mo keyword-mapping/gnome-terminal-en_FAKELANG.po" >> $@
-	@echo gtester --verbose -k -o $(RESULT_XML_REPORT) $(builddir)/test-keyword-mapping >> $@
-	@echo gtester2xunit $(RESULT_XML_REPORT) >> $@
+	@echo gtester --verbose -k -o $(KEYWORD_XML_REPORT) $(builddir)/test-keyword-mapping >> $@
+	@echo gtester2xunit $(KEYWORD_XML_REPORT) >> $@
 	@chmod +x $@
 
 test_keyword_mapping_SOURCES = \
