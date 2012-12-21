@@ -21,6 +21,7 @@
 #endif
 
 #include "application-list.h"
+#include "hudsource.h"
 
 typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
 
@@ -35,8 +36,10 @@ static void hud_application_list_class_init (HudApplicationListClass *klass);
 static void hud_application_list_init       (HudApplicationList *self);
 static void hud_application_list_dispose    (GObject *object);
 static void hud_application_list_finalize   (GObject *object);
+static void source_iface_init               (HudSourceInterface *iface);
 
-G_DEFINE_TYPE (HudApplicationList, hud_application_list, G_TYPE_OBJECT);
+G_DEFINE_TYPE_WITH_CODE (HudApplicationList, hud_application_list, G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
 
 /* Class Init */
 static void
@@ -48,6 +51,14 @@ hud_application_list_class_init (HudApplicationListClass *klass)
 
 	object_class->dispose = hud_application_list_dispose;
 	object_class->finalize = hud_application_list_finalize;
+
+	return;
+}
+
+/* Intialized the source interface */
+static void
+source_iface_init (HudSourceInterface *iface)
+{
 
 	return;
 }
