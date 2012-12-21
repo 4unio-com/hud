@@ -36,7 +36,7 @@ struct _HudApplicationListPrivate {
 };
 
 #define HUD_APPLICATION_LIST_GET_PRIVATE(o) \
-	(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_APPLICATION_LIST_TYPE, HudApplicationListPrivate))
+	(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_TYPE_APPLICATION_LIST, HudApplicationListPrivate))
 
 static void hud_application_list_class_init (HudApplicationListClass * klass);
 static void hud_application_list_init       (HudApplicationList *      self);
@@ -86,6 +86,8 @@ source_iface_init (HudSourceInterface *iface)
 static void
 hud_application_list_init (HudApplicationList *self)
 {
+	self->priv = HUD_APPLICATION_LIST_GET_PRIVATE(self);
+
 	self->priv->matcher = bamf_matcher_get_default();
 	self->priv->matcher_sig = g_signal_connect(self->priv->matcher,
 		"active-application-changed",

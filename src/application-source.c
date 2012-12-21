@@ -31,7 +31,7 @@ struct _HudApplicationSourcePrivate {
 };
 
 #define HUD_APPLICATION_SOURCE_GET_PRIVATE(o) \
-(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_APPLICATION_SOURCE_TYPE, HudApplicationSourcePrivate))
+(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_TYPE_APPLICATION_SOURCE, HudApplicationSourcePrivate))
 
 static void hud_application_source_class_init (HudApplicationSourceClass * klass);
 static void hud_application_source_init       (HudApplicationSource *      self);
@@ -77,6 +77,7 @@ source_iface_init (HudSourceInterface *iface)
 static void
 hud_application_source_init (HudApplicationSource *self)
 {
+	self->priv = HUD_APPLICATION_SOURCE_GET_PRIVATE(self);
 
 	return;
 }
