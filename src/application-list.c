@@ -23,6 +23,7 @@
 #include <libbamf/libbamf.h>
 
 #include "application-list.h"
+#include "application-source.h"
 #include "hudsource.h"
 
 typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
@@ -30,6 +31,8 @@ typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
 struct _HudApplicationListPrivate {
 	BamfMatcher * matcher;
 	gulong matcher_sig;
+
+	GHashTable * applications;
 };
 
 #define HUD_APPLICATION_LIST_GET_PRIVATE(o) \
@@ -88,6 +91,32 @@ hud_application_list_init (HudApplicationList *self)
 		"active-application-changed",
 		G_CALLBACK(application_changed), self);
 
+	self->priv->applications = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+
+	GList * apps = bamf_matcher_get_applications(self->priv->matcher);
+	GList * app = NULL;
+	for (app = apps; app != NULL; app = g_list_next(app)) {
+		if (!BAMF_IS_APPLICATION(app->data)) {
+			continue;
+		}
+
+		BamfApplication * bapp = BAMF_APPLICATION(app->data);
+		gchar * app_id = hud_application_source_bamf_app_id(bapp);
+
+		if (app_id == NULL) {
+			continue;
+		}
+
+		HudApplicationSource * appsource = hud_application_source_new_for_app(bapp);
+
+		if (!hud_application_source_is_empty(appsource)) {
+			g_hash_table_insert(self->priv->applications, app_id, appsource);
+		} else {
+			g_object_unref(appsource);
+		}
+	}
+	g_list_free_full(apps, g_object_unref);
+
 	return;
 }
 
@@ -102,6 +131,8 @@ hud_application_list_dispose (GObject *object)
 	}
 	self->priv->matcher_sig = 0;
 	g_clear_object(&self->priv->matcher);
+
+	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
 
 	G_OBJECT_CLASS (hud_application_list_parent_class)->dispose (object);
 	return;
