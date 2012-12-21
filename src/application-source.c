@@ -28,6 +28,8 @@ struct _HudApplicationSourcePrivate {
 	gchar * app_id;
 	gchar * path;
 	AppIfaceComCanonicalHudApplication * skel;
+
+	BamfApplication * bamf_app;
 };
 
 #define HUD_APPLICATION_SOURCE_GET_PRIVATE(o) \
@@ -89,6 +91,7 @@ hud_application_source_dispose (GObject *object)
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
 	g_clear_object(&self->priv->skel);
+	g_clear_object(&self->priv->bamf_app);
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->dispose (object);
 	return;
@@ -142,9 +145,20 @@ hud_application_source_new_for_app (BamfApplication * bapp)
 		return NULL;
 	}
 
+	HudApplicationSource * source = hud_application_source_new_for_id(id);
+	g_free(id);
+
+	source->priv->bamf_app = g_object_ref(bapp);
+
+	return source;
+}
+
+HudApplicationSource *
+hud_application_source_new_for_id (const gchar * id)
+{
 	HudApplicationSource * source = g_object_new(HUD_TYPE_APPLICATION_SOURCE, NULL);
 
-	source->priv->app_id = id;
+	source->priv->app_id = g_strdup(id);
 
 	source->priv->skel = app_iface_com_canonical_hud_application_skeleton_new();
 	source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s", id);
