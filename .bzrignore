@@ -174,3 +174,6 @@ app-iface.h
 *.lo
 *.gcda
 *.gcno
+marshal.c
+marshal.h
+stamp-marshal
