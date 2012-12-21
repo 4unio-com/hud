@@ -115,3 +115,17 @@ application_changed (BamfMatcher * matcher, BamfApplication * old_app, BamfAppli
 
 	return;
 }
+
+/**
+ * hud_application_list_new:
+ *
+ * Create a new application list.
+ *
+ * Return Value: (transfer full): New #HudApplicationList
+ */
+HudApplicationList *
+hud_application_list_new (void)
+{
+	return g_object_new(HUD_TYPE_APPLICATION_LIST,
+	                    NULL);
+}

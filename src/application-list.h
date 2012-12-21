@@ -43,7 +43,8 @@ struct _HudApplicationList {
 	HudApplicationListPrivate * priv;
 };
 
-GType               hud_application_list_get_type       (void);
+GType                   hud_application_list_get_type       (void);
+HudApplicationList *    hud_application_list_new            (void);
 
 G_END_DECLS
 
