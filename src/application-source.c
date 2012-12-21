@@ -137,9 +137,39 @@ hud_application_source_is_empty (HudApplicationSource * app)
 	return TRUE;
 }
 
+/**
+ * hud_application_source_bamf_app_id:
+ * @bapp: A #BamfApplication object
+ *
+ * A little helper function to genereate a constant app ID out of
+ * BAMF Application objects.  Putting this here as it seems to make
+ * the most sense, but isn't really part of the object.
+ *
+ * Return value: (transfer full): ID for the application
+ */
 gchar *
 hud_application_source_bamf_app_id (BamfApplication * bapp)
 {
+	g_return_val_if_fail(BAMF_IS_APPLICATION(bapp), NULL);
 
-	return g_strdup("");
+	const gchar * desktop_file = bamf_application_get_desktop_file(bapp);
+	if (desktop_file == NULL) {
+		/* Some apps might not be identifiable.  Eh, don't care then */
+		return NULL;
+	}
+
+	gchar * basename = g_path_get_basename(desktop_file);
+	if (basename == NULL || basename[0] == '\0' || !g_str_has_suffix(basename, ".desktop")) {
+		/* Check to make sure it's not NULL and it returns a desktop file */
+		g_free(basename);
+		return NULL;
+	}
+
+	/* This is probably excessively clever, but I like it.  Basically we find
+	   the last instance of .desktop and put the null there.  For all practical
+	   purposes this is a NULL terminated string of the first part of the dekstop
+	   file name */
+	g_strrstr(basename, ".desktop")[0] = '\0';
+
+	return basename;
 }
