@@ -26,6 +26,7 @@
 
 struct _HudApplicationSourcePrivate {
 	gchar * app_id;
+	gchar * path;
 	AppIfaceComCanonicalHudApplication * skel;
 };
 
@@ -86,7 +87,7 @@ hud_application_source_dispose (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
-	hud_clear_object(&self->priv->skel);
+	g_clear_object(&self->priv->skel);
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->dispose (object);
 	return;
@@ -99,6 +100,7 @@ hud_application_source_finalize (GObject *object)
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
 	g_clear_pointer(&self->priv->app_id, g_free);
+	g_clear_pointer(&self->priv->path, g_free);
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->finalize (object);
 	return;
@@ -134,6 +136,22 @@ source_search (HudSource *     hud_source,
 HudApplicationSource *
 hud_application_source_new_for_app (BamfApplication * bapp)
 {
+	gchar * id = hud_application_source_bamf_app_id(bapp);
+	if (id == NULL) {
+		return NULL;
+	}
+
+	HudApplicationSource * source = g_object_new(HUD_TYPE_APPLICATION_SOURCE, NULL);
+
+	source->priv->app_id = id;
+
+	source->priv->skel = app_iface_com_canonical_hud_application_skeleton_new();
+	source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s", id);
+
+	g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(source->priv->skel),
+	                                 g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
+	                                 source->priv->path,
+	                                 NULL);
 
 	return NULL;
 }
