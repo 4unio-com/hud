@@ -33,6 +33,7 @@ struct _HudApplicationListPrivate {
 	gulong matcher_sig;
 
 	GHashTable * applications;
+	HudSource * used_source;
 };
 
 #define HUD_APPLICATION_LIST_GET_PRIVATE(o) \
@@ -128,6 +129,11 @@ hud_application_list_dispose (GObject *object)
 {
 	HudApplicationList * self = HUD_APPLICATION_LIST(object);
 
+	if (self->priv->used_source != NULL) {
+		hud_source_unuse(self->priv->used_source);
+		self->priv->used_source = NULL;
+	}
+
 	if (self->priv->matcher_sig != 0 && self->priv->matcher != NULL) {
 		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_sig);
 	}
@@ -149,6 +155,27 @@ hud_application_list_finalize (GObject *object)
 	return;
 }
 
+/* Get a source from a BamfApp */
+static HudApplicationSource *
+bamf_app_to_source (HudApplicationList * list, BamfApplication * bapp)
+{
+	gchar * id = hud_application_source_bamf_app_id(bapp);
+	if (id == NULL) {
+		return NULL;
+	}
+
+	HudApplicationSource * source = g_hash_table_lookup(list->priv->applications, id);
+	if (source == NULL) {
+		source = hud_application_source_new_for_app(bapp);
+		g_hash_table_insert(list->priv->applications, id, source);
+		id = NULL; /* We used the malloc in the table */
+	}
+
+	g_free(id);
+
+	return source;
+}
+
 /* Called each time the focused application changes */
 static void
 application_changed (BamfMatcher * matcher, BamfApplication * old_app, BamfApplication * new_app, gpointer user_data)
@@ -158,23 +185,20 @@ application_changed (BamfMatcher * matcher, BamfApplication * old_app, BamfAppli
 		return;
 	}
 
-	gchar * id = hud_application_source_bamf_app_id(new_app);
-	if (id == NULL) {
-		return;
-	}
-
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
 
-	HudApplicationSource * source = g_hash_table_lookup(list->priv->applications, id);
+	HudApplicationSource * source = bamf_app_to_source(list, new_app);
 	if (source == NULL) {
-		source = hud_application_source_new_for_app(new_app);
-		g_hash_table_insert(list->priv->applications, id, source);
-		id = NULL; /* We used the malloc in the table */
+		return;
 	}
 
 	hud_application_source_focus(source, new_app);
 
-	g_free(id);
+	if (list->priv->used_source) {
+		hud_source_unuse(list->priv->used_source);
+		list->priv->used_source = HUD_SOURCE(source);
+		hud_source_use(list->priv->used_source);
+	}
 
 	return;
 }
@@ -183,6 +207,19 @@ application_changed (BamfMatcher * matcher, BamfApplication * old_app, BamfAppli
 static void
 source_use (HudSource *hud_source)
 {
+	g_return_if_fail(HUD_IS_APPLICATION_LIST(hud_source));
+	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
+
+	BamfApplication * app = bamf_matcher_get_active_application(list->priv->matcher);
+	if (app == NULL) {
+		return;
+	}
+	
+	HudApplicationSource * source = bamf_app_to_source(list, app);
+
+	list->priv->used_source = HUD_SOURCE(source);
+
+	hud_source_use(HUD_SOURCE(source));
 
 	return;
 }
@@ -191,6 +228,13 @@ source_use (HudSource *hud_source)
 static void
 source_unuse (HudSource *hud_source)
 {
+	g_return_if_fail(HUD_IS_APPLICATION_LIST(hud_source));
+	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
+
+	g_return_if_fail(list->priv->used_source != NULL);
+
+	hud_source_unuse(list->priv->used_source);
+	list->priv->used_source = NULL;
 
 	return;
 }
@@ -202,6 +246,12 @@ source_search (HudSource *     hud_source,
                void          (*append_func) (HudResult * result, gpointer user_data),
                gpointer        user_data)
 {
+	g_return_if_fail(HUD_IS_APPLICATION_LIST(hud_source));
+	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
+
+	g_return_if_fail(list->priv->used_source != NULL);
+
+	hud_source_search(list->priv->used_source, search_string, append_func, user_data);
 
 	return;
 }
