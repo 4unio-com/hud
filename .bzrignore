@@ -245,3 +245,5 @@ libhud/demo/consumer.c
 libhud/demo/consumer_vala.stamp
 libhud/demo/gimp
 libhud/demo/gvtk.c
+app-iface.c
+app-iface.h

@@ -137,6 +137,8 @@ hud_verify_app_info_LDFLAGS = \
 libhud_service_generated_la_SOURCES = \
 	create-db.h \
 	create-db.c \
+	app-iface.h \
+	app-iface.c \
 	hud-iface.h \
 	hud-iface.c \
 	hud-query-iface.h \
@@ -177,7 +179,15 @@ hud-query-iface.c: $(top_srcdir)/data/com.canonical.hud.query.xml
 		--generate-c-code hud-query-iface \
 		--c-namespace HudQueryIface \
 		$^
-hud-query-iface.h: hud-iface.c
+hud-query-iface.h: hud-query-iface.c
+
+app-iface.c: $(top_srcdir)/data/com.canonical.hud.Application.xml
+	$(AM_V_GEN) gdbus-codegen \
+		--interface-prefix com.canonical.hud.Application. \
+		--generate-c-code app-iface \
+		--c-namespace AppIface \
+		$^
+app-iface.h: app-iface.c
 
 
 CLEANFILES += $(BUILT_SOURCES)
