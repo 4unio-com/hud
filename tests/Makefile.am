@@ -5,12 +5,34 @@ TESTS =
 check_PROGRAMS =
 XFAIL_TESTS =
 
+noinst_LTLIBRARIES = \
+	libhud-tests.la
+
 DBUS_RUNNER=dbus-test-runner
 XVFB_RUN=". $(srcdir)/run-xvfb.sh"
 MOCK_JSON_APP=/usr/lib/indicator-appmenu/mock-json-app
 
 EXTRA_DIST += \
 	run-xvfb.sh
+
+#######################
+# HUD Test Common Code
+#######################
+
+libhud_tests_la_SOURCES = \
+	word-list.h \
+	hudrandomsource.h \
+	hudrandomsource.c
+
+libhud_tests_la_LDFLAGS = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS)
+
+libhud_tests_la_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
 
 ######################
 # Test Distance
@@ -609,10 +631,10 @@ hud_performance_CFLAGS = \
 	$(HUD_CFLAGS)
 hud_performance_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	libhud-tests.la \
 	$(HUD_LIBS)
 hud_performance_SOURCES = \
-	hud-performance.c	\
-	word-list.h
+	hud-performance.c
 
 #########################
 # Footer
