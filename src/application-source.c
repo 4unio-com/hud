@@ -22,9 +22,11 @@
 
 #include "application-source.h"
 #include "hudsource.h"
+#include "app-iface.h"
 
 struct _HudApplicationSourcePrivate {
-	int dummy;
+	gchar * app_id;
+	AppIfaceComCanonicalHudApplication * skel;
 };
 
 #define HUD_APPLICATION_SOURCE_GET_PRIVATE(o) \
@@ -82,6 +84,9 @@ hud_application_source_init (HudApplicationSource *self)
 static void
 hud_application_source_dispose (GObject *object)
 {
+	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
+
+	hud_clear_object(&self->priv->skel);
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->dispose (object);
 	return;
@@ -91,6 +96,9 @@ hud_application_source_dispose (GObject *object)
 static void
 hud_application_source_finalize (GObject *object)
 {
+	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
+
+	g_clear_pointer(&self->priv->app_id, g_free);
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->finalize (object);
 	return;
