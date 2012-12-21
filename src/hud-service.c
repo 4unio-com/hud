@@ -33,10 +33,40 @@
 #include "huddebugsource.h"
 #include "hudsourcelist.h"
 #include "hudsettings.h"
+#include "application-list.h"
 
 #include "hud-iface.h"
 #include "shared-values.h"
 #include "hudquery.h"
+
+/* Prototypes */
+static void            bus_method         (GDBusConnection       *connection,
+                                           const gchar           *sender,
+                                           const gchar           *object_path,
+                                           const gchar           *interface_name,
+                                           const gchar           *method_name,
+                                           GVariant              *parameters,
+                                           GDBusMethodInvocation *invocation,
+                                           gpointer               user_data);
+static GVariant *      bus_get_prop       (GDBusConnection *      connection,
+                                           const gchar *          sender,
+                                           const gchar *          object_path,
+                                           const gchar *          interface_name,
+                                           const gchar *          property_name,
+                                           GError **              error,
+                                           gpointer               user_data);
+
+
+/* Globals */
+static GPtrArray * query_list = NULL;
+static GMainLoop *mainloop = NULL;
+static GDBusInterfaceVTable vtable = {
+	.method_call = bus_method,
+	.get_property = bus_get_prop,
+	.set_property = NULL
+};
+static HudApplicationList * application_list = NULL;
+
 
 /* Describe the important values in the query */
 GVariant *
@@ -61,8 +91,6 @@ query_destroyed (gpointer data, GObject * old_object)
 	g_ptr_array_remove(list, old_object);
 	return;
 }
-
-static GPtrArray * query_list = NULL;
 
 static void
 bus_method (GDBusConnection       *connection,
@@ -130,13 +158,6 @@ bus_get_prop (GDBusConnection * connection, const gchar * sender, const gchar * 
 	return NULL;
 }
 
-static GMainLoop *mainloop = NULL;
-static GDBusInterfaceVTable vtable = {
-	.method_call = bus_method,
-	.get_property = bus_get_prop,
-	.set_property = NULL
-};
-
 static void
 bus_acquired_cb (GDBusConnection *connection,
                  const gchar     *name,
@@ -201,6 +222,9 @@ main (int argc, char **argv)
   window_source = hud_window_source_new ();
   hud_source_list_add (source_list, HUD_SOURCE (window_source));
 
+  application_list = hud_application_list_new();
+  hud_source_list_add(source_list, HUD_SOURCE(application_list));
+
   {
     HudIndicatorSource *source;
 
@@ -246,6 +270,7 @@ main (int argc, char **argv)
   g_main_loop_unref (mainloop);
 
   g_object_unref (window_source);
+  g_object_unref (application_list);
   g_object_unref (source_list);
   g_ptr_array_free(query_list, TRUE);
 
