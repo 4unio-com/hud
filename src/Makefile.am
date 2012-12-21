@@ -25,6 +25,8 @@ noinst_LTLIBRARIES = \
 libhud_service_la_SOURCES = \
 	application-list.h \
 	application-list.c \
+	application-source.h \
+	application-source.c \
 	dump-app-info.h \
 	dump-app-info.c \
 	shared-values.h \
