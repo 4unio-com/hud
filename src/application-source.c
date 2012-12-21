@@ -21,6 +21,7 @@
 #endif
 
 #include "application-source.h"
+#include "hudsource.h"
 
 struct _HudApplicationSourcePrivate {
 	int dummy;
@@ -29,12 +30,20 @@ struct _HudApplicationSourcePrivate {
 #define HUD_APPLICATION_SOURCE_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_APPLICATION_SOURCE_TYPE, HudApplicationSourcePrivate))
 
-static void hud_application_source_class_init (HudApplicationSourceClass *klass);
-static void hud_application_source_init       (HudApplicationSource *self);
-static void hud_application_source_dispose    (GObject *object);
-static void hud_application_source_finalize   (GObject *object);
+static void hud_application_source_class_init (HudApplicationSourceClass * klass);
+static void hud_application_source_init       (HudApplicationSource *      self);
+static void hud_application_source_dispose    (GObject *                   object);
+static void hud_application_source_finalize   (GObject *                   object);
+static void source_iface_init                 (HudSourceInterface *        iface);
+static void source_use                        (HudSource *                 hud_source);
+static void source_unuse                      (HudSource *                 hud_source);
+static void source_search                     (HudSource *                 hud_source,
+                                               HudTokenList *              search_string,
+                                               void                      (*append_func) (HudResult * result, gpointer user_data),
+                                               gpointer                    user_data);
 
-G_DEFINE_TYPE (HudApplicationSource, hud_application_source, G_TYPE_OBJECT);
+G_DEFINE_TYPE_WITH_CODE (HudApplicationSource, hud_application_source, G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
 
 /* Class Init */
 static void
@@ -46,6 +55,17 @@ hud_application_source_class_init (HudApplicationSourceClass *klass)
 
 	object_class->dispose = hud_application_source_dispose;
 	object_class->finalize = hud_application_source_finalize;
+
+	return;
+}
+
+/* Intialized the source interface */
+static void
+source_iface_init (HudSourceInterface *iface)
+{
+	iface->use = source_use;
+	iface->unuse = source_unuse;
+	iface->search = source_search;
 
 	return;
 }
@@ -73,6 +93,33 @@ hud_application_source_finalize (GObject *object)
 {
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->finalize (object);
+	return;
+}
+
+/* Source interface using this source */
+static void
+source_use (HudSource *hud_source)
+{
+
+	return;
+}
+
+/* Source interface unusing this source */
+static void
+source_unuse (HudSource *hud_source)
+{
+
+	return;
+}
+
+/* Search this source */
+static void
+source_search (HudSource *     hud_source,
+               HudTokenList *  search_string,
+               void          (*append_func) (HudResult * result, gpointer user_data),
+               gpointer        user_data)
+{
+
 	return;
 }
 
