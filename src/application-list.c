@@ -20,23 +20,30 @@
 #include "config.h"
 #endif
 
+#include <libbamf/libbamf.h>
+
 #include "application-list.h"
 #include "hudsource.h"
 
 typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
 
 struct _HudApplicationListPrivate {
-	int dummy;
+	BamfMatcher * matcher;
+	gulong matcher_sig;
 };
 
 #define HUD_APPLICATION_LIST_GET_PRIVATE(o) \
 	(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_APPLICATION_LIST_TYPE, HudApplicationListPrivate))
 
-static void hud_application_list_class_init (HudApplicationListClass *klass);
-static void hud_application_list_init       (HudApplicationList *self);
-static void hud_application_list_dispose    (GObject *object);
-static void hud_application_list_finalize   (GObject *object);
-static void source_iface_init               (HudSourceInterface *iface);
+static void hud_application_list_class_init (HudApplicationListClass * klass);
+static void hud_application_list_init       (HudApplicationList *      self);
+static void hud_application_list_dispose    (GObject *                 object);
+static void hud_application_list_finalize   (GObject *                 object);
+static void source_iface_init               (HudSourceInterface *      iface);
+static void application_changed             (BamfMatcher *             matcher,
+                                             BamfApplication *         old_app,
+                                             BamfApplication *         new_app,
+                                             gpointer                  user_data);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationList, hud_application_list, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -67,6 +74,10 @@ source_iface_init (HudSourceInterface *iface)
 static void
 hud_application_list_init (HudApplicationList *self)
 {
+	self->priv->matcher = bamf_matcher_get_default();
+	self->priv->matcher_sig = g_signal_connect(self->priv->matcher,
+		"active-application-changed",
+		G_CALLBACK(application_changed), self);
 
 	return;
 }
@@ -75,6 +86,13 @@ hud_application_list_init (HudApplicationList *self)
 static void
 hud_application_list_dispose (GObject *object)
 {
+	HudApplicationList * self = HUD_APPLICATION_LIST(object);
+
+	if (self->priv->matcher_sig != 0 && self->priv->matcher != NULL) {
+		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_sig);
+	}
+	self->priv->matcher_sig = 0;
+	g_clear_object(&self->priv->matcher);
 
 	G_OBJECT_CLASS (hud_application_list_parent_class)->dispose (object);
 	return;
@@ -89,3 +107,11 @@ hud_application_list_finalize (GObject *object)
 	return;
 }
 
+/* Called each time the focused application changes */
+static void
+application_changed (BamfMatcher * matcher, BamfApplication * old_app, BamfApplication * new_app, gpointer user_data)
+{
+
+
+	return;
+}
