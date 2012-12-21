@@ -44,6 +44,12 @@ static void application_changed             (BamfMatcher *             matcher,
                                              BamfApplication *         old_app,
                                              BamfApplication *         new_app,
                                              gpointer                  user_data);
+static void source_use                      (HudSource *               hud_source);
+static void source_unuse                    (HudSource *               hud_source);
+static void source_search                   (HudSource *               hud_source,
+                                             HudTokenList *            search_string,
+                                             void                    (*append_func) (HudResult * result, gpointer user_data),
+                                             gpointer                  user_data);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationList, hud_application_list, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -66,6 +72,9 @@ hud_application_list_class_init (HudApplicationListClass *klass)
 static void
 source_iface_init (HudSourceInterface *iface)
 {
+	iface->use = source_use;
+	iface->unuse = source_unuse;
+	iface->search = source_search;
 
 	return;
 }
@@ -112,6 +121,33 @@ static void
 application_changed (BamfMatcher * matcher, BamfApplication * old_app, BamfApplication * new_app, gpointer user_data)
 {
 
+
+	return;
+}
+
+/* Source interface using this source */
+static void
+source_use (HudSource *hud_source)
+{
+
+	return;
+}
+
+/* Source interface unusing this source */
+static void
+source_unuse (HudSource *hud_source)
+{
+
+	return;
+}
+
+/* Search this source */
+static void
+source_search (HudSource *     hud_source,
+               HudTokenList *  search_string,
+               void          (*append_func) (HudResult * result, gpointer user_data),
+               gpointer        user_data)
+{
 
 	return;
 }
