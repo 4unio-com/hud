@@ -386,7 +386,7 @@ static gchar *
 format_accel_for_users (gchar * accel)
 {
 	if (accel == NULL) {
-		return NULL;
+		return g_strdup("");
 	}
 
 	GString * output = g_string_new("");
