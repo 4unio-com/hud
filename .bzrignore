@@ -177,3 +177,6 @@ app-iface.h
 marshal.c
 marshal.h
 stamp-marshal
+libhud-test
+libhud-test.xml
+libhud-tester
