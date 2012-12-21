@@ -45,13 +45,14 @@ struct _HudApplicationSource {
 };
 
 GType                    hud_application_source_get_type          (void);
-HudApplicationSource *   hud_application_source_new_for_app       (BamfApplication * bapp);
-HudApplicationSource *   hud_application_source_new_for_id        (const gchar * id);
-gboolean                 hud_application_source_is_empty          (HudApplicationSource * app);
-
+HudApplicationSource *   hud_application_source_new_for_app       (BamfApplication *        bapp);
+HudApplicationSource *   hud_application_source_new_for_id        (const gchar *            id);
+gboolean                 hud_application_source_is_empty          (HudApplicationSource *   app);
+void                     hud_application_source_focus             (HudApplicationSource *   app,
+                                                                   BamfApplication *        bapp);
 
 /* Helper functions */
-gchar *                  hud_application_source_bamf_app_id       (BamfApplication * bapp);
+gchar *                  hud_application_source_bamf_app_id       (BamfApplication *        bapp);
 
 G_END_DECLS
 

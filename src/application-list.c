@@ -153,7 +153,28 @@ hud_application_list_finalize (GObject *object)
 static void
 application_changed (BamfMatcher * matcher, BamfApplication * old_app, BamfApplication * new_app, gpointer user_data)
 {
+	/* We care where we're going, not where we've been */
+	if (new_app == NULL) {
+		return;
+	}
 
+	gchar * id = hud_application_source_bamf_app_id(new_app);
+	if (id == NULL) {
+		return;
+	}
+
+	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
+
+	HudApplicationSource * source = g_hash_table_lookup(list->priv->applications, id);
+	if (source == NULL) {
+		source = hud_application_source_new_for_app(new_app);
+		g_hash_table_insert(list->priv->applications, id, source);
+		id = NULL; /* We used the malloc in the table */
+	}
+
+	hud_application_source_focus(source, new_app);
+
+	g_free(id);
 
 	return;
 }

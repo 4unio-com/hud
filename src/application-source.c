@@ -214,3 +214,29 @@ hud_application_source_bamf_app_id (BamfApplication * bapp)
 
 	return basename;
 }
+
+/**
+ * hud_application_source_focus:
+ * @app: A #HudApplicationSource object
+ * @bapp: The #BamfApplication representing this @app
+ *
+ * Tells the application source that focus has changed to it.  This
+ * means that we can do things like figure out what window has focus
+ * and make sure we're all good.
+ */
+void
+hud_application_source_focus (HudApplicationSource * app, BamfApplication * bapp)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
+	g_return_if_fail(BAMF_IS_APPLICATION(bapp));
+
+	if (app->priv->bamf_app == NULL) {
+		app->priv->bamf_app = g_object_ref(bapp);
+	}
+
+	g_return_if_fail(app->priv->bamf_app == bapp);
+
+	/* TODO: Fill in */
+
+	return;
+}
