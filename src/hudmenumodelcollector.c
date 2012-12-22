@@ -24,6 +24,7 @@
 
 #include <libbamf/libbamf.h>
 #include <gio/gio.h>
+#include <string.h>
 
 /**
  * SECTION:hudmenumodelcollector
@@ -67,16 +68,8 @@ struct _HudMenuModelCollector
   GDBusConnection *session;
   gchar *unique_bus_name;
 
-  /* If this is an application, is_application will be set and
-   * 'application' and 'window' will contain the two action groups for
-   * the window that we are collecting.
-   *
-   * If this is an indicator, is_application will be false and the
-   * (singular) action group for the indicator will be in 'application'.
-   */
-  GDBusActionGroup *application;
-  GDBusActionGroup *window;
-  gboolean is_application;
+  /* GActionGroup's indexed by their prefix */
+  GHashTable * action_groups;
 
   /* The GMenuModel for the app menu.
    *
@@ -135,14 +128,22 @@ typedef struct
 typedef HudItemClass HudModelItemClass;
 
 static gchar *
-hud_menu_model_context_get_action_name (HudMenuModelContext *context,
-                                        const gchar         *action_name)
+hud_menu_model_context_get_prefix (HudMenuModelContext *context,
+                                   const gchar         *action_name)
 {
   if (context && context->action_namespace)
     /* Note: this will (intentionally) work if action_name is NULL */
-    return g_strjoin (".", context->action_namespace, action_name, NULL);
-  else
-    return g_strdup (action_name);
+    return g_strdup (context->action_namespace);
+  else {
+    gchar * retval = g_strdup (action_name);
+    gchar * dot = g_strstr_len(retval, -1, ".");
+    if (dot != NULL) {
+      dot[0] = '\0';
+    } else {
+      retval[0] = '\0';
+    }
+    return retval;
+  }
 }
 
 static HudStringList *
@@ -189,7 +190,11 @@ hud_menu_model_context_new (HudMenuModelContext *parent,
     return hud_menu_model_context_ref (parent);
 
   context = g_slice_new (HudMenuModelContext);
-  context->action_namespace = hud_menu_model_context_get_action_name (parent, namespace);
+  if (parent->action_namespace != NULL) {
+	  context->action_namespace = g_strjoin(".", parent->action_namespace, namespace, NULL);
+  } else {
+    context->action_namespace = g_strdup(namespace);
+  }
   context->tokens = hud_menu_model_context_get_label (parent, label);
   context->ref_count = 1;
 
@@ -246,39 +251,26 @@ hud_model_item_new (HudMenuModelCollector *collector,
 {
   HudModelItem *item;
   const gchar *stripped_action_name;
-  gchar *full_action_name;
+  gchar *prefix;
   GDBusActionGroup *group = NULL;
   HudStringList *full_label;
 
-  full_action_name = hud_menu_model_context_get_action_name (context, action_name);
+  prefix = hud_menu_model_context_get_prefix (context, action_name);
 
-  if (collector->is_application)
-    {
-      /* For applications we support "app." and "win." actions and
-       * deliver them to the application or the window, with the prefix
-       * removed.
-       */
-      if (g_str_has_prefix (full_action_name, "app."))
-        group = collector->application;
-      else if (g_str_has_prefix (full_action_name, "win."))
-        group = collector->window;
-
-      stripped_action_name = full_action_name + 4;
-    }
-  else
-    {
-      /* For indicators, we deliver directly to the (one) action group
-       * that we were given the object path for at construction.
-       */
-      stripped_action_name = full_action_name;
-      group = collector->application;
-    }
+  group = g_hash_table_lookup(collector->action_groups, prefix);
 
   if (!group)
     {
-      g_free (full_action_name);
+      g_free (prefix);
       return NULL;
     }
+
+  /* Kinda silly, think we can do better here */
+  if (g_str_has_prefix(action_name, prefix)) {
+    stripped_action_name = action_name + strlen(prefix) + 1;
+  } else {
+    stripped_action_name = action_name;
+  }
 
   full_label = hud_menu_model_context_get_label (context, label);
 
@@ -288,7 +280,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
   item->target = target ? g_variant_ref_sink (target) : NULL;
 
   hud_string_list_unref (full_label);
-  g_free (full_action_name);
+  g_free (prefix);
 
   return HUD_ITEM (item);
 }
@@ -547,8 +539,7 @@ hud_menu_model_collector_finalize (GObject *object)
   g_slist_free_full (collector->models, g_object_unref);
   g_clear_object (&collector->app_menu);
   g_clear_object (&collector->menubar);
-  g_clear_object (&collector->application);
-  g_clear_object (&collector->window);
+  g_clear_pointer (&collector->action_groups, g_hash_table_unref);
 
   g_object_unref (collector->session);
   g_free (collector->unique_bus_name);
@@ -569,6 +560,7 @@ hud_menu_model_collector_init (HudMenuModelCollector *collector)
 {
   collector->items = g_ptr_array_new_with_free_func (g_object_unref);
   collector->cancellable = g_cancellable_new ();
+  collector->action_groups = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 }
 
 static void
@@ -684,12 +676,11 @@ hud_menu_model_collector_get (BamfWindow  *window,
     }
 
   if (application_object_path)
-    collector->application = g_dbus_action_group_get (session, unique_bus_name, application_object_path);
+    g_hash_table_insert(collector->action_groups, g_strdup("app"), g_dbus_action_group_get (session, unique_bus_name, application_object_path));
 
   if (window_object_path)
-    collector->window = g_dbus_action_group_get (session, unique_bus_name, window_object_path);
+    g_hash_table_insert(collector->action_groups, g_strdup("win"), g_dbus_action_group_get (session, unique_bus_name, window_object_path));
 
-  collector->is_application = TRUE;
   collector->desktop_file = g_strdup (desktop_file);
   collector->icon = g_strdup (icon);
 
@@ -742,9 +733,8 @@ hud_menu_model_collector_new_for_endpoint (const gchar *application_id,
   session = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
 
   collector->app_menu = g_dbus_menu_model_get (session, bus_name, object_path);
-  collector->application = g_dbus_action_group_get (session, bus_name, object_path);
+  g_hash_table_insert(collector->action_groups, g_strdup(""), g_dbus_action_group_get (session, bus_name, object_path));
 
-  collector->is_application = FALSE;
   collector->prefix = g_strdup (prefix);
   collector->desktop_file = g_strdup (application_id);
   collector->icon = g_strdup (icon);
