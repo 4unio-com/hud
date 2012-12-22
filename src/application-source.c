@@ -240,3 +240,20 @@ hud_application_source_focus (HudApplicationSource * app, BamfApplication * bapp
 
 	return;
 }
+
+/**
+ * hud_application_source_get_path:
+ * @app: A #HudApplicationSource object
+ *
+ * Get the object path for this source on DBus
+ *
+ * Return value: The path as a string
+ */
+const gchar *
+hud_application_source_get_path (HudApplicationSource * app)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), NULL);
+
+	return app->priv->path;
+}
+

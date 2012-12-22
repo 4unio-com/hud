@@ -102,32 +102,39 @@ bus_method (GDBusConnection       *connection,
             GDBusMethodInvocation *invocation,
             gpointer               user_data)
 {
-  HudSource *source = user_data;
+	HudSource *source = user_data;
 
-  if (g_str_equal (method_name, "StartQuery"))
-    {
-      GVariant * vsearch;
-      const gchar *search_string;
-      HudQuery *query;
+	if (g_str_equal (method_name, "StartQuery")) {
+		GVariant * vsearch;
+		const gchar *search_string;
+		HudQuery *query;
 
-      vsearch = g_variant_get_child_value (parameters, 0);
-      search_string = g_variant_get_string(vsearch, NULL);
-      g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
+		vsearch = g_variant_get_child_value (parameters, 0);
+		search_string = g_variant_get_string(vsearch, NULL);
+		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
 
-      query = hud_query_new (source, search_string, 10);
-      g_dbus_method_invocation_return_value (invocation, describe_query (query));
+		query = hud_query_new (source, search_string, 10);
+		g_dbus_method_invocation_return_value (invocation, describe_query (query));
 
-      g_ptr_array_add(query_list, query);
-      g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
+		g_ptr_array_add(query_list, query);
+		g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
 
-      g_variant_unref(vsearch);
-    }
-  else
-    {
-      g_warn_if_reached();
-    }
+		g_variant_unref(vsearch);
+	} else if (g_str_equal (method_name, "RegisterApplication")) {
+		GVariant * vid = g_variant_get_child_value (parameters, 0);
 
-  return;
+		HudApplicationSource * appsource = hud_application_list_get_source(application_list, g_variant_get_string(vid, NULL));
+
+		const gchar * path = hud_application_source_get_path(appsource);
+		GVariant * vpath = g_variant_new_object_path(path);
+
+		g_dbus_method_invocation_return_value(invocation, g_variant_new_tuple(&vpath, 1));
+		g_variant_unref(vid);
+	} else {
+		g_warn_if_reached();
+	}
+
+	return;
 }
 
 /* Gets properties for DBus */

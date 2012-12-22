@@ -20,6 +20,7 @@
 #define __HUD_APPLICATION_LIST_H__
 
 #include <glib-object.h>
+#include "application-source.h"
 
 G_BEGIN_DECLS
 
@@ -45,6 +46,8 @@ struct _HudApplicationList {
 
 GType                   hud_application_list_get_type       (void);
 HudApplicationList *    hud_application_list_new            (void);
+HudApplicationSource *  hud_application_list_get_source     (HudApplicationList * list,
+                                                             const gchar *        id);
 
 G_END_DECLS
 

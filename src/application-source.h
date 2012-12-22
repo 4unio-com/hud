@@ -50,6 +50,7 @@ HudApplicationSource *   hud_application_source_new_for_id        (const gchar *
 gboolean                 hud_application_source_is_empty          (HudApplicationSource *   app);
 void                     hud_application_source_focus             (HudApplicationSource *   app,
                                                                    BamfApplication *        bapp);
+const gchar *            hud_application_source_get_path          (HudApplicationSource *   app);
 
 /* Helper functions */
 gchar *                  hud_application_source_bamf_app_id       (BamfApplication *        bapp);

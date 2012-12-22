@@ -269,3 +269,28 @@ hud_application_list_new (void)
 	return g_object_new(HUD_TYPE_APPLICATION_LIST,
 	                    NULL);
 }
+
+/**
+ * hud_application_list_get_source:
+ * @list: A #HudApplicationList object
+ * @id: Application ID to find
+ *
+ * Looks for a source in the application list database or if it
+ * doesn't exist, it creates it.
+ *
+ * Return value: (transfer none): An #HudApplicationSource matching @id
+ */
+HudApplicationSource *
+hud_application_list_get_source (HudApplicationList * list, const gchar * id)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
+	g_return_val_if_fail(id != NULL, NULL);
+
+	HudApplicationSource * source = g_hash_table_lookup(list->priv->applications, id);
+	if (source == NULL) {
+		source = hud_application_source_new_for_id(id);
+		g_hash_table_insert(list->priv->applications, g_strdup(id), source);
+	}
+
+	return source;
+}
