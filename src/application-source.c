@@ -46,6 +46,11 @@ static void source_search                     (HudSource *                 hud_s
                                                HudTokenList *              search_string,
                                                void                      (*append_func) (HudResult * result, gpointer user_data),
                                                gpointer                    user_data);
+static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplication * skel,
+                                               GDBusMethodInvocation *     invocation,
+                                               GVariant *                  actions,
+                                               GVariant *                  descs,
+                                               gpointer                    user_data);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationSource, hud_application_source, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -161,6 +166,7 @@ hud_application_source_new_for_id (const gchar * id)
 	source->priv->app_id = g_strdup(id);
 
 	source->priv->skel = app_iface_com_canonical_hud_application_skeleton_new();
+	g_signal_connect(G_OBJECT(source->priv->skel), "handle-add-sources", G_CALLBACK(dbus_add_sources), source);
 	source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s", id);
 
 	g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(source->priv->skel),
@@ -169,6 +175,16 @@ hud_application_source_new_for_id (const gchar * id)
 	                                 NULL);
 
 	return source;
+}
+
+/* Respond to the DBus function to add sources */
+static gboolean
+dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocation * invocation, GVariant * actions, GVariant * descs, gpointer user_data)
+{
+	/* TODO: Parameters */
+
+	g_dbus_method_invocation_return_value(invocation, NULL);
+	return TRUE;
 }
 
 gboolean
