@@ -168,7 +168,7 @@ hud_application_source_new_for_id (const gchar * id)
 	                                 source->priv->path,
 	                                 NULL);
 
-	return NULL;
+	return source;
 }
 
 gboolean
