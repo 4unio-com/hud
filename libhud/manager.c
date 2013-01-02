@@ -102,6 +102,8 @@ hud_manager_class_init (HudManagerClass *klass)
 static void
 hud_manager_init (HudManager *self)
 {
+	self->priv = HUD_MANAGER_GET_PRIVATE(self);
+
 	self->priv->connection_cancel = g_cancellable_new();
 
 	g_bus_get(G_BUS_TYPE_SESSION,
