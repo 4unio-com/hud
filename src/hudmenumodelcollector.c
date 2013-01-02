@@ -190,7 +190,7 @@ hud_menu_model_context_new (HudMenuModelContext *parent,
     return hud_menu_model_context_ref (parent);
 
   context = g_slice_new (HudMenuModelContext);
-  if (parent->action_namespace != NULL) {
+  if (parent != NULL && parent->action_namespace != NULL) {
 	  context->action_namespace = g_strjoin(".", parent->action_namespace, namespace, NULL);
   } else {
     context->action_namespace = g_strdup(namespace);
