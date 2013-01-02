@@ -52,6 +52,7 @@ struct _HudActionPublisher
 
   GDBusConnection *bus;
   GApplication *application;
+  GVariant * id;
   gint export_id;
   gchar *path;
 
@@ -154,6 +155,7 @@ static void
 hud_action_publisher_finalize (GObject *object)
 {
   g_error ("g_object_unref() called on internally-owned ref of HudActionPublisher");
+  g_clear_pointer(&HUD_ACTION_PUBLISHER(object)->id, g_variant_unref);
 }
 
 static void
@@ -266,6 +268,18 @@ hud_action_publisher_new_for_application (GApplication *application)
                            g_application_get_dbus_object_path (application));
 
   return publisher;
+}
+
+HudActionPublisher *
+hud_action_publisher_new_for_id (GVariant * id)
+{
+	g_return_val_if_fail(id != NULL, NULL);
+
+	HudActionPublisher * publisher;
+	publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
+	publisher->id = g_variant_ref_sink(id);
+
+	return publisher;
 }
 
 static gchar *
@@ -1064,8 +1078,7 @@ GVariant *
 hud_action_publisher_get_id (HudActionPublisher    *publisher)
 {
 	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
-	/* TODO: Flesh out */
-	return NULL;
+	return publisher->id;
 }
 
 /**
