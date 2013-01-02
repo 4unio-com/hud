@@ -1,4 +1,7 @@
-check_PROGRAMS = gimp consumer
+check_PROGRAMS = \
+	gimp \
+	consumer \
+	simple-test
 
 gimp_CFLAGS = $(HUD_CFLAGS) -I$(top_srcdir) -I$(top_srcdir)/libhud
 gimp_LDADD = $(top_builddir)/libhud/libhud.la $(HUD_LIBS)
@@ -12,3 +15,12 @@ consumer_SOURCES = \
 	yodawgiheardyoulikeactiongroup.vapi	\
 	gvtk.vala \
 	consumer.vala
+
+simple_test_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/libhud
+
+simple_test_LDADD = \
+	$(top_builddir)/libhud/libhud.la \
+	$(HUD_LIBS)
