@@ -208,10 +208,13 @@ set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
 		break;
 	case PROP_APPLICATION:
 		g_clear_object(&manager->priv->application);
-		g_clear_pointer(&manager->priv->application_id, g_free);
 
-		manager->priv->application = g_value_dup_object(value);
-		manager->priv->application_id = g_strdup(g_application_get_application_id(manager->priv->application));
+		if (g_value_get_object(value) != NULL) {
+			g_clear_pointer(&manager->priv->application_id, g_free);
+
+			manager->priv->application = g_value_dup_object(value);
+			manager->priv->application_id = g_strdup(g_application_get_application_id(manager->priv->application));
+		}
 		break;
 	default:
 		g_warning("Unknown property %d.", id);
