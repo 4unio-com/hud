@@ -167,7 +167,17 @@ hud_application_source_new_for_id (const gchar * id)
 
 	source->priv->skel = app_iface_com_canonical_hud_application_skeleton_new();
 	g_signal_connect(G_OBJECT(source->priv->skel), "handle-add-sources", G_CALLBACK(dbus_add_sources), source);
-	source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s", id);
+
+	gchar * app_id_clean = g_strdup(id);
+	gchar * app_id_cleanp;
+	for (app_id_cleanp = app_id_clean; app_id_cleanp[0] != '\0'; app_id_cleanp++) {
+		if (!g_ascii_isalnum(app_id_cleanp[0])) {
+			app_id_cleanp[0] = '_';
+		}
+	}
+	source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s", app_id_clean);
+	g_debug("Application ('%s') path: %s", id, source->priv->path);
+	g_free(app_id_clean);
 
 	g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(source->priv->skel),
 	                                 g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
