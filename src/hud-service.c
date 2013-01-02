@@ -67,6 +67,16 @@ static GDBusInterfaceVTable vtable = {
 };
 static HudApplicationList * application_list = NULL;
 
+/* Get our error domain */
+GQuark
+error (void)
+{
+	static GQuark err = 0;
+	if (err == 0) {
+		err = g_quark_from_static_string("hud");
+	}
+	return err;
+}
 
 /* Describe the important values in the query */
 GVariant *
@@ -125,10 +135,21 @@ bus_method (GDBusConnection       *connection,
 
 		HudApplicationSource * appsource = hud_application_list_get_source(application_list, g_variant_get_string(vid, NULL));
 
-		const gchar * path = hud_application_source_get_path(appsource);
-		GVariant * vpath = g_variant_new_object_path(path);
+		const gchar * path = NULL;
+		if (appsource != NULL) {
+			path = hud_application_source_get_path(appsource);
+		}
 
-		g_dbus_method_invocation_return_value(invocation, g_variant_new_tuple(&vpath, 1));
+		GVariant * vpath = NULL;
+		if (path != NULL) {
+			vpath = g_variant_new_object_path(path);
+		}
+
+		if (vpath != NULL) {
+			g_dbus_method_invocation_return_value(invocation, g_variant_new_tuple(&vpath, 1));
+		} else {
+			g_dbus_method_invocation_return_error_literal(invocation, error(), 1, "Unable to get path for the created application");
+		}
 		g_variant_unref(vid);
 	} else {
 		g_warn_if_reached();
