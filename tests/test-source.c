@@ -20,6 +20,7 @@
 #include "hudquery.h"
 #include "hudtoken.h"
 #include "hudsource.h"
+#include "hudsourcelist.h"
 #include "hudrandomsource.h"
 
 #include <glib-object.h>
@@ -55,7 +56,6 @@ make_assertion (HudSource *source, const gchar *search,
 
   DeeModel *model = hud_query_get_results_model(query);
 
-
   g_assert_cmpint(dee_model_get_n_rows(model), ==, expected_count);
 
   for(row = 0; row < expected_count ; row++)
@@ -77,11 +77,14 @@ make_assertion (HudSource *source, const gchar *search,
 static void
 test_hud_query (void)
 {
-  HudSource *source;
+  HudSource *random_source;
   GRand *rand;
 
   rand = g_rand_new_with_seed (8);
-  source = hud_random_source_new_full (rand, 1, 4, 2);
+  random_source = hud_random_source_new_full (rand, 1, 4, 2);
+
+  HudSourceList *source_list = hud_source_list_new();
+  hud_source_list_add(source_list, random_source);
 
   {
     gchar *search = "ash";
@@ -90,7 +93,7 @@ test_hud_query (void)
     const gchar *appstack = "com.canonical.hud.query0.appstack";
     const gchar *path = "/com/canonical/hud/query0";
     const gchar *name = "com.canonical.hud.query0.results";
-    make_assertion (source, search, appstack, path, name, expected, expected_distances, 5);
+    make_assertion (HUD_SOURCE(source_list), search, appstack, path, name, expected, expected_distances, 5);
   }
 
   {
@@ -100,7 +103,7 @@ test_hud_query (void)
     const gchar *appstack = "com.canonical.hud.query1.appstack";
     const gchar *path = "/com/canonical/hud/query1";
     const gchar *name = "com.canonical.hud.query1.results";
-    make_assertion (source, search, appstack, path, name, expected, expected_distances, 1);
+    make_assertion (HUD_SOURCE(source_list), search, appstack, path, name, expected, expected_distances, 1);
   }
 
   {
@@ -110,10 +113,11 @@ test_hud_query (void)
     const gchar *appstack = "com.canonical.hud.query2.appstack";
     const gchar *path = "/com/canonical/hud/query2";
     const gchar *name = "com.canonical.hud.query2.results";
-    make_assertion (source, search, appstack, path, name, expected, expected_distances, 1);
+    make_assertion (HUD_SOURCE(source_list), search, appstack, path, name, expected, expected_distances, 1);
   }
 
-  g_object_unref (source);
+  g_object_unref (random_source);
+  g_object_unref (source_list);
   g_rand_free (rand);
 }
 
