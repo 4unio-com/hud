@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2012 Canonical Ltd.
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3, as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranties of
+ * MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef HUDRANDOMSOURCE_H_
 #define HUDRANDOMSOURCE_H_
 
@@ -28,6 +44,6 @@ gchar * hud_random_source_make_words (GRand *rand,
 HudSource * hud_random_source_new (GRand *rand);
 
 HudSource * hud_random_source_new_full (GRand *rand, const gint max_depth,
-    const gint max_items, const gint max_words, const gint max_letters);
+    const gint max_items, const gint max_words);
 
 #endif /* HUDRANDOMSOURCE_H_ */

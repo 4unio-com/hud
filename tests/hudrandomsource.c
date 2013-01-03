@@ -1,3 +1,20 @@
+/*
+ * Copyright © 2012 Canonical Ltd.
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3, as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranties of
+ * MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#define G_LOG_DOMAIN "hudrandomsource"
 
 #include <glib.h>
 
@@ -10,6 +27,8 @@
 #define MAX_DEPTH 6
 #define MAX_ITEMS 20
 #define MAX_WORDS 4
+
+/* Longest word in the word-list (upper bound) */
 #define MAX_LETTERS 20
 
 struct _HudRandomSource
@@ -29,9 +48,6 @@ struct _HudRandomSource
    * NB: keep MAX_WORDS * MAX_DEPTH under 32
    */
   gint max_words;
-
-  /* Longest word in the word-list (upper bound) */
-  gint max_letters;
 };
 
 typedef GObjectClass HudRandomSourceClass;
@@ -82,15 +98,15 @@ hud_random_source_make_word (GRand *rand,
   return buffer;
 }
 
-static gchar *
-hud_random_source_make_words_full (GRand *rand,
-            gint   n_words, const gint max_letters)
+gchar *
+hud_random_source_make_words (GRand *rand,
+            gint   n_words)
 {
   gchar *buffer;
   gchar *ptr;
   gint i;
 
-  buffer = g_malloc ((max_letters + 1) * n_words);
+  buffer = g_malloc ((MAX_LETTERS + 1) * n_words);
 
   ptr = buffer;
   for (i = 0; i < n_words; i++)
@@ -106,13 +122,6 @@ hud_random_source_make_words_full (GRand *rand,
   return buffer;
 }
 
-gchar *
-hud_random_source_make_words (GRand *rand,
-            gint   n_words)
-{
-  return hud_random_source_make_words_full(rand, n_words, MAX_LETTERS);
-}
-
 static HudStringList *
 hud_random_source_make_name (HudRandomSource *self,
                          GRand         *rand,
@@ -121,7 +130,7 @@ hud_random_source_make_name (HudRandomSource *self,
   HudStringList *name;
   gchar *label;
 
-  label = hud_random_source_make_words_full (rand, g_rand_int_range (rand, 1, self->max_words + 1), self->max_letters);
+  label = hud_random_source_make_words (rand, g_rand_int_range (rand, 1, self->max_words + 1));
   name = hud_string_list_cons (label, context);
   g_free (label);
 
@@ -200,13 +209,12 @@ hud_random_source_class_init (HudRandomSourceClass *class)
 HudSource *
 hud_random_source_new (GRand *rand)
 {
-  return hud_random_source_new_full (rand, MAX_DEPTH, MAX_ITEMS, MAX_WORDS,
-      MAX_LETTERS);
+  return hud_random_source_new_full (rand, MAX_DEPTH, MAX_ITEMS, MAX_WORDS);
 }
 
 HudSource *
 hud_random_source_new_full (GRand *rand, const gint max_depth, const gint max_items,
-    const gint max_words, const gint max_letters)
+    const gint max_words)
 {
   HudRandomSource *source;
 
@@ -215,7 +223,6 @@ hud_random_source_new_full (GRand *rand, const gint max_depth, const gint max_it
   source->max_depth = max_depth;
   source->max_items = max_items;
   source->max_words = max_words;
-  source->max_letters = max_letters;
 
   hud_random_source_populate_table (source, rand, NULL, 0);
 

@@ -27,6 +27,7 @@
                                                              HUD_TYPE_QUERY, HudQuery))
 #define HUD_IS_QUERY(inst)                                  (G_TYPE_CHECK_INSTANCE_TYPE ((inst),                     \
                                                              HUD_TYPE_QUERY))
+typedef struct _DeeModel DeeModel;
 
 typedef struct _HudQuery                                    HudQuery;
 
@@ -39,5 +40,6 @@ HudQuery *              hud_query_new                                   (HudSour
 const gchar *           hud_query_get_path                              (HudQuery    *query);
 const gchar *           hud_query_get_results_name                      (HudQuery    *query);
 const gchar *           hud_query_get_appstack_name                     (HudQuery    *query);
+DeeModel    *           hud_query_get_results_model                     (HudQuery    *query);
 
 #endif /* __HUD_QUERY_H__ */

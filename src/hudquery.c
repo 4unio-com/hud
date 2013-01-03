@@ -477,3 +477,12 @@ hud_query_get_appstack_name (HudQuery * query)
 
 	return query->appstack_name;
 }
+
+DeeModel *
+hud_query_get_results_model(HudQuery *self)
+{
+  g_return_val_if_fail(HUD_IS_QUERY(self), NULL);
+
+  return self->results_model;
+
+}
