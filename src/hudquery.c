@@ -346,10 +346,10 @@ hud_query_init (HudQuery *query)
   g_signal_connect(G_OBJECT(query->skel), "handle-execute-command", G_CALLBACK(handle_execute), query);
 
   query->object_path = g_strdup_printf("/com/canonical/hud/query%d", query->querynumber);
-//  g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),
-//                                   g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
-//                                   query->object_path,
-//                                   NULL);
+  g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),
+                                   g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
+                                   query->object_path,
+                                   NULL);
 
   query->results_name = g_strdup_printf("com.canonical.hud.query%d.results", query->querynumber);
   query->results_model = dee_shared_model_new(query->results_name);

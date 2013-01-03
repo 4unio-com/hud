@@ -16,15 +16,19 @@
 
 #define G_LOG_DOMAIN "test-source"
 
+#define LOADER_NAME  "test.json.loader"
+#define LOADER_PATH  "/test/json/loader"
+
 #include "hudsettings.h"
 #include "hudquery.h"
 #include "hudtoken.h"
 #include "hudsource.h"
 #include "hudsourcelist.h"
-#include "hudrandomsource.h"
+#include "huddbusmenucollector.h"
 
 #include <glib-object.h>
 #include <dee.h>
+#include <libdbustest/dbus-test.h>
 
 /* hardcode some parameters for reasons of determinism.
  */
@@ -36,6 +40,51 @@ HudSettings hud_settings = {
   .swap_penalty = 15,
   .max_distance = 30
 };
+
+/* If we can't get the name, we should error the test */
+static gboolean
+name_timeout (gpointer user_data)
+{
+  g_error("Unable to get name");
+  return FALSE;
+}
+
+static void
+start_dbusmenu_mock_app (DbusTestService ** service, GDBusConnection ** session, const gchar * jsonfile)
+{
+  *service = dbus_test_service_new(NULL);
+
+  /* Loader */
+  DbusTestProcess * loader = dbus_test_process_new(DBUSMENU_JSON_LOADER);
+  dbus_test_process_append_param(loader, LOADER_NAME);
+  dbus_test_process_append_param(loader, LOADER_PATH);
+  dbus_test_process_append_param(loader, jsonfile);
+  dbus_test_task_set_name(DBUS_TEST_TASK(loader), "JSON Loader");
+  dbus_test_service_add_task(*service, DBUS_TEST_TASK(loader));
+  g_object_unref(loader);
+
+  /* Dummy */
+  DbusTestTask * dummy = dbus_test_task_new();
+  dbus_test_task_set_wait_for(dummy, LOADER_NAME);
+  dbus_test_service_add_task(*service, dummy);
+  g_object_unref(dummy);
+
+  /* Setup timeout */
+  guint timeout_source = g_timeout_add_seconds(2, name_timeout, NULL);
+
+  /* Get loader up and running and us on that bus */
+  g_debug("Starting up Dbusmenu Loader");
+  dbus_test_service_start_tasks(*service);
+
+  /* Cleanup timeout */
+  g_source_remove(timeout_source);
+
+  /* Set us not to exit when the service goes */
+  *session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+  g_dbus_connection_set_exit_on_close(*session, FALSE);
+
+  return;
+}
 
 static void
 make_assertion (HudSource *source, const gchar *search,
@@ -74,17 +123,38 @@ make_assertion (HudSource *source, const gchar *search,
   g_object_unref (query);
 }
 
+/* Timeout on our loop */
+static gboolean
+test_menus_timeout (gpointer user_data)
+{
+  GMainLoop * loop = (GMainLoop *)user_data;
+  g_main_loop_quit(loop);
+  return FALSE;
+}
+
 static void
 test_hud_query (void)
 {
-  HudSource *random_source;
-  GRand *rand;
+  DbusTestService * service = NULL;
+  GDBusConnection * session = NULL;
 
-  rand = g_rand_new_with_seed (8);
-  random_source = hud_random_source_new_full (rand, 1, 4, 2);
+  start_dbusmenu_mock_app (&service, &session, JSON_INPUT);
+
+  HudDbusmenuCollector * collector = hud_dbusmenu_collector_new_for_endpoint (
+      "test-id", "Prefix", "no-icon", 0, /* penalty */
+      LOADER_NAME, LOADER_PATH);
+  g_assert(collector != NULL);
+  g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
+
+  GMainLoop * temploop = g_main_loop_new (NULL, FALSE);
+  g_timeout_add (100, test_menus_timeout, temploop);
+  g_main_loop_run (temploop);
+  g_main_loop_unref (temploop);
 
   HudSourceList *source_list = hud_source_list_new();
-  hud_source_list_add(source_list, random_source);
+  hud_source_list_add(source_list, HUD_SOURCE(collector));
+
+  hud_source_use(HUD_SOURCE(source_list));
 
   {
     gchar *search = "ash";
@@ -108,17 +178,20 @@ test_hud_query (void)
 
   {
     gchar *search = "dare";
-    const gchar *expected[1] = { "mess strand"};
-    const guint32 expected_distances[1] = { 2 };
+    const gchar *expected[2] = { "mess strand", "bowl"};
+    const guint32 expected_distances[2] = { 2, 30 };
     const gchar *appstack = "com.canonical.hud.query2.appstack";
     const gchar *path = "/com/canonical/hud/query2";
     const gchar *name = "com.canonical.hud.query2.results";
-    make_assertion (HUD_SOURCE(source_list), search, appstack, path, name, expected, expected_distances, 1);
+    make_assertion (HUD_SOURCE(source_list), search, appstack, path, name, expected, expected_distances, 2);
   }
 
-  g_object_unref (random_source);
+  hud_source_unuse (HUD_SOURCE(source_list) );
+
+  g_object_unref (collector);
+  g_object_unref (service);
+  g_object_unref (session);
   g_object_unref (source_list);
-  g_rand_free (rand);
 }
 
 int

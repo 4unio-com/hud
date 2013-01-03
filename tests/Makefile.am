@@ -289,15 +289,22 @@ test_source_SOURCES = \
 
 test_source_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
+	-D DBUSMENU_JSON_LOADER=\"$(builddir)/dbusmenu-json-loader\" \
+	-D JSON_INPUT=\"$(srcdir)/test-source.json\" \
 	-Wall -Werror
 
 test_source_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
 	$(HUD_LIBS)
+
+EXTRA_DIST += \
+	test-source.json
 
 DISTCLEANFILES += \
 	$(SOURCE_XML_REPORT) \
