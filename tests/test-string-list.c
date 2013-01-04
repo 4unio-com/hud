@@ -23,16 +23,14 @@
 static void
 test_hud_string_list_cons ()
 {
-  HudStringList *list = NULL, *first = NULL, *second = NULL, *third = NULL,
-      *tmp = NULL;
+  HudStringList *list = NULL, *first = NULL, *second = NULL, *tmp = NULL;
 
   first = hud_string_list_cons ("first", NULL );
   list = first;
   g_assert_cmpstr(hud_string_list_get_head(list), ==, "first");
   g_assert(hud_string_list_get_tail(list) == NULL);
 
-  second = hud_string_list_cons ("second", list);
-  hud_string_list_unref (list);
+  second = hud_string_list_add_item ("second", list);
   list = second;
   g_assert_cmpstr(hud_string_list_get_head(list), ==, "second");
   g_assert(hud_string_list_get_tail(list) == first);
@@ -41,9 +39,7 @@ test_hud_string_list_cons ()
   g_assert_cmpstr(hud_string_list_get_head(tmp), ==, "first");
   g_assert(hud_string_list_get_tail(tmp) == NULL);
 
-  third = hud_string_list_cons ("third", list);
-  hud_string_list_unref (list);
-  list = third;
+  list = hud_string_list_add_item ("third", list);
   g_assert_cmpstr(hud_string_list_get_head(list), ==, "third");
   g_assert(hud_string_list_get_tail(list) == second);
 
@@ -100,21 +96,12 @@ test_hud_string_list_cons_label ()
 static void
 test_hud_string_list_pretty_print ()
 {
-  HudStringList *list = NULL, *tmp = NULL;
+  HudStringList *list = NULL;
 
   list = hud_string_list_cons ("first", NULL );
-
-  tmp = hud_string_list_cons ("second", list);
-  hud_string_list_unref (list);
-  list = tmp;
-
-  tmp = hud_string_list_cons ("third", list);
-  hud_string_list_unref (list);
-  list = tmp;
-
-  tmp = hud_string_list_cons ("fourth", list);
-  hud_string_list_unref (list);
-  list = tmp;
+  list = hud_string_list_add_item ("second", list);
+  list = hud_string_list_add_item ("third", list);
+  list = hud_string_list_add_item ("fourth", list);
 
   g_assert_cmpstr(hud_string_list_pretty_print(list), ==,
       "first > second > third > fourth");
