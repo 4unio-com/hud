@@ -144,7 +144,7 @@ main (int argc, char **argv)
   g_type_init ();
 
   g_test_init (&argc, &argv, NULL);
-  g_test_add_func ("/hud/source", test_hud_query);
+  g_test_add_func ("/hud/source/query", test_hud_query);
 
   return g_test_run ();
 }
