@@ -390,9 +390,6 @@ hud_item_get_command (HudItem *item)
 	}
 
 	const gchar * head = hud_string_list_get_head(item->priv->tokens);
-	if (head == NULL) {
-		return _("No Command");
-	}
 
 	return head;
 }

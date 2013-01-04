@@ -114,6 +114,8 @@ hud_string_list_cons (const gchar   *head,
   HudStringList *list;
   gsize headlen;
 
+  g_assert(head != NULL);
+
   headlen = strlen (head);
 
   list = g_malloc (G_STRUCT_OFFSET (HudStringList, head) + headlen + 1);

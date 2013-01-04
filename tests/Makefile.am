@@ -76,6 +76,42 @@ DISTCLEANFILES += \
 	$(DISTANCE_XML_REPORT:.xml=-xunit.xml)
 
 ######################
+# Test Hud Item
+######################
+
+TESTS += \
+	test-hud-item-test
+
+check_PROGRAMS += \
+	test-hud-item
+
+HUD_ITEM_XML_REPORT = test-hud-item.xml
+
+test-hud-item-test: test-hud-item Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(HUD_ITEM_XML_REPORT) $(builddir)/test-hud-item >> $@
+	@echo gtester2xunit $(HUD_ITEM_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_hud_item_SOURCES = \
+	test-huditem.c
+
+test_hud_item_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_hud_item_LDADD = \
+	$(top_builddir)/src/libhud-service.la \
+	$(HUD_LIBS)
+
+DISTCLEANFILES += \
+	$(HUD_ITEM_XML_REPORT) \
+	$(HUD_ITEM_XML_REPORT:.xml=-xunit.xml)
+
+######################
 # Test Result Highlighting
 ######################
 

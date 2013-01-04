@@ -18,57 +18,98 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib-object.h>
 
 #include "huditem.h"
+#include "hudstringlist.h"
 
 static void
-test_result_highlighting_baseutf8 (void)
+test_hud_item_get_command_null_tokens (void)
 {
-	HudItem *item;
-	HudStringList *item_tokens;
-	HudTokenList *search_tokens;
+  HudItem *item = hud_item_new (NULL, NULL, NULL, NULL, NULL, TRUE);
+  g_assert_cmpstr(hud_item_get_command(item), ==, "No Command");
 
-	item_tokens = add_item_to_hud_string_list ("foo", NULL);
-	item_tokens = add_item_to_hud_string_list ("ẃêỳᶉ∂", item_tokens);
-	item_tokens = add_item_to_hud_string_list ("mango", item_tokens);
-
-	search_tokens = hud_token_list_new_from_string ("ẃêỳᶉ∂");
-
-	item = hud_item_new (item_tokens, NULL, NULL, NULL, NULL, TRUE);
-
-	HudResult *result = hud_result_new (item, search_tokens, 0);
-
-	g_assert_cmpstr (hud_result_get_html_description (result), ==, "foo &gt; <b>ẃêỳᶉ∂</b> &gt; mango");
-
-	hud_token_list_free (search_tokens);
-	g_object_unref (result);
-	g_object_unref (item);
-	hud_string_list_unref (item_tokens);
-
-	return;
+  g_object_unref (item);
 }
 
 static void
-test_result_highlighting_suite (void)
+test_hud_item_get_context_null_tokens (void)
 {
-	g_test_add_func ("/hud/highlighting/base",          test_result_highlighting_base);
-	g_test_add_func ("/hud/highlighting/baseutf8",      test_result_highlighting_baseutf8);
-	g_test_add_func ("/hud/highlighting/extra_keywords",test_result_highlighting_extra_keywords);
-	g_test_add_func ("/hud/highlighting/extra_keywords_multiple_hits",test_result_highlighting_extra_keywords_multiple_hits);
-	g_test_add_func ("/hud/highlighting/gt",            test_result_highlighting_gt);
-	g_test_add_func ("/hud/highlighting/apos1",         test_result_highlighting_apos1);
-	g_test_add_func ("/hud/highlighting/apos2",         test_result_highlighting_apos2);
-	return;
+  HudItem *item = hud_item_new (NULL, NULL, NULL, NULL, NULL, TRUE);
+  g_assert_cmpstr(hud_item_get_context(item), ==, "");
+
+  g_object_unref (item);
+}
+
+static void
+test_hud_item_get_context_null_tokens_tail (void)
+{
+  HudStringList *tokens;
+  tokens = hud_string_list_add_item ("a", NULL);
+
+  HudItem *item = hud_item_new (tokens, NULL, NULL, NULL, NULL, TRUE);
+  g_assert_cmpstr(hud_item_get_context(item), ==, "");
+
+  g_object_unref (item);
+}
+
+static void
+test_hud_item_getters (void)
+{
+	HudItem *item;
+	HudStringList *tokens, *keywords;
+	guint token_len;
+	HudToken **list;
+
+	tokens = hud_string_list_add_item ("tokens1", NULL);
+	tokens = hud_string_list_add_item ("tokens2", tokens);
+	tokens = hud_string_list_add_item ("tokens3", tokens);
+	keywords = hud_string_list_add_item ("keywords1", NULL);
+	keywords = hud_string_list_add_item ("keywords2", keywords);
+	keywords = hud_string_list_add_item ("keywords3", keywords);
+
+	item = hud_item_new (tokens, keywords, "shortcut", "desktop_file", "app_icon", TRUE);
+
+	g_assert_cmpstr(hud_item_get_app_icon(item), ==, "app_icon");
+	g_assert_cmpstr(hud_item_get_command(item), ==, "tokens3");
+	g_assert_cmpstr(hud_item_get_context(item), ==, "tokens1 > tokens2");
+	g_assert_cmpint(hud_item_get_enabled(item), ==, TRUE);
+	g_assert_cmpstr(hud_item_get_item_icon(item), ==, ""); // For the base class this is always ""
+	g_assert(hud_item_get_keywords(item) == keywords);
+	g_assert_cmpstr(hud_item_get_shortcut(item), ==, "shortcut");
+	g_assert(hud_item_get_tokens(item) == tokens);
+	g_assert_cmpuint(hud_item_get_usage(item), ==, 0); // It hasn't been used yet
+
+	HudTokenList *token_list = hud_item_get_token_list (item);
+  g_assert_cmpint(hud_token_list_get_length (token_list), ==, 6);
+  list = hud_token_list_get_tokens (token_list);
+  g_assert_cmpstr(hud_token_get_original(list[0], &token_len), ==, "tokens1");
+  g_assert_cmpstr(hud_token_get_original(list[1], &token_len), ==, "tokens2");
+  g_assert_cmpstr(hud_token_get_original(list[2], &token_len), ==, "tokens3");
+  g_assert_cmpstr(hud_token_get_original(list[3], &token_len), ==, "keywords1");
+  g_assert_cmpstr(hud_token_get_original(list[4], &token_len), ==, "keywords2");
+  g_assert_cmpstr(hud_token_get_original(list[5], &token_len), ==, "keywords3");
+
+	g_object_unref (item);
+	hud_string_list_unref (tokens);
+	hud_string_list_unref (keywords);
+}
+
+static void
+test_hud_item_suite (void)
+{
+  g_test_add_func ("/hud/huditem/getters", test_hud_item_getters);
+  g_test_add_func ("/hud/huditem/get_command_null_tokens", test_hud_item_get_command_null_tokens);
+  g_test_add_func ("/hud/huditem/get_context_null_tokens", test_hud_item_get_context_null_tokens);
+  g_test_add_func ("/hud/huditem/get_context_null_tokens_tail", test_hud_item_get_context_null_tokens_tail);
 }
 
 gint
 main (gint argc, gchar * argv[])
 {
-	//gtk_init(&argc, &argv);
 	g_type_init();
 
 	g_test_init(&argc, &argv, NULL);
 
 	/* Test suites */
-	test_result_highlighting_suite();
+	test_hud_item_suite();
 
 	return g_test_run ();
 }
