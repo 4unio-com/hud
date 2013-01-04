@@ -34,6 +34,8 @@ HudStringList *         hud_string_list_get_tail                        (HudStri
 
 HudStringList *         hud_string_list_cons_label                      (const gchar   *label,
                                                                          HudStringList *tail);
+HudStringList *         hud_string_list_add_item                        (const gchar *item,
+                                                                         HudStringList *tail);
 
 gchar *                 hud_string_list_pretty_print                    (HudStringList *list);
 

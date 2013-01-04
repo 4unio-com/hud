@@ -16,15 +16,13 @@
 
 #define G_LOG_DOMAIN "test-source"
 
-#define LOADER_NAME  "test.json.loader"
-#define LOADER_PATH  "/test/json/loader"
-
 #include "hudsettings.h"
 #include "hudquery.h"
 #include "hudtoken.h"
 #include "hudsource.h"
 #include "hudsourcelist.h"
 #include "huddbusmenucollector.h"
+#include "hudtestutils.h"
 
 #include <glib-object.h>
 #include <dee.h>
@@ -40,51 +38,6 @@ HudSettings hud_settings = {
   .swap_penalty = 15,
   .max_distance = 30
 };
-
-/* If we can't get the name, we should error the test */
-static gboolean
-name_timeout (gpointer user_data)
-{
-  g_error("Unable to get name");
-  return FALSE;
-}
-
-static void
-start_dbusmenu_mock_app (DbusTestService ** service, GDBusConnection ** session, const gchar * jsonfile)
-{
-  *service = dbus_test_service_new(NULL);
-
-  /* Loader */
-  DbusTestProcess * loader = dbus_test_process_new(DBUSMENU_JSON_LOADER);
-  dbus_test_process_append_param(loader, LOADER_NAME);
-  dbus_test_process_append_param(loader, LOADER_PATH);
-  dbus_test_process_append_param(loader, jsonfile);
-  dbus_test_task_set_name(DBUS_TEST_TASK(loader), "JSON Loader");
-  dbus_test_service_add_task(*service, DBUS_TEST_TASK(loader));
-  g_object_unref(loader);
-
-  /* Dummy */
-  DbusTestTask * dummy = dbus_test_task_new();
-  dbus_test_task_set_wait_for(dummy, LOADER_NAME);
-  dbus_test_service_add_task(*service, dummy);
-  g_object_unref(dummy);
-
-  /* Setup timeout */
-  guint timeout_source = g_timeout_add_seconds(2, name_timeout, NULL);
-
-  /* Get loader up and running and us on that bus */
-  g_debug("Starting up Dbusmenu Loader");
-  dbus_test_service_start_tasks(*service);
-
-  /* Cleanup timeout */
-  g_source_remove(timeout_source);
-
-  /* Set us not to exit when the service goes */
-  *session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
-  g_dbus_connection_set_exit_on_close(*session, FALSE);
-
-  return;
-}
 
 static void
 make_assertion (HudSource *source, const gchar *search,
@@ -123,31 +76,22 @@ make_assertion (HudSource *source, const gchar *search,
   g_object_unref (query);
 }
 
-/* Timeout on our loop */
-static gboolean
-test_menus_timeout (gpointer user_data)
-{
-  GMainLoop * loop = (GMainLoop *)user_data;
-  g_main_loop_quit(loop);
-  return FALSE;
-}
-
 static void
 test_hud_query (void)
 {
   DbusTestService * service = NULL;
   GDBusConnection * session = NULL;
 
-  start_dbusmenu_mock_app (&service, &session, JSON_INPUT);
+  hud_test_utils_start_dbusmenu_mock_app (&service, &session, JSON_INPUT);
 
   HudDbusmenuCollector * collector = hud_dbusmenu_collector_new_for_endpoint (
       "test-id", "Prefix", "no-icon", 0, /* penalty */
-      LOADER_NAME, LOADER_PATH);
+      HUD_TEST_UTILS_LOADER_NAME, HUD_TEST_UTILS_LOADER_PATH);
   g_assert(collector != NULL);
   g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
   GMainLoop * temploop = g_main_loop_new (NULL, FALSE);
-  g_timeout_add (100, test_menus_timeout, temploop);
+  g_timeout_add (100, hud_test_utils_test_menus_timeout, temploop);
   g_main_loop_run (temploop);
   g_main_loop_unref (temploop);
 

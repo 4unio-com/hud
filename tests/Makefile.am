@@ -22,16 +22,21 @@ EXTRA_DIST += \
 libhud_tests_la_SOURCES = \
 	word-list.h \
 	hudrandomsource.h \
-	hudrandomsource.c
+	hudrandomsource.c \
+	hudtestutils.h \
+	hudtestutils.c
 
 libhud_tests_la_LDFLAGS = \
-	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service.la \
+	$(DBUSTEST_LIBS) \
 	$(HUD_LIBS)
 
 libhud_tests_la_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
+	-D DBUSMENU_JSON_LOADER=\"$(builddir)/dbusmenu-json-loader\" \
 	-Wall -Werror
 
 ######################
@@ -99,7 +104,7 @@ test_result_highlighting_CFLAGS = \
 	-Wall -Werror
 
 test_result_highlighting_LDADD = \
-	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service.la \
 	$(HUD_LIBS)
 
 DISTCLEANFILES += \
@@ -139,13 +144,13 @@ test_menu_input_CFLAGS = \
 	-D MOCK_JSON_APP=\"$(MOCK_JSON_APP)\" \
 	-D MODEL_SIMPLE=\"$(builddir)/test-menu-input-model-simple\" \
 	-D MODEL_SHORTCUTS=\"$(builddir)/test-menu-input-model-shortcuts\" \
-	-D DBUSMENU_JSON_LOADER=\"$(builddir)/dbusmenu-json-loader\" \
 	-D JSON_SIMPLE=\"$(srcdir)/test-menu-input-simple.json\" \
 	-D JSON_SHORTCUTS=\"$(srcdir)/test-menu-input-shortcuts.json\" \
 	-Wall -Werror
 
 test_menu_input_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	libhud-tests.la \
 	$(DBUSTEST_LIBS) \
 	$(HUD_LIBS)
 
@@ -293,7 +298,6 @@ test_source_CFLAGS = \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
-	-D DBUSMENU_JSON_LOADER=\"$(builddir)/dbusmenu-json-loader\" \
 	-D JSON_INPUT=\"$(srcdir)/test-source.json\" \
 	-Wall -Werror
 

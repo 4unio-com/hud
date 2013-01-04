@@ -21,6 +21,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string.h>
 
+#include "hudstringlist.h"
 #include "hudresult.h"
 #include "hudsettings.h"
 
@@ -36,14 +37,6 @@ HudSettings hud_settings = {
 	.max_distance = 30
 };
 
-static HudStringList*
-add_item_to_hud_string_list (const gchar *item, HudStringList *stringlist)
-{
-	HudStringList *new_list = hud_string_list_cons (item, stringlist);
-	hud_string_list_unref (stringlist);
-	return new_list;
-}
-
 static void
 test_result_highlighting_base (void)
 {
@@ -51,9 +44,9 @@ test_result_highlighting_base (void)
 	HudStringList *item_tokens;
 	HudTokenList *search_tokens;
 	
-	item_tokens = add_item_to_hud_string_list ("foo", NULL);
-	item_tokens = add_item_to_hud_string_list ("bar", item_tokens);
-	item_tokens = add_item_to_hud_string_list ("mango", item_tokens);
+	item_tokens = hud_string_list_add_item ("foo", NULL);
+	item_tokens = hud_string_list_add_item ("bar", item_tokens);
+	item_tokens = hud_string_list_add_item ("mango", item_tokens);
 	
 	search_tokens = hud_token_list_new_from_string ("bar");
 	
@@ -78,9 +71,9 @@ test_result_highlighting_baseutf8 (void)
 	HudStringList *item_tokens;
 	HudTokenList *search_tokens;
 	
-	item_tokens = add_item_to_hud_string_list ("foo", NULL);
-	item_tokens = add_item_to_hud_string_list ("ẃêỳᶉ∂", item_tokens);
-	item_tokens = add_item_to_hud_string_list ("mango", item_tokens);
+	item_tokens = hud_string_list_add_item ("foo", NULL);
+	item_tokens = hud_string_list_add_item ("ẃêỳᶉ∂", item_tokens);
+	item_tokens = hud_string_list_add_item ("mango", item_tokens);
 	
 	search_tokens = hud_token_list_new_from_string ("ẃêỳᶉ∂");
 	
@@ -105,11 +98,11 @@ test_result_highlighting_extra_keywords (void)
   HudStringList *item_tokens, *item_keywords;
   HudTokenList *search_tokens;
 
-  item_tokens = add_item_to_hud_string_list ("File", NULL);
-  item_tokens = add_item_to_hud_string_list ("Open Tab", item_tokens);
+  item_tokens = hud_string_list_add_item ("File", NULL);
+  item_tokens = hud_string_list_add_item ("Open Tab", item_tokens);
 
-  item_keywords = add_item_to_hud_string_list ("Gimme a Tab Bro", NULL);
-  item_keywords = add_item_to_hud_string_list ("Giv Tab Plz", item_keywords);
+  item_keywords = hud_string_list_add_item ("Gimme a Tab Bro", NULL);
+  item_keywords = hud_string_list_add_item ("Giv Tab Plz", item_keywords);
 
   search_tokens = hud_token_list_new_from_string ("plz");
 
@@ -134,11 +127,11 @@ test_result_highlighting_extra_keywords_multiple_hits (void)
   HudStringList *item_tokens, *item_keywords;
   HudTokenList *search_tokens;
 
-  item_tokens = add_item_to_hud_string_list ("File", NULL);
-  item_tokens = add_item_to_hud_string_list ("Open Tab", item_tokens);
+  item_tokens = hud_string_list_add_item ("File", NULL);
+  item_tokens = hud_string_list_add_item ("Open Tab", item_tokens);
 
-  item_keywords = add_item_to_hud_string_list ("Gimme a Tab Bro", NULL);
-  item_keywords = add_item_to_hud_string_list ("Giv Tab Plz", item_keywords);
+  item_keywords = hud_string_list_add_item ("Gimme a Tab Bro", NULL);
+  item_keywords = hud_string_list_add_item ("Giv Tab Plz", item_keywords);
 
   search_tokens = hud_token_list_new_from_string ("bro plz");
 
@@ -163,9 +156,9 @@ test_result_highlighting_gt (void)
 	HudStringList *item_tokens;
 	HudTokenList *search_tokens;
 	
-	item_tokens = add_item_to_hud_string_list ("foo", NULL);
-	item_tokens = add_item_to_hud_string_list ("bar", item_tokens);
-	item_tokens = add_item_to_hud_string_list ("gt", item_tokens);
+	item_tokens = hud_string_list_add_item ("foo", NULL);
+	item_tokens = hud_string_list_add_item ("bar", item_tokens);
+	item_tokens = hud_string_list_add_item ("gt", item_tokens);
 	
 	search_tokens = hud_token_list_new_from_string ("gt");
 	
@@ -189,8 +182,8 @@ test_result_highlighting_apos1 (void)
 	HudStringList *item_tokens;
 	HudTokenList *search_tokens;
 
-	item_tokens = add_item_to_hud_string_list ("d'interes", NULL);
-	item_tokens = add_item_to_hud_string_list ("a", item_tokens);
+	item_tokens = hud_string_list_add_item ("d'interes", NULL);
+	item_tokens = hud_string_list_add_item ("a", item_tokens);
 
 	search_tokens = hud_token_list_new_from_string ("d'in");
 
@@ -214,8 +207,8 @@ test_result_highlighting_apos2 (void)
 	HudStringList *item_tokens;
 	HudTokenList *search_tokens;
 
-	item_tokens = add_item_to_hud_string_list ("d'interes", NULL);
-	item_tokens = add_item_to_hud_string_list ("a", item_tokens);
+	item_tokens = hud_string_list_add_item ("d'interes", NULL);
+	item_tokens = hud_string_list_add_item ("a", item_tokens);
 
 	search_tokens = hud_token_list_new_from_string ("a");
 

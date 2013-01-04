@@ -225,3 +225,11 @@ hud_string_list_cons_label (const gchar   *label,
 
   return list;
 }
+
+HudStringList*
+hud_string_list_add_item (const gchar *item, HudStringList *stringlist)
+{
+  HudStringList *new_list = hud_string_list_cons (item, stringlist);
+  hud_string_list_unref (stringlist);
+  return new_list;
+}
