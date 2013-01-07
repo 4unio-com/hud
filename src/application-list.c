@@ -232,7 +232,23 @@ application_changed (BamfMatcher * matcher, BamfApplication * old_app, BamfAppli
 static void
 view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 {
+	if (!BAMF_IS_WINDOW(view)) {
+		/* We only want windows.  Sorry. */
+		return;
+	}
 
+	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
+	BamfApplication * app = bamf_matcher_get_application_for_window(matcher, BAMF_WINDOW(view));
+	if (app == NULL) {
+		return;
+	}
+
+	HudApplicationSource * source = bamf_app_to_source(list, app);
+	if (source == NULL) {
+		return;
+	}
+
+	hud_application_source_add_window(source, BAMF_WINDOW(view));
 
 	return;
 }
@@ -241,6 +257,7 @@ view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 static void
 view_closed (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 {
+	/* TODO: Flesh out */
 
 	return;
 }

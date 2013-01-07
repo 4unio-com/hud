@@ -51,6 +51,8 @@ gboolean                 hud_application_source_is_empty          (HudApplicatio
 void                     hud_application_source_focus             (HudApplicationSource *   app,
                                                                    BamfApplication *        bapp);
 const gchar *            hud_application_source_get_path          (HudApplicationSource *   app);
+void                     hud_application_source_add_window        (HudApplicationSource *   app,
+                                                                   BamfWindow *             window);
 
 /* Helper functions */
 gchar *                  hud_application_source_bamf_app_id       (BamfApplication *        bapp);

@@ -308,3 +308,17 @@ hud_application_source_get_path (HudApplicationSource * app)
 	return app->priv->path;
 }
 
+/**
+ * hud_application_source_add_window:
+ * @app: A #HudApplicationSource object
+ * @window: The window to be added to the application
+ *
+ * Add a window to an application object.  Basically this means we only have to
+ * have one BAMF listener in the application list.
+ */
+void
+hud_application_source_add_window (HudApplicationSource * app, BamfWindow * window)
+{
+	/* TODO: Flesh out */
+	return;
+}
