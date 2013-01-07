@@ -30,7 +30,9 @@ typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
 
 struct _HudApplicationListPrivate {
 	BamfMatcher * matcher;
-	gulong matcher_sig;
+	gulong matcher_app_sig;
+	gulong matcher_view_open_sig;
+	gulong matcher_view_close_sig;
 
 	GHashTable * applications;
 	HudSource * used_source;
@@ -47,6 +49,12 @@ static void source_iface_init               (HudSourceInterface *      iface);
 static void application_changed             (BamfMatcher *             matcher,
                                              BamfApplication *         old_app,
                                              BamfApplication *         new_app,
+                                             gpointer                  user_data);
+static void view_opened                     (BamfMatcher *             matcher,
+                                             BamfView *                view,
+                                             gpointer                  user_data);
+static void view_closed                     (BamfMatcher *             matcher,
+                                             BamfView *                view,
                                              gpointer                  user_data);
 static void source_use                      (HudSource *               hud_source);
 static void source_unuse                    (HudSource *               hud_source);
@@ -90,9 +98,15 @@ hud_application_list_init (HudApplicationList *self)
 	self->priv = HUD_APPLICATION_LIST_GET_PRIVATE(self);
 
 	self->priv->matcher = bamf_matcher_get_default();
-	self->priv->matcher_sig = g_signal_connect(self->priv->matcher,
+	self->priv->matcher_app_sig = g_signal_connect(self->priv->matcher,
 		"active-application-changed",
 		G_CALLBACK(application_changed), self);
+	self->priv->matcher_view_open_sig = g_signal_connect(self->priv->matcher,
+		"view-opened",
+		G_CALLBACK(view_opened), self);
+	self->priv->matcher_view_close_sig = g_signal_connect(self->priv->matcher,
+		"view-closed",
+		G_CALLBACK(view_closed), self);
 
 	self->priv->applications = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 
@@ -134,10 +148,21 @@ hud_application_list_dispose (GObject *object)
 		self->priv->used_source = NULL;
 	}
 
-	if (self->priv->matcher_sig != 0 && self->priv->matcher != NULL) {
-		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_sig);
+	if (self->priv->matcher_app_sig != 0 && self->priv->matcher != NULL) {
+		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_app_sig);
 	}
-	self->priv->matcher_sig = 0;
+	self->priv->matcher_app_sig = 0;
+
+	if (self->priv->matcher_view_open_sig != 0 && self->priv->matcher != NULL) {
+		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_view_open_sig);
+	}
+	self->priv->matcher_view_open_sig = 0;
+
+	if (self->priv->matcher_view_close_sig != 0 && self->priv->matcher != NULL) {
+		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_view_close_sig);
+	}
+	self->priv->matcher_view_close_sig = 0;
+
 	g_clear_object(&self->priv->matcher);
 
 	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
@@ -199,6 +224,23 @@ application_changed (BamfMatcher * matcher, BamfApplication * old_app, BamfAppli
 		list->priv->used_source = HUD_SOURCE(source);
 		hud_source_use(list->priv->used_source);
 	}
+
+	return;
+}
+
+/* A new view has been opened by BAMF */
+static void
+view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
+{
+
+
+	return;
+}
+
+/* A view has been closed by BAMF */
+static void
+view_closed (BamfMatcher * matcher, BamfView * view, gpointer user_data)
+{
 
 	return;
 }
