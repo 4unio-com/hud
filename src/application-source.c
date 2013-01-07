@@ -30,6 +30,8 @@ struct _HudApplicationSourcePrivate {
 	AppIfaceComCanonicalHudApplication * skel;
 
 	BamfApplication * bamf_app;
+
+	GHashTable * windows;
 };
 
 #define HUD_APPLICATION_SOURCE_GET_PRIVATE(o) \
@@ -86,6 +88,8 @@ hud_application_source_init (HudApplicationSource *self)
 {
 	self->priv = HUD_APPLICATION_SOURCE_GET_PRIVATE(self);
 
+	self->priv->windows = g_hash_table_new_full(g_int_hash, g_int_equal, NULL, g_object_unref);
+
 	return;
 }
 
@@ -94,6 +98,8 @@ static void
 hud_application_source_dispose (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
+
+	g_clear_pointer(&self->priv->windows, g_hash_table_unref);
 
 	if (self->priv->skel != NULL) {
 		g_dbus_interface_skeleton_unexport(G_DBUS_INTERFACE_SKELETON(self->priv->skel));
