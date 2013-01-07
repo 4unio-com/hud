@@ -95,7 +95,11 @@ hud_application_source_dispose (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
-	g_clear_object(&self->priv->skel);
+	if (self->priv->skel != NULL) {
+		g_dbus_interface_skeleton_unexport(G_DBUS_INTERFACE_SKELETON(self->priv->skel));
+		g_clear_object(&self->priv->skel);
+	}
+
 	g_clear_object(&self->priv->bamf_app);
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->dispose (object);
