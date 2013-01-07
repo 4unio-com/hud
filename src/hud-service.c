@@ -248,7 +248,6 @@ main (int argc, char **argv)
 
   /* we will eventually pull GtkMenu out of this, so keep it around */
   window_source = hud_window_source_new ();
-  hud_source_list_add (source_list, HUD_SOURCE (window_source));
 
   application_list = hud_application_list_new();
   hud_source_list_add(source_list, HUD_SOURCE(application_list));
