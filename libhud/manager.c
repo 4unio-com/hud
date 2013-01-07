@@ -39,7 +39,7 @@ struct _HudManagerPrivate {
 
 	GCancellable * connection_cancel;
 	GDBusConnection * session;
-	_HudServiceComCanonicalHud * service_proxy;
+	_HudServiceIfaceComCanonicalHud * service_proxy;
 	_HudAppIfaceComCanonicalHudApplication * app_proxy;
 
 	GVariantBuilder * todo_add_acts;
@@ -339,7 +339,7 @@ register_app_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	GError * error = NULL;
 	gchar * object = NULL;
 
-	_hud_service_com_canonical_hud_call_register_application_finish ((_HudServiceComCanonicalHud *)obj,
+	_hud_service_iface_com_canonical_hud_call_register_application_finish ((_HudServiceIfaceComCanonicalHud *)obj,
 		&object,
 		res,
 		&error);
@@ -369,7 +369,7 @@ static void
 service_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 {
 	GError * error = NULL;
-	_HudServiceComCanonicalHud * proxy = _hud_service_com_canonical_hud_proxy_new_finish(res, &error);
+	_HudServiceIfaceComCanonicalHud * proxy = _hud_service_iface_com_canonical_hud_proxy_new_finish(res, &error);
 
 	if (error != NULL) {
 		g_error("Unable to get session bus: %s", error->message);
@@ -380,7 +380,7 @@ service_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	HudManager * manager = HUD_MANAGER(user_data);
 	manager->priv->service_proxy = proxy;
 
-	_hud_service_com_canonical_hud_call_register_application(proxy,
+	_hud_service_iface_com_canonical_hud_call_register_application(proxy,
 		manager->priv->application_id,
 		manager->priv->connection_cancel,
 		register_app_cb,
@@ -405,7 +405,7 @@ bus_get_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	HudManager * manager = HUD_MANAGER(user_data);
 	manager->priv->session = con;
 
-	_hud_service_com_canonical_hud_proxy_new(con,
+	_hud_service_iface_com_canonical_hud_proxy_new(con,
 	                                         G_DBUS_PROXY_FLAGS_NONE,
 	                                         "com.canonical.hud",
 	                                         "/com/canonical/hud",
