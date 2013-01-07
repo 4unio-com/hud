@@ -180,13 +180,18 @@ hud_application_source_new_for_id (const gchar * id)
 		}
 	}
 	source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s", app_id_clean);
-	g_debug("Application ('%s') path: %s", id, source->priv->path);
-	g_free(app_id_clean);
 
-	g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(source->priv->skel),
+	int i = 0;
+	while (!g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(source->priv->skel),
 	                                 g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
 	                                 source->priv->path,
-	                                 NULL);
+	                                 NULL)) {
+		g_free(source->priv->path);
+		source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s_%d", app_id_clean, ++i);
+	}
+
+	g_debug("Application ('%s') path: %s", id, source->priv->path);
+	g_free(app_id_clean);
 
 	return source;
 }
