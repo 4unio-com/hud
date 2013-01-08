@@ -33,7 +33,7 @@ struct _HudApplicationSourcePrivate {
 
 	BamfApplication * bamf_app;
 
-	BamfWindow * focused_window;
+	guint32 focused_window;
 
 	GHashTable * windows;
 };
@@ -152,7 +152,14 @@ source_search (HudSource *     hud_source,
                void          (*append_func) (HudResult * result, gpointer user_data),
                gpointer        user_data)
 {
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+	HudSource * collector = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(app->priv->focused_window));
 
+	if (collector == NULL) {
+		return;
+	}
+
+	hud_source_search(collector, search_string, append_func, user_data);
 	return;
 }
 
@@ -299,7 +306,8 @@ hud_application_source_focus (HudApplicationSource * app, BamfApplication * bapp
 	g_return_if_fail(app->priv->bamf_app == bapp);
 
 	/* TODO: Fill in */
-	app->priv->focused_window = window;
+	hud_application_source_add_window(app, window);
+	app->priv->focused_window = bamf_window_get_xid(window);
 
 	return;
 }
