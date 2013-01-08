@@ -143,7 +143,7 @@ hud_application_list_init (HudApplicationList *self)
 
 		view_opened(self->priv->matcher, BAMF_VIEW(window->data), self);
 	}
-	g_list_free_full(apps, g_object_unref);
+	//g_list_free_full(apps, g_object_unref);
 
 	return;
 }
