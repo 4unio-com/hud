@@ -23,6 +23,8 @@
 #include "application-source.h"
 #include "hudsource.h"
 #include "app-iface.h"
+#include "hudmenumodelcollector.h"
+#include "huddbusmenucollector.h"
 
 struct _HudApplicationSourcePrivate {
 	gchar * app_id;
@@ -88,7 +90,7 @@ hud_application_source_init (HudApplicationSource *self)
 {
 	self->priv = HUD_APPLICATION_SOURCE_GET_PRIVATE(self);
 
-	self->priv->windows = g_hash_table_new_full(g_int_hash, g_int_equal, NULL, g_object_unref);
+	self->priv->windows = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, g_object_unref);
 
 	return;
 }
@@ -325,6 +327,44 @@ hud_application_source_get_path (HudApplicationSource * app)
 void
 hud_application_source_add_window (HudApplicationSource * app, BamfWindow * window)
 {
-	/* TODO: Flesh out */
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
+	g_return_if_fail(BAMF_IS_WINDOW(window));
+
+	guint32 xid = bamf_window_get_xid(window);
+
+	HudSource * collector = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
+	if (collector != NULL) {
+		g_debug("Got it");
+		return;
+	}
+
+	if (app->priv->bamf_app == NULL) {
+		g_debug("No BAMF application object");
+		return;
+	}
+
+	/* TODO: This is from other code that states this, the assumption
+	   is incorrect.  */
+	/* GMenuModel menus either exist at the start or will never exist.
+	 * dbusmenu menus can appear later.
+	 *
+	 * For that reason, we check first for GMenuModel and assume if it
+	 * doesn't exist then it must be dbusmenu.
+	 */
+
+	const gchar * desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
+	const gchar * icon = bamf_view_get_icon(BAMF_VIEW(window));
+
+	HudMenuModelCollector * menumodel_collector = NULL;
+	menumodel_collector = hud_menu_model_collector_get(window, desktop_file, icon);
+
+	if (menumodel_collector != NULL) {
+		collector = HUD_SOURCE(menumodel_collector);
+	} else {
+		collector = HUD_SOURCE(hud_dbusmenu_collector_new_for_window(window, desktop_file, icon));
+	}
+
+	g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector);
+
 	return;
 }
