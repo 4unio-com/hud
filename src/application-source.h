@@ -49,7 +49,8 @@ HudApplicationSource *   hud_application_source_new_for_app       (BamfApplicati
 HudApplicationSource *   hud_application_source_new_for_id        (const gchar *            id);
 gboolean                 hud_application_source_is_empty          (HudApplicationSource *   app);
 void                     hud_application_source_focus             (HudApplicationSource *   app,
-                                                                   BamfApplication *        bapp);
+                                                                   BamfApplication *        bapp,
+                                                                   BamfWindow *             window);
 const gchar *            hud_application_source_get_path          (HudApplicationSource *   app);
 void                     hud_application_source_add_window        (HudApplicationSource *   app,
                                                                    BamfWindow *             window);

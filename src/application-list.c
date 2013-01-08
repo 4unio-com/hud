@@ -228,7 +228,7 @@ application_changed (BamfMatcher * matcher, BamfApplication * old_app, BamfAppli
 		return;
 	}
 
-	hud_application_source_focus(source, new_app);
+	hud_application_source_focus(source, new_app, bamf_matcher_get_active_window(list->priv->matcher));
 
 	if (list->priv->used_source) {
 		hud_source_unuse(list->priv->used_source);
