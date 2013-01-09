@@ -82,10 +82,7 @@ test_menus_dbusmenu_base (void)
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
-	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
-	g_timeout_add(100, hud_test_utils_test_menus_timeout, temploop);
-	g_main_loop_run(temploop);
-	g_main_loop_unref(temploop);
+	hud_test_utils_process_mainloop(100);
 
 	hud_source_use(HUD_SOURCE(collector));
 
@@ -161,10 +158,7 @@ test_menus_dbusmenu_shortcuts (void)
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
-	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
-	g_timeout_add(100, hud_test_utils_test_menus_timeout, temploop);
-	g_main_loop_run(temploop);
-	g_main_loop_unref(temploop);
+	hud_test_utils_process_mainloop(100);
 
 	int i;
 	for (i = 0; shortcutdb[i].label != NULL; i++) {
@@ -205,10 +199,7 @@ test_menus_model_base (void)
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
-	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
-	g_timeout_add(100, hud_test_utils_test_menus_timeout, temploop);
-	g_main_loop_run(temploop);
-	g_main_loop_unref(temploop);
+	hud_test_utils_process_mainloop(100);
 
 	hud_source_use(HUD_SOURCE(collector));
 
@@ -244,10 +235,7 @@ test_menus_model_shortcuts (void)
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
-	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
-	g_timeout_add(100, hud_test_utils_test_menus_timeout, temploop);
-	g_main_loop_run(temploop);
-	g_main_loop_unref(temploop);
+	hud_test_utils_process_mainloop(100);
 
 	int i;
 	for (i = 0; shortcutdb[i].label != NULL; i++) {

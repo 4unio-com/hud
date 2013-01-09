@@ -22,6 +22,7 @@
 #include "hudsource.h"
 #include "hudsourcelist.h"
 #include "huddbusmenucollector.h"
+#include "hud-query-iface.h"
 #include "hudtestutils.h"
 
 #include <glib-object.h>
@@ -39,18 +40,54 @@ HudSettings hud_settings = {
   .max_distance = 30
 };
 
+typedef struct
+{
+  GDBusConnection *session;
+  const gchar *object_path;
+} TestSourceThreadData;
+
+static gpointer
+test_source_call_close_query(gpointer user_data)
+{
+  TestSourceThreadData *thread_data = (TestSourceThreadData*) user_data;
+
+  HudQueryIfaceComCanonicalHudQuery *proxy;
+  GError *error = NULL;
+  GDBusConnection *session = G_DBUS_CONNECTION(thread_data->session);
+  const gchar *name = g_dbus_connection_get_unique_name(session);
+
+  proxy = hud_query_iface_com_canonical_hud_query_proxy_new_sync (session,
+        G_DBUS_PROXY_FLAGS_NONE, name, thread_data->object_path, NULL, &error);
+  if (error != NULL )
+  {
+    g_warning ("%s %s\n", "The request failed:", error->message);
+    g_error_free (error);
+  }
+
+  if (!hud_query_iface_com_canonical_hud_query_call_close_query_sync(proxy, NULL, &error))
+  {
+    g_warning ("%s %s\n", "The request failed:", error->message);
+    g_error_free (error);
+  }
+
+  g_object_unref (proxy);
+
+  return FALSE;
+}
+
 static void
-make_assertion (HudSource *source, const gchar *search,
+test_source_make_assertion (GDBusConnection *session, HudSource *source, const gchar *search,
     const gchar *appstack, const gchar *path, const gchar *name,
     const gchar **expected_rows, const guint32 *expected_distances,
     const guint expected_count)
 {
   HudQuery *query;
   guint row;
+  TestSourceThreadData thread_data = {session, path};
 
-  g_debug ("query: %s", search);
+  g_debug ("query: %s, on %s", search, g_dbus_connection_get_unique_name(session));
 
-  query = hud_query_new (source, search, 1u << 30);
+  query = hud_query_new (source, search, 1u << 30, session);
 
   g_assert_cmpstr(hud_query_get_appstack_name(query), ==, appstack);
   g_assert_cmpstr(hud_query_get_path(query), ==, path);
@@ -73,7 +110,11 @@ make_assertion (HudSource *source, const gchar *search,
     g_assert_cmpint(dee_model_get_uint32(model, iter, 6), ==, expected_distances[row]);
   }
 
-  g_object_unref (query);
+  GThread* thread = g_thread_new ("query", test_source_call_close_query, &thread_data);
+  hud_test_utils_process_mainloop(100);
+  g_thread_join(thread);
+
+//  g_object_unref (query);
 }
 
 static void
@@ -90,10 +131,7 @@ test_hud_query (void)
   g_assert(collector != NULL);
   g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
-  GMainLoop * temploop = g_main_loop_new (NULL, FALSE);
-  g_timeout_add (100, hud_test_utils_test_menus_timeout, temploop);
-  g_main_loop_run (temploop);
-  g_main_loop_unref (temploop);
+  hud_test_utils_process_mainloop (100);
 
   HudSourceList *source_list = hud_source_list_new();
   hud_source_list_add(source_list, HUD_SOURCE(collector));
@@ -107,7 +145,7 @@ test_hud_query (void)
     const gchar *appstack = "com.canonical.hud.query0.appstack";
     const gchar *path = "/com/canonical/hud/query0";
     const gchar *name = "com.canonical.hud.query0.results";
-    make_assertion (HUD_SOURCE(source_list), search, appstack, path, name, expected, expected_distances, 5);
+    test_source_make_assertion (session, HUD_SOURCE(source_list), search, appstack, path, name, expected, expected_distances, 5);
   }
 
   {
@@ -117,7 +155,7 @@ test_hud_query (void)
     const gchar *appstack = "com.canonical.hud.query1.appstack";
     const gchar *path = "/com/canonical/hud/query1";
     const gchar *name = "com.canonical.hud.query1.results";
-    make_assertion (HUD_SOURCE(source_list), search, appstack, path, name, expected, expected_distances, 1);
+    test_source_make_assertion (session, HUD_SOURCE(source_list), search, appstack, path, name, expected, expected_distances, 1);
   }
 
   {
@@ -127,7 +165,7 @@ test_hud_query (void)
     const gchar *appstack = "com.canonical.hud.query2.appstack";
     const gchar *path = "/com/canonical/hud/query2";
     const gchar *name = "com.canonical.hud.query2.results";
-    make_assertion (HUD_SOURCE(source_list), search, appstack, path, name, expected, expected_distances, 2);
+    test_source_make_assertion (session, HUD_SOURCE(source_list), search, appstack, path, name, expected, expected_distances, 2);
   }
 
   hud_source_unuse (HUD_SOURCE(source_list) );

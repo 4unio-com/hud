@@ -88,9 +88,18 @@ hud_test_utils_start_model_mock_app (DbusTestService ** service, GDBusConnection
 
 /* Timeout on our loop */
 gboolean
-hud_test_utils_test_menus_timeout (gpointer user_data)
+hud_test_utils_timeout_quit_func (gpointer user_data)
 {
   GMainLoop * loop = (GMainLoop *)user_data;
   g_main_loop_quit(loop);
   return FALSE;
+}
+
+void
+hud_test_utils_process_mainloop (const guint delay)
+{
+  GMainLoop * temploop = g_main_loop_new (NULL, FALSE);
+  g_timeout_add (delay, hud_test_utils_timeout_quit_func, temploop);
+  g_main_loop_run (temploop);
+  g_main_loop_unref (temploop);
 }

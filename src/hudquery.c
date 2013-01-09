@@ -334,8 +334,10 @@ handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 }
 
 static void
-hud_query_init (HudQuery *query)
+hud_query_init_real (HudQuery *query, GDBusConnection *connection)
 {
+  GError *error = NULL;
+
   query->querynumber = query_count++;
 
   query->skel = hud_query_iface_com_canonical_hud_query_skeleton_new();
@@ -346,10 +348,17 @@ hud_query_init (HudQuery *query)
   g_signal_connect(G_OBJECT(query->skel), "handle-execute-command", G_CALLBACK(handle_execute), query);
 
   query->object_path = g_strdup_printf("/com/canonical/hud/query%d", query->querynumber);
-  g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),
-                                   g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
+  if (!g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),
+                                   connection,
                                    query->object_path,
-                                   NULL);
+                                   &error))
+  {
+    g_warning ("%s %s\n", "g_dbus_interface_skeleton_export failed:", error->message);
+  }
+
+  GDBusInterfaceInfo* info = g_dbus_interface_skeleton_get_info (
+      G_DBUS_INTERFACE_SKELETON(query->skel) );
+  g_debug("HELLO: [%s] on [%s]", info->name, g_dbus_interface_skeleton_get_object_path(G_DBUS_INTERFACE_SKELETON(query->skel)));
 
   query->results_name = g_strdup_printf("com.canonical.hud.query%d.results", query->querynumber);
   query->results_model = dee_shared_model_new(query->results_name);
@@ -365,7 +374,12 @@ hud_query_init (HudQuery *query)
                "results-model", query->results_name,
                NULL);
 
-  return;
+  g_dbus_interface_skeleton_flush(G_DBUS_INTERFACE_SKELETON(query->skel));
+}
+
+static void
+hud_query_init (HudQuery *query)
+{
 }
 
 static void
@@ -404,13 +418,15 @@ hud_query_class_init (HudQueryClass *class)
 HudQuery *
 hud_query_new (HudSource   *source,
                const gchar *search_string,
-               gint         num_results)
+               gint         num_results,
+               GDBusConnection *connection)
 {
   HudQuery *query;
 
   g_debug ("Created query '%s'", search_string);
 
   query = g_object_new (HUD_TYPE_QUERY, NULL);
+  hud_query_init_real(query, connection);
   query->source = g_object_ref (source);
   query->search_string = g_strdup (search_string);
   query->token_list = NULL;

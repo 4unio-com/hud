@@ -21,6 +21,8 @@ void hud_test_utils_start_dbusmenu_mock_app (DbusTestService **service,
 void hud_test_utils_start_model_mock_app (DbusTestService **service,
     GDBusConnection **session, const gchar *appname);
 
-gboolean hud_test_utils_test_menus_timeout (gpointer user_data);
+gboolean hud_test_utils_timeout_quit_func (gpointer user_data);
+
+void hud_test_utils_process_mainloop (const guint delay);
 
 #endif /* HUDTESTUTILS_H_ */

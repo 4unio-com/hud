@@ -86,7 +86,7 @@ bus_method (GDBusConnection       *connection,
       search_string = g_variant_get_string(vsearch, NULL);
       g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
 
-      query = hud_query_new (source, search_string, 10);
+      query = hud_query_new (source, search_string, 10, connection);
       g_dbus_method_invocation_return_value (invocation, describe_query (query));
 
       g_ptr_array_add(query_list, query);
