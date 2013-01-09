@@ -23,6 +23,8 @@ libhud_tests_la_SOURCES = \
 	word-list.h \
 	hudrandomsource.h \
 	hudrandomsource.c \
+	hudmanualsource.h \
+	hudmanualsource.c \
 	hudtestutils.h \
 	hudtestutils.c
 
