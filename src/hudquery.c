@@ -358,7 +358,7 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection)
 
   GDBusInterfaceInfo* info = g_dbus_interface_skeleton_get_info (
       G_DBUS_INTERFACE_SKELETON(query->skel) );
-  g_debug("HELLO: [%s] on [%s]", info->name, g_dbus_interface_skeleton_get_object_path(G_DBUS_INTERFACE_SKELETON(query->skel)));
+  g_debug("Created interface skeleton: [%s] on [%s]", info->name, g_dbus_interface_skeleton_get_object_path(G_DBUS_INTERFACE_SKELETON(query->skel)));
 
   query->results_name = g_strdup_printf("com.canonical.hud.query%d.results", query->querynumber);
   query->results_model = dee_shared_model_new(query->results_name);
