@@ -160,7 +160,7 @@ hud_window_source_get_collector (HudWindowSource *source)
   collector = g_object_get_qdata (G_OBJECT (source->active_window), menu_collector_quark);
   if (collector == NULL)
     {
-      HudMenuModelCollector *menumodel_collector;
+      HudMenuModelCollector *menumodel_collector = NULL;
 
       /* GMenuModel menus either exist at the start or will never exist.
        * dbusmenu menus can appear later.
@@ -168,9 +168,9 @@ hud_window_source_get_collector (HudWindowSource *source)
        * For that reason, we check first for GMenuModel and assume if it
        * doesn't exist then it must be dbusmenu.
        */
-      menumodel_collector = hud_menu_model_collector_get (source->active_window,
+/*      menumodel_collector = hud_menu_model_collector_get (source->active_window,
                                                           source->active_desktop_file,
-                                                          source->active_icon);
+                                                          source->active_icon); */
       if (menumodel_collector)
         collector = HUD_SOURCE (menumodel_collector);
       else

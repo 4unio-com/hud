@@ -71,23 +71,8 @@ struct _HudMenuModelCollector
   /* GActionGroup's indexed by their prefix */
   GHashTable * action_groups;
 
-  /* The GMenuModel for the app menu.
-   *
-   * If this is an indicator, the indicator menu is stored here.
-   *
-   * app_menu_is_hud_aware is TRUE if we should send HudActiveChanged
-   * calls to app_menu_object_path when our use_count goes above 0.
-   */
-  GDBusMenuModel *app_menu;
-  gchar *app_menu_object_path;
+  /* TODO: Pull these out */
   gboolean app_menu_is_hud_aware;
-
-  /* Ditto for the menubar.
-   *
-   * If this is an indicator then these will all be unset.
-   */
-  GDBusMenuModel *menubar;
-  gchar *menubar_object_path;
   gboolean menubar_is_hud_aware;
 
   /* Boring details about the app/indicator we are showing. */
@@ -318,10 +303,12 @@ hud_menu_model_collector_refresh (gpointer user_data)
   free_list = collector->models;
   collector->models = NULL;
 
+/* TODO: Fix the refresh, or actually handle removed items 
   if (collector->app_menu)
     hud_menu_model_collector_add_model (collector, G_MENU_MODEL (collector->app_menu), NULL, NULL, collector->prefix);
   if (collector->menubar)
     hud_menu_model_collector_add_model (collector, G_MENU_MODEL (collector->menubar), NULL, NULL, collector->prefix);
+*/
 
   g_slist_foreach (free_list, hud_menu_model_collector_disconnect, collector);
   g_slist_free_full (free_list, g_object_unref);
@@ -469,6 +456,7 @@ static void
 hud_menu_model_collector_active_changed (HudMenuModelCollector *collector,
                                          gboolean               active)
 {
+/* TODO: Handle HUD awareness 
   if (collector->app_menu_is_hud_aware)
     g_dbus_connection_call (collector->session, collector->unique_bus_name, collector->app_menu_object_path,
                             "com.canonical.hud.Awareness", "HudActiveChanged", g_variant_new ("(b)", active),
@@ -478,6 +466,7 @@ hud_menu_model_collector_active_changed (HudMenuModelCollector *collector,
     g_dbus_connection_call (collector->session, collector->unique_bus_name, collector->menubar_object_path,
                             "com.canonical.hud.Awareness", "HudActiveChanged", g_variant_new ("(b)", active),
                             NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL, NULL);
+*/
 }
 
 static void
@@ -537,14 +526,10 @@ hud_menu_model_collector_finalize (GObject *object)
     g_source_remove (collector->refresh_id);
 
   g_slist_free_full (collector->models, g_object_unref);
-  g_clear_object (&collector->app_menu);
-  g_clear_object (&collector->menubar);
   g_clear_pointer (&collector->action_groups, g_hash_table_unref);
 
   g_object_unref (collector->session);
   g_free (collector->unique_bus_name);
-  g_free (collector->app_menu_object_path);
-  g_free (collector->menubar_object_path);
   g_free (collector->prefix);
   g_free (collector->desktop_file);
   g_free (collector->icon);
@@ -561,6 +546,7 @@ hud_menu_model_collector_init (HudMenuModelCollector *collector)
   collector->items = g_ptr_array_new_with_free_func (g_object_unref);
   collector->cancellable = g_cancellable_new ();
   collector->action_groups = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+  collector->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 }
 
 static void
@@ -612,6 +598,19 @@ hud_menu_model_collector_hud_awareness_cb (GObject      *source,
 }
 
 /**
+ * hud_menu_model_collector_new:
+ *
+ * Create a new #HudMenuModelCollector object
+ *
+ * Return value: New #HudMenuModelCollector
+ */
+HudMenuModelCollector *
+hud_menu_model_collector_new (void)
+{
+	return g_object_new(HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
+}
+
+/**
  * hud_menu_model_collector_get:
  * @window: a #BamfWindow
  * @desktop_file: the desktop file of the application of @window
@@ -624,62 +623,70 @@ hud_menu_model_collector_hud_awareness_cb (GObject      *source,
  *
  * Returns: a #HudMenuModelCollector, or %NULL
  **/
-HudMenuModelCollector *
-hud_menu_model_collector_get (BamfWindow  *window,
-                              const gchar *desktop_file,
-                              const gchar *icon)
+void
+hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
+                                     BamfWindow  *window,
+                                     const gchar *desktop_file,
+                                     const gchar *icon)
 {
-  HudMenuModelCollector *collector;
+  g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
   gchar *unique_bus_name;
   gchar *application_object_path;
   gchar *window_object_path;
-  GDBusConnection *session;
+  gchar *app_menu_object_path;
+  gchar *menubar_object_path;
 
-  session = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
-
-  if (!session)
-    return NULL;
+  GDBusMenuModel * app_menu;
+  GDBusMenuModel * menubar;
 
   unique_bus_name = bamf_window_get_utf8_prop (window, "_GTK_UNIQUE_BUS_NAME");
 
   if (!unique_bus_name)
     /* If this isn't set, we won't get very far... */
-    return NULL;
+    return;
 
-  collector = g_object_new (HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
-  collector->session = session;
-  collector->unique_bus_name = unique_bus_name;
+  if (collector->unique_bus_name == NULL) {
+    collector->unique_bus_name = g_strdup(unique_bus_name);
+  }
 
-  collector->app_menu_object_path = bamf_window_get_utf8_prop (window, "_GTK_APP_MENU_OBJECT_PATH");
-  collector->menubar_object_path = bamf_window_get_utf8_prop (window, "_GTK_MENUBAR_OBJECT_PATH");
+  if (g_strcmp0(unique_bus_name, collector->unique_bus_name) != 0) {
+    g_warning("Bus name '%s' does not match '%s'", unique_bus_name, collector->unique_bus_name);
+    g_free(unique_bus_name);
+    return;
+  }
+  g_free(unique_bus_name);
+
+  app_menu_object_path = bamf_window_get_utf8_prop (window, "_GTK_APP_MENU_OBJECT_PATH");
+  menubar_object_path = bamf_window_get_utf8_prop (window, "_GTK_MENUBAR_OBJECT_PATH");
   application_object_path = bamf_window_get_utf8_prop (window, "_GTK_APPLICATION_OBJECT_PATH");
   window_object_path = bamf_window_get_utf8_prop (window, "_GTK_WINDOW_OBJECT_PATH");
 
-  if (collector->app_menu_object_path)
+  if (app_menu_object_path)
     {
-      collector->app_menu = g_dbus_menu_model_get (session, unique_bus_name, collector->app_menu_object_path);
-      hud_menu_model_collector_add_model (collector, G_MENU_MODEL (collector->app_menu), NULL, NULL, NULL);
-      g_dbus_connection_call (session, unique_bus_name, collector->app_menu_object_path,
+      app_menu = g_dbus_menu_model_get (collector->session, unique_bus_name, app_menu_object_path);
+      hud_menu_model_collector_add_model (collector, G_MENU_MODEL (app_menu), NULL, NULL, NULL);
+      g_dbus_connection_call (collector->session, unique_bus_name, app_menu_object_path,
                               "com.canonical.hud.Awareness", "CheckAwareness",
                               NULL, G_VARIANT_TYPE_UNIT, G_DBUS_CALL_FLAGS_NONE, -1, collector->cancellable,
                               hud_menu_model_collector_hud_awareness_cb, &collector->app_menu_is_hud_aware);
     }
 
-  if (collector->menubar_object_path)
+  if (menubar_object_path)
     {
-      collector->menubar = g_dbus_menu_model_get (session, unique_bus_name, collector->menubar_object_path);
-      hud_menu_model_collector_add_model (collector, G_MENU_MODEL (collector->menubar), NULL, NULL, NULL);
-      g_dbus_connection_call (session, unique_bus_name, collector->menubar_object_path,
+      menubar = g_dbus_menu_model_get (collector->session, unique_bus_name, menubar_object_path);
+      hud_menu_model_collector_add_model (collector, G_MENU_MODEL (menubar), NULL, NULL, NULL);
+      g_dbus_connection_call (collector->session, unique_bus_name, menubar_object_path,
                               "com.canonical.hud.Awareness", "CheckAwareness",
                               NULL, G_VARIANT_TYPE_UNIT, G_DBUS_CALL_FLAGS_NONE, -1, collector->cancellable,
                               hud_menu_model_collector_hud_awareness_cb, &collector->menubar_is_hud_aware);
     }
 
   if (application_object_path)
-    g_hash_table_insert(collector->action_groups, g_strdup("app"), g_dbus_action_group_get (session, unique_bus_name, application_object_path));
+    g_hash_table_insert(collector->action_groups, g_strdup("app"), g_dbus_action_group_get (collector->session, unique_bus_name, application_object_path));
 
   if (window_object_path)
-    g_hash_table_insert(collector->action_groups, g_strdup("win"), g_dbus_action_group_get (session, unique_bus_name, window_object_path));
+    g_hash_table_insert(collector->action_groups, g_strdup("win"), g_dbus_action_group_get (collector->session, unique_bus_name, window_object_path));
 
   collector->desktop_file = g_strdup (desktop_file);
   collector->icon = g_strdup (icon);
@@ -691,11 +698,11 @@ hud_menu_model_collector_get (BamfWindow  *window,
   g_free (application_object_path);
   g_free (window_object_path);
 
-  return collector;
+  return;
 }
 
 /**
- * hud_menu_model_collector_new_for_endpoint:
+ * hud_menu_model_collector_add_endpoint:
  * @application_id: a unique identifier for the application
  * @prefix: the title to prefix to all items
  * @icon: the icon for the appliction
@@ -717,32 +724,26 @@ hud_menu_model_collector_get (BamfWindow  *window,
  *
  * Returns: a new #HudMenuModelCollector
  */
-HudMenuModelCollector *
-hud_menu_model_collector_new_for_endpoint (const gchar *application_id,
-                                           const gchar *prefix,
-                                           const gchar *icon,
-                                           guint        penalty,
-                                           const gchar *bus_name,
-                                           const gchar *object_path)
+void
+hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
+                                       const gchar *application_id,
+                                       const gchar *prefix,
+                                       const gchar *icon,
+                                       guint        penalty,
+                                       const gchar *bus_name,
+                                       const gchar *object_path)
 {
-  HudMenuModelCollector *collector;
-  GDBusConnection *session;
+  g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
-  collector = g_object_new (HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
-
-  session = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
-
-  collector->app_menu = g_dbus_menu_model_get (session, bus_name, object_path);
-  g_hash_table_insert(collector->action_groups, g_strdup(""), g_dbus_action_group_get (session, bus_name, object_path));
+  GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, object_path);
+  g_hash_table_insert(collector->action_groups, g_strdup(""), g_dbus_action_group_get (collector->session, bus_name, object_path));
 
   collector->prefix = g_strdup (prefix);
   collector->desktop_file = g_strdup (application_id);
   collector->icon = g_strdup (icon);
   collector->penalty = penalty;
 
-  hud_menu_model_collector_add_model (collector, G_MENU_MODEL (collector->app_menu), NULL, NULL, prefix);
+  hud_menu_model_collector_add_model (collector, G_MENU_MODEL (app_menu), NULL, NULL, prefix);
 
-  g_object_unref (session);
-
-  return collector;
+  return;
 }

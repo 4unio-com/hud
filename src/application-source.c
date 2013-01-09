@@ -373,9 +373,10 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 	const gchar * icon = bamf_view_get_icon(BAMF_VIEW(window));
 
 	if (mm_collector == NULL) {
-		mm_collector = hud_menu_model_collector_get(window, desktop_file, icon);
+		mm_collector = hud_menu_model_collector_new();
 
 		if (mm_collector != NULL) {
+			hud_menu_model_collector_add_window(mm_collector, window, desktop_file, icon);
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
 		}
 	}
