@@ -25,6 +25,7 @@
 #include "app-iface.h"
 #include "hudmenumodelcollector.h"
 #include "huddbusmenucollector.h"
+#include "hudsourcelist.h"
 
 struct _HudApplicationSourcePrivate {
 	gchar * app_id;
@@ -344,39 +345,48 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 
 	guint32 xid = bamf_window_get_xid(window);
 
-	HudSource * collector = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
-	if (collector != NULL) {
-		g_debug("Got it");
-		return;
-	}
-
 	if (app->priv->bamf_app == NULL) {
 		g_debug("No BAMF application object");
 		return;
 	}
 
-	/* TODO: This is from other code that states this, the assumption
-	   is incorrect.  */
-	/* GMenuModel menus either exist at the start or will never exist.
-	 * dbusmenu menus can appear later.
-	 *
-	 * For that reason, we check first for GMenuModel and assume if it
-	 * doesn't exist then it must be dbusmenu.
-	 */
+	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
+	if (collector_list == NULL) {
+		collector_list = hud_source_list_new();
+		g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector_list);
+	}
+
+	HudMenuModelCollector * mm_collector = NULL;
+	HudDbusmenuCollector * dm_collector = NULL;
+	GSList * sources = hud_source_list_get_list(collector_list);
+	GSList * source;
+	for (source = sources; source != NULL; source = g_slist_next(source)) {
+		if (HUD_IS_MENU_MODEL_COLLECTOR(source->data)) {
+			mm_collector = HUD_MENU_MODEL_COLLECTOR(source->data);
+		}
+		if (HUD_IS_DBUSMENU_COLLECTOR(source->data)) {
+			dm_collector = HUD_DBUSMENU_COLLECTOR(source->data);
+		}
+	}
 
 	const gchar * desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
 	const gchar * icon = bamf_view_get_icon(BAMF_VIEW(window));
 
-	HudMenuModelCollector * menumodel_collector = NULL;
-	menumodel_collector = hud_menu_model_collector_get(window, desktop_file, icon);
+	if (mm_collector == NULL) {
+		mm_collector = hud_menu_model_collector_get(window, desktop_file, icon);
 
-	if (menumodel_collector != NULL) {
-		collector = HUD_SOURCE(menumodel_collector);
-	} else {
-		collector = HUD_SOURCE(hud_dbusmenu_collector_new_for_window(window, desktop_file, icon));
+		if (mm_collector != NULL) {
+			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
+		}
 	}
 
-	g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector);
+	if (dm_collector == NULL) {
+		dm_collector = hud_dbusmenu_collector_new_for_window(window, desktop_file, icon);
+
+		if (dm_collector != NULL) {
+			hud_source_list_add(collector_list, HUD_SOURCE(dm_collector));
+		}
+	}
 
 	return;
 }
