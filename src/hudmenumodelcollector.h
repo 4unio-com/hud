@@ -36,7 +36,7 @@ HudMenuModelCollector * hud_menu_model_collector_new                    (void);
 
 void                    hud_menu_model_collector_add_window             (HudMenuModelCollector * collector,
                                                                          BamfWindow  *window,
-                                                                         const gchar *desktop_file,
+                                                                         const gchar *app_id,
                                                                          const gchar *icon);
 
 void                    hud_menu_model_collector_add_endpoint           (HudMenuModelCollector * collector,

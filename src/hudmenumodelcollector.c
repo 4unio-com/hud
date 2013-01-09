@@ -77,7 +77,7 @@ struct _HudMenuModelCollector
 
   /* Boring details about the app/indicator we are showing. */
   gchar *prefix;
-  gchar *desktop_file;
+  gchar *app_id;
   gchar *icon;
   guint penalty;
 
@@ -259,7 +259,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
 
   full_label = hud_menu_model_context_get_label (context, label);
 
-  item = hud_item_construct (hud_model_item_get_type (), full_label, collector->desktop_file, collector->icon, TRUE);
+  item = hud_item_construct (hud_model_item_get_type (), full_label, collector->app_id, collector->icon, TRUE);
   item->group = g_object_ref (group);
   item->action_name = g_strdup (stripped_action_name);
   item->target = target ? g_variant_ref_sink (target) : NULL;
@@ -531,7 +531,7 @@ hud_menu_model_collector_finalize (GObject *object)
   g_object_unref (collector->session);
   g_free (collector->unique_bus_name);
   g_free (collector->prefix);
-  g_free (collector->desktop_file);
+  g_free (collector->app_id);
   g_free (collector->icon);
 
   g_ptr_array_unref (collector->items);
@@ -613,7 +613,7 @@ hud_menu_model_collector_new (void)
 /**
  * hud_menu_model_collector_get:
  * @window: a #BamfWindow
- * @desktop_file: the desktop file of the application of @window
+ * @app_id: the desktop file of the application of @window
  * @icon: the application icon's name
  *
  * If the given @window has #GMenuModel-style menus then returns a
@@ -626,7 +626,7 @@ hud_menu_model_collector_new (void)
 void
 hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
                                      BamfWindow  *window,
-                                     const gchar *desktop_file,
+                                     const gchar *app_id,
                                      const gchar *icon)
 {
   g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
@@ -688,7 +688,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   if (window_object_path)
     g_hash_table_insert(collector->action_groups, g_strdup("win"), g_dbus_action_group_get (collector->session, unique_bus_name, window_object_path));
 
-  collector->desktop_file = g_strdup (desktop_file);
+  collector->app_id = g_strdup (app_id);
   collector->icon = g_strdup (icon);
 
   /* when the action groups change, we could end up having items
@@ -739,7 +739,7 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
   g_hash_table_insert(collector->action_groups, g_strdup(""), g_dbus_action_group_get (collector->session, bus_name, object_path));
 
   collector->prefix = g_strdup (prefix);
-  collector->desktop_file = g_strdup (application_id);
+  collector->app_id = g_strdup (application_id);
   collector->icon = g_strdup (icon);
   collector->penalty = penalty;
 
