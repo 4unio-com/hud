@@ -364,3 +364,19 @@ hud_application_list_get_source (HudApplicationList * list, const gchar * id)
 
 	return source;
 }
+
+/**
+ * hud_application_list_get_apps:
+ * @list: A #HudApplicationList object
+ * 
+ * Gets a list of applications
+ *
+ * Return value: A list of #HudApplicationSource objects
+ */
+GList *
+hud_application_list_get_apps (HudApplicationList * list)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
+
+	return g_hash_table_get_values(list->priv->applications);
+}

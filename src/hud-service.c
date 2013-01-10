@@ -179,6 +179,21 @@ bus_get_prop (GDBusConnection * connection, const gchar * sender, const gchar * 
 		}
 
 		return g_variant_builder_end(&builder);
+	} else if (g_str_equal(property_name, "Applications")) {
+		GList * apps = hud_application_list_get_apps(application_list);
+		if (apps == NULL) {
+			return g_variant_new_array(G_VARIANT_TYPE_OBJECT_PATH, NULL, 0);
+		}
+
+		GVariantBuilder builder;
+		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
+		while (apps != NULL) {
+			HudApplicationSource * source = HUD_APPLICATION_SOURCE(apps->data);
+			g_variant_builder_add_value(&builder, g_variant_new_object_path(hud_application_source_get_path(source)));
+			apps = g_list_next(apps);
+		}
+
+		return g_variant_builder_end(&builder);
 	} else {
 		g_warn_if_reached();
 	}
