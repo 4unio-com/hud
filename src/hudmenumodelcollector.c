@@ -76,7 +76,6 @@ struct _HudMenuModelCollector
   gboolean menubar_is_hud_aware;
 
   /* Boring details about the app/indicator we are showing. */
-  gchar *prefix;
   gchar *app_id;
   gchar *icon;
   guint penalty;
@@ -530,7 +529,6 @@ hud_menu_model_collector_finalize (GObject *object)
 
   g_object_unref (collector->session);
   g_free (collector->unique_bus_name);
-  g_free (collector->prefix);
   g_free (collector->app_id);
   g_free (collector->icon);
 
@@ -599,22 +597,31 @@ hud_menu_model_collector_hud_awareness_cb (GObject      *source,
 
 /**
  * hud_menu_model_collector_new:
+ * @application_id: a unique identifier for the application
+ * @icon: the icon for the appliction
+ * @penalty: the penalty to apply to all results
  *
  * Create a new #HudMenuModelCollector object
  *
  * Return value: New #HudMenuModelCollector
  */
 HudMenuModelCollector *
-hud_menu_model_collector_new (void)
+hud_menu_model_collector_new (const gchar *application_id,
+                              const gchar *icon,
+                              guint        penalty)
 {
-	return g_object_new(HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
+	HudMenuModelCollector * collector = g_object_new(HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
+
+	collector->app_id = g_strdup (application_id);
+	collector->icon = g_strdup (icon);
+	collector->penalty = penalty;
+
+	return collector;
 }
 
 /**
- * hud_menu_model_collector_get:
+ * hud_menu_model_collector_add_window:
  * @window: a #BamfWindow
- * @app_id: the desktop file of the application of @window
- * @icon: the application icon's name
  *
  * If the given @window has #GMenuModel-style menus then returns a
  * collector for them, otherwise returns %NULL.
@@ -625,9 +632,7 @@ hud_menu_model_collector_new (void)
  **/
 void
 hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
-                                     BamfWindow  *window,
-                                     const gchar *app_id,
-                                     const gchar *icon)
+                                     BamfWindow  *window)
 {
   g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
@@ -688,9 +693,6 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   if (window_object_path)
     g_hash_table_insert(collector->action_groups, g_strdup("win"), g_dbus_action_group_get (collector->session, unique_bus_name, window_object_path));
 
-  collector->app_id = g_strdup (app_id);
-  collector->icon = g_strdup (icon);
-
   /* when the action groups change, we could end up having items
    * enabled/disabled.  how to deal with that?
    */
@@ -703,10 +705,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
 
 /**
  * hud_menu_model_collector_add_endpoint:
- * @application_id: a unique identifier for the application
  * @prefix: the title to prefix to all items
- * @icon: the icon for the appliction
- * @penalty: the penalty to apply to all results
  * @bus_name: a D-Bus bus name
  * @object_path: an object path at the destination given by @bus_name
  *
@@ -726,10 +725,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
  */
 void
 hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
-                                       const gchar *application_id,
                                        const gchar *prefix,
-                                       const gchar *icon,
-                                       guint        penalty,
                                        const gchar *bus_name,
                                        const gchar *object_path)
 {
@@ -737,11 +733,6 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
 
   GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, object_path);
   g_hash_table_insert(collector->action_groups, g_strdup(""), g_dbus_action_group_get (collector->session, bus_name, object_path));
-
-  collector->prefix = g_strdup (prefix);
-  collector->app_id = g_strdup (application_id);
-  collector->icon = g_strdup (icon);
-  collector->penalty = penalty;
 
   hud_menu_model_collector_add_model (collector, G_MENU_MODEL (app_menu), NULL, NULL, prefix);
 
