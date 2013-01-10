@@ -391,6 +391,22 @@ hud_application_source_get_path (HudApplicationSource * app)
 }
 
 /**
+ * hud_application_source_get_id:
+ * @app: A #HudApplicationSource object
+ *
+ * Get the app id for this source on DBus
+ *
+ * Return value: The id as a string
+ */
+const gchar *
+hud_application_source_get_id (HudApplicationSource * app)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), NULL);
+
+	return app->priv->app_id;
+}
+
+/**
  * hud_application_source_add_window:
  * @app: A #HudApplicationSource object
  * @window: The window to be added to the application

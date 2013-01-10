@@ -189,7 +189,10 @@ bus_get_prop (GDBusConnection * connection, const gchar * sender, const gchar * 
 		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
 		while (apps != NULL) {
 			HudApplicationSource * source = HUD_APPLICATION_SOURCE(apps->data);
+			g_variant_builder_open(&builder, G_VARIANT_TYPE_TUPLE);
+			g_variant_builder_add_value(&builder, g_variant_new_string(hud_application_source_get_id(source)));
 			g_variant_builder_add_value(&builder, g_variant_new_object_path(hud_application_source_get_path(source)));
+			g_variant_builder_close(&builder);
 			apps = g_list_next(apps);
 		}
 
