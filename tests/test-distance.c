@@ -58,7 +58,7 @@ calculate_distance (const gchar *search, GStrv teststrings, gchar ***matches)
 		list = tmp;
 	}
 
-	haystack = hud_token_list_new_from_string_list (list);
+	haystack = hud_token_list_new_from_string_list (list, NULL);
 	hud_string_list_unref (list);
 
 	needle = hud_token_list_new_from_string (search);

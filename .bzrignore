@@ -245,3 +245,7 @@ libhud/demo/consumer.c
 libhud/demo/consumer_vala.stamp
 libhud/demo/gimp
 libhud/demo/gvtk.c
+/.settings
+/.project
+/.pydevproject
+/.cproject

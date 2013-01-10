@@ -57,6 +57,7 @@ struct _HudItemPrivate
 
   HudTokenList *token_list;
   HudStringList *tokens;
+  HudStringList *keywords;
   gchar *usage_tag;
   gchar *app_icon;
   gchar *shortcut;
@@ -75,6 +76,7 @@ hud_item_finalize (GObject *object)
   g_hash_table_remove (hud_item_table, &item->priv->id);
   hud_token_list_free (item->priv->token_list);
   hud_string_list_unref (item->priv->tokens);
+  hud_string_list_unref (item->priv->keywords);
   g_free (item->priv->desktop_file);
   g_free (item->priv->app_icon);
   g_free (item->priv->usage_tag);
@@ -153,6 +155,7 @@ hud_item_setup_usage (HudItem *item)
 gpointer
 hud_item_construct (GType          g_type,
                     HudStringList *tokens,
+                    HudStringList *keywords,
                     const gchar   *shortcut,
                     const gchar   *desktop_file,
                     const gchar   *app_icon,
@@ -162,12 +165,13 @@ hud_item_construct (GType          g_type,
 
   item = g_object_new (g_type, NULL);
   item->priv->tokens = hud_string_list_ref (tokens);
+  item->priv->keywords = hud_string_list_ref (keywords);
   item->priv->desktop_file = g_strdup (desktop_file);
   item->priv->app_icon = g_strdup (app_icon);
   item->priv->shortcut = g_strdup (shortcut);
   item->priv->enabled = enabled;
   item->priv->id = hud_item_next_id++;
-  item->priv->token_list = hud_token_list_new_from_string_list (tokens);
+  item->priv->token_list = hud_token_list_new_from_string_list (tokens, keywords);
 
   g_hash_table_insert (hud_item_table, &item->priv->id, item);
 
@@ -194,12 +198,13 @@ hud_item_construct (GType          g_type,
  **/
 HudItem *
 hud_item_new (HudStringList *tokens,
+              HudStringList *keywords,
               const gchar   *shortcut,
               const gchar   *desktop_file,
               const gchar   *app_icon,
               gboolean       enabled)
 {
-  return hud_item_construct (HUD_TYPE_ITEM, tokens, shortcut, desktop_file, app_icon, enabled);
+  return hud_item_construct (HUD_TYPE_ITEM, tokens, keywords, shortcut, desktop_file, app_icon, enabled);
 }
 
 /**
@@ -248,6 +253,22 @@ hud_item_get_tokens (HudItem *item)
   g_return_val_if_fail (HUD_IS_ITEM (item), NULL);
 
   return item->priv->tokens;
+}
+
+/**
+ * hud_item_get_keywords:
+ * @item: a #HudItem
+ *
+ * Gets the additional keywords that represent the description of @item.
+ *
+ * Returns: (transfer none): the tokens
+ **/
+HudStringList *
+hud_item_get_keywords (HudItem *item)
+{
+  g_return_val_if_fail (HUD_IS_ITEM (item), NULL);
+
+  return item->priv->keywords;
 }
 
 /**
