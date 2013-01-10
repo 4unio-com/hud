@@ -214,10 +214,47 @@ hud_application_source_new_for_id (const gchar * id)
 	return source;
 }
 
+/* Get the collectors if we need them */
+static void
+get_collectors (HudApplicationSource * app, guint32 xid, HudDbusmenuCollector ** dcollector, HudMenuModelCollector ** mcollector)
+{
+	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
+	if (collector_list == NULL) {
+		g_warning("No collector list for XID: %d", xid); /* TODO: look at building */
+		return;
+	}
+
+	HudMenuModelCollector * mm_collector = NULL;
+	HudDbusmenuCollector * dm_collector = NULL;
+	GSList * sources = hud_source_list_get_list(collector_list);
+	GSList * source;
+	for (source = sources; source != NULL; source = g_slist_next(source)) {
+		if (HUD_IS_MENU_MODEL_COLLECTOR(source->data)) {
+			mm_collector = HUD_MENU_MODEL_COLLECTOR(source->data);
+		}
+		if (HUD_IS_DBUSMENU_COLLECTOR(source->data)) {
+			dm_collector = HUD_DBUSMENU_COLLECTOR(source->data);
+		}
+	}
+
+	if (dcollector != NULL) {
+		*dcollector = dm_collector;
+	}
+	if (mcollector != NULL) {
+		*mcollector = mm_collector;
+	}
+
+	return;
+}
+
 /* Respond to the DBus function to add sources */
 static gboolean
 dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocation * invocation, GVariant * actions, GVariant * descs, gpointer user_data)
 {
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(user_data);
+	GDBusConnection * session = g_dbus_method_invocation_get_connection(invocation);
+	const gchar * sender = g_dbus_method_invocation_get_sender(invocation);
+
 	GVariantIter action_iter;
 	g_variant_iter_init(&action_iter, actions);
 
@@ -227,6 +264,18 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 
 	while (g_variant_iter_loop(&action_iter, "(vso)", id, prefix, object)) {
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
+
+		GVariant * idv = g_variant_get_variant(id);
+		guint32 idn = g_variant_get_int32(idv);
+		g_variant_unref(idv);
+
+		HudMenuModelCollector * collector = NULL;
+		get_collectors(app, idn, NULL, &collector);
+		if (collector == NULL) continue;
+
+		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
+
+		hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), prefix);
 	}
 
 	GVariantIter desc_iter;
@@ -234,6 +283,18 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 
 	while (g_variant_iter_loop(&desc_iter, "(vo)", id, object)) {
 		g_debug("Adding descriptions: %s", object);
+
+		GVariant * idv = g_variant_get_variant(id);
+		guint32 idn = g_variant_get_int32(idv);
+		g_variant_unref(idv);
+
+		HudMenuModelCollector * collector = NULL;
+		get_collectors(app, idn, NULL, &collector);
+		if (collector == NULL) continue;
+
+		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
+
+		hud_menu_model_collector_add_model(collector, G_MENU_MODEL(model), NULL);
 	}
 
 	g_dbus_method_invocation_return_value(invocation, NULL);
