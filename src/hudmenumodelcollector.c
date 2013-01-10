@@ -688,10 +688,10 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
     }
 
   if (application_object_path)
-    g_hash_table_insert(collector->action_groups, g_strdup("app"), g_dbus_action_group_get (collector->session, unique_bus_name, application_object_path));
+    hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, unique_bus_name, application_object_path)), "app");
 
   if (window_object_path)
-    g_hash_table_insert(collector->action_groups, g_strdup("win"), g_dbus_action_group_get (collector->session, unique_bus_name, window_object_path));
+    hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, unique_bus_name, window_object_path)), "win");
 
   /* when the action groups change, we could end up having items
    * enabled/disabled.  how to deal with that?
@@ -731,9 +731,9 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
 {
   g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
-  GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, object_path);
-  g_hash_table_insert(collector->action_groups, g_strdup(""), g_dbus_action_group_get (collector->session, bus_name, object_path));
+  hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, bus_name, object_path)), NULL);
 
+  GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, object_path);
   hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix);
 
   return;
@@ -754,4 +754,30 @@ hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuMode
 	g_return_if_fail(G_IS_MENU_MODEL(model));
 
 	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, prefix);
+}
+
+/**
+ * hud_menu_model_collector_add_actions:
+ * @collector: A #HudMenuModelCollector object
+ * @group: Action Group to add
+ * @prefix: (allow none): Text prefix to add to all entries if needed
+ *
+ * Add a set of actios to the collector
+ */
+void
+hud_menu_model_collector_add_actions (HudMenuModelCollector * collector, GActionGroup * group, const gchar * prefix)
+{
+	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+	g_return_if_fail(G_IS_ACTION_GROUP(group));
+
+	gchar * local_prefix = NULL;
+	if (prefix == NULL) {
+		local_prefix = g_strdup("");
+	} else {
+		local_prefix = g_strdup(prefix);
+	}
+
+	g_hash_table_insert(collector->action_groups, local_prefix, group);
+
+	return;
 }

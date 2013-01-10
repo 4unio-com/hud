@@ -48,4 +48,9 @@ void                    hud_menu_model_collector_add_endpoint           (HudMenu
 void                    hud_menu_model_collector_add_model              (HudMenuModelCollector * collector,
                                                                          GMenuModel *   model,
                                                                          const gchar *  prefix);
+
+void                    hud_menu_model_collector_add_actions            (HudMenuModelCollector * collector,
+                                                                         GActionGroup *   group,
+                                                                         const gchar *    prefix);
+
 #endif /* __HUD_MENU_MODEL_COLLECTOR_H__ */
