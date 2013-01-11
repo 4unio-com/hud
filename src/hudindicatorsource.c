@@ -244,21 +244,8 @@ hud_indicator_source_name_vanished (GDBusConnection *connection,
 static void
 hud_indicator_source_init (HudIndicatorSource *source)
 {
-  gint i;
-
   source->n_indicators = G_N_ELEMENTS (indicator_info);
   source->indicators = g_new0 (HudIndicatorSourceIndicator, source->n_indicators);
-
-  for (i = 0; i < source->n_indicators; i++)
-    {
-      HudIndicatorSourceIndicator *indicator = &source->indicators[i];
-
-      indicator->info = &indicator_info[i];
-      indicator->source = source;
-
-      g_bus_watch_name (G_BUS_TYPE_SESSION, indicator->info->dbus_name, G_BUS_NAME_WATCHER_FLAGS_NONE,
-                        hud_indicator_source_name_appeared, hud_indicator_source_name_vanished, indicator, NULL);
-    }
 }
 
 static void
@@ -283,7 +270,21 @@ hud_indicator_source_class_init (HudIndicatorSourceClass *class)
  * Returns: a new #HudIndicatorSource
  **/
 HudIndicatorSource *
-hud_indicator_source_new (void)
+hud_indicator_source_new (GDBusConnection *connection)
 {
-  return g_object_new (HUD_TYPE_INDICATOR_SOURCE, NULL);
+  gint i;
+  HudIndicatorSource *source = g_object_new (HUD_TYPE_INDICATOR_SOURCE, NULL );
+
+  for (i = 0; i < source->n_indicators; i++)
+    {
+      HudIndicatorSourceIndicator *indicator = &source->indicators[i];
+
+      indicator->info = &indicator_info[i];
+      indicator->source = source;
+
+      g_bus_watch_name_on_connection (connection, indicator->info->dbus_name, G_BUS_NAME_WATCHER_FLAGS_NONE,
+                        hud_indicator_source_name_appeared, hud_indicator_source_name_vanished, indicator, NULL);
+    }
+
+  return source;
 }

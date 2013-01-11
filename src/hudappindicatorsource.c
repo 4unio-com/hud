@@ -402,9 +402,6 @@ hud_app_indicator_source_init (HudAppIndicatorSource *source)
   g_debug ("online");
 
   source->indicators = g_sequence_new (g_object_unref);
-  g_bus_watch_name (G_BUS_TYPE_SESSION, APP_INDICATOR_SERVICE_BUS_NAME, G_BUS_NAME_WATCHER_FLAGS_NONE,
-                    hud_app_indicator_source_name_appeared, hud_app_indicator_source_name_vanished,
-                    g_object_ref (source), g_object_unref);
 }
 
 static void
@@ -429,7 +426,11 @@ hud_app_indicator_source_class_init (HudAppIndicatorSourceClass *class)
  * Returns: a new #HudAppIndicatorSource
  **/
 HudAppIndicatorSource *
-hud_app_indicator_source_new (void)
+hud_app_indicator_source_new (GDBusConnection *connection)
 {
-  return g_object_new (HUD_TYPE_APP_INDICATOR_SOURCE, NULL);
+  HudAppIndicatorSource *source = g_object_new (HUD_TYPE_APP_INDICATOR_SOURCE, NULL);
+  g_bus_watch_name_on_connection(connection, APP_INDICATOR_SERVICE_BUS_NAME, G_BUS_NAME_WATCHER_FLAGS_NONE,
+                    hud_app_indicator_source_name_appeared, hud_app_indicator_source_name_vanished,
+                    g_object_ref (source), g_object_unref);
+  return source;
 }

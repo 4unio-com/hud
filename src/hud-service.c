@@ -142,12 +142,28 @@ bus_acquired_cb (GDBusConnection *connection,
                  const gchar     *name,
                  gpointer         user_data)
 {
-  HudSource *source = user_data;
+  HudSourceList *source_list = user_data;
   GError *error = NULL;
 
   g_debug ("Bus acquired (guid %s)", g_dbus_connection_get_guid (connection));
 
-  if (!g_dbus_connection_register_object (connection, DBUS_PATH, hud_iface_com_canonical_hud_interface_info (), &vtable, source, NULL, &error))
+  {
+    HudIndicatorSource *source;
+
+    source = hud_indicator_source_new (connection);
+    hud_source_list_add (source_list, HUD_SOURCE (source));
+    g_object_unref (source);
+  }
+
+  {
+    HudAppIndicatorSource *source;
+
+    source = hud_app_indicator_source_new (connection);
+    hud_source_list_add (source_list, HUD_SOURCE (source));
+    g_object_unref (source);
+  }
+
+  if (!g_dbus_connection_register_object (connection, DBUS_PATH, hud_iface_com_canonical_hud_interface_info (), &vtable, HUD_SOURCE(source_list), NULL, &error))
     {
       g_warning ("Unable to register path '"DBUS_PATH"': %s", error->message);
       g_main_loop_quit (mainloop);
@@ -201,21 +217,6 @@ main (int argc, char **argv)
   window_source = hud_window_source_new ();
   hud_source_list_add (source_list, HUD_SOURCE (window_source));
 
-  {
-    HudIndicatorSource *source;
-
-    source = hud_indicator_source_new ();
-    hud_source_list_add (source_list, HUD_SOURCE (source));
-    g_object_unref (source);
-  }
-
-  {
-    HudAppIndicatorSource *source;
-
-    source = hud_app_indicator_source_new ();
-    hud_source_list_add (source_list, HUD_SOURCE (source));
-    g_object_unref (source);
-  }
   
   {
     HudWebappSource *source;
