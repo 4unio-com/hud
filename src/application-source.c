@@ -282,9 +282,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	while (g_variant_iter_loop(&desc_iter, "(vo)", &id, &object)) {
 		g_debug("Adding descriptions: %s", object);
 
-		GVariant * idv = g_variant_get_variant(id);
-		guint32 idn = g_variant_get_int32(idv);
-		g_variant_unref(idv);
+		guint32 idn = g_variant_get_int32(id);
 
 		HudMenuModelCollector * collector = NULL;
 		get_collectors(app, idn, NULL, &collector);
