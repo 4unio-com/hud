@@ -216,12 +216,12 @@ hud_application_source_new_for_id (const gchar * id)
 
 /* Get the collectors if we need them */
 static void
-get_collectors (HudApplicationSource * app, guint32 xid, HudDbusmenuCollector ** dcollector, HudMenuModelCollector ** mcollector)
+get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, HudDbusmenuCollector ** dcollector, HudMenuModelCollector ** mcollector)
 {
 	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
 	if (collector_list == NULL) {
-		g_warning("No collector list for XID: %d", xid); /* TODO: look at building */
-		return;
+		collector_list = hud_source_list_new();
+		g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector_list);
 	}
 
 	HudMenuModelCollector * mm_collector = NULL;
@@ -234,6 +234,13 @@ get_collectors (HudApplicationSource * app, guint32 xid, HudDbusmenuCollector **
 		}
 		if (HUD_IS_DBUSMENU_COLLECTOR(source->data)) {
 			dm_collector = HUD_DBUSMENU_COLLECTOR(source->data);
+		}
+	}
+	if (mm_collector == NULL) {
+		mm_collector = hud_menu_model_collector_new(appid, NULL, 0);
+
+		if (mm_collector != NULL) {
+			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
 		}
 	}
 
@@ -268,7 +275,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		guint32 idn = g_variant_get_int32(id);
 
 		HudMenuModelCollector * collector = NULL;
-		get_collectors(app, idn, NULL, &collector);
+		get_collectors(app, idn, app->priv->app_id, NULL, &collector);
 		if (collector == NULL) continue;
 
 		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
@@ -285,7 +292,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		guint32 idn = g_variant_get_int32(id);
 
 		HudMenuModelCollector * collector = NULL;
-		get_collectors(app, idn, NULL, &collector);
+		get_collectors(app, idn, app->priv->app_id, NULL, &collector);
 		if (collector == NULL) continue;
 
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
