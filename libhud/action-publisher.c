@@ -1121,8 +1121,7 @@ const gchar *
 hud_action_publisher_get_description_path (HudActionPublisher    *publisher)
 {
 	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
-	/* TODO: Flesh out */
-	return NULL;
+	return publisher->path;
 }
 
 /**
