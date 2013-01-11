@@ -25,6 +25,7 @@ main (int argc, char * argv[])
 	                                      NULL);
 
 	HudActionDescription * desc = hud_action_description_new("hud.simple-action", NULL);
+	hud_action_description_set_attribute_value(desc, G_MENU_ATTRIBUTE_LABEL, g_variant_new_string("Simple Action"));
 
 	HudActionPublisher * publisher = hud_action_publisher_new_for_id(g_variant_new_int32(GDK_WINDOW_XID(gdkwindow)));
 	hud_action_publisher_add_action_group(publisher, "hud", "/actions");
