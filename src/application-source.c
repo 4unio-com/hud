@@ -262,12 +262,10 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	gchar * prefix = NULL;
 	gchar * object = NULL;
 
-	while (g_variant_iter_loop(&action_iter, "(vso)", id, prefix, object)) {
+	while (g_variant_iter_loop(&action_iter, "(vso)", &id, &prefix, &object)) {
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
 
-		GVariant * idv = g_variant_get_variant(id);
-		guint32 idn = g_variant_get_int32(idv);
-		g_variant_unref(idv);
+		guint32 idn = g_variant_get_int32(id);
 
 		HudMenuModelCollector * collector = NULL;
 		get_collectors(app, idn, NULL, &collector);
@@ -281,7 +279,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	GVariantIter desc_iter;
 	g_variant_iter_init(&desc_iter, descs);
 
-	while (g_variant_iter_loop(&desc_iter, "(vo)", id, object)) {
+	while (g_variant_iter_loop(&desc_iter, "(vo)", &id, &object)) {
 		g_debug("Adding descriptions: %s", object);
 
 		GVariant * idv = g_variant_get_variant(id);
