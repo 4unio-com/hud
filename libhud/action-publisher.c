@@ -58,6 +58,8 @@ struct _HudActionPublisher
 
   GSequence *descriptions;
   HudAux *aux;
+
+  GList * action_groups;
 };
 
 enum
@@ -264,7 +266,7 @@ hud_action_publisher_new_for_application (GApplication *application)
   publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
   publisher->application = g_object_ref (application);
 
-  hud_action_publisher_add_action_group (publisher, "app", NULL,
+  hud_action_publisher_add_action_group (publisher, "app",
                            g_application_get_dbus_object_path (application));
 
   return publisher;
@@ -455,7 +457,6 @@ hud_action_publisher_remove_descriptions (HudActionPublisher *publisher,
  * hud_action_publisher_add_action_group:
  * @publisher: a #HudActionPublisher
  * @prefix: the action prefix for the group (like "app")
- * @identifier: (allow none): an identifier, or %NULL
  * @object_path: the object path of the exported group
  *
  * Informs the HUD of the existance of an action group.
@@ -479,10 +480,20 @@ hud_action_publisher_remove_descriptions (HudActionPublisher *publisher,
 void
 hud_action_publisher_add_action_group (HudActionPublisher *publisher,
                                        const gchar        *prefix,
-                                       GVariant           *identifier,
                                        const gchar        *object_path)
 {
-  // hud_manager_add_actions (publisher->application_id, prefix, identifier, object_path);
+	g_return_if_fail(HUD_IS_ACTION_PUBLISHER(publisher));
+	g_return_if_fail(prefix != NULL);
+	g_return_if_fail(object_path != NULL);
+
+	HudActionPublisherActionGroupSet * group = g_new0(HudActionPublisherActionGroupSet, 1);
+
+	group->prefix = g_strdup(prefix);
+	group->path = g_strdup(object_path);
+
+	publisher->action_groups = g_list_prepend(publisher->action_groups, group);
+
+	return;
 }
 
 /**
@@ -1094,7 +1105,8 @@ hud_action_publisher_get_action_groups (HudActionPublisher    *publisher)
 {
 	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
 	/* TODO: Flesh out */
-	return NULL;
+
+	return publisher->action_groups;
 }
 
 /**

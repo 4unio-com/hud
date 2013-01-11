@@ -123,7 +123,7 @@ hud_manager_constructed (GObject * object)
 	if (manager->priv->application) {
 		manager->priv->app_pub = hud_action_publisher_new_for_id(NULL);
 
-		hud_action_publisher_add_action_group(manager->priv->app_pub, "app", NULL, g_application_get_dbus_object_path (manager->priv->application));
+		hud_action_publisher_add_action_group(manager->priv->app_pub, "app", g_application_get_dbus_object_path (manager->priv->application));
 		hud_manager_add_actions(manager, manager->priv->app_pub);
 	}
 

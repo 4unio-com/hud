@@ -18,8 +18,10 @@ main (int argc, char * argv[])
 	HudActionDescription * desc = hud_action_description_new("hud.simple-action", NULL);
 
 	HudActionPublisher * publisher = hud_action_publisher_new_for_id(g_variant_new_int32(1234));
-	hud_action_publisher_add_action_group(publisher, "hud", NULL, "/actions");
+	hud_action_publisher_add_action_group(publisher, "hud", "/actions");
 	hud_action_publisher_add_description(publisher, desc);
+
+	hud_manager_add_actions(manager, publisher);
 
 	GMainLoop * mainloop = g_main_loop_new(NULL, FALSE);
 

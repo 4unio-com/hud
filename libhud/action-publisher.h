@@ -69,7 +69,6 @@ void                    hud_action_publisher_add_descriptions_from_file (HudActi
 
 void                    hud_action_publisher_add_action_group           (HudActionPublisher    *publisher,
                                                                          const gchar           *prefix,
-                                                                         GVariant              *identifier,
                                                                          const gchar           *object_path);
 void                    hud_action_publisher_remove_action_group        (HudActionPublisher    *publisher,
                                                                          const gchar           *prefix,
