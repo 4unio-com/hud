@@ -353,6 +353,46 @@ DISTCLEANFILES += \
 	$(SOURCE_XML_REPORT:.xml=-xunit.xml)
 
 ######################
+# Test App Indicator Source
+######################
+
+TESTS += \
+	test-app-indicator-source-test
+
+check_PROGRAMS += \
+	test-app-indicator-source
+
+APP_INDICATOR_SOURCE_XML_REPORT = test-app-indicator-source.xml
+
+test-app-indicator-source-test: test-app-indicator-source Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(APP_INDICATOR_SOURCE_XML_REPORT) $(builddir)/test-app-indicator-source >> $@
+	@echo gtester2xunit $(APP_INDICATOR_SOURCE_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_app_indicator_source_SOURCES = \
+	test-app-indicator-source.c
+
+test_app_indicator_source_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_app_indicator_source_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
+	libhud-tests.la \
+	$(HUD_LIBS)
+
+DISTCLEANFILES += \
+	$(APP_INDICATOR_SOURCE_XML_REPORT) \
+	$(APP_INDICATOR_SOURCE_XML_REPORT:.xml=-xunit.xml)
+
+######################
 # Test Usage DB Simple
 ######################
 

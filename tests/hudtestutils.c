@@ -13,6 +13,45 @@ hud_test_utils_name_timeout (gpointer user_data)
   return FALSE;
 }
 
+void
+hud_test_utils_start_python_dbusmock (DbusTestService **service,
+    GDBusConnection **session, const gchar *name, const gchar *path,
+    const gchar *interface)
+{
+  *service = dbus_test_service_new(NULL);
+
+  /* DBus Mock Process */
+  DbusTestProcess * dbusmock = dbus_test_process_new("python3");
+  dbus_test_process_append_param(dbusmock, "-m");
+  dbus_test_process_append_param(dbusmock, "dbusmock");
+  dbus_test_process_append_param(dbusmock, name);
+  dbus_test_process_append_param(dbusmock, path);
+  dbus_test_process_append_param(dbusmock, interface);
+  dbus_test_task_set_name(DBUS_TEST_TASK(dbusmock), "DBus Mock");
+  dbus_test_service_add_task(*service, DBUS_TEST_TASK(dbusmock));
+  g_object_unref(dbusmock);
+
+  /* Dummy */
+  DbusTestTask * dummy = dbus_test_task_new();
+  dbus_test_task_set_wait_for(dummy, name);
+  dbus_test_service_add_task(*service, dummy);
+  g_object_unref(dummy);
+
+  /* Setup timeout */
+  guint timeout_source = g_timeout_add_seconds(2, hud_test_utils_name_timeout, NULL);
+
+  /* Get loader up and running and us on that bus */
+  g_debug("Starting up DBus Mock");
+  dbus_test_service_start_tasks(*service);
+
+  /* Cleanup timeout */
+  g_source_remove(timeout_source);
+
+  /* Set us not to exit when the service goes */
+  *session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+  g_dbus_connection_set_exit_on_close(*session, FALSE);
+}
+
 /* Start things up with a basic mock-json-app and wait until it starts */
 void
 hud_test_utils_start_dbusmenu_mock_app (DbusTestService ** service, GDBusConnection ** session, const gchar * jsonfile)

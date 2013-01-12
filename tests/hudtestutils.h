@@ -12,8 +12,9 @@ typedef struct _DbusTestService DbusTestService;
 
 gboolean hud_test_utils_name_timeout (gpointer user_data);
 
-HudStringList* add_item_to_hud_string_list (const gchar *item,
-    HudStringList *stringlist);
+void hud_test_utils_start_python_dbusmock (DbusTestService **service,
+    GDBusConnection **session, const gchar *name, const gchar *path,
+    const gchar *interface);
 
 void hud_test_utils_start_dbusmenu_mock_app (DbusTestService **service,
     GDBusConnection **session, const gchar *jsonfile);

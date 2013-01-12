@@ -34,4 +34,8 @@ GType                   hud_app_indicator_source_get_type                   (voi
 
 HudAppIndicatorSource * hud_app_indicator_source_new                        (GDBusConnection *connection);
 
+#define APP_INDICATOR_SERVICE_BUS_NAME    "com.canonical.indicator.application"
+#define APP_INDICATOR_SERVICE_OBJECT_PATH "/com/canonical/indicator/application/service"
+#define APP_INDICATOR_SERVICE_IFACE       "com.canonical.indicator.application.service"
+
 #endif /* __HUD_APP_INDICATOR_SOURCE_H__ */

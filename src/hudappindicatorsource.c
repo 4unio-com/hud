@@ -44,10 +44,6 @@
  * This is an opaque structure type.
  **/
 
-#define APP_INDICATOR_SERVICE_BUS_NAME    "com.canonical.indicator.application"
-#define APP_INDICATOR_SERVICE_OBJECT_PATH "/com/canonical/indicator/application/service"
-#define APP_INDICATOR_SERVICE_IFACE       "com.canonical.indicator.application.service"
-
 struct _HudAppIndicatorSource
 {
   GObject parent_instance;
