@@ -117,7 +117,7 @@ test_app_indicator_source_new ()
      * accessibledesc, hint, title */
     DBusMockSignalArgs* args = dbus_mock_new_signal_args ();
     dbus_mock_signal_args_append(args, g_variant_new("s", "iconname"));
-    dbus_mock_signal_args_append(args, g_variant_new("i", 0));
+    dbus_mock_signal_args_append(args, g_variant_new("i", 1));
     dbus_mock_signal_args_append(args, g_variant_new("s", "menu.two"));
     dbus_mock_signal_args_append(args, g_variant_new("o", "/menu/two"));
     dbus_mock_signal_args_append(args, g_variant_new("s", "iconpath"));
@@ -141,6 +141,26 @@ test_app_indicator_source_new ()
     test_app_indocator_source_assert_result (results, 1, "Hello There 2");
     test_app_indocator_source_assert_result (results, 2, "Hallo Again");
     test_app_indocator_source_assert_result (results, 3, "Hallo Again 2");
+    g_ptr_array_free(results, TRUE);
+  }
+
+  {
+    /* position */
+    DBusMockSignalArgs* args = dbus_mock_new_signal_args ();
+    dbus_mock_signal_args_append(args, g_variant_new("i", 0));
+
+    dbus_mock_emit_signal (connection, APP_INDICATOR_SERVICE_BUS_NAME,
+        APP_INDICATOR_SERVICE_OBJECT_PATH, APP_INDICATOR_SERVICE_IFACE,
+        "ApplicationRemoved", "i", args);
+
+    hud_test_utils_process_mainloop (10);
+
+    GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
+    hud_source_search(HUD_SOURCE(source), search, test_app_indicator_append_func, results);
+    g_assert_cmpuint(results->len, ==, 2);
+    g_ptr_array_sort(results, test_app_indicator_results_compare_func);
+    test_app_indocator_source_assert_result (results, 0, "Hello There 2");
+    test_app_indocator_source_assert_result (results, 1, "Hallo Again 2");
     g_ptr_array_free(results, TRUE);
   }
 
