@@ -228,13 +228,13 @@ hud_keyword_mapping_load_xml(HudKeywordMapping* self,
 
   g_assert(filename);
 
-  context = g_markup_parse_context_new (&hud_keyword_mapping_parser, 0, &parser, NULL );
-
   if (g_file_get_contents (filename, &text, &length, NULL ) == FALSE)
   {
     g_debug("Unable to read XML file \"%s\"", filename);
     return (-1);
   }
+
+  context = g_markup_parse_context_new (&hud_keyword_mapping_parser, 0, &parser, NULL );
 
   if (g_markup_parse_context_parse (context, text, length, NULL ) == FALSE)
   {
