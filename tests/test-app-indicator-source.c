@@ -42,77 +42,57 @@ typedef struct
   GDBusConnection *connection;
 } TestHudAppIndicatorThreadData;
 
-static const gchar * GET_LAYOUT = ""
-    "if args[0] == 0 and args[1] == -1 and args[2] == ['type', 'label', 'visible', 'enabled', 'children-display', 'accessible-desc']:\n"
-    "    empty = dbus.Array(signature='v')\n"
-    "    root = dbus.Dictionary({'children-display': 'submenu', 'enabled': True, 'label': 'Label Empty', 'visible': True}, signature='sv')\n"
-    "    sub_hello = dbus.Dictionary({'enabled': True, 'label': 'Hello There', 'visible': True}, signature='sv')\n"
-    "    sub_goodbye = dbus.Dictionary({'enabled': True, 'label': 'Goodbye', 'visible': True}, signature='sv')\n"
-    "    sub_hallo = dbus.Dictionary({'enabled': True, 'label': 'Hallo Again', 'visible': True}, signature='sv')\n"
-    "    ret = (dbus.UInt32(2),\n"
-    "      (dbus.Int32(0), root,\n"
-    "        dbus.Array([\n"
-    "          (dbus.Int32(1), sub_hello, empty),\n"
-    "          (dbus.Int32(2), sub_goodbye, empty),\n"
-    "          (dbus.Int32(3), sub_hallo, empty)\n"
-    "        ], signature='v')\n"
-    "      )\n"
-    "    )\n"
-    "else:\n"
-    "    ret = Nil\n";
-
-static const char* GET_GROUP_PROPERTIES = ""
-    "results = [\n"
-    "    (0, {'children-display': 'submenu'}),\n"
-    "    (1, {'label': 'Hello There'}),\n"
-    "    (2, {'label': 'Goodbye'}),\n"
-    "    (3, {'label': 'Hallo Again'})\n"
-    "]\n"
-    "ret = dbus.Array(results, signature='(ia{sv})')";
-
 static void
 test_app_indicator_append_func(HudResult *result, gpointer user_data)
 {
   g_assert(result != NULL);
   g_assert(HUD_IS_RESULT(result));
 
-  HudItem * item = hud_result_get_item (result);
-  g_assert(item != NULL);
-  g_assert(HUD_IS_ITEM(item));
-
   g_assert(user_data != NULL);
   GPtrArray *results = (GPtrArray *) user_data;
 
-  g_ptr_array_add(results, item);
+  g_ptr_array_add(results, result);
+}
 
-  g_object_unref (result);
+static gint
+test_app_indicator_results_compare_func(gconstpointer a, gconstpointer b)
+{
+  return hud_result_get_distance (*(HudResult **) a, 0)
+        - hud_result_get_distance (*(HudResult **) b, 0);
+}
+
+static void
+test_app_indocator_source_assert_result (GPtrArray* results, const guint index, const gchar* value)
+{
+  HudResult *result = HUD_RESULT(g_ptr_array_index(results, index));
+
+  HudItem *item = hud_result_get_item (result);
+  g_assert(item != NULL);
+  g_assert(HUD_IS_ITEM(item));
+
+  HudStringList *tokens = hud_item_get_tokens (item);
+  g_assert_cmpstr(hud_string_list_get_head(tokens), ==, value);
 }
 
 static void
 test_app_indicator_source_new ()
 {
-  DbusTestService *service = NULL;
-  GDBusConnection *connection = NULL;
-
-  hud_test_utils_start_python_dbusmock (&service, &connection,
-      APP_INDICATOR_SERVICE_BUS_NAME, APP_INDICATOR_SERVICE_OBJECT_PATH,
-      APP_INDICATOR_SERVICE_IFACE);
+  DbusTestService *service = dbus_test_service_new (NULL);
+  hud_test_utils_dbus_mock_start (service, APP_INDICATOR_SERVICE_BUS_NAME,
+      APP_INDICATOR_SERVICE_OBJECT_PATH, APP_INDICATOR_SERVICE_IFACE);
+  hud_test_utils_json_loader_start_full (service, "menu.one", "/menu/one",
+      "./test-app-indicator-source-one.json");
+  hud_test_utils_json_loader_start_full (service, "menu.two", "/menu/two",
+        "./test-app-indicator-source-two.json");
+  GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
+      APP_INDICATOR_SERVICE_BUS_NAME, "menu.one", "menu.two", NULL);
   hud_test_utils_process_mainloop (100);
 
   dbus_mock_add_method (connection,
         APP_INDICATOR_SERVICE_BUS_NAME, APP_INDICATOR_SERVICE_OBJECT_PATH,
         APP_INDICATOR_SERVICE_IFACE, "GetApplications", "", "a(sisossssss)",
-        "ret = [('icon', dbus.Int32(0), 'com.canonical.indicator.application', '/menu', 'icon_theme_path', 'label', 'guide', 'icon_desc', 'id', 'title')]");
+        "ret = [('icon', dbus.Int32(0), 'menu.one', '/menu/one', 'icon_theme_path', 'label', 'guide', 'icon_desc', 'id-one', 'title')]");
   /* icon, position, dbus_name, menu, icon_theme_path, label, guide, icon_desc, id, title */
-
-  GHashTable* properties = dbus_mock_new_properties ();
-  DBusMockMethods* methods = dbus_mock_new_methods ();
-  dbus_mock_methods_append(methods, "GetLayout", "iias", "u(ia{sv}av)", GET_LAYOUT);
-  dbus_mock_methods_append (methods, "GetGroupProperties", "aias", "a(ia{sv})",
-      GET_GROUP_PROPERTIES);
-  dbus_mock_add_object (connection, APP_INDICATOR_SERVICE_BUS_NAME,
-      APP_INDICATOR_SERVICE_OBJECT_PATH, "/menu", "com.canonical.dbusmenu",
-      properties, methods);
 
   HudAppIndicatorSource* source = hud_app_indicator_source_new (connection);
   hud_test_utils_process_mainloop (100);
@@ -122,26 +102,49 @@ test_app_indicator_source_new ()
 
   HudTokenList *search = hud_token_list_new_from_string ("hello");
 
-  GPtrArray *results = g_ptr_array_new();
-  hud_source_search(HUD_SOURCE(source), search, test_app_indicator_append_func, results);
-  g_assert_cmpuint(results->len, ==, 2);
-
   {
-    g_assert(HUD_IS_ITEM(g_ptr_array_index(results, 0)));
-    HudItem *item = HUD_ITEM(g_ptr_array_index(results, 0));
-    HudStringList * tokens = hud_item_get_tokens(item);
-    g_assert_cmpstr(hud_string_list_get_head(tokens), ==, "Hello There");
+    GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
+    hud_source_search(HUD_SOURCE(source), search, test_app_indicator_append_func, results);
+    g_assert_cmpuint(results->len, ==, 2);
+    g_ptr_array_sort(results, test_app_indicator_results_compare_func);
+    test_app_indocator_source_assert_result (results, 0, "Hello There");
+    test_app_indocator_source_assert_result (results, 1, "Hallo Again");
+    g_ptr_array_free(results, TRUE);
   }
 
   {
-    g_assert(HUD_IS_ITEM(g_ptr_array_index(results, 1)));
-    HudItem *item = HUD_ITEM(g_ptr_array_index(results, 1));
-    HudStringList * tokens = hud_item_get_tokens(item);
-    g_assert_cmpstr(hud_string_list_get_head(tokens), ==, "Hallo Again");
+    /* iconname, position, dbusaddress, dbusobject, iconpath, label, labelguide,
+     * accessibledesc, hint, title */
+    DBusMockSignalArgs* args = dbus_mock_new_signal_args ();
+    dbus_mock_signal_args_append(args, g_variant_new("s", "iconname"));
+    dbus_mock_signal_args_append(args, g_variant_new("i", 0));
+    dbus_mock_signal_args_append(args, g_variant_new("s", "menu.two"));
+    dbus_mock_signal_args_append(args, g_variant_new("o", "/menu/two"));
+    dbus_mock_signal_args_append(args, g_variant_new("s", "iconpath"));
+    dbus_mock_signal_args_append(args, g_variant_new("s", "newlabel"));
+    dbus_mock_signal_args_append(args, g_variant_new("s", "labelguide"));
+    dbus_mock_signal_args_append(args, g_variant_new("s", "accessibledesc"));
+    dbus_mock_signal_args_append(args, g_variant_new("s", "id-two"));
+    dbus_mock_signal_args_append(args, g_variant_new("s", "newtitle"));
+
+    dbus_mock_emit_signal (connection, APP_INDICATOR_SERVICE_BUS_NAME,
+        APP_INDICATOR_SERVICE_OBJECT_PATH, APP_INDICATOR_SERVICE_IFACE,
+        "ApplicationAdded", "sisossssss", args);
+
+    hud_test_utils_process_mainloop (100);
+
+    GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
+    hud_source_search(HUD_SOURCE(source), search, test_app_indicator_append_func, results);
+    g_assert_cmpuint(results->len, ==, 4);
+    g_ptr_array_sort(results, test_app_indicator_results_compare_func);
+    test_app_indocator_source_assert_result (results, 0, "Hello There");
+    test_app_indocator_source_assert_result (results, 1, "Hello There 2");
+    test_app_indocator_source_assert_result (results, 2, "Hallo Again");
+    test_app_indocator_source_assert_result (results, 3, "Hallo Again 2");
+    g_ptr_array_free(results, TRUE);
   }
 
   hud_token_list_free(search);
-  g_ptr_array_free(results, TRUE);
   g_object_unref (source);
   dbus_test_service_stop(service);
   g_object_unref (service);
