@@ -223,7 +223,7 @@ hud_test_utils_mock_dbus_connection_new(DbusTestService *service, const gchar *n
       NULL );
 
   /* Get loader up and running and us on that bus */
-  g_debug("Starting up DBus Mock");
+  g_debug("Starting up DBus test service tasks");
   dbus_test_service_start_tasks (service);
 
   /* Cleanup timeout */
@@ -236,16 +236,24 @@ hud_test_utils_mock_dbus_connection_new(DbusTestService *service, const gchar *n
   return session;
 }
 
-static void
-hud_test_utils_json_loader_start (DbusTestService *service, const gchar *jsonfile)
+void
+hud_test_utils_json_loader_start_full (DbusTestService *service,
+  const gchar *name, const gchar *path, const gchar *jsonfile)
 {
   DbusTestProcess * loader = dbus_test_process_new(DBUSMENU_JSON_LOADER);
-  dbus_test_process_append_param(loader, HUD_TEST_UTILS_LOADER_NAME);
-  dbus_test_process_append_param(loader, HUD_TEST_UTILS_LOADER_PATH);
+  dbus_test_process_append_param(loader, name);
+  dbus_test_process_append_param(loader, path);
   dbus_test_process_append_param(loader, jsonfile);
   dbus_test_task_set_name(DBUS_TEST_TASK(loader), "JSON Loader");
   dbus_test_service_add_task(service, DBUS_TEST_TASK(loader));
   g_object_unref(loader);
+}
+
+void
+hud_test_utils_json_loader_start (DbusTestService *service, const gchar *jsonfile)
+{
+  hud_test_utils_json_loader_start_full (service, HUD_TEST_UTILS_LOADER_NAME,
+      HUD_TEST_UTILS_LOADER_PATH, jsonfile);
 }
 
 /* Start things up with a basic mock-json-app and wait until it starts */
