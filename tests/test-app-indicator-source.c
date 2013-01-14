@@ -97,7 +97,7 @@ test_app_indicator_source_new ()
   hud_test_utils_start_python_dbusmock (&service, &connection,
       APP_INDICATOR_SERVICE_BUS_NAME, APP_INDICATOR_SERVICE_OBJECT_PATH,
       APP_INDICATOR_SERVICE_IFACE);
-  hud_test_utils_process_mainloop (5000);
+  hud_test_utils_process_mainloop (100);
 
   dbus_mock_add_method (connection,
         APP_INDICATOR_SERVICE_BUS_NAME, APP_INDICATOR_SERVICE_OBJECT_PATH,
@@ -115,7 +115,7 @@ test_app_indicator_source_new ()
       properties, methods);
 
   HudAppIndicatorSource* source = hud_app_indicator_source_new (connection);
-  hud_test_utils_process_mainloop (5000);
+  hud_test_utils_process_mainloop (100);
 
   g_assert(source != NULL);
   g_assert(HUD_IS_APP_INDICATOR_SOURCE(source));
