@@ -20,10 +20,15 @@ typedef struct
 
 typedef GHashTable DBusMockProperties;
 typedef GPtrArray DBusMockMethods;
+typedef GPtrArray DBusMockSignalArgs;
 
 DBusMockProperties * dbus_mock_new_properties();
 
 DBusMockMethods * dbus_mock_new_methods();
+
+DBusMockSignalArgs * dbus_mock_new_signal_args();
+
+void dbus_mock_signal_args_append (DBusMockSignalArgs* args, GVariant * value);
 
 void dbus_mock_methods_append (DBusMockMethods *methods, const gchar *name,
     const gchar *in_sig, const gchar *out_sig, const gchar *code);
@@ -39,11 +44,19 @@ void dbus_mock_add_method (GDBusConnection *connection, const gchar *bus_name,
     const gchar *path, const gchar *interface, const gchar *name,
     const gchar *in_sig, const gchar *out_sig, const gchar *code);
 
+void dbus_mock_emit_signal (GDBusConnection *connection,
+    const gchar *bus_name, const gchar *path, const gchar *interface,
+    const gchar *signal_name, const gchar *signature, DBusMockSignalArgs *args);
+
+
+
 gboolean hud_test_utils_name_timeout (gpointer user_data);
 
-void hud_test_utils_start_python_dbusmock (DbusTestService **service,
-    GDBusConnection **session, const gchar *name, const gchar *path,
-    const gchar *interface);
+GDBusConnection * hud_test_utils_mock_dbus_connection_new (
+    DbusTestService *service, const gchar *name, ...);
+
+void hud_test_utils_dbus_mock_start (DbusTestService* service,
+    const gchar* name, const gchar* path, const gchar* interface);
 
 void hud_test_utils_start_dbusmenu_mock_app (DbusTestService **service,
     GDBusConnection **session, const gchar *jsonfile);

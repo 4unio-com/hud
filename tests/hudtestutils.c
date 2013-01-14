@@ -4,6 +4,7 @@
 
 #include <libdbustest/dbus-test.h>
 #include <gio/gio.h>
+#include <stdarg.h>
 
 static void
 dbus_mock_method_array_free_func(gpointer data)
@@ -66,11 +67,10 @@ dbus_mock_for_each_method(gpointer item, gpointer user_data)
       method->out_sig, method->code);
 }
 
-
 void
 dbus_mock_add_object (GDBusConnection *connection, const gchar* bus_name,
     const gchar* object_path, const gchar *path, const gchar *interface,
-    DBusMockProperties *properties, GPtrArray *methods)
+    DBusMockProperties *properties, DBusMockMethods *methods)
 {
   GError *error;
   GVariantBuilder *builder;
@@ -124,6 +124,57 @@ dbus_mock_add_method (GDBusConnection *connection,
   }
 }
 
+DBusMockSignalArgs *
+dbus_mock_new_signal_args()
+{
+  return g_ptr_array_new_with_free_func(NULL);
+}
+
+void
+dbus_mock_signal_args_append(DBusMockSignalArgs* args, GVariant * value)
+{
+  g_ptr_array_add(args, value);
+}
+
+static void
+dbus_mock_for_each_signal_arg(gpointer item, gpointer user_data)
+{
+  GVariant *value = (GVariant *) item;
+  GVariantBuilder *builder = (GVariantBuilder *) user_data;
+  g_variant_builder_add(builder, "v", value);
+}
+
+void
+dbus_mock_emit_signal (GDBusConnection *connection,
+    const gchar *bus_name, const gchar *path, const gchar *interface,
+    const gchar *signal_name, const gchar *signature, DBusMockSignalArgs *args)
+{
+  GError *error;
+  GVariantBuilder *builder;
+
+  /* interface, name, signature, args */
+  builder = g_variant_builder_new (G_VARIANT_TYPE ("(sssav)"));
+  g_variant_builder_add (builder, "s", interface);
+  g_variant_builder_add (builder, "s", signal_name);
+  g_variant_builder_add (builder, "s", signature);
+  g_variant_builder_open(builder, G_VARIANT_TYPE ("av"));
+  g_ptr_array_foreach(args, dbus_mock_for_each_signal_arg, builder);
+  g_variant_builder_close(builder);
+
+  error = NULL;
+  g_dbus_connection_call_sync (connection, bus_name, path,
+      "org.freedesktop.DBus.Mock", "EmitSignal",
+      g_variant_builder_end(builder), NULL,
+      G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+  g_variant_builder_unref (builder);
+  g_ptr_array_free(args, TRUE);
+  if (error)
+  {
+    g_warning("%s %s\n", "The request failed:", error->message);
+    g_error_free (error);
+  }
+}
+
 /* If we can't get the name, we should error the test */
 gboolean
 hud_test_utils_name_timeout (gpointer user_data)
@@ -133,80 +184,92 @@ hud_test_utils_name_timeout (gpointer user_data)
 }
 
 void
-hud_test_utils_start_python_dbusmock (DbusTestService **service,
-    GDBusConnection **session, const gchar *name, const gchar *path,
-    const gchar *interface)
+hud_test_utils_dbus_mock_start (DbusTestService* service,
+    const gchar* name, const gchar* path, const gchar* interface)
 {
-  *service = dbus_test_service_new(NULL);
-
   /* DBus Mock Process */
-  DbusTestProcess * dbusmock = dbus_test_process_new("python3");
-  dbus_test_process_append_param(dbusmock, "-m");
-  dbus_test_process_append_param(dbusmock, "dbusmock");
-  dbus_test_process_append_param(dbusmock, name);
-  dbus_test_process_append_param(dbusmock, path);
-  dbus_test_process_append_param(dbusmock, interface);
-  dbus_test_task_set_name(DBUS_TEST_TASK(dbusmock), "DBus Mock");
-  dbus_test_service_add_task(*service, DBUS_TEST_TASK(dbusmock));
-  g_object_unref(dbusmock);
+  DbusTestProcess* dbusmock = dbus_test_process_new ("python3");
+  dbus_test_process_append_param (dbusmock, "-m");
+  dbus_test_process_append_param (dbusmock, "dbusmock");
+  dbus_test_process_append_param (dbusmock, name);
+  dbus_test_process_append_param (dbusmock, path);
+  dbus_test_process_append_param (dbusmock, interface);
+  dbus_test_task_set_name (DBUS_TEST_TASK(dbusmock), "DBus Mock");
+  dbus_test_service_add_task (service, DBUS_TEST_TASK(dbusmock) );
+  g_object_unref (dbusmock);
+}
 
-  /* Dummy */
-  DbusTestTask * dummy = dbus_test_task_new();
-  dbus_test_task_set_wait_for(dummy, name);
-  dbus_test_service_add_task(*service, dummy);
-  g_object_unref(dummy);
+GDBusConnection *
+hud_test_utils_mock_dbus_connection_new(DbusTestService *service, const gchar *name, ...)
+{
+  va_list ap;
+
+  DbusTestTask* dummy = dbus_test_task_new ();
+
+  va_start (ap, name);
+  while(name)
+  {
+    g_debug("Waiting for task [%s]", name);
+    dbus_test_task_set_wait_for (dummy, name);
+    name = va_arg(ap, const gchar *);
+  }
+  va_end (ap);
+
+  dbus_test_service_add_task (service, dummy);
+  g_object_unref (dummy);
 
   /* Setup timeout */
-  guint timeout_source = g_timeout_add_seconds(2, hud_test_utils_name_timeout, NULL);
+  guint timeout_source = g_timeout_add_seconds (2, hud_test_utils_name_timeout,
+      NULL );
 
   /* Get loader up and running and us on that bus */
   g_debug("Starting up DBus Mock");
-  dbus_test_service_start_tasks(*service);
+  dbus_test_service_start_tasks (service);
 
   /* Cleanup timeout */
-  g_source_remove(timeout_source);
+  g_source_remove (timeout_source);
 
   /* Set us not to exit when the service goes */
-  *session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
-  g_dbus_connection_set_exit_on_close(*session, FALSE);
+  GDBusConnection* session = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL );
+  g_dbus_connection_set_exit_on_close (session, FALSE);
 
-  g_debug("Unique connection name: [%s]", g_dbus_connection_get_unique_name(*session));
+  return session;
+}
+
+static void
+hud_test_utils_json_loader_start (DbusTestService *service, const gchar *jsonfile)
+{
+  DbusTestProcess * loader = dbus_test_process_new(DBUSMENU_JSON_LOADER);
+  dbus_test_process_append_param(loader, HUD_TEST_UTILS_LOADER_NAME);
+  dbus_test_process_append_param(loader, HUD_TEST_UTILS_LOADER_PATH);
+  dbus_test_process_append_param(loader, jsonfile);
+  dbus_test_task_set_name(DBUS_TEST_TASK(loader), "JSON Loader");
+  dbus_test_service_add_task(service, DBUS_TEST_TASK(loader));
+  g_object_unref(loader);
 }
 
 /* Start things up with a basic mock-json-app and wait until it starts */
 void
 hud_test_utils_start_dbusmenu_mock_app (DbusTestService ** service, GDBusConnection ** session, const gchar * jsonfile)
 {
-  *service = dbus_test_service_new(NULL);
+  *service = dbus_test_service_new (NULL);
 
-  /* Loader */
-  DbusTestProcess * loader = dbus_test_process_new(DBUSMENU_JSON_LOADER);
-  dbus_test_process_append_param(loader, HUD_TEST_UTILS_LOADER_NAME);
-  dbus_test_process_append_param(loader, HUD_TEST_UTILS_LOADER_PATH);
-  dbus_test_process_append_param(loader, jsonfile);
-  dbus_test_task_set_name(DBUS_TEST_TASK(loader), "JSON Loader");
-  dbus_test_service_add_task(*service, DBUS_TEST_TASK(loader));
-  g_object_unref(loader);
+  hud_test_utils_json_loader_start (*service, jsonfile);
 
-  /* Dummy */
-  DbusTestTask * dummy = dbus_test_task_new();
-  dbus_test_task_set_wait_for(dummy, HUD_TEST_UTILS_LOADER_NAME);
-  dbus_test_service_add_task(*service, dummy);
-  g_object_unref(dummy);
+  *session = hud_test_utils_mock_dbus_connection_new (*service,
+      HUD_TEST_UTILS_LOADER_NAME, NULL);
+}
 
-  /* Setup timeout */
-  guint timeout_source = g_timeout_add_seconds(2, hud_test_utils_name_timeout, NULL);
-
-  /* Get loader up and running and us on that bus */
-  g_debug("Starting up Dbusmenu Loader");
-  dbus_test_service_start_tasks(*service);
-
-  /* Cleanup timeout */
-  g_source_remove(timeout_source);
-
-  /* Set us not to exit when the service goes */
-  *session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
-  g_dbus_connection_set_exit_on_close(*session, FALSE);
+static void
+hud_test_utils_start_menu_model (const gchar* appname,
+  DbusTestService* service)
+{
+  DbusTestProcess* loader = dbus_test_process_new (appname);
+  dbus_test_process_append_param (loader, HUD_TEST_UTILS_LOADER_NAME);
+  dbus_test_process_append_param (loader, HUD_TEST_UTILS_LOADER_PATH);
+  dbus_test_task_set_name (DBUS_TEST_TASK(loader), "Mock Model");
+  dbus_test_service_add_task (service, DBUS_TEST_TASK(loader) );
+  g_object_unref (loader);
 }
 
 /* Start things up with a basic mock-json-app and wait until it starts */
@@ -215,35 +278,10 @@ hud_test_utils_start_model_mock_app (DbusTestService ** service, GDBusConnection
 {
   *service = dbus_test_service_new(NULL);
 
-  /* Loader */
-  DbusTestProcess * loader = dbus_test_process_new(appname);
-  dbus_test_process_append_param(loader, HUD_TEST_UTILS_LOADER_NAME);
-  dbus_test_process_append_param(loader, HUD_TEST_UTILS_LOADER_PATH);
-  dbus_test_task_set_name(DBUS_TEST_TASK(loader), "Mock Model");
-  dbus_test_service_add_task(*service, DBUS_TEST_TASK(loader));
-  g_object_unref(loader);
+  hud_test_utils_start_menu_model (appname, *service);
 
-  /* Dummy */
-  DbusTestTask * dummy = dbus_test_task_new();
-  dbus_test_task_set_wait_for(dummy, HUD_TEST_UTILS_LOADER_NAME);
-  dbus_test_service_add_task(*service, dummy);
-  g_object_unref(dummy);
-
-  /* Setup timeout */
-  guint timeout_source = g_timeout_add_seconds(2, hud_test_utils_name_timeout, NULL);
-
-  /* Get mock up and running and us on that bus */
-  g_debug("Starting up Model Mock");
-  dbus_test_service_start_tasks(*service);
-
-  /* Cleanup timeout */
-  g_source_remove(timeout_source);
-
-  /* Set us not to exit when the service goes */
-  *session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
-  g_dbus_connection_set_exit_on_close(*session, FALSE);
-
-  return;
+  *session = hud_test_utils_mock_dbus_connection_new (*service,
+        HUD_TEST_UTILS_LOADER_NAME, NULL);
 }
 
 /* Timeout on our loop */
