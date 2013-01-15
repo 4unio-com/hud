@@ -16,6 +16,7 @@ hud_cli_SOURCES = \
 hud_cli_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
+	$(gtk_CFLAGS) \
 	-I $(top_srcdir) \
 	-I $(top_srcdir)/libhud-client \
 	-Wall -Werror
@@ -23,6 +24,7 @@ hud_cli_CFLAGS = \
 hud_cli_LDFLAGS = \
 	$(HUD_LIBS) \
 	$(COVERAGE_LDFLAGS) \
+	$(gtk_LIBS) \
 	-lreadline -lcurses
 
 hud_cli_LDADD = \
