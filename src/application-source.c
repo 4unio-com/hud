@@ -471,3 +471,20 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 
 	return;
 }
+
+/**
+ * hud_application_source_has_xid:
+ * @app: A #HudApplicationSource object
+ * @xid: XID to lookup
+ *
+ * Looks to see if we know about this XID.
+ *
+ * Return value: Whether we're tracking @xid.
+ */
+gboolean
+hud_application_source_has_xid (HudApplicationSource * app, guint32 xid)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), FALSE);
+
+	return g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid)) != NULL;
+}

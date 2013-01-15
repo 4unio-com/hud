@@ -35,7 +35,7 @@ struct _HudApplicationListPrivate {
 	gulong matcher_view_close_sig;
 
 	GHashTable * applications;
-	HudSource * used_source;
+	HudSource * used_source; /* Not a reference */
 };
 
 #define HUD_APPLICATION_LIST_GET_PRIVATE(o) \
@@ -46,9 +46,9 @@ static void hud_application_list_init       (HudApplicationList *      self);
 static void hud_application_list_dispose    (GObject *                 object);
 static void hud_application_list_finalize   (GObject *                 object);
 static void source_iface_init               (HudSourceInterface *      iface);
-static void application_changed             (BamfMatcher *             matcher,
-                                             BamfApplication *         old_app,
-                                             BamfApplication *         new_app,
+static void window_changed                  (BamfMatcher *             matcher,
+                                             BamfWindow *              old_window,
+                                             BamfWindow *              new_window,
                                              gpointer                  user_data);
 static void view_opened                     (BamfMatcher *             matcher,
                                              BamfView *                view,
@@ -99,8 +99,8 @@ hud_application_list_init (HudApplicationList *self)
 
 	self->priv->matcher = bamf_matcher_get_default();
 	self->priv->matcher_app_sig = g_signal_connect(self->priv->matcher,
-		"active-application-changed",
-		G_CALLBACK(application_changed), self);
+		"active-window-changed",
+		G_CALLBACK(window_changed), self);
 	self->priv->matcher_view_open_sig = g_signal_connect(self->priv->matcher,
 		"view-opened",
 		G_CALLBACK(view_opened), self);
@@ -214,21 +214,52 @@ bamf_app_to_source (HudApplicationList * list, BamfApplication * bapp)
 
 /* Called each time the focused application changes */
 static void
-application_changed (BamfMatcher * matcher, BamfApplication * old_app, BamfApplication * new_app, gpointer user_data)
+window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_win, gpointer user_data)
 {
-	/* We care where we're going, not where we've been */
-	if (new_app == NULL) {
-		return;
-	}
-
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
 
-	HudApplicationSource * source = bamf_app_to_source(list, new_app);
-	if (source == NULL) {
+	/* We care where we're going, not where we've been */
+	if (new_win == NULL) {
+		if (list->priv->used_source != NULL) {
+			hud_source_unuse(list->priv->used_source);
+			list->priv->used_source = NULL;
+		}
 		return;
 	}
 
-	hud_application_source_focus(source, new_app, bamf_matcher_get_active_window(list->priv->matcher));
+	/* Try to use BAMF */
+	BamfApplication * new_app = bamf_matcher_get_application_for_window(list->priv->matcher, new_win);
+	HudApplicationSource * source = NULL;
+
+	/* If we've got an app, we can find it easily */
+	if (new_app != NULL) {
+		source = bamf_app_to_source(list, new_app);
+	}
+
+	/* If we weren't able to use BAMF, let's try to find a source
+	   for the window. */
+	if (source == NULL) {
+		guint32 xid = bamf_window_get_xid(new_win);
+		GList * sources = g_hash_table_get_values(list->priv->applications);
+		GList * lsource = NULL;
+
+		for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
+			HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
+			if (appsource == NULL) continue;
+
+			if (hud_application_source_has_xid(appsource, xid)) {
+				source = appsource;
+				break;
+			}
+		}
+	}
+
+	if (source == NULL) {
+		g_warning("Unable to find source for window");
+		return;
+	}
+
+	hud_application_source_focus(source, new_app, new_win);
 
 	if (list->priv->used_source) {
 		hud_source_unuse(list->priv->used_source);

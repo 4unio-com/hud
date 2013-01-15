@@ -55,6 +55,8 @@ const gchar *            hud_application_source_get_path          (HudApplicatio
 const gchar *            hud_application_source_get_id            (HudApplicationSource *   app);
 void                     hud_application_source_add_window        (HudApplicationSource *   app,
                                                                    BamfWindow *             window);
+gboolean                 hud_application_source_has_xid           (HudApplicationSource *   app,
+                                                                   guint32                  xid);
 
 /* Helper functions */
 gchar *                  hud_application_source_bamf_app_id       (BamfApplication *        bapp);
