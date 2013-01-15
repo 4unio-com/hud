@@ -703,6 +703,9 @@ hud_menu_model_collector_new (const gchar *application_id,
 	collector->icon = g_strdup (icon);
 	collector->penalty = penalty;
 
+	collector->keyword_mapping = hud_keyword_mapping_new();
+	hud_keyword_mapping_load(collector->keyword_mapping, collector->app_id, DATADIR, GNOMELOCALEDIR);
+
 	return collector;
 }
 
@@ -784,9 +787,6 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
 
   if (window_object_path)
     hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, collector->unique_bus_name, window_object_path)), "win");
-
-  collector->keyword_mapping = hud_keyword_mapping_new();
-  hud_keyword_mapping_load(collector->keyword_mapping, collector->app_id, DATADIR, GNOMELOCALEDIR);
 
   /* when the action groups change, we could end up having items
    * enabled/disabled.  how to deal with that?
