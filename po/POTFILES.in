@@ -16,7 +16,6 @@ src/hudsourcelist.c
 src/hudstringlist.c
 src/hudtoken.c
 src/hud-verify-app-info.c
-src/hudwindowsource.c
 src/load-app-info.c
 src/usage-tracker.c
 tools/hud-cli.c
