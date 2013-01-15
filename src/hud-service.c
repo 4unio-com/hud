@@ -29,7 +29,6 @@
 #include "hudappindicatorsource.h"
 #include "hudindicatorsource.h"
 #include "hudwebappsource.h"
-#include "hudwindowsource.h"
 #include "huddebugsource.h"
 #include "hudsourcelist.h"
 #include "hudsettings.h"
@@ -250,7 +249,6 @@ sigterm_graceful_exit (int signal)
 int
 main (int argc, char **argv)
 {
-  HudWindowSource *window_source;
   HudSourceList *source_list;
 
   g_type_init ();
@@ -263,9 +261,6 @@ main (int argc, char **argv)
 
   query_list = g_ptr_array_new();
   source_list = hud_source_list_new ();
-
-  /* we will eventually pull GtkMenu out of this, so keep it around */
-  window_source = hud_window_source_new ();
 
   application_list = hud_application_list_new();
   hud_source_list_add(source_list, HUD_SOURCE(application_list));
@@ -289,7 +284,7 @@ main (int argc, char **argv)
   {
     HudWebappSource *source;
     
-    source = hud_webapp_source_new (window_source);
+    source = hud_webapp_source_new ();
     hud_source_list_add (source_list, HUD_SOURCE (source));
     
     g_object_unref (G_OBJECT (source));
@@ -314,7 +309,6 @@ main (int argc, char **argv)
   g_main_loop_run (mainloop);
   g_main_loop_unref (mainloop);
 
-  g_object_unref (window_source);
   g_object_unref (application_list);
   g_object_unref (source_list);
   g_ptr_array_free(query_list, TRUE);

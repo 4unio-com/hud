@@ -44,8 +44,6 @@ libhud_service_la_SOURCES = \
 	hudwebappsource.c \
 	hudindicatorsource.h	\
 	hudindicatorsource.c	\
-	hudwindowsource.h	\
-	hudwindowsource.c	\
 	huddebugsource.h	\
 	huddebugsource.c	\
 	hudsourcelist.h		\

@@ -53,7 +53,7 @@ struct _HudWebappSource
   
   GList *applications;
   
-  HudWindowSource *window_source;
+  BamfMatcher *matcher;
 };
 
 typedef GObjectClass HudWebappSourceClass;
@@ -138,7 +138,7 @@ hud_webapp_source_search (HudSource    *hud_source,
       
       application_source = (HudWebappApplicationSource *)walk->data;
       
-      active_xid = hud_window_source_get_active_xid (source->window_source);
+      active_xid = bamf_window_get_xid(bamf_matcher_get_active_window(source->matcher));
 
       if (hud_webapp_source_should_search_app (application_source->application, active_xid))
 	{
@@ -367,13 +367,11 @@ hud_webapp_source_class_init (HudWebappSourceClass *class)
  * Returns: a new #HudWebappSource
  **/
 HudWebappSource *
-hud_webapp_source_new (HudWindowSource *window_source)
+hud_webapp_source_new (void)
 {
   HudWebappSource *webapp_source;
   
   webapp_source = (HudWebappSource *) g_object_new (HUD_TYPE_WEBAPP_SOURCE, NULL);
-  
-  webapp_source->window_source = window_source;
   
   return webapp_source;
 }
