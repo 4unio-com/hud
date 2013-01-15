@@ -17,6 +17,7 @@ libhud_include_base_HEADERS = \
 
 libhudincludedir = $(includedir)/libhud-$(API_VERSION)/libhud
 libhudinclude_HEADERS = \
+	manager.h		\
 	operation.h		\
 	action.h		\
 	action-publisher.h
