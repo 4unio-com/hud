@@ -157,7 +157,7 @@ window_realize (gpointer window, /* GtkWidget */
 
 	HudActionPublisher * publisher = hud_gtk_manager_get_publisher(manager, id);
 
-	hud_action_publisher_add_action_group (publisher, "win", id, object_path);
+	hud_action_publisher_add_action_group (publisher, "win", object_path);
 
 	g_free (object_path);
 
