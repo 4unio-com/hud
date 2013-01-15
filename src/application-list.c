@@ -280,7 +280,7 @@ view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 	}
 
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
-	BamfApplication * app = bamf_matcher_get_application_for_window(matcher, BAMF_WINDOW(view));
+	BamfApplication * app = bamf_matcher_get_application_for_window(list->priv->matcher, BAMF_WINDOW(view));
 	if (app == NULL) {
 		return;
 	}
@@ -312,11 +312,34 @@ source_use (HudSource *hud_source)
 	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
 
 	BamfApplication * app = bamf_matcher_get_active_application(list->priv->matcher);
-	if (app == NULL) {
+	HudApplicationSource * source = NULL;
+
+	if (app != NULL) {
+		source = bamf_app_to_source(list, app);
+	}
+
+	/* If we weren't able to use BAMF, let's try to find a source
+	   for the window. */
+	if (source == NULL) {
+		guint32 xid = bamf_window_get_xid(bamf_matcher_get_active_window(list->priv->matcher));
+		GList * sources = g_hash_table_get_values(list->priv->applications);
+		GList * lsource = NULL;
+
+		for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
+			HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
+			if (appsource == NULL) continue;
+
+			if (hud_application_source_has_xid(appsource, xid)) {
+				source = appsource;
+				break;
+			}
+		}
+	}
+
+	if (source == NULL) {
+		g_warning("Unable to find source for window");
 		return;
 	}
-	
-	HudApplicationSource * source = bamf_app_to_source(list, app);
 
 	list->priv->used_source = HUD_SOURCE(source);
 
