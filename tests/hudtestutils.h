@@ -6,6 +6,7 @@
 typedef struct _HudStringList HudStringList;
 typedef struct _GDBusConnection GDBusConnection;
 typedef struct _DbusTestService DbusTestService;
+typedef struct _HudResult HudResult;
 
 #define HUD_TEST_UTILS_LOADER_NAME "test.json.loader"
 #define HUD_TEST_UTILS_LOADER_PATH "/test/json/loader"
@@ -73,5 +74,15 @@ void hud_test_utils_start_model_mock_app (DbusTestService **service,
 gboolean hud_test_utils_timeout_quit_func (gpointer user_data);
 
 void hud_test_utils_process_mainloop (const guint delay);
+
+
+
+void hud_test_utils_results_append_func (HudResult *result, gpointer user_data);
+
+gint hud_test_utils_results_compare_func (gconstpointer a, gconstpointer b);
+
+void hud_test_utils_source_assert_result (GPtrArray* results, const guint index,
+    const gchar* value);
+
 
 #endif /* HUDTESTUTILS_H_ */

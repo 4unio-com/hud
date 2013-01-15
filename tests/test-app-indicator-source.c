@@ -37,43 +37,6 @@ HudSettings hud_settings = {
   .max_distance = 30
 };
 
-typedef struct
-{
-  GDBusConnection *connection;
-} TestHudAppIndicatorThreadData;
-
-static void
-test_app_indicator_append_func(HudResult *result, gpointer user_data)
-{
-  g_assert(result != NULL);
-  g_assert(HUD_IS_RESULT(result));
-
-  g_assert(user_data != NULL);
-  GPtrArray *results = (GPtrArray *) user_data;
-
-  g_ptr_array_add(results, result);
-}
-
-static gint
-test_app_indicator_results_compare_func(gconstpointer a, gconstpointer b)
-{
-  return hud_result_get_distance (*(HudResult **) a, 0)
-        - hud_result_get_distance (*(HudResult **) b, 0);
-}
-
-static void
-test_app_indocator_source_assert_result (GPtrArray* results, const guint index, const gchar* value)
-{
-  HudResult *result = HUD_RESULT(g_ptr_array_index(results, index));
-
-  HudItem *item = hud_result_get_item (result);
-  g_assert(item != NULL);
-  g_assert(HUD_IS_ITEM(item));
-
-  HudStringList *tokens = hud_item_get_tokens (item);
-  g_assert_cmpstr(hud_string_list_get_head(tokens), ==, value);
-}
-
 static void
 test_app_indicator_source_new ()
 {
@@ -104,11 +67,11 @@ test_app_indicator_source_new ()
 
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, test_app_indicator_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 2);
-    g_ptr_array_sort(results, test_app_indicator_results_compare_func);
-    test_app_indocator_source_assert_result (results, 0, "Hello There");
-    test_app_indocator_source_assert_result (results, 1, "Hallo Again");
+    g_ptr_array_sort(results, hud_test_utils_results_compare_func);
+    hud_test_utils_source_assert_result (results, 0, "Hello There");
+    hud_test_utils_source_assert_result (results, 1, "Hallo Again");
     g_ptr_array_free(results, TRUE);
   }
 
@@ -134,13 +97,13 @@ test_app_indicator_source_new ()
     hud_test_utils_process_mainloop (100);
 
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, test_app_indicator_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 4);
-    g_ptr_array_sort(results, test_app_indicator_results_compare_func);
-    test_app_indocator_source_assert_result (results, 0, "Hello There");
-    test_app_indocator_source_assert_result (results, 1, "Hello There 2");
-    test_app_indocator_source_assert_result (results, 2, "Hallo Again");
-    test_app_indocator_source_assert_result (results, 3, "Hallo Again 2");
+    g_ptr_array_sort(results, hud_test_utils_results_compare_func);
+    hud_test_utils_source_assert_result (results, 0, "Hello There");
+    hud_test_utils_source_assert_result (results, 1, "Hello There 2");
+    hud_test_utils_source_assert_result (results, 2, "Hallo Again");
+    hud_test_utils_source_assert_result (results, 3, "Hallo Again 2");
     g_ptr_array_free(results, TRUE);
   }
 
@@ -156,11 +119,11 @@ test_app_indicator_source_new ()
     hud_test_utils_process_mainloop (10);
 
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, test_app_indicator_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 2);
-    g_ptr_array_sort(results, test_app_indicator_results_compare_func);
-    test_app_indocator_source_assert_result (results, 0, "Hello There 2");
-    test_app_indocator_source_assert_result (results, 1, "Hallo Again 2");
+    g_ptr_array_sort(results, hud_test_utils_results_compare_func);
+    hud_test_utils_source_assert_result (results, 0, "Hello There 2");
+    hud_test_utils_source_assert_result (results, 1, "Hallo Again 2");
     g_ptr_array_free(results, TRUE);
   }
 

@@ -1,6 +1,7 @@
 
 #include "hudtestutils.h"
 #include "hudstringlist.h"
+#include "hudresult.h"
 
 #include <libdbustest/dbus-test.h>
 #include <gio/gio.h>
@@ -309,3 +310,37 @@ hud_test_utils_process_mainloop (const guint delay)
   g_main_loop_run (temploop);
   g_main_loop_unref (temploop);
 }
+
+
+void
+hud_test_utils_results_append_func(HudResult *result, gpointer user_data)
+{
+  g_assert(result != NULL);
+  g_assert(HUD_IS_RESULT(result));
+
+  g_assert(user_data != NULL);
+  GPtrArray *results = (GPtrArray *) user_data;
+
+  g_ptr_array_add(results, result);
+}
+
+gint
+hud_test_utils_results_compare_func(gconstpointer a, gconstpointer b)
+{
+  return hud_result_get_distance (*(HudResult **) a, 0)
+        - hud_result_get_distance (*(HudResult **) b, 0);
+}
+
+void
+hud_test_utils_source_assert_result (GPtrArray* results, const guint index, const gchar* value)
+{
+  HudResult *result = HUD_RESULT(g_ptr_array_index(results, index));
+
+  HudItem *item = hud_result_get_item (result);
+  g_assert(item != NULL);
+  g_assert(HUD_IS_ITEM(item));
+
+  HudStringList *tokens = hud_item_get_tokens (item);
+  g_assert_cmpstr(hud_string_list_get_head(tokens), ==, value);
+}
+
