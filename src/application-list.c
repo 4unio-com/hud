@@ -132,7 +132,6 @@ hud_application_list_init (HudApplicationList *self)
 			g_object_unref(appsource);
 		}
 	}
-	g_list_free_full(apps, g_object_unref);
 
 	GList * windows = bamf_matcher_get_windows(self->priv->matcher);
 	GList * window = NULL;
@@ -143,7 +142,6 @@ hud_application_list_init (HudApplicationList *self)
 
 		view_opened(self->priv->matcher, BAMF_VIEW(window->data), self);
 	}
-	//g_list_free_full(apps, g_object_unref);
 
 	return;
 }
