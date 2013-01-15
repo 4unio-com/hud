@@ -393,6 +393,46 @@ DISTCLEANFILES += \
 	$(APP_INDICATOR_SOURCE_XML_REPORT:.xml=-xunit.xml)
 
 ######################
+# Test Indicator Source
+######################
+
+TESTS += \
+	test-indicator-source-test
+
+check_PROGRAMS += \
+	test-indicator-source
+
+INDICATOR_SOURCE_XML_REPORT = test-indicator-source.xml
+
+test-indicator-source-test: test-indicator-source Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(INDICATOR_SOURCE_XML_REPORT) $(builddir)/test-indicator-source >> $@
+	@echo gtester2xunit $(INDICATOR_SOURCE_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_indicator_source_SOURCES = \
+	test-indicator-source.c
+
+test_indicator_source_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_indicator_source_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
+	libhud-tests.la \
+	$(HUD_LIBS)
+
+DISTCLEANFILES += \
+	$(INDICATOR_SOURCE_XML_REPORT) \
+	$(INDICATOR_SOURCE_XML_REPORT:.xml=-xunit.xml)
+
+######################
 # Test Usage DB Simple
 ######################
 
