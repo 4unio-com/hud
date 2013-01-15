@@ -421,6 +421,8 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
                                              const gchar           *action_namespace,
                                              const gchar           *label)
 {
+  g_return_if_fail(G_IS_MENU_MODEL(model));
+
   gint n_items;
 
   g_signal_connect (model, "items-changed", G_CALLBACK (hud_menu_model_collector_model_changed), collector);
@@ -651,6 +653,11 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
     /* If this isn't set, we won't get very far... */
     return;
 
+  if (!g_dbus_is_name(unique_bus_name)) {
+    g_warning("Invalid BUS name '%s'", unique_bus_name);
+    return;
+  }
+
   if (collector->unique_bus_name == NULL) {
     collector->unique_bus_name = g_strdup(unique_bus_name);
   }
@@ -660,7 +667,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
     g_free(unique_bus_name);
     return;
   }
-  g_free(unique_bus_name);
+  g_clear_pointer(&unique_bus_name, g_free);
 
   app_menu_object_path = bamf_window_get_utf8_prop (window, "_GTK_APP_MENU_OBJECT_PATH");
   menubar_object_path = bamf_window_get_utf8_prop (window, "_GTK_MENUBAR_OBJECT_PATH");
@@ -669,9 +676,9 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
 
   if (app_menu_object_path)
     {
-      app_menu = g_dbus_menu_model_get (collector->session, unique_bus_name, app_menu_object_path);
+      app_menu = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, app_menu_object_path);
       hud_menu_model_collector_add_model (collector, G_MENU_MODEL (app_menu), NULL);
-      g_dbus_connection_call (collector->session, unique_bus_name, app_menu_object_path,
+      g_dbus_connection_call (collector->session, collector->unique_bus_name, app_menu_object_path,
                               "com.canonical.hud.Awareness", "CheckAwareness",
                               NULL, G_VARIANT_TYPE_UNIT, G_DBUS_CALL_FLAGS_NONE, -1, collector->cancellable,
                               hud_menu_model_collector_hud_awareness_cb, &collector->app_menu_is_hud_aware);
@@ -679,19 +686,19 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
 
   if (menubar_object_path)
     {
-      menubar = g_dbus_menu_model_get (collector->session, unique_bus_name, menubar_object_path);
+      menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, menubar_object_path);
       hud_menu_model_collector_add_model (collector, G_MENU_MODEL (menubar), NULL);
-      g_dbus_connection_call (collector->session, unique_bus_name, menubar_object_path,
+      g_dbus_connection_call (collector->session, collector->unique_bus_name, menubar_object_path,
                               "com.canonical.hud.Awareness", "CheckAwareness",
                               NULL, G_VARIANT_TYPE_UNIT, G_DBUS_CALL_FLAGS_NONE, -1, collector->cancellable,
                               hud_menu_model_collector_hud_awareness_cb, &collector->menubar_is_hud_aware);
     }
 
   if (application_object_path)
-    hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, unique_bus_name, application_object_path)), "app");
+    hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, collector->unique_bus_name, application_object_path)), "app");
 
   if (window_object_path)
-    hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, unique_bus_name, window_object_path)), "win");
+    hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, collector->unique_bus_name, window_object_path)), "win");
 
   /* when the action groups change, we could end up having items
    * enabled/disabled.  how to deal with that?
