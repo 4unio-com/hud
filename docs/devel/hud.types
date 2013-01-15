@@ -8,4 +8,3 @@ hud_query_get_type
 hud_result_get_type
 hud_source_get_type
 hud_source_list_get_type
-hud_window_source_get_type
