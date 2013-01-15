@@ -20,6 +20,7 @@ libhud_gtk_la_SOURCES = \
 libhud_gtk_la_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
+	$(gtk_CFLAGS) \
 	-I . \
 	-I $(top_srcdir) \
 	-I $(top_srcdir)/libhud \
@@ -33,6 +34,7 @@ libhud_gtk_la_LIBADD = \
 libhud_gtk_la_LDFLAGS = \
 	$(HUD_LDFLAGS) \
 	$(COVERAGE_LDFLAGS) \
+	$(gtk_LDFLAGS) \
 	-version-info $(ABI_VERSION):0:0 \
 	-no-undefined \
 	-export-symbols-regex "^[^_].*"
