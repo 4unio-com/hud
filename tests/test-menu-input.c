@@ -290,14 +290,17 @@ test_menus_model_base (void)
 
 	start_model_mock_app(&service, &session, MODEL_SIMPLE);
 
-	HudMenuModelCollector * collector = hud_menu_model_collector_new_for_endpoint("test-id",
-	                                                                              "Prefix",
-	                                                                              "no-icon",
-	                                                                              0, /* penalty */
-	                                                                              LOADER_NAME,
-	                                                                              LOADER_PATH);
+	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
+	                                                                 "no-icon",
+	                                                                 0); /* penalty */
+
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	hud_menu_model_collector_add_endpoint(collector,
+	                                      "Prefix",
+	                                      LOADER_NAME,
+	                                      LOADER_PATH);
 
 	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
 	g_timeout_add(100, test_menus_timeout, temploop);
@@ -329,14 +332,17 @@ test_menus_model_shortcuts (void)
 
 	start_model_mock_app(&service, &session, MODEL_SHORTCUTS);
 
-	HudMenuModelCollector * collector = hud_menu_model_collector_new_for_endpoint("test-id",
-	                                                                              "Prefix",
-	                                                                              "no-icon",
-	                                                                              0, /* penalty */
-	                                                                              LOADER_NAME,
-	                                                                              LOADER_PATH);
+	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
+	                                                                 "no-icon",
+	                                                                 0); /* penalty */
+
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	hud_menu_model_collector_add_endpoint(collector,
+	                                      "Prefix",
+	                                      LOADER_NAME,
+	                                      LOADER_PATH);
 
 	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
 	g_timeout_add(100, test_menus_timeout, temploop);
