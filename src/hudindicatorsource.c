@@ -69,13 +69,6 @@ static const IndicatorInfo indicator_info[] = {
     .icon              = "system-devices-panel"
   },
   {
-    .dbus_name         = "com.canonical.indicator.session",
-    .dbus_menu_path    = "/com/canonical/indicator/users/menu",
-    .indicator_name    = "indicator-session-user",
-    .user_visible_name = N_("Users"),
-    .icon              = "avatar-default"
-  },
-  {
     .dbus_name         = "com.canonical.indicator.sound",
     .dbus_menu_path    = "/com/canonical/indicator/sound/menu",
     .indicator_name    = "indicator-sound",
