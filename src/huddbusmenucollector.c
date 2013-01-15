@@ -27,6 +27,9 @@
 #include "hudappmenuregistrar.h"
 #include "hudresult.h"
 #include "hudsource.h"
+#include "hudkeywordmapping.h"
+
+#include "config.h"
 
 /**
  * SECTION:huddbusmenucollector
@@ -155,33 +158,89 @@ hud_dbusmenu_item_get_label_property (const gchar *type)
   return g_hash_table_lookup (property_hash, type);
 }
 
+/* Check to see if a Dbusmenu Menuitem has a shortcut, and if
+   so make it into a pretty string. */
+static gchar *
+shortcut_string_for_menuitem (DbusmenuMenuitem * mi)
+{
+	if (!dbusmenu_menuitem_property_exist(mi, DBUSMENU_MENUITEM_PROP_SHORTCUT)) {
+		return g_strdup("");
+	}
+
+	GVariant * shortcut = dbusmenu_menuitem_property_get_variant(mi, DBUSMENU_MENUITEM_PROP_SHORTCUT);
+	GString * output = g_string_new("");
+	gint keypress = 0;
+
+	for (keypress = 0; keypress < g_variant_n_children(shortcut); keypress++) {
+		GVariant * key = g_variant_get_child_value(shortcut, keypress);
+
+		if (output->len > 0) {
+			g_string_append(output, ", ");
+		}
+
+		int subkey = 0;
+		for (subkey = 0; subkey < g_variant_n_children(key); subkey++) {
+			GVariant * skeyv = g_variant_get_child_value(key, subkey);
+			const gchar * button = g_variant_get_string(skeyv, NULL);
+			g_variant_unref(skeyv); /* We can do this because we know it's parent is held, and this makes things a bit cleaner further down */
+
+			if (g_strcmp0(button, DBUSMENU_MENUITEM_SHORTCUT_ALT) == 0) {
+				g_string_append(output, "Alt + ");
+			} else if (g_strcmp0(button, DBUSMENU_MENUITEM_SHORTCUT_CONTROL) == 0) {
+				g_string_append(output, "Ctrl + ");
+			} else if (g_strcmp0(button, DBUSMENU_MENUITEM_SHORTCUT_SHIFT) == 0) {
+				g_string_append(output, "Shift + ");
+			} else if (g_strcmp0(button, DBUSMENU_MENUITEM_SHORTCUT_SUPER) == 0) {
+				g_string_append(output, "Super + "); /* TODO: Can we detect if this is Apple or Windows or Ubuntu? */
+			} else {
+				g_string_append(output, button);
+			}
+		}
+
+		g_variant_unref(key);
+	}
+
+	return g_string_free(output, FALSE);
+}
 
 static HudDbusmenuItem *
 hud_dbusmenu_item_new (HudStringList    *context,
                        const gchar      *desktop_file,
                        const gchar      *icon,
+                       HudKeywordMapping *keyword_mapping,
                        DbusmenuMenuitem *menuitem)
 {
-  HudStringList *tokens;
+  HudStringList *full_label, *keywords;
   HudDbusmenuItem *item;
   const gchar *type;
   const gchar *prop;
+  gchar *shortcut;
   gboolean enabled;
 
   type = dbusmenu_menuitem_property_get (menuitem, DBUSMENU_MENUITEM_PROP_TYPE);
   prop = hud_dbusmenu_item_get_label_property (type);
+  shortcut = shortcut_string_for_menuitem(menuitem);
 
   if (prop && dbusmenu_menuitem_property_exist (menuitem, prop))
     {
       const gchar *label;
+      gint i;
 
       label = dbusmenu_menuitem_property_get (menuitem, prop);
-      tokens = hud_string_list_cons_label (label, context);
+      full_label = hud_string_list_cons_label (label, context);
+      keywords = NULL;
+      GPtrArray *mapping = hud_keyword_mapping_transform(keyword_mapping, label);
+      for (i = 0; i < mapping->len; i++)
+      {
+        keywords = hud_string_list_cons_label (
+            (gchar*) g_ptr_array_index(mapping, i), keywords);
+      }
       enabled = TRUE;
     }
   else
     {
-      tokens = hud_string_list_ref (context);
+      full_label = hud_string_list_ref (context);
+      keywords = NULL;
       enabled = FALSE;
     }
 
@@ -196,10 +255,12 @@ hud_dbusmenu_item_new (HudStringList    *context,
   if (enabled)
     enabled &= !dbusmenu_menuitem_property_exist (menuitem, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY);
 
-  item = hud_item_construct (hud_dbusmenu_item_get_type (), tokens, desktop_file, icon, enabled);
+  item = hud_item_construct (hud_dbusmenu_item_get_type (), full_label, keywords, shortcut, desktop_file, icon, enabled);
   item->menuitem = g_object_ref (menuitem);
 
-  hud_string_list_unref (tokens);
+  hud_string_list_unref (full_label);
+  hud_string_list_unref (keywords);
+  g_free(shortcut);
 
   return item;
 }
@@ -219,6 +280,7 @@ struct _HudDbusmenuCollector
   gboolean alive;
   gint use_count;
   gboolean reentrance_check;
+  HudKeywordMapping* keyword_mapping;
 };
 
 typedef GObjectClass HudDbusmenuCollectorClass;
@@ -380,7 +442,8 @@ hud_dbusmenu_collector_property_changed (DbusmenuMenuitem *menuitem,
   was_open = item->is_opened;
   g_hash_table_remove (collector->items, menuitem);
 
-  item = hud_dbusmenu_item_new (context, collector->application_id, collector->icon, menuitem);
+  item = hud_dbusmenu_item_new (context, collector->application_id,
+      collector->icon, collector->keyword_mapping, menuitem);
 
   if (collector->use_count && !was_open && dbusmenu_menuitem_property_exist (menuitem, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY))
     {
@@ -401,7 +464,8 @@ hud_dbusmenu_collector_add_item (HudDbusmenuCollector *collector,
   HudDbusmenuItem *item;
   GList *child;
 
-  item = hud_dbusmenu_item_new (context, collector->application_id, collector->icon, menuitem);
+  item = hud_dbusmenu_item_new (context, collector->application_id,
+      collector->icon, collector->keyword_mapping, menuitem);
   context = hud_item_get_tokens (HUD_ITEM (item));
 
   g_signal_connect (menuitem, "property-changed", G_CALLBACK (hud_dbusmenu_collector_property_changed), collector);
@@ -533,6 +597,7 @@ hud_dbusmenu_collector_finalize (GObject *object)
 
   g_free (collector->application_id);
   g_free (collector->icon);
+  g_object_unref (collector->keyword_mapping);
 
   hud_string_list_unref (collector->prefix);
   g_clear_object (&collector->client);
@@ -604,6 +669,8 @@ hud_dbusmenu_collector_new_for_endpoint (const gchar *application_id,
     collector->prefix = hud_string_list_cons (prefix, NULL);
   collector->penalty = penalty;
   hud_dbusmenu_collector_setup_endpoint (collector, bus_name, object_path);
+  collector->keyword_mapping = hud_keyword_mapping_new();
+  hud_keyword_mapping_load(collector->keyword_mapping, collector->application_id, DATADIR, GNOMELOCALEDIR);
 
   collector->alive = TRUE;
 
@@ -632,6 +699,9 @@ hud_dbusmenu_collector_new_for_window (BamfWindow  *window,
   collector->application_id = g_strdup (desktop_file);
   collector->icon = g_strdup (icon);
   collector->xid = bamf_window_get_xid (window);
+  collector->keyword_mapping = hud_keyword_mapping_new();
+  hud_keyword_mapping_load(collector->keyword_mapping, collector->application_id, DATADIR, GNOMELOCALEDIR);
+
   g_debug ("dbusmenu on %d", collector->xid);
   hud_app_menu_registrar_add_observer (hud_app_menu_registrar_get (), collector->xid,
                                        hud_dbusmenu_collector_registrar_observer_func, collector);

@@ -69,7 +69,7 @@ struct _HudQuery
   DeeModel * appstack_model;
   gchar * appstack_name;
 
-  GList * results_list; /* Should almost always be NULL except when refreshing the query */
+  GSequence * results_list; /* Should almost always be NULL except when refreshing the query */
   guint max_usage; /* Used to make the GList search easier */
 };
 
@@ -101,17 +101,11 @@ static const gchar * appstack_model_schema[] = {
 };
 
 static gint
-compare_func (GVariant   ** a,
-              GVariant   ** b,
-              gpointer      user_data)
+compare_func (gconstpointer a, gconstpointer b, gpointer user_data)
 {
-  guint distance_a;
-  guint distance_b;
-
-  distance_a = g_variant_get_uint32(a[6]);
-  distance_b = g_variant_get_uint32(b[6]);
-
-  return distance_a - distance_b;
+  gint max_usage = ((HudQuery *) user_data)->max_usage;
+  return hud_result_get_distance ((HudResult *) a, max_usage)
+      - hud_result_get_distance ((HudResult *) b, max_usage);
 }
 
 /* Add a HudResult to the list of results */
@@ -119,7 +113,7 @@ static void
 results_list_populate (HudResult * result, gpointer user_data)
 {
 	HudQuery * query = (HudQuery *)user_data;
-	query->results_list = g_list_prepend(query->results_list, result);
+	g_sequence_insert_sorted(query->results_list, result, compare_func, query);
 	return;
 }
 
@@ -136,7 +130,7 @@ results_list_max_usage (gpointer data, gpointer user_data)
 	return;
 }
 
-/* Turn the results list into a DeeModel with sorting */
+/* Turn the results list into a DeeModel. It assumes the results are already sorted. */
 static void
 results_list_to_model (gpointer data, gpointer user_data)
 {
@@ -157,9 +151,8 @@ results_list_to_model (gpointer data, gpointer user_data)
 
 	g_free(context);
 
-	DeeModelIter * iter = dee_model_insert_row_sorted(query->results_model,
-	                                                  columns /* variants */,
-	                                                  compare_func, NULL);
+	DeeModelIter * iter = dee_model_append_row(query->results_model,
+	                                                  columns /* variants */);
 
 	dee_model_set_tag(query->results_model, iter, query->results_tag, result);
 
@@ -174,17 +167,19 @@ hud_query_refresh (HudQuery *query)
   start_time = g_get_monotonic_time ();
 
   dee_model_clear(query->results_model);
-  query->results_list = NULL;
+  query->results_list = g_sequence_new(NULL);
   query->max_usage = 0;
 
+  /* Note that the results are kept sorted as they are collected using a GSequence */
   hud_source_search (query->source, query->token_list, results_list_populate, query);
+  g_debug("Num results: %d", g_sequence_get_length(query->results_list));
 
-  g_list_foreach(query->results_list, results_list_max_usage, &query->max_usage);
+  g_sequence_foreach(query->results_list, results_list_max_usage, &query->max_usage);
   g_debug("Max Usage: %d", query->max_usage);
-  g_list_foreach(query->results_list, results_list_to_model, query);
+  g_sequence_foreach(query->results_list, results_list_to_model, query);
 
   /* NOTE: Not freeing the items as the references are picked up by the DeeModel */
-  g_list_free(query->results_list);
+  g_sequence_free(query->results_list);
   query->results_list = NULL;
 
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));

@@ -21,6 +21,8 @@
 #include "hudsource.h"
 #include "hudresult.h"
 #include "huditem.h"
+#include "hudkeywordmapping.h"
+#include "config.h"
 
 #include <libbamf/libbamf.h>
 #include <gio/gio.h>
@@ -79,6 +81,9 @@ struct _HudMenuModelCollector
   gchar *app_id;
   gchar *icon;
   guint penalty;
+
+  /* Class to map labels to keywords */
+  HudKeywordMapping* keyword_mapping;
 
   /* Each time we see a new menumodel added we add it to 'models', start
    * watching it for changes and add its contents to 'items', possibly
@@ -142,6 +147,28 @@ hud_menu_model_context_get_label (HudMenuModelContext *context,
     return hud_string_list_ref (parent_tokens);
 }
 
+static HudStringList *
+hud_menu_model_context_get_tokens (const gchar         *label,
+                                  HudKeywordMapping   *keyword_mapping)
+{
+  HudStringList *tokens = NULL;
+
+  if (label)
+  {
+    GPtrArray *keywords = hud_keyword_mapping_transform (keyword_mapping,
+        label);
+    gint i;
+    for (i = 0; i < keywords->len; i++)
+    {
+      tokens = hud_string_list_cons_label (
+          (gchar*) g_ptr_array_index(keywords, i), tokens);
+    }
+    return tokens;
+  }
+  else
+    return NULL;
+}
+
 static HudMenuModelContext *
 hud_menu_model_context_ref (HudMenuModelContext *context)
 {
@@ -165,7 +192,8 @@ hud_menu_model_context_unref (HudMenuModelContext *context)
 static HudMenuModelContext *
 hud_menu_model_context_new (HudMenuModelContext *parent,
                             const gchar         *namespace,
-                            const gchar         *label)
+                            const gchar         *label,
+                            HudKeywordMapping   *keyword_mapping)
 {
   HudMenuModelContext *context;
 
@@ -231,13 +259,14 @@ hud_model_item_new (HudMenuModelCollector *collector,
                     HudMenuModelContext   *context,
                     const gchar           *label,
                     const gchar           *action_name,
+                    const gchar           *accel,
                     GVariant              *target)
 {
   HudModelItem *item;
   const gchar *stripped_action_name;
   gchar *prefix;
   GDBusActionGroup *group = NULL;
-  HudStringList *full_label;
+  HudStringList *full_label, *keywords;
 
   prefix = hud_menu_model_context_get_prefix (context, action_name);
 
@@ -257,13 +286,15 @@ hud_model_item_new (HudMenuModelCollector *collector,
   }
 
   full_label = hud_menu_model_context_get_label (context, label);
+  keywords = hud_menu_model_context_get_tokens(label, collector->keyword_mapping);
 
-  item = hud_item_construct (hud_model_item_get_type (), full_label, collector->app_id, collector->icon, TRUE);
+  item = hud_item_construct (hud_model_item_get_type (), full_label, keywords, accel, collector->app_id, collector->icon, TRUE);
   item->group = g_object_ref (group);
   item->action_name = g_strdup (stripped_action_name);
   item->target = target ? g_variant_ref_sink (target) : NULL;
 
   hud_string_list_unref (full_label);
+  hud_string_list_unref (keywords);
   g_free (prefix);
 
   return HUD_ITEM (item);
@@ -326,6 +357,53 @@ hud_menu_model_collector_context_quark ()
   return context_quark;
 }
 
+/* Function to convert from the GMenu format for the accel to something
+   usable by humans. */
+static gchar *
+format_accel_for_users (gchar * accel)
+{
+	if (accel == NULL) {
+		return g_strdup("");
+	}
+
+	GString * output = g_string_new("");
+	gchar * head = accel;
+
+	/* YEAH! String parsing, always my favorite. */
+	while (head[0] != '\0') {
+		if (head[0] == '<') {
+			/* We're in modifier land */
+			if (strncmp(head, "<Alt>", strlen("<Alt>")) == 0) {
+				g_string_append(output, "Alt + ");
+				head += strlen("<Alt>");
+			} else if (strncmp(head, "<Primary>", strlen("<Primary>")) == 0) {
+				g_string_append(output, "Ctrl + ");
+				head += strlen("<Primary>");
+			} else if (strncmp(head, "<Control>", strlen("<Control>")) == 0) {
+				g_string_append(output, "Ctrl + ");
+				head += strlen("<Control>");
+			} else if (strncmp(head, "<Shift>", strlen("<Shift>")) == 0) {
+				g_string_append(output, "Shift + ");
+				head += strlen("<Shift>");
+			} else if (strncmp(head, "<Super>", strlen("<Super>")) == 0) {
+				g_string_append(output, "Super + ");
+				head += strlen("<Super>");
+			} else {
+				/* Go to the close of the modifier */
+				head = g_strstr_len(head, -1, ">") + 1;
+			}
+			continue;
+		}
+
+		g_string_append(output, head);
+		break;
+	}
+
+	g_free(accel);
+
+	return g_string_free(output, FALSE);
+}
+
 static void
 hud_menu_model_collector_model_changed (GMenuModel *model,
                                         gint        position,
@@ -363,10 +441,15 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       gchar *label = NULL;
       gchar *action_namespace = NULL;
       gchar *action = NULL;
+      gchar *accel = NULL;
+
 
       g_menu_model_get_item_attribute (model, i, "action-namespace", "s", &action_namespace);
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_ACTION, "s", &action);
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_LABEL, "s", &label);
+      g_menu_model_get_item_attribute (model, i, "accel", "s", &accel);
+
+      accel = format_accel_for_users(accel);
 
       /* Check if this is an action.  Here's where we may end up
        * creating a HudItem.
@@ -378,7 +461,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
 
           target = g_menu_model_get_item_attribute_value (model, i, G_MENU_ATTRIBUTE_TARGET, NULL);
 
-          item = hud_model_item_new (collector, context, label, action, target);
+          item = hud_model_item_new (collector, context, label, action, accel, target);
 
           if (item)
             g_ptr_array_add (collector->items, item);
@@ -408,6 +491,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_free (action_namespace);
       g_free (action);
       g_free (label);
+      g_free (accel);
     }
 
   if (changed)
@@ -438,7 +522,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
    */
   g_object_set_qdata_full (G_OBJECT (model),
                            hud_menu_model_collector_context_quark (),
-                           hud_menu_model_context_new (parent_context, action_namespace, label),
+                           hud_menu_model_context_new (parent_context, action_namespace, label, collector->keyword_mapping),
                            (GDestroyNotify) hud_menu_model_context_unref);
 
   n_items = g_menu_model_get_n_items (model);
@@ -533,6 +617,7 @@ hud_menu_model_collector_finalize (GObject *object)
   g_free (collector->unique_bus_name);
   g_free (collector->app_id);
   g_free (collector->icon);
+  g_object_unref (collector->keyword_mapping);
 
   g_ptr_array_unref (collector->items);
 
@@ -699,6 +784,9 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
 
   if (window_object_path)
     hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, collector->unique_bus_name, window_object_path)), "win");
+
+  collector->keyword_mapping = hud_keyword_mapping_new();
+  hud_keyword_mapping_load(collector->keyword_mapping, collector->app_id, DATADIR, GNOMELOCALEDIR);
 
   /* when the action groups change, we could end up having items
    * enabled/disabled.  how to deal with that?

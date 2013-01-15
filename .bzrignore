@@ -182,3 +182,7 @@ libhud-test.xml
 libhud-tester
 hud-gtk-1.pc
 simple-test
+.settings
+.project
+.pydevproject
+.cproject
