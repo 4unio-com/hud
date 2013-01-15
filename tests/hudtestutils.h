@@ -59,6 +59,12 @@ GDBusConnection * hud_test_utils_mock_dbus_connection_new (
 void hud_test_utils_dbus_mock_start (DbusTestService* service,
     const gchar* name, const gchar* path, const gchar* interface);
 
+void hud_test_utils_start_menu_model (DbusTestService* service,
+    const gchar* appname);
+
+void hud_test_utils_start_menu_model_full (DbusTestService* service,
+    const gchar* appname, const gchar *name, const gchar *path);
+
 void hud_test_utils_json_loader_start (DbusTestService *service,
     const gchar *jsonfile);
 

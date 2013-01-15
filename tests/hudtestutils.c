@@ -269,13 +269,21 @@ hud_test_utils_start_dbusmenu_mock_app (DbusTestService ** service, GDBusConnect
       HUD_TEST_UTILS_LOADER_NAME, NULL);
 }
 
-static void
-hud_test_utils_start_menu_model (const gchar* appname,
-  DbusTestService* service)
+void
+hud_test_utils_start_menu_model (DbusTestService* service,
+  const gchar* appname)
+{
+  hud_test_utils_start_menu_model_full (service, appname,
+      HUD_TEST_UTILS_LOADER_NAME, HUD_TEST_UTILS_LOADER_PATH);
+}
+
+void
+hud_test_utils_start_menu_model_full (DbusTestService* service,
+  const gchar* appname, const gchar *name, const gchar *path)
 {
   DbusTestProcess* loader = dbus_test_process_new (appname);
-  dbus_test_process_append_param (loader, HUD_TEST_UTILS_LOADER_NAME);
-  dbus_test_process_append_param (loader, HUD_TEST_UTILS_LOADER_PATH);
+  dbus_test_process_append_param (loader, name);
+  dbus_test_process_append_param (loader, path);
   dbus_test_task_set_name (DBUS_TEST_TASK(loader), "Mock Model");
   dbus_test_service_add_task (service, DBUS_TEST_TASK(loader) );
   g_object_unref (loader);
@@ -287,7 +295,7 @@ hud_test_utils_start_model_mock_app (DbusTestService ** service, GDBusConnection
 {
   *service = dbus_test_service_new(NULL);
 
-  hud_test_utils_start_menu_model (appname, *service);
+  hud_test_utils_start_menu_model (*service, appname);
 
   *session = hud_test_utils_mock_dbus_connection_new (*service,
         HUD_TEST_UTILS_LOADER_NAME, NULL);
