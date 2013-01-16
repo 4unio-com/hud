@@ -770,6 +770,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
                               "com.canonical.hud.Awareness", "CheckAwareness",
                               NULL, G_VARIANT_TYPE_UNIT, G_DBUS_CALL_FLAGS_NONE, -1, collector->cancellable,
                               hud_menu_model_collector_hud_awareness_cb, &collector->app_menu_is_hud_aware);
+      g_object_unref(app_menu);
     }
 
   if (menubar_object_path)
@@ -780,6 +781,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
                               "com.canonical.hud.Awareness", "CheckAwareness",
                               NULL, G_VARIANT_TYPE_UNIT, G_DBUS_CALL_FLAGS_NONE, -1, collector->cancellable,
                               hud_menu_model_collector_hud_awareness_cb, &collector->menubar_is_hud_aware);
+      g_object_unref(menubar);
     }
 
   if (application_object_path)
@@ -830,6 +832,7 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
 
   GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, object_path);
   hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix);
+  g_object_unref(app_menu);
 
   return;
 }
