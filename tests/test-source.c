@@ -289,6 +289,7 @@ test_hud_query_sequence ()
 
   hud_test_utils_process_mainloop(100);
 
+  dbus_test_service_stop(service);
   g_object_unref (service);
   g_object_unref (session);
 }
@@ -437,6 +438,7 @@ test_hud_query_sequence_counter_increment ()
 
   hud_test_utils_process_mainloop(100);
 
+  dbus_test_service_stop(service);
   g_object_unref (service);
   g_object_unref (session);
 }

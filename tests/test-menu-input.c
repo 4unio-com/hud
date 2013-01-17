@@ -211,6 +211,8 @@ test_menus_model_base (void)
 	hud_source_unuse(HUD_SOURCE(collector));
 
 	g_object_unref(collector);
+
+	dbus_test_service_stop(service);
 	g_object_unref(service);
 	g_object_unref(session);
 
@@ -256,6 +258,8 @@ test_menus_model_shortcuts (void)
 	}
 
 	g_object_unref(collector);
+
+	dbus_test_service_stop(service);
 	g_object_unref(service);
 	g_object_unref(session);
 
