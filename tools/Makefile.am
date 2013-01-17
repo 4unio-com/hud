@@ -14,6 +14,7 @@ hud_cli_SOURCES = \
 	hud-cli.c
 
 hud_cli_CFLAGS = \
+	$(gtk_CFLAGS) \ 
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-I $(top_srcdir) \
@@ -26,6 +27,7 @@ hud_cli_LDFLAGS = \
 	-lreadline -lcurses
 
 hud_cli_LDADD = \
+	$(gtk_LIBS) \
 	$(top_builddir)/libhud-client/libhud-client.la
 
 if BUILD_CLI
