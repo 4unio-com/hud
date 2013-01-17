@@ -21,6 +21,31 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libdbusmenu-glib/server.h>
 #include <libdbusmenu-jsonloader/json-loader.h>
 
+gchar * name = NULL;
+
+static void
+name_got (GDBusConnection * con, const gchar * name, gpointer user_data)
+{
+	g_debug("Got name: %s", name);
+	return;
+}
+
+static void
+name_lost (GDBusConnection * con, const gchar * name, gpointer user_data)
+{
+	g_error("Unable to get name: %s", name);
+	return;
+}
+
+static gboolean
+setup_dbusmenu (gpointer user_data)
+{
+	g_bus_own_name(G_BUS_TYPE_SESSION, name, 0, NULL, name_got, name_lost, NULL, NULL);
+	GMainLoop * loop = (GMainLoop *)user_data;
+	g_main_loop_quit(loop);
+	return FALSE;
+}
+
 int
 main (int argv, char ** argc)
 {
@@ -37,7 +62,11 @@ main (int argv, char ** argc)
 	DbusmenuServer * server = dbusmenu_server_new(argc[2]);
 	dbusmenu_server_set_root(server, root);
 
-	g_bus_own_name(G_BUS_TYPE_SESSION, argc[1], 0, NULL, NULL, NULL, NULL, NULL);
+	name = argc[1];
+	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
+	g_timeout_add(100, setup_dbusmenu, temploop);
+	g_main_loop_run(temploop);
+	g_main_loop_unref(temploop);
 
 	GMainLoop * mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
