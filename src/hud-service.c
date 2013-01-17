@@ -186,7 +186,8 @@ main (int argc, char **argv)
   HudWindowSource *window_source;
   HudSourceList *source_list;
 
-  g_type_init ();
+  if (!GLIB_CHECK_VERSION(2, 35, 0))
+    g_type_init (); /* Only needed in versions < 2.35.0 */
 
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);

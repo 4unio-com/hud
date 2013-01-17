@@ -168,7 +168,8 @@ main (int argc, char **argv)
   GApplication *app;
   gint status;
 
-  g_type_init ();
+  if (!GLIB_CHECK_VERSION(2, 35, 0))
+    g_type_init (); /* Only needed in versions < 2.35.0 */
 
   app = g_object_new (gimp_app_get_type (), "application-id", "com.example.gimp", NULL);
   status = g_application_run (app, argc, argv);
