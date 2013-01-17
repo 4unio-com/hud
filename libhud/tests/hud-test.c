@@ -12,8 +12,9 @@ test_suite (void)
 int
 main (int argc, char * argv[])
 {
-	if (!GLIB_CHECK_VERSION(2, 35, 0))
-		g_type_init (); /* Only needed in versions < 2.35.0 */
+#ifndef GLIB_VERSION_2_36
+	g_type_init ();
+#endif
 
 	g_test_init(&argc, &argv, NULL);
 
