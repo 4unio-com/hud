@@ -47,8 +47,16 @@ HudSettings hud_settings = {
 static gboolean
 name_timeout (gpointer user_data)
 {
-	g_error("Unable to get name");
-	return FALSE;
+	guint * count = (guint *)user_data;
+
+	if (*count >= 10) {
+		g_error("Unable to get name");
+		return FALSE;
+	} else {
+		*count = *count + 1;
+		g_debug("Waiting for name, count: %d", *count);
+		return TRUE;
+	}
 }
 
 /* Start things up with a basic mock-json-app and wait until it starts */
@@ -73,7 +81,8 @@ start_dbusmenu_mock_app (DbusTestService ** service, GDBusConnection ** session,
 	g_object_unref(dummy);
 
 	/* Setup timeout */
-	guint timeout_source = g_timeout_add_seconds(60, name_timeout, NULL);
+	guint count = 0;
+	guint timeout_source = g_timeout_add_seconds(5, name_timeout, &count);
 
 	/* Get loader up and running and us on that bus */
 	g_debug("Starting up Dbusmenu Loader");
@@ -267,7 +276,8 @@ start_model_mock_app (DbusTestService ** service, GDBusConnection ** session, co
 	g_object_unref(dummy);
 
 	/* Setup timeout */
-	guint timeout_source = g_timeout_add_seconds(60, name_timeout, NULL);
+	guint count = 0;
+	guint timeout_source = g_timeout_add_seconds(5, name_timeout, &count);
 
 	/* Get mock up and running and us on that bus */
 	g_debug("Starting up Model Mock");
