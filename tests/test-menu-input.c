@@ -209,6 +209,13 @@ test_menus_dbusmenu_shortcuts (void)
 
 	start_dbusmenu_mock_app(&service, &session, JSON_SHORTCUTS);
 
+	{
+		GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
+		g_timeout_add(100, test_menus_timeout, temploop);
+		g_main_loop_run(temploop);
+		g_main_loop_unref(temploop);
+	}
+
 	HudDbusmenuCollector * collector = hud_dbusmenu_collector_new_for_endpoint("test-id",
 	                                                                           "Prefix",
 	                                                                           "no-icon",
@@ -218,10 +225,12 @@ test_menus_dbusmenu_shortcuts (void)
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
-	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
-	g_timeout_add(100, test_menus_timeout, temploop);
-	g_main_loop_run(temploop);
-	g_main_loop_unref(temploop);
+	{
+		GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
+		g_timeout_add(100, test_menus_timeout, temploop);
+		g_main_loop_run(temploop);
+		g_main_loop_unref(temploop);
+	}
 
 	int i;
 	for (i = 0; shortcutdb[i].label != NULL; i++) {
