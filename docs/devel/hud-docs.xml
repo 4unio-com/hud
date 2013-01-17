@@ -28,7 +28,6 @@
     <title>Sources</title>
     <xi:include href="xml/hudsource.xml"/>
     <xi:include href="xml/hudsourcelist.xml"/>
-    <xi:include href="xml/hudwindowsource.xml"/>
     <xi:include href="xml/hudindicatorsource.xml"/>
     <xi:include href="xml/hudappindicatorsource.xml"/>
     <xi:include href="xml/huddbusmenucollector.xml"/>

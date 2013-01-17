@@ -14,8 +14,6 @@ bin_SCRIPTS = \
 pkglibexec_PROGRAMS = \
 	hud-service
 
-include $(top_srcdir)/Makefile.am.marshal
-
 noinst_LTLIBRARIES = \
 	libhud-service-generated.la \
 	libhud-service.la
@@ -25,6 +23,10 @@ noinst_LTLIBRARIES = \
 ####################
 
 libhud_service_la_SOURCES = \
+	application-list.h \
+	application-list.c \
+	application-source.h \
+	application-source.c \
 	dump-app-info.h \
 	dump-app-info.c \
 	shared-values.h \
@@ -42,8 +44,6 @@ libhud_service_la_SOURCES = \
 	hudwebappsource.c \
 	hudindicatorsource.h	\
 	hudindicatorsource.c	\
-	hudwindowsource.h	\
-	hudwindowsource.c	\
 	huddebugsource.h	\
 	huddebugsource.c	\
 	hudsourcelist.h		\
@@ -137,6 +137,8 @@ hud_verify_app_info_LDFLAGS = \
 libhud_service_generated_la_SOURCES = \
 	create-db.h \
 	create-db.c \
+	app-iface.h \
+	app-iface.c \
 	hud-iface.h \
 	hud-iface.c \
 	hud-query-iface.h \
@@ -177,7 +179,15 @@ hud-query-iface.c: $(top_srcdir)/data/com.canonical.hud.query.xml
 		--generate-c-code hud-query-iface \
 		--c-namespace HudQueryIface \
 		$^
-hud-query-iface.h: hud-iface.c
+hud-query-iface.h: hud-query-iface.c
+
+app-iface.c: $(top_srcdir)/data/com.canonical.hud.Application.xml
+	$(AM_V_GEN) gdbus-codegen \
+		--interface-prefix com.canonical.hud.Application. \
+		--generate-c-code app-iface \
+		--c-namespace AppIface \
+		$^
+app-iface.h: app-iface.c
 
 
 CLEANFILES += $(BUILT_SOURCES)

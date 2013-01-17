@@ -113,43 +113,6 @@ test_indicator_source_session ()
 }
 
 static void
-test_indicator_source_users ()
-{
-  const gchar *dbus_name = "com.canonical.indicator.session";
-  const gchar *dbus_menu_path = "/com/canonical/indicator/users/menu";
-//  const gchar *indicator_name = "indicator-session-user";
-
-  DbusTestService *service = dbus_test_service_new (NULL);
-
-  hud_test_utils_json_loader_start_full (service, dbus_name, dbus_menu_path,
-      "./test-indicator-source-users.json");
-  GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
-      dbus_name, NULL);
-
-  HudIndicatorSource* source = hud_indicator_source_new (connection);
-  hud_test_utils_process_mainloop (100);
-
-  g_assert(source != NULL);
-  g_assert(HUD_IS_INDICATOR_SOURCE(source));
-
-  HudTokenList *search = hud_token_list_new_from_string ("users time");
-
-  {
-    GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
-    g_assert_cmpuint(results->len, ==, 1);
-    hud_test_utils_source_assert_result (results, 0, "Users Time");
-    g_ptr_array_free(results, TRUE);
-  }
-
-  hud_token_list_free(search);
-  g_object_unref (source);
-  dbus_test_service_stop(service);
-  g_object_unref (service);
-  g_object_unref (connection);
-}
-
-static void
 test_indicator_source_sound ()
 {
   const gchar *dbus_name = "com.canonical.indicator.sound";
@@ -230,7 +193,6 @@ main (int argc, char **argv)
   g_test_init (&argc, &argv, NULL);
   g_test_add_func ("/hud/hudindicatorsource/datetime", test_indicator_source_datetime);
   g_test_add_func ("/hud/hudindicatorsource/session", test_indicator_source_session);
-  g_test_add_func ("/hud/hudindicatorsource/users", test_indicator_source_users);
   g_test_add_func ("/hud/hudindicatorsource/sound", test_indicator_source_sound);
   g_test_add_func ("/hud/hudindicatorsource/messages", test_indicator_source_messages);
 

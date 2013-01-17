@@ -245,6 +245,7 @@ src/Makefile
 libhud/Makefile
 libhud/tests/Makefile
 libhud/demo/Makefile
+libhud-gtk/Makefile
 libhud-client/Makefile
 libhud-client/tests/Makefile
 data/Makefile

@@ -142,7 +142,7 @@ hud_client_connection_constructed (GObject * object)
 	GError * error = NULL;
 	self->priv->proxy = _hud_service_com_canonical_hud_proxy_new_for_bus_sync(
 		G_BUS_TYPE_SESSION,
-		G_DBUS_PROXY_FLAGS_NONE,
+		G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
 		self->priv->address,
 		self->priv->path,
 		NULL, /* GCancellable */

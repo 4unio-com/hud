@@ -146,25 +146,23 @@ hud_keyword_mapping_new (void)
  * provided.
  *
  * @self: Instance of #HudKeywordMapping
- * @desktop_file: Used to determine the identity of the application the mappings are for
+ * @app_id: Used to determine the identity of the application the mappings are for
  * @datadir: The base directory that HUD data is stored in.
  * @localedir: The directory to load the gettext locale from.
  */
 void
 hud_keyword_mapping_load (HudKeywordMapping *self,
-    const gchar *desktop_file, const gchar *datadir, const gchar *localedir)
+    const gchar *app_id, const gchar *datadir, const gchar *localedir)
 {
   /* Now expand the label into multiple keywords */
-  gchar *basename = g_path_get_basename(desktop_file);
-  gchar **names = g_strsplit(basename, ".", 0);
-  gchar *mapping_filename = g_strdup_printf("%s.xml", names[0]);
+  gchar *mapping_filename = g_strdup_printf("%s.xml", app_id);
   gchar *mapping_path = g_build_filename(datadir, "hud", "keywords",
       mapping_filename, NULL );
 
   /* Set the textdomain to match the program we're translating */
-  g_debug("Setting textdomain = (\"%s\", \"%s\")", names[0], localedir);
-  bindtextdomain (names[0], localedir);
-  textdomain (names[0]);
+  g_debug("Setting textdomain = (\"%s\", \"%s\")", app_id, localedir);
+  bindtextdomain (app_id, localedir);
+  textdomain (app_id);
 
   /* Do the main job */
   if (hud_keyword_mapping_load_xml(self, mapping_path) < 0)
@@ -172,8 +170,6 @@ hud_keyword_mapping_load (HudKeywordMapping *self,
     g_debug("Unable to load %s", mapping_path);
   }
 
-  g_free(basename);
-  g_strfreev(names);
   g_free(mapping_filename);
   g_free(mapping_path);
 

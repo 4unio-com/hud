@@ -149,6 +149,8 @@ test_menus_dbusmenu_shortcuts (void)
 
 	hud_test_utils_start_dbusmenu_mock_app(&service, &session, JSON_SHORTCUTS);
 
+	hud_test_utils_process_mainloop(100);
+
 	HudDbusmenuCollector * collector = hud_dbusmenu_collector_new_for_endpoint("test-id",
 	                                                                           "Prefix",
 	                                                                           "no-icon",
@@ -190,14 +192,19 @@ test_menus_model_base (void)
 
 	hud_test_utils_start_model_mock_app(&service, &session, MODEL_SIMPLE);
 
-	HudMenuModelCollector * collector = hud_menu_model_collector_new_for_endpoint("test-id",
-	                                                                              "Prefix",
-	                                                                              "no-icon",
-	                                                                              0, /* penalty */
-	                                                                              HUD_TEST_UTILS_LOADER_NAME,
-	                                                                              HUD_TEST_UTILS_LOADER_PATH);
+	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
+	                                                                 "no-icon",
+	                                                                 0); /* penalty */
+
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	hud_test_utils_process_mainloop(100);
+	
+	hud_menu_model_collector_add_endpoint(collector,
+	                                      "Prefix",
+	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH);
 
 	hud_test_utils_process_mainloop(100);
 
@@ -226,17 +233,22 @@ test_menus_model_shortcuts (void)
 
 	hud_test_utils_start_model_mock_app(&service, &session, MODEL_SHORTCUTS);
 
-	HudMenuModelCollector * collector = hud_menu_model_collector_new_for_endpoint("test-id",
-	                                                                              "Prefix",
-	                                                                              "no-icon",
-	                                                                              0, /* penalty */
-	                                                                              HUD_TEST_UTILS_LOADER_NAME,
-	                                                                              HUD_TEST_UTILS_LOADER_PATH);
+	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
+	                                                                 "no-icon",
+	                                                                 0); /* penalty */
+
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
 	hud_test_utils_process_mainloop(100);
 
+	hud_menu_model_collector_add_endpoint(collector,
+	                                      "Prefix",
+	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH);
+
+	hud_test_utils_process_mainloop(100);
+	
 	int i;
 	for (i = 0; shortcutdb[i].label != NULL; i++) {
 		if (!shortcutdb[i].model_support) {

@@ -1,4 +1,9 @@
 
+CLEANFILES =
+DISTCLEANFILES =
+BUILT_SOURCES =
+EXTRA_DIST =
+
 SUBDIRS = . tests demo
 
 lib_LTLIBRARIES = libhud.la
@@ -12,13 +17,12 @@ libhud_include_base_HEADERS = \
 
 libhudincludedir = $(includedir)/libhud-$(API_VERSION)/libhud
 libhudinclude_HEADERS = \
+	manager.h		\
 	operation.h		\
 	action.h		\
 	action-publisher.h
 
 libhud_la_SOURCES = \
-	service-iface.h	\
-	service-iface.c	\
 	manager.h		\
 	manager.c		\
 	operation-private.h	\
@@ -36,7 +40,8 @@ libhud_la_CFLAGS = \
 	-Wall -Werror
 
 libhud_la_LIBADD = \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	libhud-generated.la
 
 libhud_la_LDFLAGS = \
 	$(HUD_LDFLAGS) \
@@ -45,19 +50,65 @@ libhud_la_LDFLAGS = \
 	-no-undefined \
 	-export-symbols-regex "^[^_].*"
 
-service-iface.c: $(top_srcdir)/data/com.canonical.hud.Application.xml
+#################################
+# Generated Code
+#################################
+
+noinst_LTLIBRARIES = libhud-generated.la
+
+libhud_generated_la_SOURCES = \
+	app-iface.h	\
+	app-iface.c	\
+	service-iface.h	\
+	service-iface.c	\
+	marshal.h \
+	marshal.c
+
+libhud_generated_la_CFLAGS = \
+	$(HUD_CFLAGS)
+
+libhud_generated_la_LIBADD = \
+	$(HUD_LIBS)
+
+libhud_generated_la_LDFLAGS = \
+	$(HUD_LDFLAGS)
+
+# Marshalling
+
+include $(top_srcdir)/Makefile.am.marshal
+
+glib_marshal_list = marshal.list
+glib_marshal_prefix = _hud_marshal
+
+# DBus Ifaces
+
+service-iface.c: $(top_srcdir)/data/com.canonical.hud.xml
 	$(AM_V_GEN) gdbus-codegen \
-		--interface-prefix com.canonical.hud.Application. \
+		--interface-prefix com.canonical.hud. \
 		--generate-c-code service-iface \
-		--c-namespace _HudService \
+		--c-namespace _HudServiceIface \
 		$^
 service-iface.h: service-iface.c
 
-BUILT_SOURCES = \
+app-iface.c: $(top_srcdir)/data/com.canonical.hud.Application.xml
+	$(AM_V_GEN) gdbus-codegen \
+		--interface-prefix com.canonical.hud.Application. \
+		--generate-c-code app-iface \
+		--c-namespace _HudAppIface \
+		$^
+app-iface.h: app-iface.c
+
+BUILT_SOURCES += \
+	app-iface.h \
+	app-iface.c \
 	service-iface.h \
 	service-iface.c
 
-EXTRA_DIST = \
+#################################
+# Package Config
+#################################
+
+EXTRA_DIST += \
 	hud.pc.in
 
 pkgconfig_DATA = hud-$(API_VERSION).pc
@@ -71,7 +122,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 		-e "s:\@VERSION\@:$(VERSION):" \
 		$< > $@
 
-CLEANFILES = \
+CLEANFILES += \
 	$(BUILD_SOURCES) \
 	hud-$(API_VERSION).pc
 

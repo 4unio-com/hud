@@ -2,10 +2,13 @@
 <node name="/">
 	<interface name="com.canonical.hud.Application">
 <!-- Properties -->
-		<!-- None -->
+		<property name="ActionGroups" type="a(vso)" access="read" />
+		<property name="MenuModels" type="a(vo)" access="read" />
 
 <!-- Functions -->
-		<method name="Register">
+		<method name="AddSources">
+			<arg type="a(vso)" name="actions" direction="in" />
+			<arg type="a(vo)"  name="descriptions" direction="in" />
 		</method>
 
 <!-- Signals -->

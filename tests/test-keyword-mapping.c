@@ -69,7 +69,7 @@ test_keyword_mapping_unknown_action (void)
   GPtrArray *results, *results2;
 
   mapping = hud_keyword_mapping_new ();
-  hud_keyword_mapping_load (mapping, "/foo/bar/gnome-terminal.desktop",
+  hud_keyword_mapping_load (mapping, "gnome-terminal",
       "keyword-mapping", "./keyword-mapping/locale");
 
   results = hud_keyword_mapping_transform (mapping, "random action string");
@@ -91,7 +91,7 @@ test_keyword_mapping_open_tab (void)
   GPtrArray* results;
 
   mapping = hud_keyword_mapping_new ();
-  hud_keyword_mapping_load (mapping, "/foo/bar/gnome-terminal.desktop",
+  hud_keyword_mapping_load (mapping, "gnome-terminal",
       "keyword-mapping", "./keyword-mapping/locale");
   results = hud_keyword_mapping_transform (mapping, "Open Ta_b");
 
@@ -113,7 +113,7 @@ test_keyword_mapping_open_tab_with_translation (void)
 
   /* Temporarily change to language to read in our translations */
   set_language ("en_FAKELANG");
-  hud_keyword_mapping_load (mapping, "/foo/bar/gnome-terminal.desktop",
+  hud_keyword_mapping_load (mapping, "gnome-terminal",
       "keyword-mapping", "./keyword-mapping/locale");
   set_language (original_language);
 

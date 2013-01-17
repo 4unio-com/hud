@@ -164,3 +164,19 @@ hud_source_list_add (HudSourceList *list,
 
   hud_source_changed (HUD_SOURCE (source));
 }
+
+/**
+ * hud_source_list_get_list:
+ * @list: A #HudSourceList object
+ *
+ * Gets the list so you can look through it.
+ *
+ * Return value: (transfer none): The list of sources.
+ */
+GSList *
+hud_source_list_get_list (HudSourceList * list)
+{
+	g_return_val_if_fail (HUD_IS_SOURCE_LIST (list), NULL);
+
+	return list->list;
+}
