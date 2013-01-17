@@ -195,7 +195,7 @@ test_indicator_source_messages ()
 
   DbusTestService *service = dbus_test_service_new (NULL);
 
-  hud_test_utils_start_menu_model_full(service, "./test-menu-input-model-simple", dbus_name, dbus_menu_path);
+  hud_test_utils_start_menu_model_full(service, "./test-menu-input-model-simple", dbus_name, dbus_menu_path, FALSE);
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
       dbus_name, NULL);
 

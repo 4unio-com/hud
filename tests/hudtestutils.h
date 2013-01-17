@@ -63,7 +63,8 @@ void hud_test_utils_start_menu_model (DbusTestService* service,
     const gchar* appname);
 
 void hud_test_utils_start_menu_model_full (DbusTestService* service,
-    const gchar* appname, const gchar *name, const gchar *path);
+    const gchar* appname, const gchar *name, const gchar *path,
+    const gboolean is_application);
 
 void hud_test_utils_json_loader_start (DbusTestService *service,
     const gchar *jsonfile);

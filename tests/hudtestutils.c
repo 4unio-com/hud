@@ -274,16 +274,22 @@ hud_test_utils_start_menu_model (DbusTestService* service,
   const gchar* appname)
 {
   hud_test_utils_start_menu_model_full (service, appname,
-      HUD_TEST_UTILS_LOADER_NAME, HUD_TEST_UTILS_LOADER_PATH);
+      HUD_TEST_UTILS_LOADER_NAME, HUD_TEST_UTILS_LOADER_PATH,
+      FALSE);
 }
 
 void
 hud_test_utils_start_menu_model_full (DbusTestService* service,
-  const gchar* appname, const gchar *name, const gchar *path)
+  const gchar* appname, const gchar *name, const gchar *path,
+  const gboolean is_application)
 {
   DbusTestProcess* loader = dbus_test_process_new (appname);
   dbus_test_process_append_param (loader, name);
   dbus_test_process_append_param (loader, path);
+  if (is_application)
+  {
+    dbus_test_process_append_param (loader, "TRUE");
+  }
   dbus_test_task_set_name (DBUS_TEST_TASK(loader), "Mock Model");
   dbus_test_service_add_task (service, DBUS_TEST_TASK(loader) );
   g_object_unref (loader);
