@@ -49,13 +49,14 @@ test_app_indicator_source_add_remove ()
         "./test-app-indicator-source-two.json");
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
       APP_INDICATOR_SERVICE_BUS_NAME, "menu.one", "menu.two", NULL);
-  hud_test_utils_process_mainloop (100);
+  hud_test_utils_process_mainloop (300);
 
+  /* icon, position, dbus_name, menu, icon_theme_path, label, guide, icon_desc, id, title */
   dbus_mock_add_method (connection,
         APP_INDICATOR_SERVICE_BUS_NAME, APP_INDICATOR_SERVICE_OBJECT_PATH,
         APP_INDICATOR_SERVICE_IFACE, "GetApplications", "", "a(sisossssss)",
         "ret = [('icon.one', dbus.Int32(0), 'menu.one', '/menu/one', 'icon_theme_path.one', 'label.one', 'guide.one', 'icon_desc.one', 'id-one', 'title.one')]");
-  /* icon, position, dbus_name, menu, icon_theme_path, label, guide, icon_desc, id, title */
+  hud_test_utils_process_mainloop (100);
 
   HudAppIndicatorSource* source = hud_app_indicator_source_new (connection);
   hud_test_utils_process_mainloop (100);
@@ -147,13 +148,14 @@ test_app_indicator_source_start_empty ()
       "./test-app-indicator-source-one.json");
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
       APP_INDICATOR_SERVICE_BUS_NAME, "menu.one", NULL);
-  hud_test_utils_process_mainloop (100);
+  hud_test_utils_process_mainloop (300);
 
+  /* icon, position, dbus_name, menu, icon_theme_path, label, guide, icon_desc, id, title */
   dbus_mock_add_method (connection,
         APP_INDICATOR_SERVICE_BUS_NAME, APP_INDICATOR_SERVICE_OBJECT_PATH,
         APP_INDICATOR_SERVICE_IFACE, "GetApplications", "", "a(sisossssss)",
         "ret = []");
-  /* icon, position, dbus_name, menu, icon_theme_path, label, guide, icon_desc, id, title */
+  hud_test_utils_process_mainloop (100);
 
   HudAppIndicatorSource* source = hud_app_indicator_source_new (connection);
   hud_test_utils_process_mainloop (100);
@@ -237,13 +239,14 @@ test_app_indicator_source_change_title ()
       "./test-app-indicator-source-one.json");
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
       APP_INDICATOR_SERVICE_BUS_NAME, "menu.one", NULL);
-  hud_test_utils_process_mainloop (100);
+  hud_test_utils_process_mainloop (300);
 
+  /* icon, position, dbus_name, menu, icon_theme_path, label, guide, icon_desc, id, title */
   dbus_mock_add_method (connection,
         APP_INDICATOR_SERVICE_BUS_NAME, APP_INDICATOR_SERVICE_OBJECT_PATH,
         APP_INDICATOR_SERVICE_IFACE, "GetApplications", "", "a(sisossssss)",
         "ret = [('icon', dbus.Int32(0), 'menu.one', '/menu/one', 'icon_theme_path', 'label', 'guide', 'icon_desc', 'id-one', 'zzz')]");
-  /* icon, position, dbus_name, menu, icon_theme_path, label, guide, icon_desc, id, title */
+  hud_test_utils_process_mainloop (100);
 
   HudAppIndicatorSource* source = hud_app_indicator_source_new (connection);
   hud_test_utils_process_mainloop (100);
