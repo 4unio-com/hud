@@ -33,7 +33,7 @@ main (int argv, char ** argc)
 	gboolean is_application = (argv == 4 && g_strcmp0(argc[3], "TRUE"));
 
 	GMenu * menu = g_menu_new();
-  g_menu_append(menu, "Simple", "app.simple");
+  g_menu_append(menu, "Simple", "simple");
 
 	GSimpleActionGroup * ag = g_simple_action_group_new();
 	if (is_application)
