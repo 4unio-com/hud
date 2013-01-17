@@ -256,11 +256,11 @@ hud_window_source_active_window_changed (BamfMatcher *matcher,
   g_clear_object (&source->active_application);
   g_clear_object (&source->active_window);
   g_free (source->active_icon);
-  source->active_window = g_object_ref (window);
-  source->active_application = g_object_ref (application);
+  source->active_window = g_object_ref(window);
+  source->active_application = application;
   source->active_desktop_file = desktop_file;
   source->active_icon = bamf_view_get_icon (BAMF_VIEW (application));
-  source->active_collector = g_object_ref (hud_window_source_get_collector (source));
+  source->active_collector = hud_window_source_get_collector (source);
 
   if (source->use_count)
     hud_source_use (source->active_collector);
@@ -320,6 +320,8 @@ hud_window_source_finalize (GObject *object)
   g_clear_object (&source->active_application);
   g_clear_object (&source->active_window);
   g_free (source->active_icon);
+
+  g_clear_object(&source->matcher);
 
   G_OBJECT_CLASS (hud_window_source_parent_class)
     ->finalize (object);
