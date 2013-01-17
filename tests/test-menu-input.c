@@ -73,7 +73,7 @@ start_dbusmenu_mock_app (DbusTestService ** service, GDBusConnection ** session,
 	g_object_unref(dummy);
 
 	/* Setup timeout */
-	guint timeout_source = g_timeout_add_seconds(2, name_timeout, NULL);
+	guint timeout_source = g_timeout_add_seconds(5, name_timeout, NULL);
 
 	/* Get loader up and running and us on that bus */
 	g_debug("Starting up Dbusmenu Loader");
