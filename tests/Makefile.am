@@ -433,6 +433,46 @@ DISTCLEANFILES += \
 	$(INDICATOR_SOURCE_XML_REPORT:.xml=-xunit.xml)
 
 ######################
+# Test Window Source
+######################
+
+TESTS += \
+	test-window-source-test
+
+check_PROGRAMS += \
+	test-window-source
+
+WINDOW_SOURCE_XML_REPORT = test-window-source.xml
+
+test-window-source-test: test-window-source Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(WINDOW_SOURCE_XML_REPORT) $(builddir)/test-window-source >> $@
+	@echo gtester2xunit $(WINDOW_SOURCE_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_window_source_SOURCES = \
+	test-window-source.c
+
+test_window_source_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_window_source_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
+	libhud-tests.la \
+	$(HUD_LIBS)
+
+DISTCLEANFILES += \
+	$(WINDOW_SOURCE_XML_REPORT) \
+	$(WINDOW_SOURCE_XML_REPORT:.xml=-xunit.xml)
+
+######################
 # Test Usage DB Simple
 ######################
 
