@@ -54,7 +54,8 @@ main (int argv, char ** argc)
 		return 1;
 	}
 
-	g_type_init();
+	if (!GLIB_CHECK_VERSION(2, 35, 0))
+		g_type_init(); /* Only needed in versions < 2.35.0 */
 
 	DbusmenuMenuitem * root = dbusmenu_json_build_from_file(argc[3]);
 	g_return_val_if_fail(root != NULL, FALSE);

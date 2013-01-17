@@ -53,7 +53,8 @@ main (int argv, char * argc[])
 		return 1;
 	}
 
-	g_type_init();
+	if (!GLIB_CHECK_VERSION(2, 35, 0))
+		g_type_init (); /* Only needed in versions < 2.35.0 */
 
 	gchar * filename = NULL;
 	gint tmpfile = g_file_open_tmp("hud-verify-app-info-temp-db-XXXXXX", &filename, NULL);

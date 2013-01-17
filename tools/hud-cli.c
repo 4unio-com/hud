@@ -43,8 +43,8 @@ static HudClientQuery * client_query = NULL;
 int
 main (int argc, char *argv[])
 {
-
-	g_type_init();
+	if (!GLIB_CHECK_VERSION(2, 35, 0))
+		g_type_init (); /* Only needed in versions < 2.35.0 */
 
 	int single_char;
 	int pos = 0;
