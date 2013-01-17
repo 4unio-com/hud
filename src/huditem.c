@@ -411,12 +411,12 @@ hud_item_get_context (HudItem *item)
 	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
 
 	if (item->priv->tokens == NULL) {
-		return "";
+		return g_strdup("");
 	}
 
 	HudStringList * tail = hud_string_list_get_tail(item->priv->tokens);
 	if (tail == NULL) {
-		return "";
+		return g_strdup("");
 	}
 
 	return hud_string_list_pretty_print(tail);
