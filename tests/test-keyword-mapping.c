@@ -166,7 +166,9 @@ main (gint argc, gchar * argv[])
   g_unsetenv("LC_ALL");
   setlocale (LC_ALL, "");
 
-  g_type_init ();
+#ifndef GLIB_VERSION_2_36
+  g_type_init();
+#endif
 
   g_test_init (&argc, &argv, NULL );
 

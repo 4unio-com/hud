@@ -71,8 +71,9 @@ test_usage_testapp_suite (void)
 gint
 main (gint argc, gchar * argv[])
 {
-	//gtk_init(&argc, &argv);
+#ifndef GLIB_VERSION_2_36
 	g_type_init();
+#endif
 
 	g_test_init(&argc, &argv, NULL);
 

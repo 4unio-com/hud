@@ -56,7 +56,9 @@ main (int argv, char ** argc)
 		return 1;
 	}
 
+#ifndef GLIB_VERSION_2_36
 	g_type_init();
+#endif
 
 	DbusmenuMenuitem * root = dbusmenu_json_build_from_file(argc[3]);
 	g_return_val_if_fail(root != NULL, FALSE);

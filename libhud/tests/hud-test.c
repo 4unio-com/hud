@@ -12,7 +12,10 @@ test_suite (void)
 int
 main (int argc, char * argv[])
 {
-	g_type_init();
+#ifndef GLIB_VERSION_2_36
+	g_type_init ();
+#endif
+
 	g_test_init(&argc, &argv, NULL);
 
 	/* Test Suites */

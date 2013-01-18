@@ -28,7 +28,9 @@ main (int argv, char ** argc)
 		return 1;
 	}
 
-	g_type_init();
+#ifndef GLIB_VERSION_2_36
+	g_type_init ();
+#endif
 
 	gboolean is_application = (argv == 4 && g_strcmp0(argc[3], "TRUE"));
 

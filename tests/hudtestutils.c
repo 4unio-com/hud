@@ -220,7 +220,7 @@ hud_test_utils_mock_dbus_connection_new(DbusTestService *service, const gchar *n
   g_object_unref (dummy);
 
   /* Setup timeout */
-  guint timeout_source = g_timeout_add_seconds (2, hud_test_utils_name_timeout,
+  guint timeout_source = g_timeout_add_seconds (5, hud_test_utils_name_timeout,
       NULL );
 
   /* Get loader up and running and us on that bus */
