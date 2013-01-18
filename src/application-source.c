@@ -37,6 +37,7 @@ struct _HudApplicationSourcePrivate {
 	guint32 focused_window;
 
 	GHashTable * windows;
+	GHashTable * connections;
 };
 
 #define HUD_APPLICATION_SOURCE_GET_PRIVATE(o) \
@@ -94,6 +95,7 @@ hud_application_source_init (HudApplicationSource *self)
 	self->priv = HUD_APPLICATION_SOURCE_GET_PRIVATE(self);
 
 	self->priv->windows = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, g_object_unref);
+	self->priv->connections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 
 	return;
 }
@@ -105,6 +107,7 @@ hud_application_source_dispose (GObject *object)
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
 	g_clear_pointer(&self->priv->windows, g_hash_table_unref);
+	g_clear_pointer(&self->priv->connections, g_hash_table_unref);
 
 	if (self->priv->skel != NULL) {
 		g_dbus_interface_skeleton_unexport(G_DBUS_INTERFACE_SKELETON(self->priv->skel));
