@@ -177,7 +177,9 @@ test_window_source_menu_model ()
 int
 main (int argc, char **argv)
 {
+#ifndef GLIB_VERSION_2_36
   g_type_init ();
+#endif
 
   g_test_init (&argc, &argv, NULL);
   g_test_add_func ("/hud/windowsource/menu_model", test_window_source_menu_model);

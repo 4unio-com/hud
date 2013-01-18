@@ -104,7 +104,9 @@ test_hud_item_suite (void)
 gint
 main (gint argc, gchar * argv[])
 {
-	g_type_init();
+#ifndef GLIB_VERSION_2_36
+  g_type_init ();
+#endif
 
 	g_test_init(&argc, &argv, NULL);
 

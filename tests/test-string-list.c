@@ -130,7 +130,9 @@ test_string_list_suite ()
 gint
 main (gint argc, gchar * argv[])
 {
+#ifndef GLIB_VERSION_2_36
   g_type_init ();
+#endif
   g_test_init (&argc, &argv, NULL );
   test_string_list_suite ();
   return g_test_run ();

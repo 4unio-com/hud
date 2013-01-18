@@ -446,7 +446,9 @@ test_hud_query_sequence_counter_increment ()
 int
 main (int argc, char **argv)
 {
+#ifndef GLIB_VERSION_2_36
   g_type_init ();
+#endif
 
   g_test_init (&argc, &argv, NULL);
   g_test_add_func ("/hud/source/query_sequence", test_hud_query_sequence);

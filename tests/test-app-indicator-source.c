@@ -312,7 +312,9 @@ test_app_indicator_source_change_title ()
 int
 main (int argc, char **argv)
 {
+#ifndef GLIB_VERSION_2_36
   g_type_init ();
+#endif
 
   g_test_init (&argc, &argv, NULL);
   g_test_add_func ("/hud/hudappindicatorsource/add_remove", test_app_indicator_source_add_remove);
