@@ -162,6 +162,27 @@ test_window_source_menu_model ()
     g_ptr_array_free(results, TRUE);
   }
 
+  {
+    GList* apps = hud_application_list_get_apps (source);
+    g_assert_cmpuint(g_list_length(apps), ==, 1);
+    HudApplicationSource * app =
+        HUD_APPLICATION_SOURCE(g_list_nth_data(apps, 0));
+    g_assert(HUD_IS_APPLICATION_SOURCE(app));
+    g_assert_cmpstr(hud_application_source_get_id (app), ==, "name");
+    g_assert_cmpstr(hud_application_source_get_path (app), ==,
+        "/com/canonical/hud/applications/name");
+    g_list_free(apps);
+  }
+
+  {
+    HudApplicationSource * app = hud_application_list_get_source (source,
+        "name");
+    g_assert(HUD_IS_APPLICATION_SOURCE(app));
+    g_assert_cmpstr(hud_application_source_get_id (app), ==, "name");
+    g_assert_cmpstr(hud_application_source_get_path (app), ==,
+        "/com/canonical/hud/applications/name");
+  }
+
   hud_source_unuse(HUD_SOURCE(source));
 
   hud_token_list_free(search);
