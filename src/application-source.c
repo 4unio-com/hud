@@ -88,6 +88,14 @@ source_iface_init (HudSourceInterface *iface)
 	return;
 }
 
+/* Make a cast */
+static void
+list_free_wrapper (gpointer list)
+{
+	g_list_free((GList *)list);
+	return;
+}
+
 /* Instance Init */
 static void
 hud_application_source_init (HudApplicationSource *self)
@@ -95,7 +103,7 @@ hud_application_source_init (HudApplicationSource *self)
 	self->priv = HUD_APPLICATION_SOURCE_GET_PRIVATE(self);
 
 	self->priv->windows = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, g_object_unref);
-	self->priv->connections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+	self->priv->connections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, list_free_wrapper);
 
 	return;
 }
@@ -276,6 +284,29 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 	return;
 }
 
+/* Adds to make sure we're tracking the ID for this DBus
+   connection.  That way when it goes away, we know how to
+   clean everything up. */
+static void
+add_id_to_connection (HudApplicationSource * app, const gchar * sender, guint32 id)
+{
+	GList * ids = g_hash_table_lookup(app->priv->connections, sender);
+
+	GList * idtemp;
+	for (idtemp = ids; idtemp != NULL; idtemp = g_list_next(idtemp)) {
+		guint32 listid = GPOINTER_TO_UINT(idtemp->data);
+
+		if (listid == id) {
+			return;
+		}
+	}
+
+	idtemp = g_list_prepend(g_list_copy(ids), GUINT_TO_POINTER(id));
+	g_hash_table_insert(app->priv->connections, g_strdup(sender), idtemp);
+
+	return;
+}
+
 /* Respond to the DBus function to add sources */
 static gboolean
 dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocation * invocation, GVariant * actions, GVariant * descs, gpointer user_data)
@@ -303,6 +334,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
 
 		hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), prefix);
+		add_id_to_connection(app, sender, idn);
 	}
 
 	GVariantIter desc_iter;
@@ -320,6 +352,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
 
 		hud_menu_model_collector_add_model(collector, G_MENU_MODEL(model), NULL);
+		add_id_to_connection(app, sender, idn);
 	}
 
 	g_dbus_method_invocation_return_value(invocation, NULL);
