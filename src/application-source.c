@@ -40,6 +40,12 @@ struct _HudApplicationSourcePrivate {
 	GHashTable * connections;
 };
 
+typedef struct _connection_watcher_t connection_watcher_t;
+struct _connection_watcher_t {
+	guint watch;
+	GList * ids;
+};
+
 #define HUD_APPLICATION_SOURCE_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_TYPE_APPLICATION_SOURCE, HudApplicationSourcePrivate))
 
@@ -88,11 +94,16 @@ source_iface_init (HudSourceInterface *iface)
 	return;
 }
 
-/* Make a cast */
+/* Free the struct and unwatch the name */
 static void
-list_free_wrapper (gpointer list)
+connection_watcher_free (gpointer data)
 {
-	g_list_free((GList *)list);
+	connection_watcher_t * watcher = (connection_watcher_t *)data;
+
+	g_bus_unwatch_name(watcher->watch);
+	g_list_free(watcher->ids);
+
+	g_free(watcher);
 	return;
 }
 
@@ -103,7 +114,7 @@ hud_application_source_init (HudApplicationSource *self)
 	self->priv = HUD_APPLICATION_SOURCE_GET_PRIVATE(self);
 
 	self->priv->windows = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, g_object_unref);
-	self->priv->connections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, list_free_wrapper);
+	self->priv->connections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, connection_watcher_free);
 
 	return;
 }
@@ -284,16 +295,31 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 	return;
 }
 
+/* Handle a name disappearing off of DBus */
+static void
+connection_lost (GDBusConnection * session, const gchar * name, gpointer user_data)
+{
+	//HudApplicationSource * app = HUD_APPLICATION_SOURCE(user_data);
+
+
+	return;
+}
+
 /* Adds to make sure we're tracking the ID for this DBus
    connection.  That way when it goes away, we know how to
    clean everything up. */
 static void
-add_id_to_connection (HudApplicationSource * app, const gchar * sender, guint32 id)
+add_id_to_connection (HudApplicationSource * app, GDBusConnection * session, const gchar * sender, guint32 id)
 {
-	GList * ids = g_hash_table_lookup(app->priv->connections, sender);
+	connection_watcher_t * watcher = g_hash_table_lookup(app->priv->connections, sender);
+	if (watcher == NULL) {
+		watcher = g_new0(connection_watcher_t, 1);
+		watcher->watch = g_bus_watch_name_on_connection(session, sender, G_BUS_NAME_WATCHER_FLAGS_NONE, NULL, connection_lost, app, NULL);
+		g_hash_table_insert(app->priv->connections, g_strdup(sender), watcher);
+	}
 
 	GList * idtemp;
-	for (idtemp = ids; idtemp != NULL; idtemp = g_list_next(idtemp)) {
+	for (idtemp = watcher->ids; idtemp != NULL; idtemp = g_list_next(idtemp)) {
 		guint32 listid = GPOINTER_TO_UINT(idtemp->data);
 
 		if (listid == id) {
@@ -301,8 +327,7 @@ add_id_to_connection (HudApplicationSource * app, const gchar * sender, guint32 
 		}
 	}
 
-	idtemp = g_list_prepend(g_list_copy(ids), GUINT_TO_POINTER(id));
-	g_hash_table_insert(app->priv->connections, g_strdup(sender), idtemp);
+	watcher->ids = g_list_prepend(watcher->ids, GUINT_TO_POINTER(id));
 
 	return;
 }
@@ -334,7 +359,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
 
 		hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), prefix);
-		add_id_to_connection(app, sender, idn);
+		add_id_to_connection(app, session, sender, idn);
 	}
 
 	GVariantIter desc_iter;
@@ -352,7 +377,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
 
 		hud_menu_model_collector_add_model(collector, G_MENU_MODEL(model), NULL);
-		add_id_to_connection(app, sender, idn);
+		add_id_to_connection(app, session, sender, idn);
 	}
 
 	g_dbus_method_invocation_return_value(invocation, NULL);
