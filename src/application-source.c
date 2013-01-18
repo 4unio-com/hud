@@ -409,6 +409,44 @@ hud_application_source_get_id (HudApplicationSource * app)
 	return app->priv->app_id;
 }
 
+typedef struct _window_info_t window_info_t;
+struct _window_info_t {
+	HudApplicationSource * source;  /* Not a ref */
+	BamfWindow * window;            /* Not a ref */
+	guint32 xid;                    /* Can't be a ref */
+};
+
+/* When I window gets destroyed we want to clean up it's collectors
+   and all that jazz. */
+static void
+window_destroyed (gpointer data, GObject * old_address)
+{
+	window_info_t * window_info = (window_info_t *)data;
+
+	window_info->window = NULL;
+
+	g_hash_table_remove(window_info->source->priv->windows, GINT_TO_POINTER(window_info->xid));
+	/* NOTE: DO NOT use the window_info after this point as
+	   it may be free'd by the remove above. */
+
+	return;
+}
+
+/* If the collector gets free'd first we need to deallocate the memory
+   and make sure we don't keep the weak reference. */
+static void
+free_window_info (gpointer data)
+{
+	window_info_t * window_info = (window_info_t *)data;
+
+	if (window_info->window != NULL) {
+		g_object_weak_unref(G_OBJECT(window_info->window), window_destroyed, window_info);
+	}
+
+	g_free(window_info);
+	return;
+}
+
 /**
  * hud_application_source_add_window:
  * @app: A #HudApplicationSource object
@@ -430,11 +468,22 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 		return;
 	}
 
+	window_info_t * window_info = g_new0(window_info_t, 1);
+	window_info->window = window;
+	window_info->xid = xid;
+	window_info->source = app;
+
+	g_object_weak_ref(G_OBJECT(window), window_destroyed, window_info);
+
 	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
 	if (collector_list == NULL) {
 		collector_list = hud_source_list_new();
 		g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector_list);
 	}
+
+	/* We're managing the lifecycle of the window info here as
+	   that allows it to have some sort of destroy function */
+	g_object_set_data_full(G_OBJECT(collector_list), "hud-application-source-window-info", window_info, free_window_info);
 
 	HudMenuModelCollector * mm_collector = NULL;
 	HudDbusmenuCollector * dm_collector = NULL;

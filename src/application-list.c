@@ -53,9 +53,6 @@ static void window_changed                  (BamfMatcher *             matcher,
 static void view_opened                     (BamfMatcher *             matcher,
                                              BamfView *                view,
                                              gpointer                  user_data);
-static void view_closed                     (BamfMatcher *             matcher,
-                                             BamfView *                view,
-                                             gpointer                  user_data);
 static void source_use                      (HudSource *               hud_source);
 static void source_unuse                    (HudSource *               hud_source);
 static void source_search                   (HudSource *               hud_source,
@@ -104,9 +101,6 @@ hud_application_list_init (HudApplicationList *self)
 	self->priv->matcher_view_open_sig = g_signal_connect(self->priv->matcher,
 		"view-opened",
 		G_CALLBACK(view_opened), self);
-	self->priv->matcher_view_close_sig = g_signal_connect(self->priv->matcher,
-		"view-closed",
-		G_CALLBACK(view_closed), self);
 
 	self->priv->applications = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 
@@ -289,15 +283,6 @@ view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 	}
 
 	hud_application_source_add_window(source, BAMF_WINDOW(view));
-
-	return;
-}
-
-/* A view has been closed by BAMF */
-static void
-view_closed (BamfMatcher * matcher, BamfView * view, gpointer user_data)
-{
-	/* TODO: Flesh out */
 
 	return;
 }
