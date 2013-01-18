@@ -16,6 +16,8 @@
  * Author: Ted Gould <ted@canonical.com>
  */
 
+#define G_LOG_DOMAIN "hudapplicationsource"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
