@@ -164,6 +164,15 @@ source_search (HudSource *     hud_source,
 	return;
 }
 
+/**
+ * hud_application_source_new_for_app:
+ * @bapp: A #BamfApplication object
+ *
+ * Build a new application object, but use a #BamfApplication to help
+ * ourselves.
+ *
+ * Return value: New #HudApplicationSource object
+ */
 HudApplicationSource *
 hud_application_source_new_for_app (BamfApplication * bapp)
 {
@@ -180,6 +189,16 @@ hud_application_source_new_for_app (BamfApplication * bapp)
 	return source;
 }
 
+/**
+ * hud_application_source_new_for_id:
+ * @id: The application ID
+ *
+ * Creates a new application source that doesn't have any windows, but is
+ * based on the ID.  You should really add windows to this after you
+ * create it.
+ *
+ * Return value: New #HudApplicationSource object
+ */
 HudApplicationSource *
 hud_application_source_new_for_id (const gchar * id)
 {
