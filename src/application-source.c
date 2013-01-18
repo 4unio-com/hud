@@ -304,11 +304,20 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	return TRUE;
 }
 
+/**
+ * hud_application_source_bamf_app_id:
+ * @app: A #BamfApplication object
+ *
+ * Check to see if we don't have any collectors left.
+ *
+ * Return value: The state of the source
+ */
 gboolean
 hud_application_source_is_empty (HudApplicationSource * app)
 {
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), TRUE);
 
-	return TRUE;
+	return (g_hash_table_size(app->priv->windows) == 0);
 }
 
 /**
