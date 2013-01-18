@@ -44,6 +44,9 @@ static const gchar *APPLICATION_INTERFACE_NAME = "org.ayatana.bamf.application";
 static const gchar *MATCHER_INTERFACE_NAME = "org.ayatana.bamf.matcher";
 static const gchar *VIEW_INTERFACE_NAME = "org.ayatana.bamf.view";
 static const gchar *WINDOW_INTERFACE_NAME = "org.ayatana.bamf.window";
+static const gchar* REGISTRAR_BUS_NAME = "com.canonical.AppMenu.Registrar";
+static const gchar* REGISTRAR_OBJECT_PATH = "/com/canonical/AppMenu/Registrar";
+static const gchar* REGISTRAR_INTERFACE_NAME = "com.canonical.AppMenu.Registrar";
 
 static void
 test_window_source_add_view_methods (GDBusConnection* connection,
@@ -66,11 +69,14 @@ test_window_source_menu_model ()
   DbusTestService *service = dbus_test_service_new (NULL);
   hud_test_utils_dbus_mock_start (service, BAMF_BUS_NAME,
       MATCHER_OBJECT_PATH, MATCHER_INTERFACE_NAME);
+  hud_test_utils_dbus_mock_start (service, REGISTRAR_BUS_NAME,
+      REGISTRAR_OBJECT_PATH, REGISTRAR_INTERFACE_NAME);
   hud_test_utils_start_menu_model_full (service,
       "./test-menu-input-model-simple", app_dbus_name, app_dbus_menu_path,
       TRUE);
+  hud_test_utils_json_loader_start_full(service, "app.dbus.name.two", "/menu", "./test-menu-input-shortcuts.json");
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
-      BAMF_BUS_NAME, app_dbus_name, NULL);
+      BAMF_BUS_NAME, REGISTRAR_BUS_NAME, app_dbus_name, "app.dbus.name.two", NULL );
   hud_test_utils_process_mainloop (300);
 
   /* Define the mock window */
@@ -133,6 +139,14 @@ test_window_source_menu_model ()
           "ret = '/org/ayatana/bamf/application00000001'");
   }
 
+  /* Set up the app registrar */
+  {
+    dbus_mock_add_method (connection,
+        REGISTRAR_BUS_NAME, REGISTRAR_OBJECT_PATH,
+        REGISTRAR_INTERFACE_NAME, "GetMenus", "", "a(uso)",
+          "ret = [(1, 'app.dbus.name.two', '/menu')]");
+  }
+
   hud_test_utils_process_mainloop (100);
 
   HudApplicationList* source = hud_application_list_new();
@@ -162,6 +176,15 @@ test_window_source_menu_model ()
     g_ptr_array_free(results, TRUE);
   }
 
+  HudTokenList *search_two = hud_token_list_new_from_string ("save");
+  {
+    GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
+    hud_source_search(HUD_SOURCE(source), search_two, hud_test_utils_results_append_func, results);
+    g_assert_cmpuint(results->len, ==, 1);
+    hud_test_utils_source_assert_result (results, 0, "Save");
+    g_ptr_array_free(results, TRUE);
+  }
+
   {
     GList* apps = hud_application_list_get_apps (source);
     g_assert_cmpuint(g_list_length(apps), ==, 1);
@@ -186,6 +209,7 @@ test_window_source_menu_model ()
   hud_source_unuse(HUD_SOURCE(source));
 
   hud_token_list_free(search);
+  hud_token_list_free(search_two);
   g_object_unref (source);
 
   hud_test_utils_process_mainloop (100);
