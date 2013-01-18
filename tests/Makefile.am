@@ -433,28 +433,28 @@ DISTCLEANFILES += \
 	$(INDICATOR_SOURCE_XML_REPORT:.xml=-xunit.xml)
 
 ######################
-# Test Window Source
+# Test Application List
 ######################
 
 TESTS += \
-	test-window-source-test
+	test-application-list-test
 
 check_PROGRAMS += \
-	test-window-source
+	test-application-list
 
-WINDOW_SOURCE_XML_REPORT = test-window-source.xml
+APPLICATION_LIST_XML_REPORT = test-application-list.xml
 
-test-window-source-test: test-window-source Makefile.am
+test-application-list-test: test-application-list Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
-	@echo gtester --verbose -k -o $(WINDOW_SOURCE_XML_REPORT) $(builddir)/test-window-source >> $@
-	@echo gtester2xunit $(WINDOW_SOURCE_XML_REPORT) >> $@
+	@echo gtester --verbose -k -o $(APPLICATION_LIST_XML_REPORT) $(builddir)/test-application-list >> $@
+	@echo gtester2xunit $(APPLICATION_LIST_XML_REPORT) >> $@
 	@chmod +x $@
 
-test_window_source_SOURCES = \
-	test-window-source.c
+test_application_list_SOURCES = \
+	test-application-list.c
 
-test_window_source_CFLAGS = \
+test_application_list_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(DBUSTEST_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
@@ -462,15 +462,15 @@ test_window_source_CFLAGS = \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
-test_window_source_LDADD = \
+test_application_list_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
 	$(HUD_LIBS)
 
 DISTCLEANFILES += \
-	$(WINDOW_SOURCE_XML_REPORT) \
-	$(WINDOW_SOURCE_XML_REPORT:.xml=-xunit.xml)
+	$(APPLICATION_LIST_XML_REPORT) \
+	$(APPLICATION_LIST_XML_REPORT:.xml=-xunit.xml)
 
 ######################
 # Test Usage DB Simple

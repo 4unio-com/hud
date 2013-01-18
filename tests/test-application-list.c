@@ -1,3 +1,4 @@
+
 /*
  * Copyright © 2012 Canonical Ltd.
  *
@@ -19,7 +20,7 @@
 #include "hudsettings.h"
 #include "hudsource.h"
 #include "hudtoken.h"
-#include "hudmenumodelcollector.h"
+#include "application-list.h"
 #include "hudtestutils.h"
 
 #include <glib-object.h>
@@ -105,23 +106,50 @@ test_window_source_menu_model ()
       test_window_source_add_view_methods (connection, "/org/ayatana/bamf/application00000001");
     }
 
-  dbus_mock_add_method (connection,
-      BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
-      MATCHER_INTERFACE_NAME, "ActiveWindow", "", "s",
-        "ret = '/org/ayatana/bamf/window00000001'");
-  dbus_mock_add_method (connection,
+  /* Set up the BAMF matcher */
+  {
+    dbus_mock_add_method (connection,
+        BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
+        MATCHER_INTERFACE_NAME, "ActiveWindow", "", "s",
+          "ret = '/org/ayatana/bamf/window00000001'");
+    dbus_mock_add_method (connection,
         BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
         MATCHER_INTERFACE_NAME, "ApplicationForXid", "u", "s",
           "if args[0] == 1:\n"
           "    ret = '/org/ayatana/bamf/application00000001'\n"
           "else:\n"
           "    ret = None");
+    dbus_mock_add_method (connection,
+        BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
+        MATCHER_INTERFACE_NAME, "ApplicationPaths", "", "as",
+          "ret = ['/org/ayatana/bamf/application00000001']");
+    dbus_mock_add_method (connection,
+        BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
+        MATCHER_INTERFACE_NAME, "WindowPaths", "", "as",
+          "ret = ['/org/ayatana/bamf/window00000001']");
+    dbus_mock_add_method (connection,
+        BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
+        MATCHER_INTERFACE_NAME, "ActiveApplication", "", "s",
+          "ret = '/org/ayatana/bamf/application00000001'");
+  }
 
   hud_test_utils_process_mainloop (100);
 
-/*  HudWindowSource* source = hud_window_source_new ();
+  HudApplicationList* source = hud_application_list_new();
   g_assert(source != NULL);
-  g_assert(HUD_IS_WINDOW_SOURCE(source));
+  g_assert(HUD_IS_APPLICATION_LIST(source));
+  hud_source_use(HUD_SOURCE(source));
+
+  hud_test_utils_process_mainloop (100);
+
+  {
+    /* old, new */
+    DBusMockSignalArgs* args = dbus_mock_new_signal_args ();
+    dbus_mock_signal_args_append(args, g_variant_new("s", ""));
+    dbus_mock_signal_args_append(args, g_variant_new("s", "/org/ayatana/bamf/window00000001"));
+    dbus_mock_emit_signal (connection, BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
+        MATCHER_INTERFACE_NAME, "ActiveWindowChanged", "ss", args);
+  }
 
   hud_test_utils_process_mainloop (100);
 
@@ -134,8 +162,10 @@ test_window_source_menu_model ()
     g_ptr_array_free(results, TRUE);
   }
 
+  hud_source_unuse(HUD_SOURCE(source));
+
   hud_token_list_free(search);
-  g_object_unref (source);*/
+  g_object_unref (source);
 
   hud_test_utils_process_mainloop (100);
 
