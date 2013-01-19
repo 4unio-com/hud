@@ -109,6 +109,7 @@ typedef struct _model_data_t model_data_t;
 struct _model_data_t {
 	GMenuModel * model;
 	gboolean is_hud_aware;
+	GCancellable * cancellable;
 };
 
 typedef struct
@@ -123,7 +124,10 @@ typedef struct
 typedef HudItemClass HudModelItemClass;
 
 /* Prototypes */
-static void model_data_free (gpointer data);
+static void model_data_free                           (gpointer      data);
+static void hud_menu_model_collector_hud_awareness_cb (GObject      *source,
+                                                       GAsyncResult *result,
+                                                       gpointer      user_data);
 
 
 /* Functions */
@@ -328,6 +332,7 @@ G_DEFINE_TYPE_WITH_CODE (HudMenuModelCollector, hud_menu_model_collector, G_TYPE
  */
 static void hud_menu_model_collector_add_model_internal  (HudMenuModelCollector *collector,
                                                           GMenuModel            *model,
+                                                          const gchar           *path,
                                                           HudMenuModelContext   *parent_context,
                                                           const gchar           *action_namespace,
                                                           const gchar           *label);
@@ -489,13 +494,13 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
        */
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SECTION)))
         {
-          hud_menu_model_collector_add_model_internal (collector, link, context, action_namespace, label);
+          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label);
           g_object_unref (link);
         }
 
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SUBMENU)))
         {
-          hud_menu_model_collector_add_model_internal (collector, link, context, action_namespace, label);
+          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label);
           g_object_unref (link);
         }
 
@@ -512,6 +517,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
 static void
 hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
                                              GMenuModel            *model,
+                                             const gchar           *path,
                                              HudMenuModelContext   *parent_context,
                                              const gchar           *action_namespace,
                                              const gchar           *label)
@@ -525,8 +531,16 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   model_data_t * model_data = g_new0(model_data_t, 1);
   model_data->model = g_object_ref(model);
   model_data->is_hud_aware = FALSE;
+  model_data->cancellable = g_cancellable_new();
 
   collector->models = g_slist_prepend (collector->models, model_data);
+
+  if (path != NULL) {
+    g_dbus_connection_call (collector->session, collector->unique_bus_name, path,
+                            "com.canonical.hud.Awareness", "CheckAwareness",
+                            NULL, G_VARIANT_TYPE_UNIT, G_DBUS_CALL_FLAGS_NONE, -1, model_data->cancellable,
+                            hud_menu_model_collector_hud_awareness_cb, &model_data->is_hud_aware);
+  }
 
   /* The tokens in 'context' are the list of strings that got us up to
    * where we are now, like "View > Toolbars".
@@ -621,6 +635,10 @@ static void
 model_data_free (gpointer data)
 {
 	model_data_t * model_data = (model_data_t *)data;
+
+	/* Make sure we don't have an operation outstanding */
+	g_cancellable_cancel (model_data->cancellable);
+	g_clear_object(&model_data->cancellable);
 
 	g_clear_object(&model_data->model);
 	g_free(model_data);
@@ -794,22 +812,14 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   if (app_menu_object_path)
     {
       app_menu = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, app_menu_object_path);
-      hud_menu_model_collector_add_model (collector, G_MENU_MODEL (app_menu), NULL);
-      g_dbus_connection_call (collector->session, collector->unique_bus_name, app_menu_object_path,
-                              "com.canonical.hud.Awareness", "CheckAwareness",
-                              NULL, G_VARIANT_TYPE_UNIT, G_DBUS_CALL_FLAGS_NONE, -1, collector->cancellable,
-                              hud_menu_model_collector_hud_awareness_cb, &collector->app_menu_is_hud_aware);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL);
       g_object_unref(app_menu);
     }
 
   if (menubar_object_path)
     {
       menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, menubar_object_path);
-      hud_menu_model_collector_add_model (collector, G_MENU_MODEL (menubar), NULL);
-      g_dbus_connection_call (collector->session, collector->unique_bus_name, menubar_object_path,
-                              "com.canonical.hud.Awareness", "CheckAwareness",
-                              NULL, G_VARIANT_TYPE_UNIT, G_DBUS_CALL_FLAGS_NONE, -1, collector->cancellable,
-                              hud_menu_model_collector_hud_awareness_cb, &collector->menubar_is_hud_aware);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL);
       g_object_unref(menubar);
     }
 
@@ -880,7 +890,7 @@ hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuMode
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_MENU_MODEL(model));
 
-	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, prefix);
+	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix);
 }
 
 /**
