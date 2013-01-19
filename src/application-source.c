@@ -36,6 +36,9 @@ struct _HudApplicationSourcePrivate {
 
 	guint32 focused_window;
 
+	HudSource * used_source; /* Not a ref */
+	guint how_used;
+
 	GHashTable * windows;
 	GHashTable * connections;
 };
@@ -125,6 +128,11 @@ hud_application_source_dispose (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
+	if (self->priv->used_source != NULL) {
+		hud_source_unuse(self->priv->used_source);
+		self->priv->used_source = NULL;
+	}
+
 	g_clear_pointer(&self->priv->windows, g_hash_table_unref);
 	g_clear_pointer(&self->priv->connections, g_hash_table_unref);
 
@@ -156,6 +164,18 @@ hud_application_source_finalize (GObject *object)
 static void
 source_use (HudSource *hud_source)
 {
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+
+	if (app->priv->used_source == NULL) {
+		app->priv->used_source = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(app->priv->focused_window));
+		app->priv->how_used = 0;
+	}
+
+	if (app->priv->how_used == 0) {
+		hud_source_use(app->priv->used_source);
+	}
+
+	app->priv->how_used++;
 
 	return;
 }
@@ -164,6 +184,19 @@ source_use (HudSource *hud_source)
 static void
 source_unuse (HudSource *hud_source)
 {
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+
+	if (app->priv->used_source == NULL) {
+		g_warning("An asymetric number of uses");
+		return;
+	}
+
+	app->priv->how_used--;
+
+	if (app->priv->how_used == 0) {
+		hud_source_unuse(app->priv->used_source);
+		app->priv->used_source = NULL;
+	}
 
 	return;
 }
@@ -176,13 +209,13 @@ source_search (HudSource *     hud_source,
                gpointer        user_data)
 {
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
-	HudSource * collector = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(app->priv->focused_window));
 
-	if (collector == NULL) {
+	if (app->priv->used_source == NULL) {
+		g_warning("A search without a use... ");
 		return;
 	}
 
-	hud_source_search(collector, search_string, append_func, user_data);
+	hud_source_search(app->priv->used_source, search_string, append_func, user_data);
 	return;
 }
 
@@ -470,7 +503,6 @@ hud_application_source_focus (HudApplicationSource * app, BamfApplication * bapp
 
 	g_return_if_fail(app->priv->bamf_app == bapp);
 
-	/* TODO: Fill in */
 	hud_application_source_add_window(app, window);
 	app->priv->focused_window = bamf_window_get_xid(window);
 
