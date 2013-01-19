@@ -299,8 +299,19 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 static void
 connection_lost (GDBusConnection * session, const gchar * name, gpointer user_data)
 {
-	//HudApplicationSource * app = HUD_APPLICATION_SOURCE(user_data);
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(user_data);
 
+	connection_watcher_t * watcher = g_hash_table_lookup(app->priv->connections, name);
+	if (watcher == NULL) {
+		return;
+	}
+
+	GList * idtemp;
+	for (idtemp = watcher->ids; idtemp != NULL; idtemp = g_list_next(idtemp)) {
+		g_hash_table_remove(app->priv->windows, idtemp->data);
+	}
+
+	g_hash_table_remove(app->priv->connections, name);
 
 	return;
 }
