@@ -107,6 +107,7 @@ struct _model_data_t {
 	gboolean is_hud_aware;
 	GCancellable * cancellable;
 	gchar * path;
+	gchar * label;
 };
 
 typedef struct
@@ -333,8 +334,20 @@ static void hud_menu_model_collector_add_model_internal  (HudMenuModelCollector 
                                                           HudMenuModelContext   *parent_context,
                                                           const gchar           *action_namespace,
                                                           const gchar           *label);
+
 static void hud_menu_model_collector_disconnect (gpointer               data,
                                                  gpointer               user_data);
+
+/* Takes a model data and adds it as a model */
+static void
+readd_models (gpointer data, gpointer user_data)
+{
+	HudMenuModelCollector *collector = user_data;
+	model_data_t * model_data = data;
+
+    hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label);
+	return;
+}
 
 static gboolean
 hud_menu_model_collector_refresh (gpointer user_data)
@@ -346,12 +359,7 @@ hud_menu_model_collector_refresh (gpointer user_data)
   free_list = collector->models;
   collector->models = NULL;
 
-/* TODO: Fix the refresh, or actually handle removed items 
-  if (collector->app_menu)
-    hud_menu_model_collector_add_model (collector, G_MENU_MODEL (collector->app_menu), NULL, NULL, collector->prefix);
-  if (collector->menubar)
-    hud_menu_model_collector_add_model (collector, G_MENU_MODEL (collector->menubar), NULL, NULL, collector->prefix);
-*/
+  g_slist_foreach(free_list, readd_models, collector);
 
   g_slist_foreach (free_list, hud_menu_model_collector_disconnect, collector);
   g_slist_free_full (free_list, model_data_free);
@@ -530,6 +538,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   model_data->is_hud_aware = FALSE;
   model_data->cancellable = g_cancellable_new();
   model_data->path = g_strdup(path);
+  model_data->label = g_strdup(label);
 
   collector->models = g_slist_prepend (collector->models, model_data);
 
@@ -665,6 +674,7 @@ model_data_free (gpointer data)
 	g_clear_object(&model_data->cancellable);
 
 	g_clear_pointer(&model_data->path, g_free);
+	g_clear_pointer(&model_data->label, g_free);
 
 	g_clear_object(&model_data->model);
 	g_free(model_data);
