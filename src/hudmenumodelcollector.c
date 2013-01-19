@@ -73,10 +73,6 @@ struct _HudMenuModelCollector
   /* GActionGroup's indexed by their prefix */
   GHashTable * action_groups;
 
-  /* TODO: Pull these out */
-  gboolean app_menu_is_hud_aware;
-  gboolean menubar_is_hud_aware;
-
   /* Boring details about the app/indicator we are showing. */
   gchar *app_id;
   gchar *icon;
@@ -110,6 +106,7 @@ struct _model_data_t {
 	GMenuModel * model;
 	gboolean is_hud_aware;
 	GCancellable * cancellable;
+	gchar * path;
 };
 
 typedef struct
@@ -532,6 +529,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   model_data->model = g_object_ref(model);
   model_data->is_hud_aware = FALSE;
   model_data->cancellable = g_cancellable_new();
+  model_data->path = g_strdup(path);
 
   collector->models = g_slist_prepend (collector->models, model_data);
 
@@ -567,21 +565,47 @@ hud_menu_model_collector_disconnect (gpointer data,
   g_signal_handlers_disconnect_by_func (data, hud_menu_model_collector_model_changed, user_data);
 }
 
+/* Sends an awareness to a model that needs it */
+static void
+set_awareness (HudMenuModelCollector * collector, model_data_t * model_data, gboolean active)
+{
+	if (!model_data->is_hud_aware) {
+		return;
+	}
+
+	g_dbus_connection_call (collector->session, collector->unique_bus_name, model_data->path,
+	                        "com.canonical.hud.Awareness", "HudActiveChanged", g_variant_new ("(b)", active),
+	                        NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL, NULL);
+
+	return;
+}
+
+/* We're avoiding having to allocate a struct by using the function
+   pointer here.  Kinda sneaky, but it works */
+static void
+make_aware (gpointer data, gpointer user_data)
+{
+	return set_awareness(HUD_MENU_MODEL_COLLECTOR(user_data), (model_data_t *)data, TRUE);
+}
+
+static void
+make_unaware (gpointer data, gpointer user_data)
+{
+	return set_awareness(HUD_MENU_MODEL_COLLECTOR(user_data), (model_data_t *)data, FALSE);
+}
+
+/* Handles the activeness of this collector */
 static void
 hud_menu_model_collector_active_changed (HudMenuModelCollector *collector,
                                          gboolean               active)
 {
-/* TODO: Handle HUD awareness 
-  if (collector->app_menu_is_hud_aware)
-    g_dbus_connection_call (collector->session, collector->unique_bus_name, collector->app_menu_object_path,
-                            "com.canonical.hud.Awareness", "HudActiveChanged", g_variant_new ("(b)", active),
-                            NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL, NULL);
+  if (active) {
+    g_slist_foreach(collector->models, make_aware, collector);
+  } else {
+    g_slist_foreach(collector->models, make_unaware, collector);
+  }
 
-  if (collector->menubar_is_hud_aware)
-    g_dbus_connection_call (collector->session, collector->unique_bus_name, collector->menubar_object_path,
-                            "com.canonical.hud.Awareness", "HudActiveChanged", g_variant_new ("(b)", active),
-                            NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL, NULL);
-*/
+  return;
 }
 
 static void
@@ -639,6 +663,8 @@ model_data_free (gpointer data)
 	/* Make sure we don't have an operation outstanding */
 	g_cancellable_cancel (model_data->cancellable);
 	g_clear_object(&model_data->cancellable);
+
+	g_clear_pointer(&model_data->path, g_free);
 
 	g_clear_object(&model_data->model);
 	g_free(model_data);
