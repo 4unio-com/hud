@@ -105,6 +105,12 @@ struct _HudMenuModelCollector
   gint use_count;
 };
 
+typedef struct _model_data_t model_data_t;
+struct _model_data_t {
+	GMenuModel * model;
+	gboolean is_hud_aware;
+};
+
 typedef struct
 {
   HudItem parent_instance;
@@ -116,6 +122,11 @@ typedef struct
 
 typedef HudItemClass HudModelItemClass;
 
+/* Prototypes */
+static void model_data_free (gpointer data);
+
+
+/* Functions */
 static gchar *
 hud_menu_model_context_get_prefix (HudMenuModelContext *context,
                                    const gchar         *action_name)
@@ -341,7 +352,7 @@ hud_menu_model_collector_refresh (gpointer user_data)
 */
 
   g_slist_foreach (free_list, hud_menu_model_collector_disconnect, collector);
-  g_slist_free_full (free_list, g_object_unref);
+  g_slist_free_full (free_list, model_data_free);
 
   return G_SOURCE_REMOVE;
 }
@@ -510,7 +521,12 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   gint n_items;
 
   g_signal_connect (model, "items-changed", G_CALLBACK (hud_menu_model_collector_model_changed), collector);
-  collector->models = g_slist_prepend (collector->models, g_object_ref (model));
+
+  model_data_t * model_data = g_new0(model_data_t, 1);
+  model_data->model = g_object_ref(model);
+  model_data->is_hud_aware = FALSE;
+
+  collector->models = g_slist_prepend (collector->models, model_data);
 
   /* The tokens in 'context' are the list of strings that got us up to
    * where we are now, like "View > Toolbars".
@@ -599,6 +615,19 @@ hud_menu_model_collector_search (HudSource    *source,
         append_func(result, user_data);
     }
 }
+
+/* Free's the model data structure */
+static void
+model_data_free (gpointer data)
+{
+	model_data_t * model_data = (model_data_t *)data;
+
+	g_clear_object(&model_data->model);
+	g_free(model_data);
+
+	return;
+}
+
 static void
 hud_menu_model_collector_finalize (GObject *object)
 {
@@ -610,7 +639,7 @@ hud_menu_model_collector_finalize (GObject *object)
   if (collector->refresh_id)
     g_source_remove (collector->refresh_id);
 
-  g_slist_free_full (collector->models, g_object_unref);
+  g_slist_free_full (collector->models, model_data_free);
   g_clear_pointer (&collector->action_groups, g_hash_table_unref);
 
   g_object_unref (collector->session);
