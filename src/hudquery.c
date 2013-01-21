@@ -52,7 +52,7 @@ struct _HudQuery
 {
   GObject parent_instance;
 
-  HudSourceList *sources;
+  HudSource *all_sources;
   HudSource *current_source;
   gchar *search_string;
   HudTokenList *token_list;
@@ -199,7 +199,7 @@ hud_query_refresh (HudQuery *query)
   query->results_list = NULL;
 
   dee_model_clear(query->appstack_model);
-  hud_source_list_applications (HUD_SOURCE(query->sources), query->token_list, app_results_list_populate, query);
+  hud_source_list_applications (HUD_SOURCE(query->all_sources), query->token_list, app_results_list_populate, query);
 
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
 
@@ -245,9 +245,9 @@ hud_query_finalize (GObject *object)
   if (query->refresh_id)
     g_source_remove (query->refresh_id);
 
-  hud_source_unuse (HUD_SOURCE(query->sources));
+  hud_source_unuse (HUD_SOURCE(query->all_sources));
 
-  g_object_unref (query->sources);
+  g_object_unref (query->all_sources);
   g_object_unref (query->current_source);
   if (query->token_list != NULL) {
     hud_token_list_free (query->token_list);
@@ -306,7 +306,7 @@ handle_update_app (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocati
 	g_debug("Updating App to: '%s'", app_id);
 
 	g_object_unref (query->current_source);
-	query->current_source = hud_source_get(HUD_SOURCE(query->sources), app_id);
+	query->current_source = hud_source_get(HUD_SOURCE(query->all_sources), app_id);
 	g_object_ref (query->current_source);
 
 	/* Refresh it all */
@@ -472,7 +472,7 @@ hud_query_new (HudSource   *all_sources,
 
   query = g_object_new (HUD_TYPE_QUERY, NULL);
   hud_query_init_real(query, connection);
-  query->sources = g_object_ref (all_sources);
+  query->all_sources = g_object_ref (all_sources);
   query->current_source = g_object_ref (current_source);
   query->search_string = g_strdup (search_string);
   query->token_list = NULL;
@@ -483,7 +483,7 @@ hud_query_new (HudSource   *all_sources,
 
   query->num_results = num_results;
 
-  hud_source_use (HUD_SOURCE(query->sources));
+  hud_source_use (HUD_SOURCE(query->all_sources));
 
   hud_query_refresh (query);
 

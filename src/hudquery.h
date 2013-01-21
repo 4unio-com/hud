@@ -19,7 +19,7 @@
 #ifndef __HUD_QUERY_H__
 #define __HUD_QUERY_H__
 
-#include "hudsourcelist.h"
+#include "hudsource.h"
 #include "hudresult.h"
 
 #define HUD_TYPE_QUERY                                      (hud_query_get_type ())

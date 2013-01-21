@@ -131,7 +131,7 @@ hud_manual_source_iface_init (HudSourceInterface *iface)
   iface->unuse = hud_manual_source_unuse;
   iface->search = hud_manual_source_search;
   iface->list_applications = hud_manual_source_list_applications;
-	iface->get = hud_manual_source_get;
+  iface->get = hud_manual_source_get;
 }
 
 static void

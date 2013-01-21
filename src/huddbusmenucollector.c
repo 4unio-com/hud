@@ -657,7 +657,7 @@ hud_dbusmenu_collector_iface_init (HudSourceInterface *iface)
   iface->use = hud_dbusmenu_collector_use;
   iface->unuse = hud_dbusmenu_collector_unuse;
   iface->search = hud_dbusmenu_collector_search;
-	iface->list_applications = hud_dbusmenu_collector_list_application;
+  iface->list_applications = hud_dbusmenu_collector_list_application;
   iface->get = hud_dbusmenu_collector_get;
 }
 

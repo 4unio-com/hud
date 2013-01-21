@@ -224,7 +224,7 @@ source_search (HudSource *     hud_source,
 		g_warning("A search without a use... ");
 		return;
 	}
-	
+
 	hud_source_search(app->priv->used_source, search_string, append_func, user_data);
 	return;
 }
@@ -618,7 +618,7 @@ free_window_info (gpointer data)
 	g_free(window_info);
 	return;
 }
-#include <stdio.h>
+
 /**
  * hud_application_source_add_window:
  * @app: A #HudApplicationSource object

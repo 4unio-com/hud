@@ -128,6 +128,7 @@ hud_webapp_source_search (HudSource    *hud_source,
 {
   HudWebappSource *source;
   GList *walk;
+
   source = HUD_WEBAPP_SOURCE (hud_source);
   
   for (walk = source->applications; walk != NULL; walk = walk->next)

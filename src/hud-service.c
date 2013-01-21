@@ -116,7 +116,7 @@ bus_method (GDBusConnection       *connection,
 		GVariant * vsearch;
 		const gchar *search_string;
 		HudQuery *query;
-		
+
 		vsearch = g_variant_get_child_value (parameters, 0);
 		search_string = g_variant_get_string(vsearch, NULL);
 		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);

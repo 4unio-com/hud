@@ -368,6 +368,7 @@ source_search (HudSource *     hud_source,
 	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
 
 	g_return_if_fail(list->priv->used_source != NULL);
+
 	hud_source_search(list->priv->used_source, search_string, append_func, user_data);
 
 	return;

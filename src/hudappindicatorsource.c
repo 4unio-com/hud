@@ -374,7 +374,6 @@ hud_app_indicator_source_search (HudSource    *hud_source,
                                  void        (*append_func) (HudResult * result, gpointer user_data),
                                  gpointer      user_data)
 {
-  // No need to do anything special with flags, just pass them down
   HudAppIndicatorSource *source = HUD_APP_INDICATOR_SOURCE (hud_source);
   GSequenceIter *iter;
 
