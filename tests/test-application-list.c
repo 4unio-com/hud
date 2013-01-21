@@ -152,7 +152,6 @@ test_window_source_menu_model ()
   HudApplicationList* source = hud_application_list_new();
   g_assert(source != NULL);
   g_assert(HUD_IS_APPLICATION_LIST(source));
-  hud_source_use(HUD_SOURCE(source));
 
   hud_test_utils_process_mainloop (100);
 
@@ -205,8 +204,6 @@ test_window_source_menu_model ()
     g_assert_cmpstr(hud_application_source_get_path (app), ==,
         "/com/canonical/hud/applications/name");
   }
-
-  hud_source_unuse(HUD_SOURCE(source));
 
   hud_token_list_free(search);
   hud_token_list_free(search_two);
