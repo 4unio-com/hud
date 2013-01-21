@@ -118,7 +118,6 @@ results_list_populate (HudResult * result, gpointer user_data)
 	return;
 }
 
-#include <stdio.h>
 /* Add a HudItem to the list of app results */
 static void
 app_results_list_populate (HudResult * result, gpointer user_data)
