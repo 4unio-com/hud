@@ -257,9 +257,10 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 
 	if (list->priv->used_source) {
 		hud_source_unuse(list->priv->used_source);
-		list->priv->used_source = HUD_SOURCE(source);
-		hud_source_use(list->priv->used_source);
 	}
+
+  list->priv->used_source = HUD_SOURCE(source);
+  hud_source_use(list->priv->used_source);
 
 	return;
 }
