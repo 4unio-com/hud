@@ -15,6 +15,10 @@
 			<!-- out -->
 			<arg type="i" name="modelRevision" direction="out" />
 		</method>
+		
+		<method name="VoiceSearch">
+			<arg type="s" name="query" direction="out" />
+		</method>
 
 		<method name="CloseQuery">
 		</method>

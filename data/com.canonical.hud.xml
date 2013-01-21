@@ -25,10 +25,6 @@
 			<arg type="o" name="appObject" direction="out" />
 		</method>
 
-		<method name="VoiceSearch">
-			<arg type="s" name="query" direction="out" />
-		</method>
-
 <!-- End of interesting stuff -->
 
 	</interface>

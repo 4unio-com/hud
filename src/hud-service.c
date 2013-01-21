@@ -457,6 +457,16 @@ bus_method (GDBusConnection       *connection,
 			g_dbus_method_invocation_return_error_literal(invocation, error(), 1, "Unable to get path for the created application");
 		}
 		g_variant_unref(vid);
+	} else if (g_str_equal (method_name, "VoiceSearch")) {
+    gchar * querystr = do_voice(source);
+
+    GVariant * str = NULL;
+    if (querystr == NULL) {
+      str = g_variant_new_string("");
+    } else {
+      str = g_variant_new_string(querystr);
+    }
+    g_dbus_method_invocation_return_value (invocation, g_variant_new_tuple(&str, 1));
 	} else {
 		g_warn_if_reached();
 	}
@@ -503,16 +513,6 @@ bus_get_prop (GDBusConnection * connection, const gchar * sender, const gchar * 
 		}
 
 		return g_variant_builder_end(&builder);
-    } else if (g_str_equal (method_name, "VoiceSearch")) {
-        gchar * querystr = do_voice(source);
-
-        GVariant * str = NULL;
-        if (querystr == NULL) {
-          str = g_variant_new_string("");
-        } else {
-          str = g_variant_new_string(querystr);
-        }
-        g_dbus_method_invocation_return_value (invocation, g_variant_new_tuple(&str, 1));
 	} else {
 		g_warn_if_reached();
 	}

@@ -281,6 +281,12 @@ hud_client_query_get_query (HudClientQuery * cquery)
 	return cquery->priv->query;
 }
 
+void
+hud_client_query_voice_search ()
+{
+  // FIXME Implement this method
+}
+
 /**
  * hud_client_query_get_results_model:
  * @cquery: A #HudClientQuery

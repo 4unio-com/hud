@@ -129,7 +129,7 @@ static void model_data_free                           (gpointer      data);
 static void hud_menu_model_collector_hud_awareness_cb (GObject      *source,
                                                        GAsyncResult *result,
                                                        gpointer      user_data);
-
+static GList * get_items (HudCollector * collector);
 
 /* Functions */
 static gchar *
@@ -737,7 +737,6 @@ hud_menu_model_collector_class_init (HudMenuModelCollectorClass *class)
 
   HudCollectorClass * cclass = HUD_COLLECTOR_CLASS(class);
   cclass->get_items = get_items;
-
 }
 
 static void
