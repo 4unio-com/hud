@@ -130,7 +130,7 @@ app_results_list_populate (HudResult * result, gpointer user_data)
 	columns[1] = g_variant_new_string(hud_item_get_app_icon(item));
 	columns[2] = NULL;
 
-	dee_model_append_row(query->appstack_model, columns);
+	dee_model_prepend_row(query->appstack_model, columns);
 	return;
 }
 
