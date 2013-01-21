@@ -674,8 +674,9 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 	const gchar * icon = bamf_view_get_icon(BAMF_VIEW(window));
 	if (icon == NULL) {
 		GKeyFile * kfile = g_key_file_new();
-		g_key_file_load_from_file (kfile, desktop_file, G_KEY_FILE_NONE, NULL);
-		icon = g_key_file_get_value (kfile, G_KEY_FILE_DESKTOP_GROUP, G_KEY_FILE_DESKTOP_KEY_ICON, NULL);
+		g_key_file_load_from_file(kfile, desktop_file, G_KEY_FILE_NONE, NULL);
+		icon = g_key_file_get_value(kfile, G_KEY_FILE_DESKTOP_GROUP, G_KEY_FILE_DESKTOP_KEY_ICON, NULL);
+		g_key_file_free(kfile);
 	}
 
 	if (mm_collector == NULL) {
