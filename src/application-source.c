@@ -38,7 +38,17 @@ struct _HudApplicationSourcePrivate {
 
 	guint32 focused_window;
 
+	HudSource * used_source; /* Not a ref */
+	guint how_used;
+
 	GHashTable * windows;
+	GHashTable * connections;
+};
+
+typedef struct _connection_watcher_t connection_watcher_t;
+struct _connection_watcher_t {
+	guint watch;
+	GList * ids;
 };
 
 #define HUD_APPLICATION_SOURCE_GET_PRIVATE(o) \
@@ -89,6 +99,19 @@ source_iface_init (HudSourceInterface *iface)
 	return;
 }
 
+/* Free the struct and unwatch the name */
+static void
+connection_watcher_free (gpointer data)
+{
+	connection_watcher_t * watcher = (connection_watcher_t *)data;
+
+	g_bus_unwatch_name(watcher->watch);
+	g_list_free(watcher->ids);
+
+	g_free(watcher);
+	return;
+}
+
 /* Instance Init */
 static void
 hud_application_source_init (HudApplicationSource *self)
@@ -96,6 +119,7 @@ hud_application_source_init (HudApplicationSource *self)
 	self->priv = HUD_APPLICATION_SOURCE_GET_PRIVATE(self);
 
 	self->priv->windows = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, g_object_unref);
+	self->priv->connections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, connection_watcher_free);
 
 	return;
 }
@@ -106,7 +130,13 @@ hud_application_source_dispose (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
+	if (self->priv->used_source != NULL) {
+		hud_source_unuse(self->priv->used_source);
+		self->priv->used_source = NULL;
+	}
+
 	g_clear_pointer(&self->priv->windows, g_hash_table_unref);
+	g_clear_pointer(&self->priv->connections, g_hash_table_unref);
 
 	if (self->priv->skel != NULL) {
 		g_dbus_interface_skeleton_unexport(G_DBUS_INTERFACE_SKELETON(self->priv->skel));
@@ -136,6 +166,18 @@ hud_application_source_finalize (GObject *object)
 static void
 source_use (HudSource *hud_source)
 {
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+
+	if (app->priv->used_source == NULL) {
+		app->priv->used_source = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(app->priv->focused_window));
+		app->priv->how_used = 0;
+	}
+
+	if (app->priv->how_used == 0) {
+		hud_source_use(app->priv->used_source);
+	}
+
+	app->priv->how_used++;
 
 	return;
 }
@@ -144,6 +186,19 @@ source_use (HudSource *hud_source)
 static void
 source_unuse (HudSource *hud_source)
 {
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+
+	if (app->priv->used_source == NULL) {
+		g_warning("An asymetric number of uses");
+		return;
+	}
+
+	app->priv->how_used--;
+
+	if (app->priv->how_used == 0) {
+		hud_source_unuse(app->priv->used_source);
+		app->priv->used_source = NULL;
+	}
 
 	return;
 }
@@ -156,16 +211,25 @@ source_search (HudSource *     hud_source,
                gpointer        user_data)
 {
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
-	HudSource * collector = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(app->priv->focused_window));
 
-	if (collector == NULL) {
+	if (app->priv->used_source == NULL) {
+		g_warning("A search without a use... ");
 		return;
 	}
 
-	hud_source_search(collector, search_string, append_func, user_data);
+	hud_source_search(app->priv->used_source, search_string, append_func, user_data);
 	return;
 }
 
+/**
+ * hud_application_source_new_for_app:
+ * @bapp: A #BamfApplication object
+ *
+ * Build a new application object, but use a #BamfApplication to help
+ * ourselves.
+ *
+ * Return value: New #HudApplicationSource object
+ */
 HudApplicationSource *
 hud_application_source_new_for_app (BamfApplication * bapp)
 {
@@ -182,6 +246,16 @@ hud_application_source_new_for_app (BamfApplication * bapp)
 	return source;
 }
 
+/**
+ * hud_application_source_new_for_id:
+ * @id: The application ID
+ *
+ * Creates a new application source that doesn't have any windows, but is
+ * based on the ID.  You should really add windows to this after you
+ * create it.
+ *
+ * Return value: New #HudApplicationSource object
+ */
 HudApplicationSource *
 hud_application_source_new_for_id (const gchar * id)
 {
@@ -256,6 +330,54 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 	return;
 }
 
+/* Handle a name disappearing off of DBus */
+static void
+connection_lost (GDBusConnection * session, const gchar * name, gpointer user_data)
+{
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(user_data);
+
+	connection_watcher_t * watcher = g_hash_table_lookup(app->priv->connections, name);
+	if (watcher == NULL) {
+		return;
+	}
+
+	GList * idtemp;
+	for (idtemp = watcher->ids; idtemp != NULL; idtemp = g_list_next(idtemp)) {
+		g_hash_table_remove(app->priv->windows, idtemp->data);
+	}
+
+	g_hash_table_remove(app->priv->connections, name);
+
+	return;
+}
+
+/* Adds to make sure we're tracking the ID for this DBus
+   connection.  That way when it goes away, we know how to
+   clean everything up. */
+static void
+add_id_to_connection (HudApplicationSource * app, GDBusConnection * session, const gchar * sender, guint32 id)
+{
+	connection_watcher_t * watcher = g_hash_table_lookup(app->priv->connections, sender);
+	if (watcher == NULL) {
+		watcher = g_new0(connection_watcher_t, 1);
+		watcher->watch = g_bus_watch_name_on_connection(session, sender, G_BUS_NAME_WATCHER_FLAGS_NONE, NULL, connection_lost, app, NULL);
+		g_hash_table_insert(app->priv->connections, g_strdup(sender), watcher);
+	}
+
+	GList * idtemp;
+	for (idtemp = watcher->ids; idtemp != NULL; idtemp = g_list_next(idtemp)) {
+		guint32 listid = GPOINTER_TO_UINT(idtemp->data);
+
+		if (listid == id) {
+			return;
+		}
+	}
+
+	watcher->ids = g_list_prepend(watcher->ids, GUINT_TO_POINTER(id));
+
+	return;
+}
+
 /* Respond to the DBus function to add sources */
 static gboolean
 dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocation * invocation, GVariant * actions, GVariant * descs, gpointer user_data)
@@ -283,6 +405,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
 
 		hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), prefix);
+		add_id_to_connection(app, session, sender, idn);
 	}
 
 	GVariantIter desc_iter;
@@ -300,17 +423,27 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
 
 		hud_menu_model_collector_add_model(collector, G_MENU_MODEL(model), NULL);
+		add_id_to_connection(app, session, sender, idn);
 	}
 
 	g_dbus_method_invocation_return_value(invocation, NULL);
 	return TRUE;
 }
 
+/**
+ * hud_application_source_bamf_app_id:
+ * @app: A #BamfApplication object
+ *
+ * Check to see if we don't have any collectors left.
+ *
+ * Return value: The state of the source
+ */
 gboolean
 hud_application_source_is_empty (HudApplicationSource * app)
 {
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), TRUE);
 
-	return TRUE;
+	return (g_hash_table_size(app->priv->windows) == 0);
 }
 
 /**
@@ -372,7 +505,6 @@ hud_application_source_focus (HudApplicationSource * app, BamfApplication * bapp
 
 	g_return_if_fail(app->priv->bamf_app == bapp);
 
-	/* TODO: Fill in */
 	hud_application_source_add_window(app, window);
 	app->priv->focused_window = bamf_window_get_xid(window);
 
@@ -411,6 +543,44 @@ hud_application_source_get_id (HudApplicationSource * app)
 	return app->priv->app_id;
 }
 
+typedef struct _window_info_t window_info_t;
+struct _window_info_t {
+	HudApplicationSource * source;  /* Not a ref */
+	BamfWindow * window;            /* Not a ref */
+	guint32 xid;                    /* Can't be a ref */
+};
+
+/* When I window gets destroyed we want to clean up it's collectors
+   and all that jazz. */
+static void
+window_destroyed (gpointer data, GObject * old_address)
+{
+	window_info_t * window_info = (window_info_t *)data;
+
+	window_info->window = NULL;
+
+	g_hash_table_remove(window_info->source->priv->windows, GINT_TO_POINTER(window_info->xid));
+	/* NOTE: DO NOT use the window_info after this point as
+	   it may be free'd by the remove above. */
+
+	return;
+}
+
+/* If the collector gets free'd first we need to deallocate the memory
+   and make sure we don't keep the weak reference. */
+static void
+free_window_info (gpointer data)
+{
+	window_info_t * window_info = (window_info_t *)data;
+
+	if (window_info->window != NULL) {
+		g_object_weak_unref(G_OBJECT(window_info->window), window_destroyed, window_info);
+	}
+
+	g_free(window_info);
+	return;
+}
+
 /**
  * hud_application_source_add_window:
  * @app: A #HudApplicationSource object
@@ -432,11 +602,22 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 		return;
 	}
 
+	window_info_t * window_info = g_new0(window_info_t, 1);
+	window_info->window = window;
+	window_info->xid = xid;
+	window_info->source = app;
+
+	g_object_weak_ref(G_OBJECT(window), window_destroyed, window_info);
+
 	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
 	if (collector_list == NULL) {
 		collector_list = hud_source_list_new();
 		g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector_list);
 	}
+
+	/* We're managing the lifecycle of the window info here as
+	   that allows it to have some sort of destroy function */
+	g_object_set_data_full(G_OBJECT(collector_list), "hud-application-source-window-info", window_info, free_window_info);
 
 	HudMenuModelCollector * mm_collector = NULL;
 	HudDbusmenuCollector * dm_collector = NULL;
