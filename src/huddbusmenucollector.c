@@ -354,7 +354,6 @@ hud_dbusmenu_collector_unuse (HudSource *source)
 static void
 hud_dbusmenu_collector_search (HudSource    *source,
                                HudTokenList *search_string,
-                               SearchFlags   flags,
                                void        (*append_func) (HudResult * result, gpointer user_data),
                                gpointer      user_data)
 {
@@ -368,13 +367,35 @@ hud_dbusmenu_collector_search (HudSource    *source,
       HudResult *result;
 
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
-      if (result) {
+      if (result)
         append_func(result, user_data);
-        if (flags == OneResultPerApplicationSearchFlag)
-          break;
+    }
+}
+
+static void
+hud_dbusmenu_collector_list_application (HudSource    *source,
+                                         HudTokenList *search_string,
+                                         void           (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                         gpointer      user_data)
+{
+  HudDbusmenuCollector *collector = HUD_DBUSMENU_COLLECTOR (source);
+  GHashTableIter iter;
+  gpointer item;
+
+  g_hash_table_iter_init (&iter, collector->items);
+  while (g_hash_table_iter_next (&iter, NULL, &item))
+    {
+      HudResult *result;
+
+      result = hud_result_get_if_matched (item, search_string, collector->penalty);
+      if (result) {
+        append_func(collector->application_id, collector->icon, user_data);
+        g_object_unref(result);
+        break;
       }
     }
 }
+
 
 static HudSource *
 hud_dbusmenu_collector_get (HudSource    *source,
@@ -636,6 +657,7 @@ hud_dbusmenu_collector_iface_init (HudSourceInterface *iface)
   iface->use = hud_dbusmenu_collector_use;
   iface->unuse = hud_dbusmenu_collector_unuse;
   iface->search = hud_dbusmenu_collector_search;
+	iface->list_applications = hud_dbusmenu_collector_list_application;
   iface->get = hud_dbusmenu_collector_get;
 }
 

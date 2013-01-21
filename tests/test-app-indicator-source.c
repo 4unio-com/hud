@@ -68,7 +68,7 @@ test_app_indicator_source_add_remove ()
 
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 2);
     g_ptr_array_sort(results, hud_test_utils_results_compare_func);
     hud_test_utils_source_assert_result (results, 0, "Hello There");
@@ -98,7 +98,7 @@ test_app_indicator_source_add_remove ()
     hud_test_utils_process_mainloop (100);
 
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 4);
     g_ptr_array_sort(results, hud_test_utils_results_compare_func);
     hud_test_utils_source_assert_result (results, 0, "Hello There");
@@ -120,7 +120,7 @@ test_app_indicator_source_add_remove ()
     hud_test_utils_process_mainloop (100);
 
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 2);
     g_ptr_array_sort(results, hud_test_utils_results_compare_func);
     hud_test_utils_source_assert_result (results, 0, "Hello There 2");
@@ -167,7 +167,7 @@ test_app_indicator_source_start_empty ()
 
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 0);
     g_ptr_array_free(results, TRUE);
   }
@@ -194,7 +194,7 @@ test_app_indicator_source_start_empty ()
     hud_test_utils_process_mainloop (100);
 
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 2);
     g_ptr_array_sort(results, hud_test_utils_results_compare_func);
     hud_test_utils_source_assert_result (results, 0, "Hello There");
@@ -214,7 +214,7 @@ test_app_indicator_source_start_empty ()
     hud_test_utils_process_mainloop (100);
 
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 0);
     g_ptr_array_free(results, TRUE);
   }
@@ -259,14 +259,14 @@ test_app_indicator_source_change_title ()
 
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search_one, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search_one, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 3);
     g_ptr_array_free(results, TRUE);
   }
 
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search_two, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search_two, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 0);
     g_ptr_array_free(results, TRUE);
   }
@@ -286,14 +286,14 @@ test_app_indicator_source_change_title ()
 
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search_one, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search_one, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 0);
     g_ptr_array_free(results, TRUE);
   }
 
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search_two, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search_two, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 3);
     g_ptr_array_free(results, TRUE);
   }

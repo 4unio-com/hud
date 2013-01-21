@@ -59,7 +59,6 @@ G_DEFINE_TYPE_WITH_CODE (HudRandomSource, hud_random_source, G_TYPE_OBJECT,
 void
 hud_random_source_search (HudSource    *hud_source,
     HudTokenList *search_tokens,
-    SearchFlags   flags,
     void        (*append_func) (HudResult * result, gpointer user_data),
     gpointer      user_data)
 {
@@ -78,10 +77,20 @@ hud_random_source_search (HudSource    *hud_source,
     }
 }
 
+void
+hud_random_source_list_applications (HudSource    *hud_source,
+    HudTokenList *search_tokens,
+    void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+    gpointer      user_data)
+{
+  // TODO
+}
+
 static HudSource *
 hud_random_source_get (HudSource    *hud_source,
                        const gchar *application_id)
 {
+  // TODO
   return NULL;
 }
 
@@ -206,6 +215,7 @@ hud_random_source_iface_init (HudSourceInterface *iface)
   iface->use = hud_random_source_ignore_use;
   iface->unuse = hud_random_source_ignore_use;
   iface->search = hud_random_source_search;
+  iface->list_applications = hud_random_source_list_applications;
   iface->get = hud_random_source_get;
 }
 

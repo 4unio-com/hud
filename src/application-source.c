@@ -63,9 +63,12 @@ static void source_use                        (HudSource *                 hud_s
 static void source_unuse                      (HudSource *                 hud_source);
 static void source_search                     (HudSource *                 hud_source,
                                                HudTokenList *              search_string,
-                                               SearchFlags                 flags,
                                                void                      (*append_func) (HudResult * result, gpointer user_data),
                                                gpointer                    user_data);
+static void source_list_applications          (HudSource *               hud_source,
+                                               HudTokenList *            search_string,
+                                               void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                               gpointer                  user_data);
 static HudSource * source_get                 (HudSource *               hud_source,
                                                const gchar *application_id);
 static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplication * skel,
@@ -98,6 +101,7 @@ source_iface_init (HudSourceInterface *iface)
 	iface->use = source_use;
 	iface->unuse = source_unuse;
 	iface->search = source_search;
+	iface->list_applications = source_list_applications;
 	iface->get = source_get;
 
 	return;
@@ -211,7 +215,6 @@ source_unuse (HudSource *hud_source)
 static void
 source_search (HudSource *     hud_source,
                HudTokenList *  search_string,
-               SearchFlags     flags,
                void          (*append_func) (HudResult * result, gpointer user_data),
                gpointer        user_data)
 {
@@ -222,11 +225,25 @@ source_search (HudSource *     hud_source,
 		return;
 	}
 	
-	// No need to do special app casing for flags
-	// to search all windows, since on regular search we only use that window
-	// No point to search them all in OneResultPerItemApplicationIdSearchFlag
+	hud_source_search(app->priv->used_source, search_string, append_func, user_data);
+	return;
+}
 
-	hud_source_search(app->priv->used_source, search_string, flags, append_func, user_data);
+static void
+source_list_applications (HudSource *     hud_source,
+                          HudTokenList *  search_string,
+                          void           (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                          gpointer        user_data)
+{
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+
+	// TODO Should we list even if it's not the current window and then activate the window?
+	if (app->priv->used_source == NULL) {
+		g_warning("A list without a use... ");
+		return;
+	}
+	
+	hud_source_list_applications(app->priv->used_source, search_string, append_func, user_data);
 	return;
 }
 
@@ -601,7 +618,7 @@ free_window_info (gpointer data)
 	g_free(window_info);
 	return;
 }
-
+#include <stdio.h>
 /**
  * hud_application_source_add_window:
  * @app: A #HudApplicationSource object
@@ -655,6 +672,11 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 
 	const gchar * desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
 	const gchar * icon = bamf_view_get_icon(BAMF_VIEW(window));
+	if (icon == NULL) {
+		GKeyFile * kfile = g_key_file_new();
+		g_key_file_load_from_file (kfile, desktop_file, G_KEY_FILE_NONE, NULL);
+		icon = g_key_file_get_value (kfile, G_KEY_FILE_DESKTOP_GROUP, G_KEY_FILE_DESKTOP_KEY_ICON, NULL);
+	}
 
 	if (mm_collector == NULL) {
 		mm_collector = hud_menu_model_collector_new(desktop_file, icon, 0);

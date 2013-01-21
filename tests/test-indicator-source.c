@@ -62,7 +62,7 @@ test_indicator_source_datetime ()
 
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 1);
     hud_test_utils_source_assert_result (results, 0, "Date Time");
     g_ptr_array_free(results, TRUE);
@@ -99,7 +99,7 @@ test_indicator_source_session ()
 
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 1);
     hud_test_utils_source_assert_result (results, 0, "Session Time");
     g_ptr_array_free(results, TRUE);
@@ -136,7 +136,7 @@ test_indicator_source_sound ()
 
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 1);
     hud_test_utils_source_assert_result (results, 0, "Sound Time");
     g_ptr_array_free(results, TRUE);
@@ -172,7 +172,7 @@ test_indicator_source_messages ()
 
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 1);
     hud_test_utils_source_assert_result (results, 0, "Simple");
     g_ptr_array_free(results, TRUE);

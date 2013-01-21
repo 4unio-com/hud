@@ -169,7 +169,7 @@ test_window_source_menu_model ()
   HudTokenList *search = hud_token_list_new_from_string ("simple");
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 1);
     hud_test_utils_source_assert_result (results, 0, "Simple");
     g_ptr_array_free(results, TRUE);
@@ -178,7 +178,7 @@ test_window_source_menu_model ()
   HudTokenList *search_two = hud_token_list_new_from_string ("save");
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
-    hud_source_search(HUD_SOURCE(source), search_two, NoSourceSearchFlags, hud_test_utils_results_append_func, results);
+    hud_source_search(HUD_SOURCE(source), search_two, hud_test_utils_results_append_func, results);
     g_assert_cmpuint(results->len, ==, 1);
     hud_test_utils_source_assert_result (results, 0, "Save");
     g_ptr_array_free(results, TRUE);

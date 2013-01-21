@@ -644,7 +644,6 @@ hud_menu_model_collector_unuse (HudSource *source)
 static void
 hud_menu_model_collector_search (HudSource    *source,
                                  HudTokenList *search_string,
-                                 SearchFlags   flags,
                                  void        (*append_func) (HudResult * result, gpointer user_data),
                                  gpointer      user_data)
 {
@@ -661,10 +660,34 @@ hud_menu_model_collector_search (HudSource    *source,
 
       item = g_ptr_array_index (items, i);
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
-      if (result) {
+      if (result)
         append_func(result, user_data);
-        if (flags == OneResultPerApplicationSearchFlag)
-          break;
+    }
+}
+
+static void
+hud_menu_model_collector_list_applications (HudSource    *source,
+                                            HudTokenList *search_string,
+                                            void           (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                            gpointer      user_data)
+{
+  HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
+  GPtrArray *items;
+  gint i;
+
+  items = collector->items;
+
+  for (i = 0; i < items->len; i++)
+    {
+      HudResult *result;
+      HudItem *item;
+
+      item = g_ptr_array_index (items, i);
+      result = hud_result_get_if_matched (item, search_string, collector->penalty);
+      if (result) {
+        append_func(collector->app_id, collector->icon, user_data);
+        g_object_unref(result);
+        break;
       }
     }
 }
@@ -741,6 +764,7 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->use = hud_menu_model_collector_use;
   iface->unuse = hud_menu_model_collector_unuse;
   iface->search = hud_menu_model_collector_search;
+  iface->list_applications = hud_menu_model_collector_list_applications;
   iface->get = hud_menu_model_collector_get;
 }
 

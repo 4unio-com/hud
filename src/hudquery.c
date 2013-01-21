@@ -120,14 +120,13 @@ results_list_populate (HudResult * result, gpointer user_data)
 
 /* Add a HudItem to the list of app results */
 static void
-app_results_list_populate (HudResult * result, gpointer user_data)
+app_results_list_populate (const gchar *application_id, const gchar *application_icon, gpointer user_data)
 {
 	HudQuery * query = (HudQuery *)user_data;
-	HudItem *item = hud_result_get_item (result);
 
 	GVariant * columns[G_N_ELEMENTS(appstack_model_schema) + 1];
-	columns[0] = g_variant_new_string(hud_item_get_desktop_file(item));
-	columns[1] = g_variant_new_string(hud_item_get_app_icon(item));
+	columns[0] = g_variant_new_string(application_id);
+	columns[1] = g_variant_new_string(application_icon);
 	columns[2] = NULL;
 
 	dee_model_prepend_row(query->appstack_model, columns);
@@ -188,7 +187,7 @@ hud_query_refresh (HudQuery *query)
   query->max_usage = 0;
 
   /* Note that the results are kept sorted as they are collected using a GSequence */
-  hud_source_search (query->current_source, query->token_list, NoSourceSearchFlags, results_list_populate, query);
+  hud_source_search (query->current_source, query->token_list, results_list_populate, query);
   g_debug("Num results: %d", g_sequence_get_length(query->results_list));
 
   g_sequence_foreach(query->results_list, results_list_max_usage, &query->max_usage);
@@ -200,7 +199,7 @@ hud_query_refresh (HudQuery *query)
   query->results_list = NULL;
 
   dee_model_clear(query->appstack_model);
-  hud_source_search (HUD_SOURCE(query->sources), query->token_list, OneResultPerApplicationSearchFlag, app_results_list_populate, query);
+  hud_source_list_applications (HUD_SOURCE(query->sources), query->token_list, app_results_list_populate, query);
 
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
 

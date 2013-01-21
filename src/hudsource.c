@@ -146,14 +146,25 @@ hud_source_unuse (HudSource *source)
 void
 hud_source_search (HudSource    *source,
                    HudTokenList *search_string,
-                   SearchFlags   flags,
                    void        (*append_func) (HudResult * result, gpointer user_data),
                    gpointer      user_data)
 {
   g_debug ("search on %s %p", G_OBJECT_TYPE_NAME (source), source);
 
   HUD_SOURCE_GET_IFACE (source)
-    ->search (source, search_string, flags, append_func, user_data);
+    ->search (source, search_string, append_func, user_data);
+}
+
+void
+hud_source_list_applications (HudSource    *source,
+                              HudTokenList *search_tokens,
+                              void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                              gpointer      user_data)
+{
+  g_debug ("list_applications on %s %p", G_OBJECT_TYPE_NAME (source), source);
+
+  HUD_SOURCE_GET_IFACE (source)
+    ->list_applications (source, search_tokens, append_func, user_data);
 }
 
 /**

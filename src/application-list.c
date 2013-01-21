@@ -59,8 +59,11 @@ static void source_use                      (HudSource *               hud_sourc
 static void source_unuse                    (HudSource *               hud_source);
 static void source_search                   (HudSource *               hud_source,
                                              HudTokenList *            search_string,
-                                             SearchFlags               flags,
                                              void                    (*append_func) (HudResult * result, gpointer user_data),
+                                             gpointer                  user_data);
+static void source_list_applications        (HudSource *               hud_source,
+                                             HudTokenList *            search_string,
+                                             void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
                                              gpointer                  user_data);
 static HudSource * source_get               (HudSource *               hud_source,
                                              const gchar *application_id);
@@ -89,6 +92,7 @@ source_iface_init (HudSourceInterface *iface)
 	iface->use = source_use;
 	iface->unuse = source_unuse;
 	iface->search = source_search;
+	iface->list_applications = source_list_applications;
 	iface->get = source_get;
 
 	return;
@@ -357,29 +361,35 @@ source_unuse (HudSource *hud_source)
 static void
 source_search (HudSource *     hud_source,
                HudTokenList *  search_string,
-               SearchFlags     flags,
                void          (*append_func) (HudResult * result, gpointer user_data),
                gpointer        user_data)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_LIST(hud_source));
 	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
 
-	if (flags == NoSourceSearchFlags) {
-		g_return_if_fail(list->priv->used_source != NULL);
-		hud_source_search(list->priv->used_source, search_string, flags, append_func, user_data);
-	} else if (flags == OneResultPerApplicationSearchFlag) {
-		GList * sources = g_hash_table_get_values(list->priv->applications);
-		GList * lsource = NULL;
-
-		for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
-			HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
-			if (appsource == NULL) continue;
-
-			hud_source_search(HUD_SOURCE(appsource), search_string, flags, append_func, user_data);
-		}
-	}
+	g_return_if_fail(list->priv->used_source != NULL);
+	hud_source_search(list->priv->used_source, search_string, append_func, user_data);
 
 	return;
+}
+
+static void
+source_list_applications (HudSource *               hud_source,
+                          HudTokenList *            search_string,
+                          void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                          gpointer                  user_data)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_LIST(hud_source));
+	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
+	GList * sources = g_hash_table_get_values(list->priv->applications);
+	GList * lsource = NULL;
+
+	for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
+		HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
+		if (appsource == NULL) continue;
+
+		hud_source_list_applications(HUD_SOURCE(appsource), search_string, append_func, user_data);
+	}
 }
 
 static HudSource *
