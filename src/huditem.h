@@ -83,5 +83,7 @@ HudTokenList *          hud_item_get_token_list                         (HudItem
 const gchar *           hud_item_get_command                            (HudItem       *item);
 gchar *                 hud_item_get_context                            (HudItem       *item);
 const gchar *           hud_item_get_shortcut                           (HudItem       *item);
+void                    hud_item_insert_pronounciation                  (HudItem       * item,
+                                                                         GHashTable    * table);
 
 #endif /* __HUD_ITEM_H__ */

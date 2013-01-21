@@ -46,6 +46,18 @@ namespace HudGtk {
 			query.set_query(entry.text);
 		}
 
+		void voice_pressed (Gtk.Button button) {
+			try {
+				var session = Bus.get_sync (BusType.SESSION, null);
+				var reply = session.call_sync ("com.canonical.hud", "/com/canonical/hud", "com.canonical.hud",
+				                               "VoiceSearch", null,
+				                               new VariantType ("(s)"), 0, -1, null);
+				entry.text = reply.get_child_value(0).get_string();
+			} catch (Error e) {
+				warning (e.message);
+			}
+		}
+
 		void view_activated (Gtk.TreeView view, Gtk.TreePath path, Gtk.TreeViewColumn column) {
 			Gtk.TreeIter iter;
 			Variant key;

@@ -17,6 +17,7 @@
  */
 
 #include "hudstringlist.h"
+#include "pronounce-dict.h"
 
 #include <string.h>
 
@@ -234,4 +235,37 @@ hud_string_list_add_item (const gchar *item, HudStringList *stringlist)
   HudStringList *new_list = hud_string_list_cons (item, stringlist);
   hud_string_list_unref (stringlist);
   return new_list;
+}
+
+/**
+ * hud_string_list_insert_pronounciation:
+ * @list: A #HudStringList
+ * @table: A hash table of (gchar *, gchar **)
+ *
+ * Looks up the various tokens in the pronounciation database and adds them
+ * to the hash table if they're not already represented.
+ */
+void
+hud_string_list_insert_pronounciation (HudStringList * list, GHashTable * table)
+{
+	if (list == NULL) {
+		return;
+	}
+
+	gchar * upper = g_utf8_strup(list->head, -1);
+	gchar ** splitted = g_strsplit(upper, " ", -1);
+	g_free(upper);
+
+	PronounceDict * dict = pronounce_dict_get();
+
+	int i;
+	for (i = 0; splitted[i] != NULL; i++) {
+		if (g_hash_table_lookup(table, splitted[i]) == NULL) {
+			g_hash_table_insert(table, g_strdup(splitted[i]), pronounce_dict_lookup_word(dict, splitted[i]));
+		}
+	}
+
+	g_strfreev(splitted);
+
+	return hud_string_list_insert_pronounciation(list->tail, table);
 }

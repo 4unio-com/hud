@@ -23,6 +23,7 @@
 #include "hudsource.h"
 #include "hudresult.h"
 #include "huditem.h"
+#include "hud-collector.h"
 #include "hudkeywordmapping.h"
 #include "config.h"
 
@@ -730,7 +731,13 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
 static void
 hud_menu_model_collector_class_init (HudMenuModelCollectorClass *class)
 {
-  class->finalize = hud_menu_model_collector_finalize;
+  GObjectClass *gobject_class = G_OBJECT_CLASS (class);
+
+  gobject_class->finalize = hud_menu_model_collector_finalize;
+
+  HudCollectorClass * cclass = HUD_COLLECTOR_CLASS(class);
+  cclass->get_items = get_items;
+
 }
 
 static void
@@ -955,4 +962,27 @@ hud_menu_model_collector_add_actions (HudMenuModelCollector * collector, GAction
 	g_hash_table_insert(collector->action_groups, local_prefix, group);
 
 	return;
+}
+
+/**
+ * hud_menu_model_collector_get_items:
+ * @collector: A #HudMenuModelCollector
+ *
+ * Get the list of items that are currently being watched
+ *
+ * Return value: (transfer full) (element-type HudItem): Items to look at
+ */
+static GList *
+get_items (HudCollector * collector)
+{
+	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector), NULL);
+	HudMenuModelCollector * mcollector = HUD_MENU_MODEL_COLLECTOR(collector);
+
+	GList * retval = NULL;
+	int i;
+	for (i = 0; i < mcollector->items->len; i++) {
+		retval = g_list_prepend(retval, g_object_ref(g_ptr_array_index(mcollector->items, i)));
+	}
+
+	return retval;
 }

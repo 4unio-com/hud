@@ -389,9 +389,7 @@ hud_item_get_command (HudItem *item)
 		return _("No Command");
 	}
 
-	const gchar * head = hud_string_list_get_head(item->priv->tokens);
-
-	return head;
+	return hud_string_list_get_head(item->priv->tokens);
 }
 
 /**
@@ -433,4 +431,20 @@ hud_item_get_shortcut (HudItem *item)
 	g_return_val_if_fail(HUD_IS_ITEM(item), "");
 
 	return item->priv->shortcut;
+}
+
+/**
+ * hud_item_insert_pronounciation:
+ * @item: A #HudItem
+ * @table: A #GHashTabel of (gchar *, gchar**)
+ *
+ * Get the pronounciations of all the tokens for this item.
+ */
+void
+hud_item_insert_pronounciation (HudItem * item, GHashTable * table)
+{
+	g_return_if_fail(HUD_IS_ITEM(item));
+
+	hud_string_list_insert_pronounciation(item->priv->tokens, table);
+	return;
 }

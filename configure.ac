@@ -88,6 +88,7 @@ PKG_CHECK_MODULES([HUD],[
 		libbamf3 
 		sqlite3 >= $SQLITE_REQUIRED_VERSION
 		dee-1.0
+		pocketsphinx
 ])
 
 GTK_REQUIRED_VERSION=3.0

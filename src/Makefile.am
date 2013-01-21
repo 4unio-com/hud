@@ -12,7 +12,8 @@ bin_SCRIPTS = \
 	hud-list-applications
 
 pkglibexec_PROGRAMS = \
-	hud-service
+	hud-service \
+	hud-pronounce-for-word
 
 noinst_LTLIBRARIES = \
 	libhud-service-generated.la \
@@ -34,6 +35,8 @@ libhud_service_la_SOURCES = \
 	hudsettings.c		\
 	hudappmenuregistrar.h	\
 	hudappmenuregistrar.c	\
+	hud-collector.h \
+	hud-collector.c \
 	huddbusmenucollector.h	\
 	huddbusmenucollector.c	\
 	hudmenumodelcollector.h	\
@@ -64,6 +67,8 @@ libhud_service_la_SOURCES = \
 	hudresult.c		\
 	load-app-info.h \
 	load-app-info.c \
+	pronounce-dict.c \
+	pronounce-dict.h \
 	usage-tracker.h \
 	usage-tracker.c
 
@@ -75,6 +80,7 @@ libhud_service_la_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
+	-DDICT_PATH=\""$(pkgdatadir)/cmudict.0.7a"\" \
 	-Wall -Werror
 
 #######################
@@ -127,6 +133,25 @@ hud_verify_app_info_CFLAGS = \
 	$(COVERAGE_CFLAGS) \
 	-Wall -Werror
 hud_verify_app_info_LDFLAGS = \
+	$(COVERAGE_LDFLAGS) \
+	$(HUD_LIBS)
+
+#######################
+# HUD Pronounce
+#######################
+
+hud_pronounce_for_word_SOURCES = \
+	pronounce-dict.c \
+	pronounce-dict.h \
+	hud-pronounce-for-word.c
+
+hud_pronounce_for_word_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(COVERAGE_CFLAGS) \
+	-DDICT_PATH=\""$(pkgdatadir)/cmudict.0.7a"\" \
+	-Wall -Werror
+
+hud_pronounce_for_word_LDFLAGS = \
 	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
