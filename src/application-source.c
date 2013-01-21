@@ -63,8 +63,11 @@ static void source_use                        (HudSource *                 hud_s
 static void source_unuse                      (HudSource *                 hud_source);
 static void source_search                     (HudSource *                 hud_source,
                                                HudTokenList *              search_string,
+                                               SearchFlags                 flags,
                                                void                      (*append_func) (HudResult * result, gpointer user_data),
                                                gpointer                    user_data);
+static HudSource * source_get                 (HudSource *               hud_source,
+                                               const gchar *application_id);
 static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplication * skel,
                                                GDBusMethodInvocation *     invocation,
                                                GVariant *                  actions,
@@ -95,6 +98,7 @@ source_iface_init (HudSourceInterface *iface)
 	iface->use = source_use;
 	iface->unuse = source_unuse;
 	iface->search = source_search;
+	iface->get = source_get;
 
 	return;
 }
@@ -207,6 +211,7 @@ source_unuse (HudSource *hud_source)
 static void
 source_search (HudSource *     hud_source,
                HudTokenList *  search_string,
+               SearchFlags     flags,
                void          (*append_func) (HudResult * result, gpointer user_data),
                gpointer        user_data)
 {
@@ -216,9 +221,25 @@ source_search (HudSource *     hud_source,
 		g_warning("A search without a use... ");
 		return;
 	}
+	
+	// No need to do special app casing for flags
+	// to search all windows, since on regular search we only use that window
+	// No point to search them all in OneResultPerItemApplicationIdSearchFlag
 
-	hud_source_search(app->priv->used_source, search_string, append_func, user_data);
+	hud_source_search(app->priv->used_source, search_string, flags, append_func, user_data);
 	return;
+}
+
+static HudSource *
+source_get (HudSource * hud_source,
+            const gchar *application_id)
+{
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+
+	if (g_strcmp0 (application_id, app->priv->app_id) == 0)
+		return hud_source;
+	
+	return NULL;
 }
 
 /**

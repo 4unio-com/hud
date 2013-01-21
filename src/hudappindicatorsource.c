@@ -371,8 +371,26 @@ hud_app_indicator_source_unuse (HudSource *hud_source)
 static void
 hud_app_indicator_source_search (HudSource    *hud_source,
                                  HudTokenList *search_tokens,
+                                 SearchFlags   flags,
                                  void        (*append_func) (HudResult * result, gpointer user_data),
                                  gpointer      user_data)
+{
+  // No need to do anything special with flags, just pass them down
+  HudAppIndicatorSource *source = HUD_APP_INDICATOR_SOURCE (hud_source);
+  GSequenceIter *iter;
+
+  iter = g_sequence_get_begin_iter (source->indicators);
+
+  while (!g_sequence_iter_is_end (iter))
+    {
+      hud_source_search (g_sequence_get (iter), search_tokens, flags, append_func, user_data);
+      iter = g_sequence_iter_next (iter);
+    }
+}
+
+static HudSource *
+hud_app_indicator_source_get (HudSource    *hud_source,
+                              const gchar *application_id)
 {
   HudAppIndicatorSource *source = HUD_APP_INDICATOR_SOURCE (hud_source);
   GSequenceIter *iter;
@@ -381,9 +399,12 @@ hud_app_indicator_source_search (HudSource    *hud_source,
 
   while (!g_sequence_iter_is_end (iter))
     {
-      hud_source_search (g_sequence_get (iter), search_tokens, append_func, user_data);
+      HudSource *result = hud_source_get (g_sequence_get (iter), application_id);
+      if (result != NULL)
+        return result;
       iter = g_sequence_iter_next (iter);
     }
+  return NULL;
 }
 
 static void
@@ -418,6 +439,7 @@ hud_app_indicator_source_iface_init (HudSourceInterface *iface)
   iface->use = hud_app_indicator_source_use;
   iface->unuse = hud_app_indicator_source_unuse;
   iface->search = hud_app_indicator_source_search;
+  iface->get = hud_app_indicator_source_get;
 }
 
 static void

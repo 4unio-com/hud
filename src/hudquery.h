@@ -19,7 +19,7 @@
 #ifndef __HUD_QUERY_H__
 #define __HUD_QUERY_H__
 
-#include "hudsource.h"
+#include "hudsourcelist.h"
 #include "hudresult.h"
 
 #define HUD_TYPE_QUERY                                      (hud_query_get_type ())
@@ -34,7 +34,8 @@ typedef struct _HudQuery                                    HudQuery;
 
 GType                   hud_query_get_type                              (void);
 
-HudQuery *              hud_query_new                                   (HudSource   *source,
+HudQuery *              hud_query_new                                   (HudSource   *all_sources,
+                                                                         HudSource   *current_source,
                                                                          const gchar *search_string,
                                                                          gint         num_results,
                                                                          GDBusConnection *connection);

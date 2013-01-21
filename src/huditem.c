@@ -286,6 +286,21 @@ hud_item_get_item_icon (HudItem *item)
 }
 
 /**
+ * hud_item_get_desktop_file:
+ * @item: a #HudItem
+ *
+ * Gets the desktop file of the application that @item lies within.
+ *
+ * Returns: the desktop file , or "" if there is no desktop file
+ **/
+
+const gchar *
+hud_item_get_desktop_file (HudItem *item)
+{
+  return item->priv->desktop_file ? item->priv->desktop_file : "";
+}
+
+/**
  * hud_item_get_app_icon:
  * @item: a #HudItem
  *

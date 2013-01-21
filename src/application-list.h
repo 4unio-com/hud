@@ -21,6 +21,7 @@
 
 #include <glib-object.h>
 #include "application-source.h"
+#include "hudsource.h"
 
 G_BEGIN_DECLS
 
@@ -48,6 +49,7 @@ GType                   hud_application_list_get_type       (void);
 HudApplicationList *    hud_application_list_new            (void);
 HudApplicationSource *  hud_application_list_get_source     (HudApplicationList * list,
                                                              const gchar *        id);
+HudSource *             hud_application_list_get_used_source (HudApplicationList * list);
 GList *                 hud_application_list_get_apps       (HudApplicationList * list);
 
 G_END_DECLS

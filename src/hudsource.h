@@ -33,6 +33,12 @@
 typedef struct _HudSourceInterface                          HudSourceInterface;
 typedef struct _HudSource                                   HudSource;
 
+typedef enum
+{
+  NoSourceSearchFlags,
+  OneResultPerApplicationSearchFlag
+} SearchFlags;
+
 struct _HudSourceInterface
 {
   GTypeInterface g_iface;
@@ -41,8 +47,11 @@ struct _HudSourceInterface
   void (* unuse)  (HudSource    *source);
   void (* search) (HudSource    *source,
                    HudTokenList *search_tokens,
+                   SearchFlags   flags,
                    void        (*append_func) (HudResult * result, gpointer user_data),
                    gpointer      user_data);
+  HudSource * (* get) (HudSource    *source,
+                       const gchar *application_id);
 };
 
 GType                   hud_source_get_type                             (void);
@@ -52,8 +61,12 @@ void                    hud_source_unuse                                (HudSour
 
 void                    hud_source_search                               (HudSource    *source,
                                                                          HudTokenList *search_tokens,
+                                                                         SearchFlags flags,
                                                                          void        (*append_func) (HudResult * result, gpointer user_data),
                                                                          gpointer      user_data);
+
+HudSource *             hud_source_get                                  (HudSource    *source,
+                                                                         const gchar *application_id);
 
 void                    hud_source_changed                              (HudSource    *source);
 

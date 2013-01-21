@@ -145,15 +145,34 @@ hud_indicator_source_unuse (HudSource *hud_source)
 static void
 hud_indicator_source_search (HudSource    *hud_source,
                              HudTokenList *search_string,
+                             SearchFlags   flags,
                              void        (*append_func) (HudResult * result, gpointer user_data),
                              gpointer      user_data)
 {
   HudIndicatorSource *source = HUD_INDICATOR_SOURCE (hud_source);
   gint i;
 
+  // Each indicator is a different "application" so no need to do anything with flags
   for (i = 0; i < source->n_indicators; i++)
     if (source->indicators[i].collector)
-      hud_source_search (source->indicators[i].collector, search_string, append_func, user_data);
+      hud_source_search (source->indicators[i].collector, search_string, flags, append_func, user_data);
+}
+
+static HudSource *
+hud_indicator_source_get (HudSource    *hud_source,
+                          const gchar *application_id)
+{
+  HudIndicatorSource *source = HUD_INDICATOR_SOURCE (hud_source);
+  gint i;
+
+  for (i = 0; i < source->n_indicators; i++)
+    if (source->indicators[i].collector) {
+      HudSource *result = hud_source_get (source->indicators[i].collector, application_id);
+      if (result != NULL)
+        return result;
+    }
+
+  return NULL;
 }
 
 static void
@@ -273,6 +292,7 @@ hud_indicator_source_iface_init (HudSourceInterface *iface)
   iface->use = hud_indicator_source_use;
   iface->unuse = hud_indicator_source_unuse;
   iface->search = hud_indicator_source_search;
+  iface->get = hud_indicator_source_get;
 }
 
 static void

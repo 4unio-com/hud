@@ -123,12 +123,12 @@ hud_webapp_source_should_search_app (BamfApplication *application,
 static void
 hud_webapp_source_search (HudSource    *hud_source,
                           HudTokenList *token_list,
+                          SearchFlags   flags,
                           void        (*append_func) (HudResult * result, gpointer user_data),
                           gpointer      user_data)
 {
   HudWebappSource *source;
   GList *walk;
-  
   source = HUD_WEBAPP_SOURCE (hud_source);
   
   for (walk = source->applications; walk != NULL; walk = walk->next)
@@ -142,10 +142,38 @@ hud_webapp_source_search (HudSource    *hud_source,
 
       if (hud_webapp_source_should_search_app (application_source->application, active_xid))
 	{
-	  hud_source_search (application_source->collector, token_list, append_func, user_data);
+	  hud_source_search (application_source->collector, token_list, flags, append_func, user_data);
 	}
 
     }
+}
+
+static HudSource *
+hud_webapp_source_get (HudSource   *hud_source,
+                       const gchar *application_id)
+{
+  HudWebappSource *source;
+  GList *walk;
+  source = HUD_WEBAPP_SOURCE (hud_source);
+
+  for (walk = source->applications; walk != NULL; walk = walk->next)
+    {
+      HudWebappApplicationSource *application_source;
+      guint32 active_xid;
+
+      application_source = (HudWebappApplicationSource *)walk->data;
+
+      active_xid = bamf_window_get_xid(bamf_matcher_get_active_window(source->matcher));
+
+      if (hud_webapp_source_should_search_app (application_source->application, active_xid))
+        {
+          HudSource *result = hud_source_get(application_source->collector, application_id);
+          if (result != NULL)
+            return result;
+        }
+    }
+
+  return NULL;
 }
 
 HudWebappApplicationSource *
@@ -351,6 +379,7 @@ hud_webapp_source_iface_init (HudSourceInterface *iface)
   iface->search = hud_webapp_source_search;
   iface->use = hud_webapp_source_use;
   iface->unuse = hud_webapp_source_unuse;
+  iface->get = hud_webapp_source_get;
 }
 
 static void

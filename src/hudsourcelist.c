@@ -85,6 +85,7 @@ hud_source_list_unuse (HudSource *source)
 static void
 hud_source_list_search (HudSource    *source,
                         HudTokenList *search_string,
+                        SearchFlags   flags,
                         void        (*append_func) (HudResult * result, gpointer user_data),
                         gpointer      user_data)
 {
@@ -92,7 +93,23 @@ hud_source_list_search (HudSource    *source,
   GSList *node;
 
   for (node = list->list; node; node = node->next)
-    hud_source_search (node->data, search_string, append_func, user_data);
+    hud_source_search (node->data, search_string, flags, append_func, user_data);
+}
+
+static HudSource *
+hud_source_list_get (HudSource   *source,
+                     const gchar *application_id)
+{
+  HudSourceList *list = HUD_SOURCE_LIST (source);
+  GSList *node;
+
+  for (node = list->list; node; node = node->next) {
+    HudSource *result = hud_source_get (node->data, application_id);
+    if (result != NULL)
+      return result;
+  }
+
+  return NULL;
 }
 
 static void
@@ -118,6 +135,7 @@ hud_source_list_iface_init (HudSourceInterface *iface)
   iface->use = hud_source_list_use;
   iface->unuse = hud_source_list_unuse;
   iface->search = hud_source_list_search;
+  iface->get = hud_source_list_get;
 }
 
 static void

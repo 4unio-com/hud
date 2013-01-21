@@ -111,18 +111,26 @@ bus_method (GDBusConnection       *connection,
             GDBusMethodInvocation *invocation,
             gpointer               user_data)
 {
-	HudSource *source = user_data;
-
 	if (g_str_equal (method_name, "StartQuery")) {
+		HudSourceList *all_sources = user_data;
 		GVariant * vsearch;
 		const gchar *search_string;
 		HudQuery *query;
-
+		
 		vsearch = g_variant_get_child_value (parameters, 0);
 		search_string = g_variant_get_string(vsearch, NULL);
 		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
 
-		query = hud_query_new (source, search_string, 10, connection);
+		HudSource *current_source = hud_application_list_get_used_source(application_list);
+		// Try the rest of apps
+		if (current_source == NULL) {
+			GList * apps = hud_application_list_get_apps(application_list);
+			if (apps != NULL) {
+				current_source = HUD_SOURCE(apps->data);
+			}
+		}
+		// TODO There might be no running app, continue searching if current_source == NULL
+		query = hud_query_new (HUD_SOURCE(all_sources), current_source, search_string, 10, connection);
 		g_dbus_method_invocation_return_value (invocation, describe_query (query));
 
 		g_ptr_array_add(query_list, query);

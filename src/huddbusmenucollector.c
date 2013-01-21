@@ -354,6 +354,7 @@ hud_dbusmenu_collector_unuse (HudSource *source)
 static void
 hud_dbusmenu_collector_search (HudSource    *source,
                                HudTokenList *search_string,
+                               SearchFlags   flags,
                                void        (*append_func) (HudResult * result, gpointer user_data),
                                gpointer      user_data)
 {
@@ -367,9 +368,24 @@ hud_dbusmenu_collector_search (HudSource    *source,
       HudResult *result;
 
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
-      if (result)
+      if (result) {
         append_func(result, user_data);
+        if (flags == OneResultPerApplicationSearchFlag)
+          break;
+      }
     }
+}
+
+static HudSource *
+hud_dbusmenu_collector_get (HudSource    *source,
+                            const gchar *application_id)
+{
+  HudDbusmenuCollector *collector = HUD_DBUSMENU_COLLECTOR (source);
+
+  if (g_strcmp0 (application_id, collector->application_id) == 0)
+    return source;
+
+  return NULL;
 }
 
 static void
@@ -620,6 +636,7 @@ hud_dbusmenu_collector_iface_init (HudSourceInterface *iface)
   iface->use = hud_dbusmenu_collector_use;
   iface->unuse = hud_dbusmenu_collector_unuse;
   iface->search = hud_dbusmenu_collector_search;
+  iface->get = hud_dbusmenu_collector_get;
 }
 
 static void

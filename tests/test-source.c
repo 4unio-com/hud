@@ -142,7 +142,7 @@ static HudQuery*
 test_source_create_query (GDBusConnection *session, HudSource *source, const gchar *search)
 {
   g_debug ("query: [%s], on [%s]", search, g_dbus_connection_get_unique_name(session));
-  return hud_query_new (source, search, 1u << 30, session);
+  return hud_query_new (source, source, search, 1u << 30, session);
 }
 
 static void

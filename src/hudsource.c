@@ -146,13 +146,34 @@ hud_source_unuse (HudSource *source)
 void
 hud_source_search (HudSource    *source,
                    HudTokenList *search_string,
+                   SearchFlags   flags,
                    void        (*append_func) (HudResult * result, gpointer user_data),
                    gpointer      user_data)
 {
   g_debug ("search on %s %p", G_OBJECT_TYPE_NAME (source), source);
 
   HUD_SOURCE_GET_IFACE (source)
-    ->search (source, search_string, append_func, user_data);
+    ->search (source, search_string, flags, append_func, user_data);
+}
+
+/**
+ * hud_source_get:
+ * @source; a #HudSource
+ *
+ * Mark a #HudSource as "in use" (ie: actively being queried).
+ *
+ * Gets the last source that is responsible of giving results for application_id
+ **/
+HudSource *
+hud_source_get (HudSource *source,
+                const gchar *application_id)
+{
+  g_return_val_if_fail (HUD_IS_SOURCE (source), NULL);
+
+  g_debug ("get on %s %p", G_OBJECT_TYPE_NAME (source), source);
+
+  return HUD_SOURCE_GET_IFACE (source)
+    ->get (source, application_id);
 }
 
 /**

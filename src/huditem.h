@@ -73,6 +73,7 @@ void                    hud_item_activate                               (HudItem
                                                                          GVariant      *platform_data);
 HudStringList *         hud_item_get_tokens                             (HudItem       *item);
 HudStringList *         hud_item_get_keywords                             (HudItem       *item);
+const gchar *           hud_item_get_desktop_file                       (HudItem       *item);
 const gchar *           hud_item_get_app_icon                           (HudItem       *item);
 const gchar *           hud_item_get_item_icon                          (HudItem       *item);
 guint                   hud_item_get_usage                              (HudItem       *item);

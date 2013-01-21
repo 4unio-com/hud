@@ -87,7 +87,7 @@ test_menus_dbusmenu_base (void)
 	hud_source_use(HUD_SOURCE(collector));
 
 	gboolean found = FALSE;
-	hud_source_search(HUD_SOURCE(collector), NULL, test_menus_dbusmenu_base_search, &found);
+	hud_source_search(HUD_SOURCE(collector), NULL, NoSourceSearchFlags, test_menus_dbusmenu_base_search, &found);
 
 	g_assert(found);
 
@@ -168,7 +168,7 @@ test_menus_dbusmenu_shortcuts (void)
 
 		guint item = i;
 		HudTokenList * tl = hud_token_list_new_from_string(shortcutdb[i].label);
-		hud_source_search(HUD_SOURCE(collector), tl, test_menus_dbusmenu_shortcut_search, &item);
+		hud_source_search(HUD_SOURCE(collector), tl, NoSourceSearchFlags, test_menus_dbusmenu_shortcut_search, &item);
 
 		g_assert(item == -1);
 		hud_token_list_free(tl);
@@ -211,7 +211,7 @@ test_menus_model_base (void)
 	hud_source_use(HUD_SOURCE(collector));
 
 	gboolean found = FALSE;
-	hud_source_search(HUD_SOURCE(collector), NULL, test_menus_dbusmenu_base_search, &found);
+	hud_source_search(HUD_SOURCE(collector), NULL, NoSourceSearchFlags, test_menus_dbusmenu_base_search, &found);
 
 	g_assert(found);
 
@@ -259,7 +259,7 @@ test_menus_model_shortcuts (void)
 
 		guint item = i;
 		HudTokenList * tl = hud_token_list_new_from_string(shortcutdb[i].label);
-		hud_source_search(HUD_SOURCE(collector), tl, test_menus_dbusmenu_shortcut_search, &item);
+		hud_source_search(HUD_SOURCE(collector), tl, NoSourceSearchFlags, test_menus_dbusmenu_shortcut_search, &item);
 
 		g_assert(item == -1);
 		hud_token_list_free(tl);

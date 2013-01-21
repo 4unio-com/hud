@@ -81,12 +81,20 @@ hud_manual_source_foreach (gpointer item, gpointer user_data)
 static void
 hud_manual_source_search (HudSource    *hud_source,
                          HudTokenList *search_string,
+                         SearchFlags   flags,
                          void        (*append_func) (HudResult * result, gpointer user_data),
                          gpointer      list)
 {
   HudManualSource *self = HUD_MANUAL_SOURCE (hud_source);
   HudManualSourceForEach user_data = {search_string, append_func, list};
   g_ptr_array_foreach(self->items, hud_manual_source_foreach, &user_data);
+}
+
+static HudSource *
+hud_manual_source_get (HudSource    *hud_source,
+                       const gchar *application_id)
+{
+  return NULL;
 }
 
 static void
@@ -113,6 +121,7 @@ hud_manual_source_iface_init (HudSourceInterface *iface)
   iface->use = hud_manual_source_use;
   iface->unuse = hud_manual_source_unuse;
   iface->search = hud_manual_source_search;
+	iface->get = hud_manual_source_get;
 }
 
 static void

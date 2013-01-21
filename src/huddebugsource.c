@@ -107,6 +107,7 @@ hud_debug_source_unuse (HudSource *hud_source)
 static void
 hud_debug_source_search (HudSource    *hud_source,
                          HudTokenList *search_string,
+                         SearchFlags   flags,
                          void        (*append_func) (HudResult * result, gpointer user_data),
                          gpointer      user_data)
 {
@@ -120,6 +121,21 @@ hud_debug_source_search (HudSource    *hud_source,
       if (result != NULL)
         append_func(result, user_data);
     }
+}
+
+static HudSource *
+hud_debug_source_get (HudSource    *hud_source,
+                      const gchar *application_id)
+{
+  HudDebugSource *source = HUD_DEBUG_SOURCE (hud_source);
+
+  if (source->item)
+    {
+      if (g_strcmp0 (application_id, hud_item_get_desktop_file(source->item)) == 0)
+        return hud_source;
+    }
+
+  return NULL;
 }
 
 static void
@@ -147,6 +163,7 @@ hud_debug_source_iface_init (HudSourceInterface *iface)
   iface->use = hud_debug_source_use;
   iface->unuse = hud_debug_source_unuse;
   iface->search = hud_debug_source_search;
+  iface->get = hud_debug_source_get;
 }
 
 static void
