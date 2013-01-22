@@ -282,9 +282,23 @@ hud_client_query_get_query (HudClientQuery * cquery)
 }
 
 void
-hud_client_query_voice_search ()
+hud_client_query_voice_search (HudClientQuery * cquery)
 {
-  // FIXME Implement this method
+  g_return_if_fail(HUD_CLIENT_IS_QUERY(cquery));
+
+  if (cquery->priv->proxy != NULL) {
+    g_debug("running voice search");
+    gint revision = 0;
+    g_clear_pointer(&cquery->priv->query, g_free);
+    GError *error = NULL;
+    if (!_hud_query_com_canonical_hud_query_call_voice_search_sync (
+        cquery->priv->proxy, &revision, &cquery->priv->query, NULL, NULL ))
+    {
+      g_warning("Error running voice search: [%s]", error->message);
+      g_error_free(error);
+    }
+    g_object_notify(G_OBJECT(cquery), PROP_QUERY_S);
+  }
 }
 
 /**
