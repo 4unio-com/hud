@@ -312,7 +312,7 @@ handle_execute (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation 
 	return TRUE;
 }
 
-/* Handle the DBus function UpdateQuery */
+/* Handle the DBus function CloseQuery */
 static gboolean
 handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
 {
