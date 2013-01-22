@@ -387,9 +387,13 @@ source_list_applications (HudSource *               hud_source,
 
 	for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
 		HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
-		if (appsource == NULL) continue;
+		if (appsource == NULL || HUD_SOURCE(appsource) == list->priv->used_source) continue;
 
 		hud_source_list_applications(HUD_SOURCE(appsource), search_string, append_func, user_data);
+	}
+	
+	if (list->priv->used_source != NULL) {
+		hud_source_list_applications(list->priv->used_source, search_string, append_func, user_data);
 	}
 }
 
