@@ -29,14 +29,53 @@
 #include "hudappindicatorsource.h"
 #include "hudindicatorsource.h"
 #include "hudwebappsource.h"
-#include "hudwindowsource.h"
 #include "huddebugsource.h"
 #include "hudsourcelist.h"
 #include "hudsettings.h"
+#include "application-list.h"
 
 #include "hud-iface.h"
 #include "shared-values.h"
 #include "hudquery.h"
+
+/* Prototypes */
+static void            bus_method         (GDBusConnection       *connection,
+                                           const gchar           *sender,
+                                           const gchar           *object_path,
+                                           const gchar           *interface_name,
+                                           const gchar           *method_name,
+                                           GVariant              *parameters,
+                                           GDBusMethodInvocation *invocation,
+                                           gpointer               user_data);
+static GVariant *      bus_get_prop       (GDBusConnection *      connection,
+                                           const gchar *          sender,
+                                           const gchar *          object_path,
+                                           const gchar *          interface_name,
+                                           const gchar *          property_name,
+                                           GError **              error,
+                                           gpointer               user_data);
+
+
+/* Globals */
+static GPtrArray * query_list = NULL;
+static GMainLoop *mainloop = NULL;
+static GDBusInterfaceVTable vtable = {
+	.method_call = bus_method,
+	.get_property = bus_get_prop,
+	.set_property = NULL
+};
+static HudApplicationList * application_list = NULL;
+
+/* Get our error domain */
+GQuark
+error (void)
+{
+	static GQuark err = 0;
+	if (err == 0) {
+		err = g_quark_from_static_string("hud");
+	}
+	return err;
+}
 
 /* Describe the important values in the query */
 GVariant *
@@ -62,8 +101,6 @@ query_destroyed (gpointer data, GObject * old_object)
 	return;
 }
 
-static GPtrArray * query_list = NULL;
-
 static void
 bus_method (GDBusConnection       *connection,
             const gchar           *sender,
@@ -74,32 +111,50 @@ bus_method (GDBusConnection       *connection,
             GDBusMethodInvocation *invocation,
             gpointer               user_data)
 {
-  HudSource *source = user_data;
+	HudSource *source = user_data;
 
-  if (g_str_equal (method_name, "StartQuery"))
-    {
-      GVariant * vsearch;
-      const gchar *search_string;
-      HudQuery *query;
+	if (g_str_equal (method_name, "StartQuery")) {
+		GVariant * vsearch;
+		const gchar *search_string;
+		HudQuery *query;
 
-      vsearch = g_variant_get_child_value (parameters, 0);
-      search_string = g_variant_get_string(vsearch, NULL);
-      g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
+		vsearch = g_variant_get_child_value (parameters, 0);
+		search_string = g_variant_get_string(vsearch, NULL);
+		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
 
-      query = hud_query_new (source, search_string, 10);
-      g_dbus_method_invocation_return_value (invocation, describe_query (query));
+		query = hud_query_new (source, search_string, 10);
+		g_dbus_method_invocation_return_value (invocation, describe_query (query));
 
-      g_ptr_array_add(query_list, query);
-      g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
+		g_ptr_array_add(query_list, query);
+		g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
 
-      g_variant_unref(vsearch);
-    }
-  else
-    {
-      g_warn_if_reached();
-    }
+		g_variant_unref(vsearch);
+	} else if (g_str_equal (method_name, "RegisterApplication")) {
+		GVariant * vid = g_variant_get_child_value (parameters, 0);
 
-  return;
+		HudApplicationSource * appsource = hud_application_list_get_source(application_list, g_variant_get_string(vid, NULL));
+
+		const gchar * path = NULL;
+		if (appsource != NULL) {
+			path = hud_application_source_get_path(appsource);
+		}
+
+		GVariant * vpath = NULL;
+		if (path != NULL) {
+			vpath = g_variant_new_object_path(path);
+		}
+
+		if (vpath != NULL) {
+			g_dbus_method_invocation_return_value(invocation, g_variant_new_tuple(&vpath, 1));
+		} else {
+			g_dbus_method_invocation_return_error_literal(invocation, error(), 1, "Unable to get path for the created application");
+		}
+		g_variant_unref(vid);
+	} else {
+		g_warn_if_reached();
+	}
+
+	return;
 }
 
 /* Gets properties for DBus */
@@ -123,19 +178,30 @@ bus_get_prop (GDBusConnection * connection, const gchar * sender, const gchar * 
 		}
 
 		return g_variant_builder_end(&builder);
+	} else if (g_str_equal(property_name, "Applications")) {
+		GList * apps = hud_application_list_get_apps(application_list);
+		if (apps == NULL) {
+			return g_variant_new_array(G_VARIANT_TYPE_OBJECT_PATH, NULL, 0);
+		}
+
+		GVariantBuilder builder;
+		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
+		while (apps != NULL) {
+			HudApplicationSource * source = HUD_APPLICATION_SOURCE(apps->data);
+			g_variant_builder_open(&builder, G_VARIANT_TYPE_TUPLE);
+			g_variant_builder_add_value(&builder, g_variant_new_string(hud_application_source_get_id(source)));
+			g_variant_builder_add_value(&builder, g_variant_new_object_path(hud_application_source_get_path(source)));
+			g_variant_builder_close(&builder);
+			apps = g_list_next(apps);
+		}
+
+		return g_variant_builder_end(&builder);
 	} else {
 		g_warn_if_reached();
 	}
 
 	return NULL;
 }
-
-static GMainLoop *mainloop = NULL;
-static GDBusInterfaceVTable vtable = {
-	.method_call = bus_method,
-	.get_property = bus_get_prop,
-	.set_property = NULL
-};
 
 static void
 bus_acquired_cb (GDBusConnection *connection,
@@ -183,10 +249,11 @@ sigterm_graceful_exit (int signal)
 int
 main (int argc, char **argv)
 {
-  HudWindowSource *window_source;
   HudSourceList *source_list;
 
+#ifndef GLIB_VERSION_2_36
   g_type_init ();
+#endif
 
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
@@ -197,9 +264,8 @@ main (int argc, char **argv)
   query_list = g_ptr_array_new();
   source_list = hud_source_list_new ();
 
-  /* we will eventually pull GtkMenu out of this, so keep it around */
-  window_source = hud_window_source_new ();
-  hud_source_list_add (source_list, HUD_SOURCE (window_source));
+  application_list = hud_application_list_new();
+  hud_source_list_add(source_list, HUD_SOURCE(application_list));
 
   {
     HudIndicatorSource *source;
@@ -220,7 +286,7 @@ main (int argc, char **argv)
   {
     HudWebappSource *source;
     
-    source = hud_webapp_source_new (window_source);
+    source = hud_webapp_source_new ();
     hud_source_list_add (source_list, HUD_SOURCE (source));
     
     g_object_unref (G_OBJECT (source));
@@ -245,7 +311,7 @@ main (int argc, char **argv)
   g_main_loop_run (mainloop);
   g_main_loop_unref (mainloop);
 
-  g_object_unref (window_source);
+  g_object_unref (application_list);
   g_object_unref (source_list);
   g_ptr_array_free(query_list, TRUE);
 

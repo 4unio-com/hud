@@ -168,7 +168,5 @@ hud_source_search (HudSource    *source,
 void
 hud_source_changed (HudSource *source)
 {
-  g_debug ("%s %p changed", G_OBJECT_TYPE_NAME (source), source);
-
   g_signal_emit (source, hud_source_changed_signal, 0);
 }

@@ -69,13 +69,6 @@ static const IndicatorInfo indicator_info[] = {
     .icon              = "system-devices-panel"
   },
   {
-    .dbus_name         = "com.canonical.indicator.session",
-    .dbus_menu_path    = "/com/canonical/indicator/users/menu",
-    .indicator_name    = "indicator-session-user",
-    .user_visible_name = N_("Users"),
-    .icon              = "avatar-default"
-  },
-  {
     .dbus_name         = "com.canonical.indicator.sound",
     .dbus_menu_path    = "/com/canonical/indicator/sound/menu",
     .indicator_name    = "indicator-sound",
@@ -189,14 +182,12 @@ hud_indicator_source_name_appeared (GDBusConnection *connection,
 
   if (indicator->info->uses_gmenumodel)
     {
-      HudMenuModelCollector *collector;
+      HudMenuModelCollector *collector = hud_menu_model_collector_new(indicator->info->indicator_name, indicator->info->icon, hud_settings.indicator_penalty);
 
-      collector = hud_menu_model_collector_new_for_endpoint (indicator->info->indicator_name,
-                                                             _(indicator->info->user_visible_name),
-                                                             indicator->info->icon,
-                                                             hud_settings.indicator_penalty,
-                                                             name_owner,
-                                                             indicator->info->dbus_menu_path);
+      hud_menu_model_collector_add_endpoint (collector,
+                                             _(indicator->info->user_visible_name),
+                                             name_owner,
+                                             indicator->info->dbus_menu_path);
 
       indicator->collector = HUD_SOURCE (collector);
     }

@@ -25,6 +25,7 @@
 #include "action-publisher.h"
 
 #include "manager.h"
+#include "marshal.h"
 
 #include <string.h>
 
@@ -51,18 +52,22 @@ struct _HudActionPublisher
 
   GDBusConnection *bus;
   GApplication *application;
-  gchar *application_id;
+  GVariant * id;
   gint export_id;
   gchar *path;
 
   GSequence *descriptions;
   HudAux *aux;
+
+  GList * action_groups;
 };
 
 enum
 {
   SIGNAL_BEFORE_EMIT,
   SIGNAL_AFTER_EMIT,
+  SIGNAL_ACTION_GROUP_ADDED,
+  SIGNAL_ACTION_GROUP_REMOVED,
   N_SIGNALS
 };
 
@@ -152,6 +157,7 @@ static void
 hud_action_publisher_finalize (GObject *object)
 {
   g_error ("g_object_unref() called on internally-owned ref of HudActionPublisher");
+  g_clear_pointer(&HUD_ACTION_PUBLISHER(object)->id, g_variant_unref);
 }
 
 static void
@@ -199,35 +205,14 @@ hud_action_publisher_class_init (HudActionPublisherClass *class)
                                                                   G_SIGNAL_RUN_LAST, 0, NULL, NULL,
                                                                   g_cclosure_marshal_VOID__VARIANT,
                                                                   G_TYPE_NONE, 1, G_TYPE_VARIANT);
-}
-
-/**
- * hud_action_publisher_new_with_application_id:
- * @application_id: an application ID
- *
- * Creates a new #HudActionPublisher with the given application ID.
- *
- * Application IDs should look like D-Bus names (eg:
- * "com.canonical.SoftwareCentre").
- *
- * If you use this API you must register the action groups that your
- * application uses with hud_action_publisher_add_action_group().
- *
- * Returns: a new #HudActionPublisher
- **/
-HudActionPublisher *
-hud_action_publisher_new_with_application_id (const gchar *application_id)
-{
-  HudActionPublisher *publisher;
-
-  g_return_val_if_fail (application_id != NULL, NULL);
-
-  publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
-  publisher->application_id = g_strdup (application_id);
-
-  hud_manager_say_hello (application_id, publisher->path);
-
-  return publisher;
+  hud_action_publisher_signals[SIGNAL_ACTION_GROUP_ADDED] = g_signal_new (HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_ADDED, HUD_TYPE_ACTION_PUBLISHER,
+                                                                  G_SIGNAL_RUN_LAST, 0, NULL, NULL,
+                                                                  _hud_marshal_VOID__STRING_STRING,
+                                                                  G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_STRING);
+  hud_action_publisher_signals[SIGNAL_ACTION_GROUP_REMOVED] = g_signal_new (HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_REMOVED, HUD_TYPE_ACTION_PUBLISHER,
+                                                                  G_SIGNAL_RUN_LAST, 0, NULL, NULL,
+                                                                  _hud_marshal_VOID__STRING_STRING,
+                                                                  G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_STRING);
 }
 
 /**
@@ -257,140 +242,17 @@ hud_action_publisher_new_with_application_id (const gchar *application_id)
  * Returns: a new #HudActionPublisher
  **/
 
-static GType hud_gtkapplication_gtype;
-static GType hud_gtkapplicationwindow_gtype;
-static guint (* hud_gdk_x11_window_get_xid) (gpointer window);
-static guint (* hud_gtk_application_window_get_id) (gpointer window);
+/* TODO: Combine these */
 
-static gboolean
-hud_action_publisher_gtk_is_available (void)
-{
-  if (!hud_gtkapplication_gtype)
-    {
-      gpointer symbol = NULL;
-      GModule *self;
-
-      hud_gtkapplication_gtype = g_type_from_name ("GtkApplication");
-      if (!hud_gtkapplication_gtype)
-        return FALSE;
-
-      self = g_module_open (NULL, 0);
-      g_module_symbol (self, "gdk_x11_window_get_xid", &symbol);
-      hud_gdk_x11_window_get_xid = symbol;
-      g_module_symbol (self, "gtk_application_window_get_id", &symbol);
-      hud_gtk_application_window_get_id = symbol;
-
-      if (!hud_gtk_application_window_get_id || !hud_gdk_x11_window_get_xid)
-        g_error ("Your process has 'GtkApplication' but not 'gdk_x11_window_get_xid' "
-                 "or 'gtk_application_window_get_id'.  That's weird.");
-    }
-
-  return TRUE;
-}
-
-static void
-hud_action_publisher_get_window_details (gpointer   window, /* GtkApplicationWindow */
-                                         gchar    **object_path,
-                                         guint     *xid)
-{
-  GApplication *application;
-  gpointer gdk_window;
-
-  g_object_get (window,
-                "application", &application,
-                "window", &gdk_window,
-                NULL);
-  g_assert (window); /* we're inside a realize/unrealize pair... */
-  g_assert (application); /* otherwise why are we here...? */
-
-  /* FIXME: this won't work so well if we're not on X11...
-   *
-   * need code to deal with the other backends...
-   */
-  *xid = (* hud_gdk_x11_window_get_xid) (gdk_window);
-
-  if (object_path)
-    {
-      guint id;
-
-      id = (* hud_gtk_application_window_get_id) (window);
-      *object_path = g_strdup_printf ("%s/window/%u",
-                                      g_application_get_dbus_object_path (application), id);
-    }
-}
-
-static void
-hud_action_publisher_window_realize (gpointer window, /* GtkWidget */
-                                     gpointer user_data)
-{
-  HudActionPublisher *publisher = user_data;
-  gchar *object_path;
-  guint xid;
-
-  hud_action_publisher_get_window_details (window, &object_path, &xid);
-  hud_manager_add_actions (publisher->application_id, "win",
-                           g_variant_new_uint32 (xid), object_path);
-  g_free (object_path);
-}
-
-static void
-hud_action_publisher_window_unrealize (gpointer window, /* GtkWidget */
-                                       gpointer user_data)
-{
-  HudActionPublisher *publisher = user_data;
-  guint xid;
-
-  hud_action_publisher_get_window_details (window, NULL, &xid);
-  hud_manager_remove_actions (publisher->application_id, "win", g_variant_new_uint32 (xid));
-}
-
-static void
-hud_action_publisher_window_added (GApplication *application, /* really GtkApplication */
-                                   gpointer      window,      /* GtkWindow */
-                                   gpointer      user_data)
-{
-  HudActionPublisher *publisher = user_data;
-
-  /* We deal with this one separately because GtkApplicationWindow may
-   * not yet exist at the time that the HudActionPublisher is created.
-   */
-  if (!hud_gtkapplicationwindow_gtype)
-    hud_gtkapplicationwindow_gtype = g_type_from_name ("GtkApplicationWindow");
-
-  /* Can't do anything with this if it's not a GtkApplicationWindow and
-   * it's definitely not one if we don't have the type registered...
-   */
-  if (!hud_gtkapplicationwindow_gtype ||
-      !G_TYPE_CHECK_INSTANCE_TYPE (window, hud_gtkapplicationwindow_gtype))
-    return;
-
-  /* It's not possible that the window is already realized at the time
-   * that it is added to the application, so just watch for the signal.
-   */
-  g_signal_connect (window, "realize",
-                    G_CALLBACK (hud_action_publisher_window_realize), publisher);
-  g_signal_connect (window, "unrealize",
-                    G_CALLBACK (hud_action_publisher_window_unrealize), publisher);
-}
-
-static void
-hud_action_publisher_window_removed (GApplication *application, /* really GtkApplication */
-                                     gpointer      window,      /* GtkWindow */
-                                     gpointer      user_data)
-{
-  HudActionPublisher *publisher = user_data;
-
-  /* Just indiscriminately disconnect....
-   * If we didn't connect anything then nothing will happen.
-   *
-   * We're probably well on our way to destruction at this point, but it
-   * can't hurt to clean up properly just incase someone is doing
-   * something weird.
-   */
-  g_signal_handlers_disconnect_by_func (window, hud_action_publisher_window_realize, publisher);
-  g_signal_handlers_disconnect_by_func (window, hud_action_publisher_window_unrealize, publisher);
-}
-
+/**
+ * hud_action_publisher_new_for_application:
+ * @application: A #GApplication object
+ *
+ * Creates a new #HudActionPublisher and automatically registers the
+ * default actions under the "app" prefix.
+ *
+ * Return value: (transfer full): A new #HudActionPublisher object
+ */
 HudActionPublisher *
 hud_action_publisher_new_for_application (GApplication *application)
 {
@@ -403,23 +265,23 @@ hud_action_publisher_new_for_application (GApplication *application)
 
   publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
   publisher->application = g_object_ref (application);
-  publisher->application_id = g_strdup (g_application_get_application_id (application));
 
-  hud_manager_say_hello (publisher->application_id, publisher->path);
-
-  hud_manager_add_actions (publisher->application_id, "app", NULL,
+  hud_action_publisher_add_action_group (publisher, "app",
                            g_application_get_dbus_object_path (application));
 
-  if (hud_action_publisher_gtk_is_available () &&
-      G_TYPE_CHECK_INSTANCE_TYPE (application, hud_gtkapplication_gtype))
-    {
-      g_signal_connect (application, "window-added",
-                        G_CALLBACK (hud_action_publisher_window_added), publisher);
-      g_signal_connect (application, "window-removed",
-                        G_CALLBACK (hud_action_publisher_window_removed), publisher);
-    }
-
   return publisher;
+}
+
+HudActionPublisher *
+hud_action_publisher_new_for_id (GVariant * id)
+{
+	g_return_val_if_fail(id != NULL, NULL);
+
+	HudActionPublisher * publisher;
+	publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
+	publisher->id = g_variant_ref_sink(id);
+
+	return publisher;
 }
 
 static gchar *
@@ -595,7 +457,6 @@ hud_action_publisher_remove_descriptions (HudActionPublisher *publisher,
  * hud_action_publisher_add_action_group:
  * @publisher: a #HudActionPublisher
  * @prefix: the action prefix for the group (like "app")
- * @identifier: (allow none): an identifier, or %NULL
  * @object_path: the object path of the exported group
  *
  * Informs the HUD of the existance of an action group.
@@ -619,10 +480,20 @@ hud_action_publisher_remove_descriptions (HudActionPublisher *publisher,
 void
 hud_action_publisher_add_action_group (HudActionPublisher *publisher,
                                        const gchar        *prefix,
-                                       GVariant           *identifier,
                                        const gchar        *object_path)
 {
-  hud_manager_add_actions (publisher->application_id, prefix, identifier, object_path);
+	g_return_if_fail(HUD_IS_ACTION_PUBLISHER(publisher));
+	g_return_if_fail(prefix != NULL);
+	g_return_if_fail(object_path != NULL);
+
+	HudActionPublisherActionGroupSet * group = g_new0(HudActionPublisherActionGroupSet, 1);
+
+	group->prefix = g_strdup(prefix);
+	group->path = g_strdup(object_path);
+
+	publisher->action_groups = g_list_prepend(publisher->action_groups, group);
+
+	return;
 }
 
 /**
@@ -641,7 +512,7 @@ hud_action_publisher_remove_action_group (HudActionPublisher *publisher,
                                           const gchar        *prefix,
                                           GVariant           *identifier)
 {
-  hud_manager_remove_actions (publisher->application_id, prefix, identifier);
+  //hud_manager_remove_actions (publisher->application_id, prefix, identifier);
 }
 
 static gboolean
@@ -1204,6 +1075,53 @@ hud_action_publisher_add_descriptions_from_file (HudActionPublisher *publisher,
   /* We know that everything has been cleaned up properly because
    * otherwise we would have hit the g_error() above.
    */
+}
+
+/**
+ * hud_action_publisher_get_id:
+ * @publisher: A #HudActionPublisher object
+ *
+ * Grabs the ID for this publisher
+ *
+ * Return value: (transfer none): The ID this publisher was created with
+ */
+GVariant *
+hud_action_publisher_get_id (HudActionPublisher    *publisher)
+{
+	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
+	return publisher->id;
+}
+
+/**
+ * hud_action_publisher_get_action_groups:
+ * @publisher: A #HudActionPublisher object
+ *
+ * Grabs the action groups for this publisher
+ *
+ * Return value: (transfer container) (element-type HudActionPublisherActionGroupSet *): The groups in this publisher
+ */
+GList *
+hud_action_publisher_get_action_groups (HudActionPublisher    *publisher)
+{
+	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
+	/* TODO: Flesh out */
+
+	return publisher->action_groups;
+}
+
+/**
+ * hud_action_publisher_get_description_path:
+ * @publisher: A #HudActionPublisher object
+ *
+ * Grabs the object path of the description for this publisher
+ *
+ * Return value: The object path of the descriptions
+ */
+const gchar *
+hud_action_publisher_get_description_path (HudActionPublisher    *publisher)
+{
+	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
+	return publisher->path;
 }
 
 /**

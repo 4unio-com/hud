@@ -5,6 +5,7 @@ SUBDIRS = \
 	po \
 	src \
 	libhud \
+	libhud-gtk \
 	libhud-client \
 	tools \
 	docs

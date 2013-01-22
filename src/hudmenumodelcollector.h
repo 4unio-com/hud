@@ -20,6 +20,7 @@
 #define __HUD_MENU_MODEL_COLLECTOR_H__
 
 #include <libbamf/libbamf.h>
+#include <gio/gio.h>
 
 #define HUD_TYPE_MENU_MODEL_COLLECTOR                       (hud_menu_model_collector_get_type ())
 #define HUD_MENU_MODEL_COLLECTOR(inst)                      (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
@@ -32,15 +33,24 @@ typedef struct _HudMenuModelCollector                       HudMenuModelCollecto
 
 GType                   hud_menu_model_collector_get_type               (void);
 
-HudMenuModelCollector * hud_menu_model_collector_get                    (BamfWindow  *window,
-                                                                         const gchar *desktop_file,
-                                                                         const gchar *icon);
-
-HudMenuModelCollector * hud_menu_model_collector_new_for_endpoint       (const gchar *application_id,
-                                                                         const gchar *prefix,
+HudMenuModelCollector * hud_menu_model_collector_new                    (const gchar *application_id,
                                                                          const gchar *icon,
-                                                                         guint        penalty,
+                                                                         guint        penalty);
+
+void                    hud_menu_model_collector_add_window             (HudMenuModelCollector * collector,
+                                                                         BamfWindow  *window);
+
+void                    hud_menu_model_collector_add_endpoint           (HudMenuModelCollector * collector,
+                                                                         const gchar *prefix,
                                                                          const gchar *bus_name,
                                                                          const gchar *object_path);
+
+void                    hud_menu_model_collector_add_model              (HudMenuModelCollector * collector,
+                                                                         GMenuModel *   model,
+                                                                         const gchar *  prefix);
+
+void                    hud_menu_model_collector_add_actions            (HudMenuModelCollector * collector,
+                                                                         GActionGroup *   group,
+                                                                         const gchar *    prefix);
 
 #endif /* __HUD_MENU_MODEL_COLLECTOR_H__ */

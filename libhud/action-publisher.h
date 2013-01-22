@@ -39,6 +39,9 @@ G_BEGIN_DECLS
 #define HUD_IS_ACTION_PUBLISHER(inst)                       (G_TYPE_CHECK_INSTANCE_TYPE ((inst),                     \
                                                              HUD_TYPE_ACTION_PUBLISHER))
 
+#define HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_ADDED      "action-group-added"
+#define HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_REMOVED    "action-group-removed"
+
 #define HUD_TYPE_ACTION_DESCRIPTION                         (hud_action_description_get_type ())
 #define HUD_ACTION_DESCRIPTION(inst)                        (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
                                                              HUD_TYPE_ACTION_DESCRIPTION, HudActionDescription))
@@ -47,14 +50,18 @@ G_BEGIN_DECLS
 
 typedef struct _HudActionDescription                        HudActionDescription;
 typedef struct _HudActionPublisher                          HudActionPublisher;
+typedef struct _HudActionPublisherActionGroupSet            HudActionPublisherActionGroupSet;
+
+struct _HudActionPublisherActionGroupSet {
+	gchar * prefix;
+	gchar * path;
+};
 
 GType                   hud_action_publisher_get_type                   (void) G_GNUC_CONST;
 
-HudActionPublisher *    hud_action_publisher_new_with_application_id    (const gchar           *application_id);
+HudActionPublisher *    hud_action_publisher_new_for_id                 (GVariant              *id);
 
-HudActionPublisher *    hud_action_publisher_new_for_application        (GApplication          *application);
-
-void                    hud_action_publisher_add_action_description     (HudActionPublisher    *publisher,
+void                    hud_action_publisher_add_description            (HudActionPublisher    *publisher,
                                                                          HudActionDescription  *description);
 
 void                    hud_action_publisher_add_descriptions_from_file (HudActionPublisher    *publisher,
@@ -62,12 +69,15 @@ void                    hud_action_publisher_add_descriptions_from_file (HudActi
 
 void                    hud_action_publisher_add_action_group           (HudActionPublisher    *publisher,
                                                                          const gchar           *prefix,
-                                                                         GVariant              *identifier,
                                                                          const gchar           *object_path);
 void                    hud_action_publisher_remove_action_group        (HudActionPublisher    *publisher,
                                                                          const gchar           *prefix,
                                                                          GVariant              *identifier);
+GVariant *              hud_action_publisher_get_id                     (HudActionPublisher    *publisher);
+GList *                 hud_action_publisher_get_action_groups          (HudActionPublisher    *publisher);
+const gchar *           hud_action_publisher_get_description_path       (HudActionPublisher    *publisher);
 
+/* Description */
 HudActionDescription *  hud_action_description_new                      (const gchar           *action_name,
                                                                          GVariant              *action_target);
 HudActionDescription *  hud_action_description_ref                      (HudActionDescription  *description);

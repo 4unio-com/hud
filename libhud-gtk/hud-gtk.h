@@ -19,19 +19,18 @@
  * License version 3 and version 2.1 along with this program.  If not,
  * see <http://www.gnu.org/licenses/>
  *
- * Author: Ryan Lortie <desrt@desrt.ca>
+ * Author: Ted Gould <ted@canonical.com>
  */
 
-#ifndef __HUD_H__
-#define __HUD_H__
+#ifndef __HUD_GTK_H__
+#define __HUD_GTK_H__
 
-#define _HUD_H_INSIDE
+#include <hud.h>
 
-#include <libhud/operation.h>
-#include <libhud/action.h>
-#include <libhud/action-publisher.h>
-#include <libhud/manager.h>
+#define _HUD_GTK_H_INSIDE
 
-#undef _HUD_H_INSIDE
+#include <libhud-gtk/manager.h>
 
-#endif /* __HUD_H__ */
+#undef _HUD_GTK_H_INSIDE
+
+#endif /* __HUD_GTK_H__ */

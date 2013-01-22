@@ -47,8 +47,16 @@ HudSettings hud_settings = {
 static gboolean
 name_timeout (gpointer user_data)
 {
-	g_error("Unable to get name");
-	return FALSE;
+	guint * count = (guint *)user_data;
+
+	if (*count >= 10) {
+		g_error("Unable to get name");
+		return FALSE;
+	} else {
+		*count = *count + 1;
+		g_debug("Waiting for name, count: %d", *count);
+		return TRUE;
+	}
 }
 
 /* Start things up with a basic mock-json-app and wait until it starts */
@@ -73,7 +81,8 @@ start_dbusmenu_mock_app (DbusTestService ** service, GDBusConnection ** session,
 	g_object_unref(dummy);
 
 	/* Setup timeout */
-	guint timeout_source = g_timeout_add_seconds(2, name_timeout, NULL);
+	guint count = 0;
+	guint timeout_source = g_timeout_add_seconds(5, name_timeout, &count);
 
 	/* Get loader up and running and us on that bus */
 	g_debug("Starting up Dbusmenu Loader");
@@ -218,10 +227,12 @@ test_menus_dbusmenu_shortcuts (void)
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
-	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
-	g_timeout_add(100, test_menus_timeout, temploop);
-	g_main_loop_run(temploop);
-	g_main_loop_unref(temploop);
+	{
+		GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
+		g_timeout_add(100, test_menus_timeout, temploop);
+		g_main_loop_run(temploop);
+		g_main_loop_unref(temploop);
+	}
 
 	int i;
 	for (i = 0; shortcutdb[i].label != NULL; i++) {
@@ -265,7 +276,8 @@ start_model_mock_app (DbusTestService ** service, GDBusConnection ** session, co
 	g_object_unref(dummy);
 
 	/* Setup timeout */
-	guint timeout_source = g_timeout_add_seconds(2, name_timeout, NULL);
+	guint count = 0;
+	guint timeout_source = g_timeout_add_seconds(5, name_timeout, &count);
 
 	/* Get mock up and running and us on that bus */
 	g_debug("Starting up Model Mock");
@@ -290,14 +302,17 @@ test_menus_model_base (void)
 
 	start_model_mock_app(&service, &session, MODEL_SIMPLE);
 
-	HudMenuModelCollector * collector = hud_menu_model_collector_new_for_endpoint("test-id",
-	                                                                              "Prefix",
-	                                                                              "no-icon",
-	                                                                              0, /* penalty */
-	                                                                              LOADER_NAME,
-	                                                                              LOADER_PATH);
+	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
+	                                                                 "no-icon",
+	                                                                 0); /* penalty */
+
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	hud_menu_model_collector_add_endpoint(collector,
+	                                      "Prefix",
+	                                      LOADER_NAME,
+	                                      LOADER_PATH);
 
 	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
 	g_timeout_add(100, test_menus_timeout, temploop);
@@ -329,14 +344,17 @@ test_menus_model_shortcuts (void)
 
 	start_model_mock_app(&service, &session, MODEL_SHORTCUTS);
 
-	HudMenuModelCollector * collector = hud_menu_model_collector_new_for_endpoint("test-id",
-	                                                                              "Prefix",
-	                                                                              "no-icon",
-	                                                                              0, /* penalty */
-	                                                                              LOADER_NAME,
-	                                                                              LOADER_PATH);
+	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
+	                                                                 "no-icon",
+	                                                                 0); /* penalty */
+
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	hud_menu_model_collector_add_endpoint(collector,
+	                                      "Prefix",
+	                                      LOADER_NAME,
+	                                      LOADER_PATH);
 
 	GMainLoop * temploop = g_main_loop_new(NULL, FALSE);
 	g_timeout_add(100, test_menus_timeout, temploop);
@@ -383,7 +401,9 @@ test_menu_input_suite (void)
 gint
 main (gint argc, gchar * argv[])
 {
-	g_type_init();
+#ifndef GLIB_VERSION_2_36
+	g_type_init ();
+#endif
 
 	g_test_init(&argc, &argv, NULL);
 

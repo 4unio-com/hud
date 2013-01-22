@@ -53,7 +53,9 @@ main (int argv, char * argc[])
 		return 1;
 	}
 
-	g_type_init();
+#ifndef GLIB_VERSION_2_36
+	g_type_init ();
+#endif
 
 	gchar * filename = NULL;
 	gint tmpfile = g_file_open_tmp("hud-test-bad-app-info-temp-db-XXXXXX", &filename, NULL);

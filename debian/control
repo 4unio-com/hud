@@ -89,6 +89,35 @@ Description: library for exporting items to the Unity HUD
  .
  This package contains files that are needed to build applications.
 
+Package: libhud-gtk1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Recommends: hud (= ${binary:Version})
+Description: GTK helpers for exporting items to the Unity HUD
+ Allows applications to add items into the HUD without requiring a
+ menubar or other parsed GUI elements using standard GTK features.
+ .
+ This package contains shared libraries to be used by applications.
+
+Package: libhud-gtk1-dev
+Section: libdevel
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libhud-gtk1 (= ${binary:Version}),
+         libhud1-dev (= ${binary:Version}),
+         libglib2.0-dev
+Multi-Arch: same
+Description: GTK helpers for exporting items to the Unity HUD
+ Allows applications to add items into the HUD without requiring a
+ menubar or other parsed GUI elements using standard GTK features.
+ .
+ This package contains files that are needed to build applications.
+
 Package: libhud-client1
 Section: libs
 Architecture: any
