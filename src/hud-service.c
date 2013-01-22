@@ -101,6 +101,21 @@ query_destroyed (gpointer data, GObject * old_object)
 	return;
 }
 
+typedef struct
+{
+	HudSource *all_sources;
+	HudSource **current_source;
+} GetFirstValidSourceData;
+
+static void
+get_first_valid_source(const gchar *application_id, const gchar *application_icon, gpointer user_data)
+{
+	GetFirstValidSourceData *data = user_data;
+	if (*(data->current_source) == NULL) {
+		*(data->current_source) = hud_source_get(data->all_sources, application_id);
+	}
+}
+
 static void
 bus_method (GDBusConnection       *connection,
             const gchar           *sender,
@@ -121,15 +136,21 @@ bus_method (GDBusConnection       *connection,
 		search_string = g_variant_get_string(vsearch, NULL);
 		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
 
-		HudSource *current_source = hud_application_list_get_used_source(application_list);
-		// Try the rest of apps
+		HudSource *current_source = hud_application_list_get_focused_app(application_list);
 		if (current_source == NULL) {
+		// Try the rest of apps
 			GList * apps = hud_application_list_get_apps(application_list);
 			if (apps != NULL) {
 				current_source = HUD_SOURCE(apps->data);
 			}
+			if (current_source == NULL) {
+				// Get the first valid source
+				GetFirstValidSourceData data;
+				data.all_sources = HUD_SOURCE(all_sources);
+				data.current_source = &current_source;
+				hud_source_list_applications (HUD_SOURCE(all_sources), NULL, get_first_valid_source, &data);
+			}
 		}
-		// TODO There might be no running app, continue searching if current_source == NULL
 		query = hud_query_new (HUD_SOURCE(all_sources), current_source, search_string, 10, connection);
 		g_dbus_method_invocation_return_value (invocation, describe_query (query));
 

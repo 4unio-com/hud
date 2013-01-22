@@ -454,15 +454,15 @@ hud_application_list_get_source (HudApplicationList * list, const gchar * id)
 }
 
 /**
- * hud_application_list_get_used_source:
+ * hud_application_list_get_focused_app:
  * @list: A #HudApplicationList object
  * 
- * Gets the currently used source in this list
+ * Gets the focused app source
  *
  * Return value: (transfer none): The current #HudApplicationSource
  */
 HudSource *
-hud_application_list_get_used_source (HudApplicationList * list)
+hud_application_list_get_focused_app (HudApplicationList * list)
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 	
