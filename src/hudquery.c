@@ -199,7 +199,7 @@ hud_query_refresh (HudQuery *query)
   query->results_list = NULL;
 
   dee_model_clear(query->appstack_model);
-  hud_source_list_applications (HUD_SOURCE(query->all_sources), query->token_list, app_results_list_populate, query);
+  hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, query);
 
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
 
@@ -245,7 +245,7 @@ hud_query_finalize (GObject *object)
   if (query->refresh_id)
     g_source_remove (query->refresh_id);
 
-  hud_source_unuse (HUD_SOURCE(query->all_sources));
+  hud_source_unuse (query->all_sources);
 
   g_object_unref (query->all_sources);
   g_object_unref (query->current_source);
@@ -306,7 +306,7 @@ handle_update_app (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocati
 	g_debug("Updating App to: '%s'", app_id);
 
 	g_object_unref (query->current_source);
-	query->current_source = hud_source_get(HUD_SOURCE(query->all_sources), app_id);
+	query->current_source = hud_source_get(query->all_sources, app_id);
 	g_object_ref (query->current_source);
 
 	/* Refresh it all */
@@ -483,7 +483,7 @@ hud_query_new (HudSource   *all_sources,
 
   query->num_results = num_results;
 
-  hud_source_use (HUD_SOURCE(query->all_sources));
+  hud_source_use (query->all_sources);
 
   hud_query_refresh (query);
 
