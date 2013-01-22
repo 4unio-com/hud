@@ -316,10 +316,10 @@ hud_model_item_new (HudMenuModelCollector *collector,
   return HUD_ITEM (item);
 }
 
-typedef GObjectClass HudMenuModelCollectorClass;
+typedef HudCollectorClass HudMenuModelCollectorClass;
 
 static void hud_menu_model_collector_iface_init (HudSourceInterface *iface);
-G_DEFINE_TYPE_WITH_CODE (HudMenuModelCollector, hud_menu_model_collector, G_TYPE_OBJECT,
+G_DEFINE_TYPE_WITH_CODE (HudMenuModelCollector, hud_menu_model_collector, HUD_TYPE_COLLECTOR,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, hud_menu_model_collector_iface_init))
 
 /* XXX: There is a potential for unbounded recursion here if a hostile
