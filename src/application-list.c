@@ -253,10 +253,11 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 
 	/* We care where we're going, not where we've been */
 	if (new_win == NULL) {
+    /* IGNORING CHANGE TO NULL WINDOW FOR NOW
 		if (list->priv->used_source != NULL) {
 			hud_source_unuse(list->priv->used_source);
 			list->priv->used_source = NULL;
-		}
+		}*/
 		return;
 	}
 
