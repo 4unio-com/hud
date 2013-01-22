@@ -671,3 +671,20 @@ hud_application_source_has_xid (HudApplicationSource * app, guint32 xid)
 
 	return g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid)) != NULL;
 }
+
+/**
+ * hud_application_source_get_active_collector:
+ *
+ * Returns the active collector if there is one
+ *
+ * Returns: (transfer none): A #HudCollector or NULL if none
+ */
+HudCollector *
+hud_application_source_get_active_collector (HudApplicationSource * source)
+{
+  g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(source), NULL);
+
+  g_assert(HUD_IS_COLLECTOR(source->priv->used_source));
+
+  return HUD_COLLECTOR(source->priv->used_source);
+}

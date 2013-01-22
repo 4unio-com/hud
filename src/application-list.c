@@ -27,6 +27,7 @@
 #include "application-list.h"
 #include "application-source.h"
 #include "hudsource.h"
+#include "hudcollector.h"
 
 typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
 
@@ -419,4 +420,24 @@ hud_application_list_get_apps (HudApplicationList * list)
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 
 	return g_hash_table_get_values(list->priv->applications);
+}
+
+/**
+ * hud_application_list_get_active_collector:
+ *
+ * Returns the active collector if there is one
+ *
+ * Returns: (transfer none): A #HudCollector or NULL if none
+ */
+HudCollector *
+hud_application_list_get_active_collector (HudApplicationList * list)
+{
+  g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
+  g_return_val_if_fail(list->priv->used_source != NULL, NULL);
+
+  g_assert(HUD_IS_APPLICATION_SOURCE(list->priv->used_source));
+
+  HudApplicationSource *source = HUD_APPLICATION_SOURCE(list->priv->used_source);
+
+  return hud_application_source_get_active_collector(source);
 }

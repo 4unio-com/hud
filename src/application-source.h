@@ -35,6 +35,8 @@ typedef struct _HudApplicationSource         HudApplicationSource;
 typedef struct _HudApplicationSourceClass    HudApplicationSourceClass;
 typedef struct _HudApplicationSourcePrivate  HudApplicationSourcePrivate;
 
+typedef struct _HudCollector                 HudCollector;
+
 struct _HudApplicationSourceClass {
 	GObjectClass parent_class;
 };
@@ -57,6 +59,8 @@ void                     hud_application_source_add_window        (HudApplicatio
                                                                    BamfWindow *             window);
 gboolean                 hud_application_source_has_xid           (HudApplicationSource *   app,
                                                                    guint32                  xid);
+
+HudCollector *           hud_application_source_get_active_collector   (HudApplicationSource *   app);
 
 /* Helper functions */
 gchar *                  hud_application_source_bamf_app_id       (BamfApplication *        bapp);

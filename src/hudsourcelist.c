@@ -18,6 +18,7 @@
 
 #include "hudsourcelist.h"
 #include "application-list.h"
+#include "hudcollector.h"
 
 /**
  * SECTION:hudsourcelist
@@ -197,17 +198,16 @@ hud_source_list_active_collector (HudSourceList *list)
 
 	HudCollector * col = NULL;
 
-	// FIXME: Need to implement access to active collector
-//	GSList *node;
-//	for (node = list->list; node; node = node->next) {
-//		if (HUD_IS_APPLICATION_LIST(node->data)) {
-//			HudApplicationList * source = HUD_APPLICATION_LIST(node->data);
-//			col = hud_window_source_get_active_collector(source);
-//			if (col != NULL) {
-//				return col;
-//			}
-//		}
-//	}
+	GSList *node;
+	for (node = list->list; node; node = node->next) {
+		if (HUD_IS_APPLICATION_LIST(node->data)) {
+			HudApplicationList * list = HUD_APPLICATION_LIST(node->data);
+			col = hud_application_list_get_active_collector(list);
+			if (col != NULL) {
+				return col;
+			}
+		}
+	}
 
 	return col;
 }
