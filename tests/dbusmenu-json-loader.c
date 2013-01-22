@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define G_LOG_DOMAIN "dbusmenu-json-loader"
+
 #include <glib-object.h>
 #include <libdbusmenu-glib/server.h>
 #include <libdbusmenu-jsonloader/json-loader.h>
@@ -33,7 +35,7 @@ name_got (GDBusConnection * con, const gchar * name, gpointer user_data)
 static void
 name_lost (GDBusConnection * con, const gchar * name, gpointer user_data)
 {
-	g_error("Unable to get name: %s", name);
+  g_message("Lost (or unable to get) name: %s", name);
 	return;
 }
 

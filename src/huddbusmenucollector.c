@@ -602,6 +602,8 @@ hud_dbusmenu_collector_finalize (GObject *object)
   hud_string_list_unref (collector->prefix);
   g_clear_object (&collector->client);
 
+  g_clear_object (&collector->root);
+
   G_OBJECT_CLASS (hud_dbusmenu_collector_parent_class)
     ->finalize (object);
 }

@@ -23,8 +23,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 int
 main (int argv, char ** argc)
 {
-	if (argv != 3) {
-		g_print("'%s <DBus name> <Object Path>' is how you should use this program.\n", argc[0]);
+	if (!(argv == 3 || argv == 4)) {
+		g_print("'%s <DBus name> <Object Path> [Is Application]' is how you should use this program.\n", argc[0]);
 		return 1;
 	}
 
@@ -32,11 +32,19 @@ main (int argv, char ** argc)
 	g_type_init ();
 #endif
 
+	gboolean is_application = (argv == 4 && !g_strcmp0(argc[3], "TRUE"));
+
 	GMenu * menu = g_menu_new();
-	g_menu_append(menu, "Simple", "simple");
+	if (is_application)
+	  g_menu_append(menu, "Simple", "app.simple");
+	else
+	  g_menu_append(menu, "Simple", "simple");
 
 	GSimpleActionGroup * ag = g_simple_action_group_new();
-	g_simple_action_group_insert(ag, G_ACTION(g_simple_action_new("simple", G_VARIANT_TYPE_BOOLEAN)));
+	if (is_application)
+	  g_simple_action_group_insert(ag, G_ACTION(g_simple_action_new("app.simple", G_VARIANT_TYPE_BOOLEAN)));
+	else
+	  g_simple_action_group_insert(ag, G_ACTION(g_simple_action_new("simple", G_VARIANT_TYPE_BOOLEAN)));
 
 	GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 

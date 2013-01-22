@@ -16,6 +16,8 @@
  * Author: Ted Gould <ted@canonical.com>
  */
 
+#define G_LOG_DOMAIN "hudapplicationlist"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -204,6 +206,44 @@ bamf_app_to_source (HudApplicationList * list, BamfApplication * bapp)
 	return source;
 }
 
+static gboolean
+hud_application_list_name_in_ignore_list (BamfWindow *window)
+{
+  static const gchar * const ignored_names[] = {
+    "Hud Prototype Test",
+    "Hud",
+    "DNDCollectionWindow",
+    "launcher",
+    "dash",
+    "Dash",
+    "panel",
+    "hud",
+    "unity-2d-shell"
+  };
+  gboolean ignored = FALSE;
+  gchar *window_name;
+  gint i;
+
+  window_name = bamf_view_get_name (BAMF_VIEW (window));
+  g_debug ("checking window name '%s'", window_name);
+
+  /* sometimes bamf returns NULL here... protect ourselves */
+  if (window_name == NULL)
+    return TRUE;
+
+  for (i = 0; i < G_N_ELEMENTS (ignored_names); i++)
+    if (g_str_equal (ignored_names[i], window_name))
+      {
+        g_debug ("window name '%s' blocked", window_name);
+        ignored = TRUE;
+        break;
+      }
+
+  g_free (window_name);
+
+  return ignored;
+}
+
 /* Called each time the focused application changes */
 static void
 window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_win, gpointer user_data)
@@ -218,6 +258,9 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 		}
 		return;
 	}
+
+	if (hud_application_list_name_in_ignore_list (new_win))
+	    return;
 
 	/* Try to use BAMF */
 	BamfApplication * new_app = bamf_matcher_get_application_for_window(list->priv->matcher, new_win);
@@ -255,9 +298,10 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 
 	if (list->priv->used_source) {
 		hud_source_unuse(list->priv->used_source);
-		list->priv->used_source = HUD_SOURCE(source);
-		hud_source_use(list->priv->used_source);
 	}
+
+  list->priv->used_source = HUD_SOURCE(source);
+  hud_source_use(list->priv->used_source);
 
 	return;
 }

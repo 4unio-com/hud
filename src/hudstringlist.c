@@ -114,6 +114,8 @@ hud_string_list_cons (const gchar   *head,
   HudStringList *list;
   gsize headlen;
 
+  g_assert(head != NULL);
+
   headlen = strlen (head);
 
   list = g_malloc (G_STRUCT_OFFSET (HudStringList, head) + headlen + 1);
@@ -224,4 +226,12 @@ hud_string_list_cons_label (const gchar   *label,
   list->head[i] = '\0';
 
   return list;
+}
+
+HudStringList*
+hud_string_list_add_item (const gchar *item, HudStringList *stringlist)
+{
+  HudStringList *new_list = hud_string_list_cons (item, stringlist);
+  hud_string_list_unref (stringlist);
+  return new_list;
 }

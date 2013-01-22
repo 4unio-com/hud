@@ -5,12 +5,41 @@ TESTS =
 check_PROGRAMS =
 XFAIL_TESTS =
 
+noinst_LTLIBRARIES = \
+	libhud-tests.la
+
 DBUS_RUNNER=dbus-test-runner
 XVFB_RUN=". $(srcdir)/run-xvfb.sh"
 MOCK_JSON_APP=/usr/lib/indicator-appmenu/mock-json-app
 
 EXTRA_DIST += \
 	run-xvfb.sh
+
+#######################
+# HUD Test Common Code
+#######################
+
+libhud_tests_la_SOURCES = \
+	word-list.h \
+	hudrandomsource.h \
+	hudrandomsource.c \
+	hudmanualsource.h \
+	hudmanualsource.c \
+	hudtestutils.h \
+	hudtestutils.c
+
+libhud_tests_la_LDFLAGS = \
+	$(top_builddir)/src/libhud-service.la \
+	$(DBUSTEST_LIBS) \
+	$(HUD_LIBS)
+
+libhud_tests_la_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-D DBUSMENU_JSON_LOADER=\"$(builddir)/dbusmenu-json-loader\" \
+	-Wall -Werror
 
 ######################
 # Test Distance
@@ -49,6 +78,42 @@ DISTCLEANFILES += \
 	$(DISTANCE_XML_REPORT:.xml=-xunit.xml)
 
 ######################
+# Test Hud Item
+######################
+
+TESTS += \
+	test-hud-item-test
+
+check_PROGRAMS += \
+	test-hud-item
+
+HUD_ITEM_XML_REPORT = test-hud-item.xml
+
+test-hud-item-test: test-hud-item Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(HUD_ITEM_XML_REPORT) $(builddir)/test-hud-item >> $@
+	@echo gtester2xunit $(HUD_ITEM_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_hud_item_SOURCES = \
+	test-huditem.c
+
+test_hud_item_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_hud_item_LDADD = \
+	$(top_builddir)/src/libhud-service.la \
+	$(HUD_LIBS)
+
+DISTCLEANFILES += \
+	$(HUD_ITEM_XML_REPORT) \
+	$(HUD_ITEM_XML_REPORT:.xml=-xunit.xml)
+
+######################
 # Test Result Highlighting
 ######################
 
@@ -77,7 +142,7 @@ test_result_highlighting_CFLAGS = \
 	-Wall -Werror
 
 test_result_highlighting_LDADD = \
-	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service.la \
 	$(HUD_LIBS)
 
 DISTCLEANFILES += \
@@ -117,13 +182,13 @@ test_menu_input_CFLAGS = \
 	-D MOCK_JSON_APP=\"$(MOCK_JSON_APP)\" \
 	-D MODEL_SIMPLE=\"$(builddir)/test-menu-input-model-simple\" \
 	-D MODEL_SHORTCUTS=\"$(builddir)/test-menu-input-model-shortcuts\" \
-	-D DBUSMENU_JSON_LOADER=\"$(builddir)/dbusmenu-json-loader\" \
 	-D JSON_SIMPLE=\"$(srcdir)/test-menu-input-simple.json\" \
 	-D JSON_SHORTCUTS=\"$(srcdir)/test-menu-input-shortcuts.json\" \
 	-Wall -Werror
 
 test_menu_input_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	libhud-tests.la \
 	$(DBUSTEST_LIBS) \
 	$(HUD_LIBS)
 
@@ -205,6 +270,207 @@ test_keyword_mapping_LDADD = \
 DISTCLEANFILES += \
 	$(KEYWORD_XML_REPORT) \
 	$(KEYWORD_XML_REPORT:.xml=-xunit.xml)
+
+######################
+# Test String List
+######################
+
+TESTS += \
+	test-string-list-test
+
+check_PROGRAMS += \
+	test-string-list
+
+STRING_LIST_XML_REPORT = test-string-list.xml
+
+test-string-list-test: test-string-list Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(STRING_LIST_XML_REPORT) $(builddir)/test-string-list >> $@
+	@echo gtester2xunit $(STRING_LIST_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_string_list_SOURCES = \
+	test-string-list.c
+
+test_string_list_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_string_list_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS)
+
+DISTCLEANFILES += \
+	$(STRING_LIST_XML_REPORT) \
+	$(STRING_LIST_XML_REPORT:.xml=-xunit.xml)
+
+######################
+# Test Source
+######################
+
+TESTS += \
+	test-source-test
+
+check_PROGRAMS += \
+	test-source
+
+SOURCE_XML_REPORT = test-source.xml
+
+test-source-test: test-source Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(SOURCE_XML_REPORT) $(builddir)/test-source >> $@
+	@echo gtester2xunit $(SOURCE_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_source_SOURCES = \
+	test-source.c
+
+test_source_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-D JSON_INPUT=\"$(srcdir)/test-source.json\" \
+	-Wall -Werror
+
+test_source_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
+	libhud-tests.la \
+	$(HUD_LIBS)
+
+EXTRA_DIST += \
+	test-source.json
+
+DISTCLEANFILES += \
+	$(SOURCE_XML_REPORT) \
+	$(SOURCE_XML_REPORT:.xml=-xunit.xml)
+
+######################
+# Test App Indicator Source
+######################
+
+TESTS += \
+	test-app-indicator-source-test
+
+check_PROGRAMS += \
+	test-app-indicator-source
+
+APP_INDICATOR_SOURCE_XML_REPORT = test-app-indicator-source.xml
+
+test-app-indicator-source-test: test-app-indicator-source Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(APP_INDICATOR_SOURCE_XML_REPORT) $(builddir)/test-app-indicator-source >> $@
+	@echo gtester2xunit $(APP_INDICATOR_SOURCE_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_app_indicator_source_SOURCES = \
+	test-app-indicator-source.c
+
+test_app_indicator_source_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_app_indicator_source_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
+	libhud-tests.la \
+	$(HUD_LIBS)
+
+DISTCLEANFILES += \
+	$(APP_INDICATOR_SOURCE_XML_REPORT) \
+	$(APP_INDICATOR_SOURCE_XML_REPORT:.xml=-xunit.xml)
+
+######################
+# Test Indicator Source
+######################
+
+TESTS += \
+	test-indicator-source-test
+
+check_PROGRAMS += \
+	test-indicator-source
+
+INDICATOR_SOURCE_XML_REPORT = test-indicator-source.xml
+
+test-indicator-source-test: test-indicator-source Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(INDICATOR_SOURCE_XML_REPORT) $(builddir)/test-indicator-source >> $@
+	@echo gtester2xunit $(INDICATOR_SOURCE_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_indicator_source_SOURCES = \
+	test-indicator-source.c
+
+test_indicator_source_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_indicator_source_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
+	libhud-tests.la \
+	$(HUD_LIBS)
+
+DISTCLEANFILES += \
+	$(INDICATOR_SOURCE_XML_REPORT) \
+	$(INDICATOR_SOURCE_XML_REPORT:.xml=-xunit.xml)
+
+######################
+# Test Application List
+######################
+
+TESTS += \
+	test-application-list-test
+
+check_PROGRAMS += \
+	test-application-list
+
+APPLICATION_LIST_XML_REPORT = test-application-list.xml
+
+test-application-list-test: test-application-list Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(APPLICATION_LIST_XML_REPORT) $(builddir)/test-application-list >> $@
+	@echo gtester2xunit $(APPLICATION_LIST_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_application_list_SOURCES = \
+	test-application-list.c
+
+test_application_list_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_application_list_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
+	libhud-tests.la \
+	$(HUD_LIBS)
+
+DISTCLEANFILES += \
+	$(APPLICATION_LIST_XML_REPORT) \
+	$(APPLICATION_LIST_XML_REPORT:.xml=-xunit.xml)
 
 ######################
 # Test Usage DB Simple
@@ -572,10 +838,10 @@ hud_performance_CFLAGS = \
 	$(HUD_CFLAGS)
 hud_performance_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	libhud-tests.la \
 	$(HUD_LIBS)
 hud_performance_SOURCES = \
-	hud-performance.c	\
-	word-list.h
+	hud-performance.c
 
 #########################
 # Footer

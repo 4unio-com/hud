@@ -79,8 +79,6 @@ G_DEFINE_TYPE (HudQuery, hud_query, G_TYPE_OBJECT)
 
 static guint hud_query_changed_signal;
 
-static guint query_count = 0;
-
 /* Schema that is used in the DeeModel representing
    the results */
 static const gchar * results_model_schema[] = {
@@ -334,9 +332,11 @@ handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 }
 
 static void
-hud_query_init (HudQuery *query)
+hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint querynumber)
 {
-  query->querynumber = query_count++;
+  GError *error = NULL;
+
+  query->querynumber = querynumber;
 
   query->skel = hud_query_iface_com_canonical_hud_query_skeleton_new();
 
@@ -346,10 +346,17 @@ hud_query_init (HudQuery *query)
   g_signal_connect(G_OBJECT(query->skel), "handle-execute-command", G_CALLBACK(handle_execute), query);
 
   query->object_path = g_strdup_printf("/com/canonical/hud/query%d", query->querynumber);
-  g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),
-                                   g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
+  if (!g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),
+                                   connection,
                                    query->object_path,
-                                   NULL);
+                                   &error))
+  {
+    g_warning ("%s %s\n", "g_dbus_interface_skeleton_export failed:", error->message);
+  }
+
+  GDBusInterfaceInfo* info = g_dbus_interface_skeleton_get_info (
+      G_DBUS_INTERFACE_SKELETON(query->skel) );
+  g_debug("Created interface skeleton: [%s] on [%s]", info->name, g_dbus_interface_skeleton_get_object_path(G_DBUS_INTERFACE_SKELETON(query->skel)));
 
   query->results_name = g_strdup_printf("com.canonical.hud.query%d.results", query->querynumber);
   query->results_model = dee_shared_model_new(query->results_name);
@@ -365,7 +372,12 @@ hud_query_init (HudQuery *query)
                "results-model", query->results_name,
                NULL);
 
-  return;
+  g_dbus_interface_skeleton_flush(G_DBUS_INTERFACE_SKELETON(query->skel));
+}
+
+static void
+hud_query_init (HudQuery *query)
+{
 }
 
 static void
@@ -404,13 +416,16 @@ hud_query_class_init (HudQueryClass *class)
 HudQuery *
 hud_query_new (HudSource   *source,
                const gchar *search_string,
-               gint         num_results)
+               gint         num_results,
+               GDBusConnection *connection,
+               const guint  query_count)
 {
   HudQuery *query;
 
   g_debug ("Created query '%s'", search_string);
 
   query = g_object_new (HUD_TYPE_QUERY, NULL);
+  hud_query_init_real(query, connection, query_count);
   query->source = g_object_ref (source);
   query->search_string = g_strdup (search_string);
   query->token_list = NULL;
@@ -476,4 +491,13 @@ hud_query_get_appstack_name (HudQuery * query)
 	g_return_val_if_fail(HUD_IS_QUERY(query), NULL);
 
 	return query->appstack_name;
+}
+
+DeeModel *
+hud_query_get_results_model(HudQuery *self)
+{
+  g_return_val_if_fail(HUD_IS_QUERY(self), NULL);
+
+  return self->results_model;
+
 }

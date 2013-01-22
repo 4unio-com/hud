@@ -90,6 +90,7 @@ typedef struct
   const IndicatorInfo *info;
   HudIndicatorSource *source;
   HudSource *collector;
+  guint watch_id;
 } HudIndicatorSourceIndicator;
 
 struct _HudIndicatorSource
@@ -158,9 +159,22 @@ hud_indicator_source_search (HudSource    *hud_source,
 static void
 hud_indicator_source_finalize (GObject *object)
 {
+  gint i;
+  HudIndicatorSource *source = HUD_INDICATOR_SOURCE(object);
+
+  for (i = 0; i < source->n_indicators; i++)
+  {
+    HudIndicatorSourceIndicator *indicator = &source->indicators[i];
+    if (indicator->collector)
+    {
+      g_object_unref(indicator->collector);
+    }
+    g_bus_unwatch_name(indicator->watch_id);
+  }
+
+  g_free (source->indicators);
 
   G_OBJECT_CLASS(hud_indicator_source_parent_class)->finalize(object);
-  return;
 }
 
 static void
@@ -195,22 +209,36 @@ hud_indicator_source_name_appeared (GDBusConnection *connection,
     {
       HudDbusmenuCollector *collector;
 
-      collector = hud_dbusmenu_collector_new_for_endpoint (indicator->info->indicator_name,
-                                                           _(indicator->info->user_visible_name),
-                                                           indicator->info->icon,
-                                                           hud_settings.indicator_penalty,
-                                                           name_owner, indicator->info->dbus_menu_path);
-      indicator->collector = HUD_SOURCE (collector);
+      GError *error = NULL;
+      if (!g_dbus_connection_call_sync (connection, name_owner,
+          indicator->info->dbus_menu_path, "com.canonical.dbusmenu", "GetLayout",
+          g_variant_new ("(iias)", 0, 1, NULL ), NULL, G_DBUS_CALL_FLAGS_NONE, -1,
+          NULL, &error))
+        {
+          g_error_free (error);
+        }
+      else
+        {
+          collector = hud_dbusmenu_collector_new_for_endpoint (indicator->info->indicator_name,
+                                                               _(indicator->info->user_visible_name),
+                                                               indicator->info->icon,
+                                                               hud_settings.indicator_penalty,
+                                                               name_owner, indicator->info->dbus_menu_path);
+          indicator->collector = HUD_SOURCE (collector);
+        }
     }
 
-  g_signal_connect (indicator->collector, "changed",
-                    G_CALLBACK (hud_indicator_source_collector_changed), indicator);
+  if (indicator->collector)
+    {
+      g_signal_connect (indicator->collector, "changed",
+                        G_CALLBACK (hud_indicator_source_collector_changed), indicator);
 
-  /* Set initial use count on new indicator if query is active. */
-  if (indicator->source->use_count)
-    hud_source_use (indicator->collector);
+      /* Set initial use count on new indicator if query is active. */
+      if (indicator->source->use_count)
+        hud_source_use (indicator->collector);
 
-  hud_source_changed (HUD_SOURCE (indicator->source));
+      hud_source_changed (HUD_SOURCE (indicator->source));
+    }
 }
 
 static void
@@ -235,21 +263,8 @@ hud_indicator_source_name_vanished (GDBusConnection *connection,
 static void
 hud_indicator_source_init (HudIndicatorSource *source)
 {
-  gint i;
-
   source->n_indicators = G_N_ELEMENTS (indicator_info);
   source->indicators = g_new0 (HudIndicatorSourceIndicator, source->n_indicators);
-
-  for (i = 0; i < source->n_indicators; i++)
-    {
-      HudIndicatorSourceIndicator *indicator = &source->indicators[i];
-
-      indicator->info = &indicator_info[i];
-      indicator->source = source;
-
-      g_bus_watch_name (G_BUS_TYPE_SESSION, indicator->info->dbus_name, G_BUS_NAME_WATCHER_FLAGS_NONE,
-                        hud_indicator_source_name_appeared, hud_indicator_source_name_vanished, indicator, NULL);
-    }
 }
 
 static void
@@ -274,7 +289,23 @@ hud_indicator_source_class_init (HudIndicatorSourceClass *class)
  * Returns: a new #HudIndicatorSource
  **/
 HudIndicatorSource *
-hud_indicator_source_new (void)
+hud_indicator_source_new (GDBusConnection *connection)
 {
-  return g_object_new (HUD_TYPE_INDICATOR_SOURCE, NULL);
+  gint i;
+  HudIndicatorSource *source = g_object_new (HUD_TYPE_INDICATOR_SOURCE, NULL );
+
+  for (i = 0; i < source->n_indicators; i++)
+    {
+      HudIndicatorSourceIndicator *indicator = &source->indicators[i];
+
+      indicator->info = &indicator_info[i];
+      indicator->source = source;
+
+      indicator->watch_id = g_bus_watch_name_on_connection (connection,
+          indicator->info->dbus_name, G_BUS_NAME_WATCHER_FLAGS_NONE,
+          hud_indicator_source_name_appeared, hud_indicator_source_name_vanished,
+          indicator, NULL );
+    }
+
+  return source;
 }

@@ -16,6 +16,8 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
+#define G_LOG_DOMAIN "hudmenumodelcollector"
+
 #include "hudmenumodelcollector.h"
 
 #include "hudsource.h"

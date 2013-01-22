@@ -57,6 +57,7 @@ static GVariant *      bus_get_prop       (GDBusConnection *      connection,
 
 
 /* Globals */
+static guint query_count = 0;
 static GPtrArray * query_list = NULL;
 static GMainLoop *mainloop = NULL;
 static GDBusInterfaceVTable vtable = {
@@ -122,7 +123,7 @@ bus_method (GDBusConnection       *connection,
 		search_string = g_variant_get_string(vsearch, NULL);
 		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
 
-		query = hud_query_new (source, search_string, 10);
+		query = hud_query_new (source, search_string, 10, connection, ++query_count);
 		g_dbus_method_invocation_return_value (invocation, describe_query (query));
 
 		g_ptr_array_add(query_list, query);
@@ -208,12 +209,37 @@ bus_acquired_cb (GDBusConnection *connection,
                  const gchar     *name,
                  gpointer         user_data)
 {
-  HudSource *source = user_data;
+  HudSourceList *source_list = user_data;
   GError *error = NULL;
 
   g_debug ("Bus acquired (guid %s)", g_dbus_connection_get_guid (connection));
 
-  if (!g_dbus_connection_register_object (connection, DBUS_PATH, hud_iface_com_canonical_hud_interface_info (), &vtable, source, NULL, &error))
+  {
+    HudIndicatorSource *source;
+
+    source = hud_indicator_source_new (connection);
+    hud_source_list_add (source_list, HUD_SOURCE (source));
+    g_object_unref (source);
+  }
+
+  {
+    HudAppIndicatorSource *source;
+
+    source = hud_app_indicator_source_new (connection);
+    hud_source_list_add (source_list, HUD_SOURCE (source));
+    g_object_unref (source);
+  }
+
+  {
+    HudWebappSource *source;
+
+    source = hud_webapp_source_new ();
+    hud_source_list_add (source_list, HUD_SOURCE (source));
+
+    g_object_unref (G_OBJECT (source));
+  }
+
+  if (!g_dbus_connection_register_object (connection, DBUS_PATH, hud_iface_com_canonical_hud_interface_info (), &vtable, source_list, NULL, &error))
     {
       g_warning ("Unable to register path '"DBUS_PATH"': %s", error->message);
       g_main_loop_quit (mainloop);
@@ -266,31 +292,6 @@ main (int argc, char **argv)
 
   application_list = hud_application_list_new();
   hud_source_list_add(source_list, HUD_SOURCE(application_list));
-
-  {
-    HudIndicatorSource *source;
-
-    source = hud_indicator_source_new ();
-    hud_source_list_add (source_list, HUD_SOURCE (source));
-    g_object_unref (source);
-  }
-
-  {
-    HudAppIndicatorSource *source;
-
-    source = hud_app_indicator_source_new ();
-    hud_source_list_add (source_list, HUD_SOURCE (source));
-    g_object_unref (source);
-  }
-  
-  {
-    HudWebappSource *source;
-    
-    source = hud_webapp_source_new ();
-    hud_source_list_add (source_list, HUD_SOURCE (source));
-    
-    g_object_unref (G_OBJECT (source));
-  }
 
   if (getenv ("HUD_DEBUG_SOURCE"))
     {

@@ -28,9 +28,10 @@
                                                              HUD_TYPE_INDICATOR_SOURCE))
 
 typedef struct _HudIndicatorSource                          HudIndicatorSource;
+typedef struct _GDBusConnection                             GDBusConnection;
 
 GType                   hud_indicator_source_get_type                   (void);
 
-HudIndicatorSource *    hud_indicator_source_new                        (void);
+HudIndicatorSource *    hud_indicator_source_new                        (GDBusConnection *connection);
 
 #endif /* __HUD_INDICATOR_SOURCE_H__ */
