@@ -139,10 +139,10 @@ test_source_make_assertions (HudQuery* query, const gchar *appstack,
 }
 
 static HudQuery*
-test_source_create_query (GDBusConnection *session, HudSource *source, const gchar *search)
+test_source_create_query (GDBusConnection *session, HudSource *source, const gchar *search, const guint query_count)
 {
   g_debug ("query: [%s], on [%s]", search, g_dbus_connection_get_unique_name(session));
-  return hud_query_new (source, search, 1u << 30, session);
+  return hud_query_new (source, search, 1u << 30, session, query_count);
 }
 
 static void
@@ -177,7 +177,7 @@ test_hud_query_sequence ()
     const gchar *path = "/com/canonical/hud/query0";
     const gchar *name = "com.canonical.hud.query0.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 0);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 5);
     g_object_unref (query);
   }
@@ -190,7 +190,7 @@ test_hud_query_sequence ()
     const gchar *path = "/com/canonical/hud/query1";
     const gchar *name = "com.canonical.hud.query1.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 1);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 1);
     g_object_unref (query);
   }
@@ -203,7 +203,7 @@ test_hud_query_sequence ()
     const gchar *path = "/com/canonical/hud/query2";
     const gchar *name = "com.canonical.hud.query2.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 2);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 2);
     g_object_unref (query);
   }
@@ -217,7 +217,7 @@ test_hud_query_sequence ()
     const gchar *path = "/com/canonical/hud/query3";
     const gchar *name = "com.canonical.hud.query3.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 3);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 1);
 
     TestSourceThreadData thread_data = {session, path};
@@ -235,7 +235,7 @@ test_hud_query_sequence ()
     const gchar *path = "/com/canonical/hud/query4";
     const gchar *name = "com.canonical.hud.query4.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 4);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 5);
 
     TestSourceThreadData thread_data = {session, path, "dare"};
@@ -260,7 +260,7 @@ test_hud_query_sequence ()
       const gchar *path = "/com/canonical/hud/query5";
       const gchar *name = "com.canonical.hud.query5.results";
 
-      HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search);
+      HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 5);
       test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 2);
 
       HudStringList *tokens = hud_string_list_add_item("extra", NULL);
@@ -326,7 +326,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *path = "/com/canonical/hud/query6";
     const gchar *name = "com.canonical.hud.query6.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 6);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 5);
     g_object_unref (query);
   }
@@ -339,7 +339,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *path = "/com/canonical/hud/query7";
     const gchar *name = "com.canonical.hud.query7.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 7);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 1);
     g_object_unref (query);
   }
@@ -352,7 +352,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *path = "/com/canonical/hud/query8";
     const gchar *name = "com.canonical.hud.query8.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 8);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 2);
     g_object_unref (query);
   }
@@ -366,7 +366,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *path = "/com/canonical/hud/query9";
     const gchar *name = "com.canonical.hud.query9.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 9);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 1);
 
     TestSourceThreadData thread_data = {session, path};
@@ -384,7 +384,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *path = "/com/canonical/hud/query10";
     const gchar *name = "com.canonical.hud.query10.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 10);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 5);
 
     TestSourceThreadData thread_data = {session, path, "dare"};
@@ -409,7 +409,7 @@ test_hud_query_sequence_counter_increment ()
       const gchar *path = "/com/canonical/hud/query11";
       const gchar *name = "com.canonical.hud.query11.results";
 
-      HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search);
+      HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 11);
       test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 2);
 
       HudStringList *tokens = hud_string_list_add_item("extra", NULL);

@@ -79,8 +79,6 @@ G_DEFINE_TYPE (HudQuery, hud_query, G_TYPE_OBJECT)
 
 static guint hud_query_changed_signal;
 
-static guint query_count = 0;
-
 /* Schema that is used in the DeeModel representing
    the results */
 static const gchar * results_model_schema[] = {
@@ -334,11 +332,11 @@ handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 }
 
 static void
-hud_query_init_real (HudQuery *query, GDBusConnection *connection)
+hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint querynumber)
 {
   GError *error = NULL;
 
-  query->querynumber = query_count++;
+  query->querynumber = querynumber;
 
   query->skel = hud_query_iface_com_canonical_hud_query_skeleton_new();
 
@@ -419,14 +417,15 @@ HudQuery *
 hud_query_new (HudSource   *source,
                const gchar *search_string,
                gint         num_results,
-               GDBusConnection *connection)
+               GDBusConnection *connection,
+               const guint  query_count)
 {
   HudQuery *query;
 
   g_debug ("Created query '%s'", search_string);
 
   query = g_object_new (HUD_TYPE_QUERY, NULL);
-  hud_query_init_real(query, connection);
+  hud_query_init_real(query, connection, query_count);
   query->source = g_object_ref (source);
   query->search_string = g_strdup (search_string);
   query->token_list = NULL;
