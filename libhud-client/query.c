@@ -291,11 +291,13 @@ hud_client_query_voice_search (HudClientQuery * cquery)
     gint revision = 0;
     g_clear_pointer(&cquery->priv->query, g_free);
     GError *error = NULL;
-    if (!_hud_query_com_canonical_hud_query_call_voice_search_sync (
-        cquery->priv->proxy, &revision, &cquery->priv->query, NULL, NULL ))
+    gchar *query = NULL;
+    if (!_hud_query_com_canonical_hud_query_call_voice_query_sync (
+        cquery->priv->proxy, &revision, &query, NULL, NULL ))
     {
       g_warning("Error running voice search: [%s]", error->message);
       g_error_free(error);
+      return;
     }
     g_object_notify(G_OBJECT(cquery), PROP_QUERY_S);
   }

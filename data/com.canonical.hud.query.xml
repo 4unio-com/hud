@@ -16,7 +16,7 @@
 			<arg type="i" name="modelRevision" direction="out" />
 		</method>
 		
-		<method name="VoiceSearch">
+		<method name="VoiceQuery">
 			<!-- out -->
 			<arg type="i" name="modelRevision" direction="out" />
 			<arg type="s" name="query" direction="out" />
