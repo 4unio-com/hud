@@ -683,8 +683,10 @@ HudCollector *
 hud_application_source_get_active_collector (HudApplicationSource * source)
 {
   g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(source), NULL);
+  g_return_val_if_fail(source->priv->used_source != NULL, NULL);
 
-  g_assert(HUD_IS_COLLECTOR(source->priv->used_source));
+  g_assert(HUD_IS_SOURCE_LIST(source->priv->used_source));
+  HudSourceList * collector_list = HUD_SOURCE_LIST(source->priv->used_source);
 
-  return HUD_COLLECTOR(source->priv->used_source);
+  return hud_source_list_active_collector(collector_list);
 }

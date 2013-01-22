@@ -206,6 +206,8 @@ hud_source_list_active_collector (HudSourceList *list)
 			if (col != NULL) {
 				return col;
 			}
+		} else if(HUD_IS_COLLECTOR(node->data)) {
+		  return HUD_COLLECTOR(node->data);
 		}
 	}
 
