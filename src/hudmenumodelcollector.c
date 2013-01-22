@@ -64,7 +64,7 @@ struct _HudMenuModelContext
 
 struct _HudMenuModelCollector
 {
-  GObject parent_instance;
+  HudCollector parent_instance;
 
   /* Cancelled on finalize */
   GCancellable *cancellable;
