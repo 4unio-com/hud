@@ -597,6 +597,9 @@ window_destroyed (gpointer data, GObject * old_address)
 
 	window_info->window = NULL;
 
+	if (window_info->source->priv->focused_window == window_info->xid) {
+		window_info->source->priv->used_source = NULL;
+	}
 	g_hash_table_remove(window_info->source->priv->windows, GINT_TO_POINTER(window_info->xid));
 	/* NOTE: DO NOT use the window_info after this point as
 	   it may be free'd by the remove above. */
