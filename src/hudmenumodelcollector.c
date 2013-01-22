@@ -23,7 +23,7 @@
 #include "hudsource.h"
 #include "hudresult.h"
 #include "huditem.h"
-#include "hud-collector.h"
+#include "hudcollector.h"
 #include "hudkeywordmapping.h"
 #include "config.h"
 

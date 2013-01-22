@@ -20,7 +20,7 @@
 #include "config.h"
 #endif
 
-#include "hud-collector.h"
+#include "hudcollector.h"
 
 static void hud_collector_class_init (HudCollectorClass *klass);
 static void hud_collector_init       (HudCollector *self);

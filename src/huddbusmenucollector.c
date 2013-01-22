@@ -27,7 +27,7 @@
 #include "hudappmenuregistrar.h"
 #include "hudresult.h"
 #include "hudsource.h"
-#include "hud-collector.h"
+#include "hudcollector.h"
 #include "hudkeywordmapping.h"
 
 #include "config.h"
