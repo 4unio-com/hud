@@ -220,12 +220,25 @@ source_search (HudSource *     hud_source,
 {
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
 
-	if (app->priv->used_source == NULL) {
-		g_warning("A search without a use... ");
-		return;
+	if (app->priv->used_source != NULL) {
+		hud_source_search(app->priv->used_source, search_string, append_func, user_data);
+	} else {
+		if (g_hash_table_size (app->priv->windows) == 1){
+			GHashTableIter iter;
+			gpointer key, value;
+			g_hash_table_iter_init (&iter, app->priv->windows);
+			g_hash_table_iter_next (&iter, &key, &value);
+			HudSourceList *list = HUD_SOURCE_LIST(value);
+			if (list != NULL) {
+				hud_source_search(HUD_SOURCE(list), search_string, append_func, user_data);
+			} else {
+				g_warning("A search with a single window but no source list... ");
+			}
+		} else {
+			g_warning("A search without a use... ");
+		}
 	}
 
-	hud_source_search(app->priv->used_source, search_string, append_func, user_data);
 	return;
 }
 
@@ -237,13 +250,25 @@ source_list_applications (HudSource *     hud_source,
 {
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
 
-	// TODO Should we list even if it's not the current window and then activate the window?
-	if (app->priv->used_source == NULL) {
-		g_warning("A list without a use... ");
-		return;
+	if (app->priv->used_source != NULL) {
+		hud_source_list_applications(app->priv->used_source, search_string, append_func, user_data);
+	} else {
+		if (g_hash_table_size (app->priv->windows) == 1){
+			GHashTableIter iter;
+			gpointer key, value;
+			g_hash_table_iter_init (&iter, app->priv->windows);
+			g_hash_table_iter_next (&iter, &key, &value);
+			HudSourceList *list = HUD_SOURCE_LIST(value);
+			if (list != NULL) {
+				hud_source_list_applications(HUD_SOURCE(list), search_string, append_func, user_data);
+			} else {
+				g_warning("A list with a single window but no source list... ");
+			}
+		} else {
+			g_warning("A list without a use... ");
+		}
 	}
 	
-	hud_source_list_applications(app->priv->used_source, search_string, append_func, user_data);
 	return;
 }
 
