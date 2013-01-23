@@ -38,7 +38,8 @@ HudQuery *              hud_query_new                                   (HudSour
                                                                          HudSource   *current_source,
                                                                          const gchar *search_string,
                                                                          gint         num_results,
-                                                                         GDBusConnection *connection);
+                                                                         GDBusConnection *connection,
+                                                                         const guint  query_count);
 
 const gchar *           hud_query_get_path                              (HudQuery    *query);
 const gchar *           hud_query_get_results_name                      (HudQuery    *query);

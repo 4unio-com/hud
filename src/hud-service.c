@@ -57,6 +57,7 @@ static GVariant *      bus_get_prop       (GDBusConnection *      connection,
 
 
 /* Globals */
+static guint query_count = 0;
 static GPtrArray * query_list = NULL;
 static GMainLoop *mainloop = NULL;
 static GDBusInterfaceVTable vtable = {
@@ -151,7 +152,7 @@ bus_method (GDBusConnection       *connection,
 				hud_source_list_applications (HUD_SOURCE(all_sources), NULL, get_first_valid_source, &data);
 			}
 		}
-		query = hud_query_new (HUD_SOURCE(all_sources), current_source, search_string, 10, connection);
+		query = hud_query_new (HUD_SOURCE(all_sources), current_source, search_string, 10, connection, ++query_count);
 		g_dbus_method_invocation_return_value (invocation, describe_query (query));
 
 		g_ptr_array_add(query_list, query);

@@ -80,8 +80,6 @@ G_DEFINE_TYPE (HudQuery, hud_query, G_TYPE_OBJECT)
 
 static guint hud_query_changed_signal;
 
-static guint query_count = 0;
-
 /* Schema that is used in the DeeModel representing
    the results */
 static const gchar * results_model_schema[] = {
@@ -125,8 +123,8 @@ app_results_list_populate (const gchar *application_id, const gchar *application
 	HudQuery * query = (HudQuery *)user_data;
 
 	GVariant * columns[G_N_ELEMENTS(appstack_model_schema) + 1];
-	columns[0] = g_variant_new_string(application_id);
-	columns[1] = g_variant_new_string(application_icon);
+	columns[0] = g_variant_new_string(application_id ? application_id : "");
+	columns[1] = g_variant_new_string(application_icon ? application_icon : "");
 	columns[2] = NULL;
 
 	dee_model_prepend_row(query->appstack_model, columns);
@@ -357,7 +355,7 @@ handle_execute (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation 
 	return TRUE;
 }
 
-/* Handle the DBus function UpdateQuery */
+/* Handle the DBus function CloseQuery */
 static gboolean
 handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
 {
@@ -377,11 +375,11 @@ handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 }
 
 static void
-hud_query_init_real (HudQuery *query, GDBusConnection *connection)
+hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint querynumber)
 {
   GError *error = NULL;
 
-  query->querynumber = query_count++;
+  query->querynumber = querynumber;
 
   query->skel = hud_query_iface_com_canonical_hud_query_skeleton_new();
 
@@ -464,14 +462,15 @@ hud_query_new (HudSource   *all_sources,
                HudSource   *current_source,
                const gchar *search_string,
                gint         num_results,
-               GDBusConnection *connection)
+               GDBusConnection *connection,
+               const guint  query_count)
 {
   HudQuery *query;
 
   g_debug ("Created query '%s'", search_string);
 
   query = g_object_new (HUD_TYPE_QUERY, NULL);
-  hud_query_init_real(query, connection);
+  hud_query_init_real(query, connection, query_count);
   query->all_sources = g_object_ref (all_sources);
   query->current_source = g_object_ref (current_source);
   query->search_string = g_strdup (search_string);
