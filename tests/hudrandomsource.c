@@ -35,6 +35,10 @@ struct _HudRandomSource
 {
   GObject parent_instance;
 
+  gchar *application_id;
+  gchar *app_icon;
+
+
   /* instance members */
   GHashTable *items;
 
@@ -83,14 +87,32 @@ hud_random_source_list_applications (HudSource    *hud_source,
     void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
     gpointer      user_data)
 {
-  // TODO
+  HudRandomSource *source = (HudRandomSource *) hud_source;
+  GHashTableIter iter;
+  gpointer item;
+
+  g_hash_table_iter_init (&iter, source->items);
+  while (g_hash_table_iter_next (&iter, &item, NULL))
+    {
+      HudResult *result;
+
+      result = hud_result_get_if_matched (item, search_tokens, 0);
+      if (result)
+        {
+          append_func (source->application_id, source->app_icon, user_data);
+          g_object_unref(result);
+          break;
+        }
+    }
 }
 
 static HudSource *
 hud_random_source_get (HudSource    *hud_source,
                        const gchar *application_id)
 {
-  // TODO
+  HudRandomSource *source = (HudRandomSource *) hud_source;
+  if (g_strcmp0(source->application_id, application_id) == 0)
+    return hud_source;
   return NULL;
 }
 
@@ -182,7 +204,7 @@ hud_random_source_populate_table (HudRandomSource *self,
         /* At the maximum depth, prevent any items from being submenus. */
         is_submenu = FALSE;
 
-      item = hud_item_new (name, name, "", NULL, NULL, !is_submenu);
+      item = hud_item_new (name, name, "", self->application_id, self->app_icon, !is_submenu);
       g_hash_table_add (self->items, item);
 
       if (is_submenu)
@@ -228,12 +250,12 @@ hud_random_source_class_init (HudRandomSourceClass *class)
 HudSource *
 hud_random_source_new (GRand *rand)
 {
-  return hud_random_source_new_full (rand, MAX_DEPTH, MAX_ITEMS, MAX_WORDS);
+  return hud_random_source_new_full (rand, MAX_DEPTH, MAX_ITEMS, MAX_WORDS, "random_source", "random_icon");
 }
 
 HudSource *
 hud_random_source_new_full (GRand *rand, const gint max_depth, const gint max_items,
-    const gint max_words)
+    const gint max_words, const gchar *application_id, const gchar *app_icon)
 {
   HudRandomSource *source;
 
@@ -242,6 +264,8 @@ hud_random_source_new_full (GRand *rand, const gint max_depth, const gint max_it
   source->max_depth = max_depth;
   source->max_items = max_items;
   source->max_words = max_words;
+	source->application_id = g_strdup(application_id);
+  source->app_icon = g_strdup(app_icon);
 
   hud_random_source_populate_table (source, rand, NULL, 0);
 
