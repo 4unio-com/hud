@@ -125,7 +125,7 @@ hud_debug_source_search (HudSource    *hud_source,
 static void
 hud_debug_source_list_applications (HudSource    *hud_source,
                                     HudTokenList *search_string,
-                                    void           (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                    void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
                                     gpointer      user_data)
 {
   HudDebugSource *source = HUD_DEBUG_SOURCE (hud_source);
@@ -143,8 +143,8 @@ hud_debug_source_list_applications (HudSource    *hud_source,
 }
 
 static HudSource *
-hud_debug_source_get (HudSource    *hud_source,
-                      const gchar *application_id)
+hud_debug_source_get (HudSource     *hud_source,
+                      const gchar   *application_id)
 {
   HudDebugSource *source = HUD_DEBUG_SOURCE (hud_source);
 

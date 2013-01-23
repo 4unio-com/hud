@@ -159,7 +159,7 @@ hud_indicator_source_search (HudSource    *hud_source,
 static void
 hud_indicator_source_list_applications (HudSource    *hud_source,
                                         HudTokenList *search_string,
-                                        void           (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                        void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
                                         gpointer      user_data)
 {
   HudIndicatorSource *source = HUD_INDICATOR_SOURCE (hud_source);
@@ -171,8 +171,8 @@ hud_indicator_source_list_applications (HudSource    *hud_source,
 }
 
 static HudSource *
-hud_indicator_source_get (HudSource    *hud_source,
-                          const gchar *application_id)
+hud_indicator_source_get (HudSource     *hud_source,
+                          const gchar   *application_id)
 {
   HudIndicatorSource *source = HUD_INDICATOR_SOURCE (hud_source);
   gint i;

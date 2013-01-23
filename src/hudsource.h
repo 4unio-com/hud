@@ -67,7 +67,7 @@ void                    hud_source_list_applications                    (HudSour
                                                                          gpointer      user_data);
 
 HudSource *             hud_source_get                                  (HudSource    *source,
-                                                                         const gchar *application_id);
+                                                                         const gchar  *application_id);
 
 void                    hud_source_changed                              (HudSource    *source);
 

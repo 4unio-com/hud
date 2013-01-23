@@ -98,7 +98,7 @@ hud_source_list_search (HudSource    *source,
 static void
 hud_source_list_list_applications (HudSource    *source,
                                    HudTokenList *search_string,
-                                   void           (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                   void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
                                    gpointer      user_data)
 {
   HudSourceList *list = HUD_SOURCE_LIST (source);

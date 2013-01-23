@@ -38,7 +38,6 @@ struct _HudRandomSource
   gchar *application_id;
   gchar *app_icon;
 
-
   /* instance members */
   GHashTable *items;
 
@@ -264,7 +263,7 @@ hud_random_source_new_full (GRand *rand, const gint max_depth, const gint max_it
   source->max_depth = max_depth;
   source->max_items = max_items;
   source->max_words = max_words;
-	source->application_id = g_strdup(application_id);
+  source->application_id = g_strdup(application_id);
   source->app_icon = g_strdup(app_icon);
 
   hud_random_source_populate_table (source, rand, NULL, 0);

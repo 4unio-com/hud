@@ -389,7 +389,7 @@ hud_app_indicator_source_search (HudSource    *hud_source,
 static void
 hud_app_indicator_source_list_applications (HudSource    *hud_source,
                                             HudTokenList *search_tokens,
-                                            void           (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                            void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
                                             gpointer      user_data)
 {
   HudAppIndicatorSource *source = HUD_APP_INDICATOR_SOURCE (hud_source);
@@ -405,8 +405,8 @@ hud_app_indicator_source_list_applications (HudSource    *hud_source,
 }
 
 static HudSource *
-hud_app_indicator_source_get (HudSource    *hud_source,
-                              const gchar *application_id)
+hud_app_indicator_source_get (HudSource     *hud_source,
+                              const gchar   *application_id)
 {
   HudAppIndicatorSource *source = HUD_APP_INDICATOR_SOURCE (hud_source);
   GSequenceIter *iter;

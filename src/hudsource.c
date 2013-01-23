@@ -176,7 +176,7 @@ hud_source_list_applications (HudSource    *source,
  * Gets the last source that is responsible of giving results for application_id
  **/
 HudSource *
-hud_source_get (HudSource *source,
+hud_source_get (HudSource   *source,
                 const gchar *application_id)
 {
   g_return_val_if_fail (HUD_IS_SOURCE (source), NULL);

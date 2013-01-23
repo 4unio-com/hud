@@ -668,7 +668,7 @@ hud_menu_model_collector_search (HudSource    *source,
 static void
 hud_menu_model_collector_list_applications (HudSource    *source,
                                             HudTokenList *search_string,
-                                            void           (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                            void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
                                             gpointer      user_data)
 {
   HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);

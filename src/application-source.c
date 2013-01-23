@@ -65,12 +65,12 @@ static void source_search                     (HudSource *                 hud_s
                                                HudTokenList *              search_string,
                                                void                      (*append_func) (HudResult * result, gpointer user_data),
                                                gpointer                    user_data);
-static void source_list_applications          (HudSource *               hud_source,
-                                               HudTokenList *            search_string,
-                                               void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
-                                               gpointer                  user_data);
-static HudSource * source_get                 (HudSource *               hud_source,
-                                               const gchar *application_id);
+static void source_list_applications          (HudSource *                 hud_source,
+                                               HudTokenList *              search_string,
+                                               void                      (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                               gpointer                    user_data);
+static HudSource * source_get                 (HudSource *                 hud_source,
+                                               const gchar *               application_id);
 static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplication * skel,
                                                GDBusMethodInvocation *     invocation,
                                                GVariant *                  actions,
@@ -273,8 +273,8 @@ source_list_applications (HudSource *     hud_source,
 }
 
 static HudSource *
-source_get (HudSource * hud_source,
-            const gchar *application_id)
+source_get (HudSource *     hud_source,
+            const gchar *   application_id)
 {
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
 

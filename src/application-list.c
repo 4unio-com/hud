@@ -66,7 +66,7 @@ static void source_list_applications        (HudSource *               hud_sourc
                                              void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
                                              gpointer                  user_data);
 static HudSource * source_get               (HudSource *               hud_source,
-                                             const gchar *application_id);
+                                             const gchar *             application_id);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationList, hud_application_list, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -440,7 +440,7 @@ source_list_applications (HudSource *               hud_source,
 
 static HudSource *
 source_get (HudSource *     hud_source,
-            const gchar *application_id)
+            const gchar *   application_id)
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(hud_source), NULL);
 	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
