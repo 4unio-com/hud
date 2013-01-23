@@ -318,10 +318,19 @@ test_menus_model_deep (void)
 
 	gboolean found = FALSE;
 
+	/* Check for an item on the first level so we know things are working */
 	HudTokenList * tl = hud_token_list_new_from_string("Base");
 	hud_source_search(HUD_SOURCE(collector), tl, test_menus_model_deep_search, &found);
 
 	g_assert(found);
+	hud_token_list_free(tl);
+
+	/* Then check to make sure we can't get one too deep */
+	found = FALSE;
+	tl = hud_token_list_new_from_string("Eleven");
+	hud_source_search(HUD_SOURCE(collector), tl, test_menus_model_deep_search, &found);
+
+	g_assert(!found);
 	hud_token_list_free(tl);
 
 	hud_source_unuse(HUD_SOURCE(collector));
