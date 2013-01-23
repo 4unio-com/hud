@@ -30,6 +30,9 @@
 #include <gio/gio.h>
 #include <string.h>
 
+#define DEFAULT_MENU_DEPTH  10
+#define RECURSE_DATA        "hud-menu-model-recurse-level"
+
 /**
  * SECTION:hudmenumodelcollector
  * @title: HudMenuModelCollector
@@ -110,6 +113,7 @@ struct _model_data_t {
 	GCancellable * cancellable;
 	gchar * path;
 	gchar * label;
+	guint recurse;
 };
 
 typedef struct
@@ -335,7 +339,8 @@ static void hud_menu_model_collector_add_model_internal  (HudMenuModelCollector 
                                                           const gchar           *path,
                                                           HudMenuModelContext   *parent_context,
                                                           const gchar           *action_namespace,
-                                                          const gchar           *label);
+                                                          const gchar           *label,
+                                                          guint                  recurse);
 
 static void hud_menu_model_collector_disconnect (gpointer               data,
                                                  gpointer               user_data);
@@ -347,7 +352,7 @@ readd_models (gpointer data, gpointer user_data)
 	HudMenuModelCollector *collector = user_data;
 	model_data_t * model_data = data;
 
-    hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label);
+    hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label, model_data->recurse);
 	return;
 }
 
@@ -438,6 +443,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
   HudMenuModelContext *context;
   gboolean changed;
   gint i;
+  guint recurse = 0;
 
   if (collector->refresh_id)
     /* We have a refresh scheduled already.  Ignore. */
@@ -456,6 +462,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
     }
 
   context = g_object_get_qdata (G_OBJECT (model), hud_menu_model_collector_context_quark ());
+  recurse = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(model), RECURSE_DATA));
 
   changed = FALSE;
   for (i = position; i < position + added; i++)
@@ -501,13 +508,13 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
        */
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SECTION)))
         {
-          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label);
+          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse);
           g_object_unref (link);
         }
 
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SUBMENU)))
         {
-          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label);
+          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse - 1);
           g_object_unref (link);
         }
 
@@ -527,12 +534,17 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
                                              const gchar           *path,
                                              HudMenuModelContext   *parent_context,
                                              const gchar           *action_namespace,
-                                             const gchar           *label)
+                                             const gchar           *label,
+                                             guint                  recurse)
 {
   g_return_if_fail(G_IS_MENU_MODEL(model));
 
+  if (recurse == 0)
+    return;
+
   gint n_items;
 
+  g_object_set_data (G_OBJECT(model), RECURSE_DATA, GINT_TO_POINTER(recurse));
   g_signal_connect (model, "items-changed", G_CALLBACK (hud_menu_model_collector_model_changed), collector);
 
   model_data_t * model_data = g_new0(model_data_t, 1);
@@ -541,6 +553,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   model_data->cancellable = g_cancellable_new();
   model_data->path = g_strdup(path);
   model_data->label = g_strdup(label);
+  model_data->recurse = recurse;
 
   collector->models = g_slist_prepend (collector->models, model_data);
 
@@ -850,14 +863,14 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   if (app_menu_object_path)
     {
       app_menu = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, app_menu_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH);
       g_object_unref(app_menu);
     }
 
   if (menubar_object_path)
     {
       menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, menubar_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH);
       g_object_unref(menubar);
     }
 
@@ -908,27 +921,28 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
   hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, bus_name, object_path)), NULL);
 
   GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, object_path);
-  hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix);
+  hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix, DEFAULT_MENU_DEPTH);
   g_object_unref(app_menu);
 
   return;
 }
 
 /**
- * hud_menu_model_collector_add_mode:
+ * hud_menu_model_collector_add_model:
  * @collector: A #HudMenuModelCollector object
  * @model: Model to add
  * @prefix: (allow none): Text prefix to add to all entries if needed
+ * @recurse: Amount of levels to go down the model.
  *
  * Adds a Menu Model to the collector.
  */
 void
-hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuModel * model, const gchar * prefix)
+hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuModel * model, const gchar * prefix, guint recurse)
 {
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_MENU_MODEL(model));
 
-	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix);
+	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix, recurse);
 }
 
 /**
