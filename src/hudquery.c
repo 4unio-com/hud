@@ -548,3 +548,12 @@ hud_query_get_results_model(HudQuery *self)
   return self->results_model;
 
 }
+
+DeeModel *
+hud_query_get_appstack_model(HudQuery *self)
+{
+  g_return_val_if_fail(HUD_IS_QUERY(self), NULL);
+
+  return self->appstack_model;
+
+}

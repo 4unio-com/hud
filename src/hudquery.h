@@ -44,5 +44,6 @@ const gchar *           hud_query_get_path                              (HudQuer
 const gchar *           hud_query_get_results_name                      (HudQuery    *query);
 const gchar *           hud_query_get_appstack_name                     (HudQuery    *query);
 DeeModel    *           hud_query_get_results_model                     (HudQuery    *query);
+DeeModel    *           hud_query_get_appstack_model                    (HudQuery    *query);
 
 #endif /* __HUD_QUERY_H__ */

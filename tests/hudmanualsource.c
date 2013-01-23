@@ -24,6 +24,8 @@
 struct _HudManualSource
 {
   GObject parent_instance;
+  gchar *application_id;
+  gchar *app_icon;
 
   GPtrArray *items;
   gint use_count;
@@ -37,10 +39,9 @@ G_DEFINE_TYPE_WITH_CODE (HudManualSource, hud_manual_source, G_TYPE_OBJECT,
 
 void
 hud_manual_source_add (HudManualSource *self, HudStringList *tokens, HudStringList *keywords,
-    const gchar *shortcut, const gchar *desktop_file, const gchar *app_icon,
-    gboolean enabled)
+    const gchar *shortcut, gboolean enabled)
 {
-  HudItem *item = hud_item_new (tokens, keywords, shortcut, desktop_file, app_icon, enabled);
+  HudItem *item = hud_item_new (tokens, keywords, shortcut, self->application_id, self->app_icon, enabled);
   g_ptr_array_add(self->items, item);
   hud_source_changed (HUD_SOURCE (self));
 }
@@ -93,16 +94,29 @@ static void
 hud_manual_source_list_applications (HudSource    *hud_source,
                                      HudTokenList *search_string,
                                      void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
-                                     gpointer      list)
+                                     gpointer      user_data)
 {
-  // TODO
+  HudManualSource *self = HUD_MANUAL_SOURCE (hud_source);
+  guint i = 0;
+  for ( ; i < self->items->len; ++i) {
+      HudItem *item = HUD_ITEM(g_ptr_array_index(self->items, i));
+      HudResult *result = hud_result_get_if_matched (item, search_string, 0);
+      if (result != NULL )
+      {
+        append_func (self->application_id, self->app_icon, user_data);
+        g_object_unref(result);
+        break;
+      }
+  }
 }
 
 static HudSource *
 hud_manual_source_get (HudSource    *hud_source,
                        const gchar *application_id)
 {
-  // TODO
+  HudManualSource *self = HUD_MANUAL_SOURCE (hud_source);
+  if (g_strcmp0(self->application_id, application_id) == 0)
+    return hud_source;
   return NULL;
 }
 
@@ -112,6 +126,8 @@ hud_manual_source_finalize (GObject *object)
   HudManualSource *self = HUD_MANUAL_SOURCE (object);
 
   g_ptr_array_free(self->items, TRUE);
+  g_free(self->application_id);
+  g_free(self->app_icon);
 
   G_OBJECT_CLASS (hud_manual_source_parent_class)
     ->finalize (object);
@@ -148,7 +164,10 @@ hud_manual_source_class_init (HudManualSourceClass *class)
  * Returns: a new empty #HudManualSource
  **/
 HudManualSource *
-hud_manual_source_new (void)
+hud_manual_source_new (const gchar *application_id, const gchar *app_icon)
 {
-  return g_object_new (HUD_TYPE_MANUAL_SOURCE, NULL);
+  HudManualSource *source = g_object_new (HUD_TYPE_MANUAL_SOURCE, NULL);
+  source->application_id = g_strdup(application_id);
+  source->app_icon = g_strdup(app_icon);
+  return source;
 }
