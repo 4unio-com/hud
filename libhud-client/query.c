@@ -335,7 +335,6 @@ hud_client_query_set_appstack_app (HudClientQuery *        cquery,
 	return;
 }
 
-
 /**
  * hud_client_query_execute_command:
  * @cquery: A #HudClientQuery
