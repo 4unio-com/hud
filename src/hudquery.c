@@ -185,7 +185,11 @@ hud_query_refresh (HudQuery *query)
   query->max_usage = 0;
 
   /* Note that the results are kept sorted as they are collected using a GSequence */
-  hud_source_search (query->current_source, query->token_list, results_list_populate, query);
+  if (query->current_source != NULL) {
+    hud_source_search (query->current_source, query->token_list, results_list_populate, query);
+  } else {
+    g_debug("Current source was null. This should usually not happen outside tests in regular user use");
+  }
   g_debug("Num results: %d", g_sequence_get_length(query->results_list));
 
   g_sequence_foreach(query->results_list, results_list_max_usage, &query->max_usage);
