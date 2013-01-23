@@ -674,7 +674,16 @@ recognize_audio(const gchar * lm_filename, const gchar * pron_filename)
                                    "-lm", lm_filename,
                                    "-dict", pron_filename,
                                    NULL);
+  if (spx_cmd == NULL) {
+    g_warning("Sphinx command line arguments failed to initialize");
+    return NULL;
+  }
+
   ps_decoder_t * decoder = ps_init(spx_cmd);
+  if (decoder == NULL) {
+    g_warning("Unable to initialize Sphinx decoder");
+    return NULL;
+  }
 
   ad_rec_t * ad = ad_open_dev(cmd_ln_str_r(spx_cmd, "-adcdev"), (int)cmd_ln_float32_r(spx_cmd, "-samprate"));
   if (ad == NULL) {
@@ -683,10 +692,11 @@ recognize_audio(const gchar * lm_filename, const gchar * pron_filename)
     return NULL;
   }
 
-  char const * hyp;
-
-  hyp = utterance_loop(ad, decoder);
+  char const * hyp = utterance_loop(ad, decoder);
   if (hyp == NULL) {
+    g_warning("Utterance loop failed");
+    ad_close(ad);
+    ps_free(decoder);
     return NULL;
   }
 
