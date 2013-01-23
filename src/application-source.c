@@ -278,8 +278,15 @@ source_get (HudSource * hud_source,
 {
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
 
-	if (g_strcmp0 (application_id, bamf_application_get_desktop_file(app->priv->bamf_app)) == 0)
-		return hud_source;
+	if (app->priv->bamf_app != NULL) {
+		if (g_strcmp0 (application_id, bamf_application_get_desktop_file(app->priv->bamf_app)) == 0) {
+			return hud_source;
+		}
+	} else {
+		if (g_strcmp0 (application_id, app->priv->app_id) == 0) {
+			return hud_source;
+		}
+	}
 	
 	return NULL;
 }
