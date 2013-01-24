@@ -206,7 +206,7 @@ shortcut_string_for_menuitem (DbusmenuMenuitem * mi)
 
 static HudDbusmenuItem *
 hud_dbusmenu_item_new (HudStringList    *context,
-                       const gchar      *desktop_file,
+                       const gchar      *application_id,
                        const gchar      *icon,
                        HudKeywordMapping *keyword_mapping,
                        DbusmenuMenuitem *menuitem)
@@ -256,7 +256,7 @@ hud_dbusmenu_item_new (HudStringList    *context,
   if (enabled)
     enabled &= !dbusmenu_menuitem_property_exist (menuitem, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY);
 
-  item = hud_item_construct (hud_dbusmenu_item_get_type (), full_label, keywords, shortcut, desktop_file, icon, enabled);
+  item = hud_item_construct (hud_dbusmenu_item_get_type (), full_label, keywords, shortcut, application_id, icon, enabled);
   item->menuitem = g_object_ref (menuitem);
 
   hud_string_list_unref (full_label);
@@ -699,13 +699,13 @@ hud_dbusmenu_collector_new_for_endpoint (const gchar *application_id,
  **/
 HudDbusmenuCollector *
 hud_dbusmenu_collector_new_for_window (BamfWindow  *window,
-                                       const gchar *desktop_file,
+                                       const gchar *application_id,
                                        const gchar *icon)
 {
   HudDbusmenuCollector *collector;
 
   collector = g_object_new (HUD_TYPE_DBUSMENU_COLLECTOR, NULL);
-  collector->application_id = g_strdup (desktop_file);
+  collector->application_id = g_strdup (application_id);
   collector->icon = g_strdup (icon);
   collector->xid = bamf_window_get_xid (window);
   collector->keyword_mapping = hud_keyword_mapping_new();

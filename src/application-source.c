@@ -632,11 +632,11 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 		}
 	}
 
-	const gchar * desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
+	const gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
 	const gchar * icon = bamf_view_get_icon(BAMF_VIEW(window));
 
 	if (mm_collector == NULL) {
-		mm_collector = hud_menu_model_collector_new(desktop_file, icon, 0);
+		mm_collector = hud_menu_model_collector_new(app_id, icon, 0);
 
 		if (mm_collector != NULL) {
 			hud_menu_model_collector_add_window(mm_collector, window);
@@ -645,7 +645,7 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 	}
 
 	if (dm_collector == NULL) {
-		dm_collector = hud_dbusmenu_collector_new_for_window(window, desktop_file, icon);
+		dm_collector = hud_dbusmenu_collector_new_for_window(window, app_id, icon);
 
 		if (dm_collector != NULL) {
 			hud_source_list_add(collector_list, HUD_SOURCE(dm_collector));

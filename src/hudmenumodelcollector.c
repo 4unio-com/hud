@@ -807,8 +807,6 @@ hud_menu_model_collector_new (const gchar *application_id,
  * If the given @window has #GMenuModel-style menus then returns a
  * collector for them, otherwise returns %NULL.
  *
- * @desktop_file is used for usage tracking.
- *
  * Returns: a #HudMenuModelCollector, or %NULL
  **/
 void

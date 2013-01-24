@@ -38,7 +38,7 @@ HudDbusmenuCollector *  hud_dbusmenu_collector_new_for_endpoint         (const g
                                                                          const gchar *bus_name,
                                                                          const gchar *object_path);
 HudDbusmenuCollector *  hud_dbusmenu_collector_new_for_window           (BamfWindow  *window,
-                                                                         const gchar *desktop_file,
+                                                                         const gchar *application_id,
                                                                          const gchar *icon);
 void                    hud_dbusmenu_collector_set_prefix               (HudDbusmenuCollector *collector,
                                                                          const gchar          *prefix);
