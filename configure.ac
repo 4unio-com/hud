@@ -109,6 +109,7 @@ AS_IF([test "x$enable_bamf" != "xno"],[
 PKG_CHECK_MODULES([BAMF],[
 		libbamf3 
 ])
+AC_DEFINE([HAVE_BAMF], ["true"], ["Defined if we're building with BAMF"])
 ])
 
 ###########################
