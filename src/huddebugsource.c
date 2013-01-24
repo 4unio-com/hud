@@ -136,7 +136,7 @@ hud_debug_source_list_applications (HudSource    *hud_source,
 
       result = hud_result_get_if_matched (source->item, search_string, 0);
       if (result != NULL) {
-        append_func(hud_item_get_desktop_file(source->item), hud_item_get_app_icon(source->item), user_data);
+        append_func(hud_item_get_app_id(source->item), hud_item_get_app_icon(source->item), user_data);
         g_object_unref (result);
       }
     }
@@ -150,7 +150,7 @@ hud_debug_source_get (HudSource     *hud_source,
 
   if (source->item)
     {
-      if (g_strcmp0 (application_id, hud_item_get_desktop_file(source->item)) == 0)
+      if (g_strcmp0 (application_id, hud_item_get_app_id(source->item)) == 0)
         return hud_source;
     }
 

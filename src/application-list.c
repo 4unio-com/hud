@@ -443,20 +443,10 @@ source_get (HudSource *     hud_source,
             const gchar *   application_id)
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(hud_source), NULL);
+	g_return_val_if_fail(application_id != NULL, NULL);
 	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
 
-	GList * sources = g_hash_table_get_values(list->priv->applications);
-	GList * lsource = NULL;
-	for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
-		HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
-		if (appsource == NULL) continue;
-
-		HudSource *result = hud_source_get(HUD_SOURCE(appsource), application_id);
-		if (result != NULL)
-			return result;
-	}
-
-	return NULL;
+	return g_hash_table_lookup(list->priv->applications, application_id);
 }
 
 /**
@@ -489,7 +479,7 @@ hud_application_list_get_source (HudApplicationList * list, const gchar * id)
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 	g_return_val_if_fail(id != NULL, NULL);
 
-	HudApplicationSource * source = g_hash_table_lookup(list->priv->applications, id);
+	HudApplicationSource * source = HUD_APPLICATION_SOURCE(source_get(HUD_SOURCE(list), NULL));
 	if (source == NULL) {
 		source = hud_application_source_new_for_id(id);
 		g_hash_table_insert(list->priv->applications, g_strdup(id), source);
