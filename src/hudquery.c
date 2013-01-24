@@ -807,9 +807,13 @@ do_voice (HudSource * source_kinda)
       continue;
     }
 
+    gchar *upper = g_utf8_strup(command, g_utf8_strlen(command, -1));
+
     g_output_stream_write(string_output, "<s> ", g_utf8_strlen("<s> ", -1), NULL, NULL);
-    g_output_stream_write(string_output, command, g_utf8_strlen(command, -1), NULL, NULL);
+    g_output_stream_write(string_output, upper, g_utf8_strlen(upper, -1), NULL, NULL);
     g_output_stream_write(string_output, " </s>\n", g_utf8_strlen(" </s>\n", -1), NULL, NULL);
+
+    g_free(upper);
   }
 
   g_clear_object(&string_output);
