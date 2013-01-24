@@ -10,4 +10,10 @@ hud (13.04.0-0ubuntu1~ppa1) UNRELEASED; urgency=low
   * Use valac-0.18 instead of valac-0.16
   * Require raring's version of bustle for the --count argument
 
+  [ Mathieu Trudel-Lapierre ]
+  * debian/control:
+    - update Maintainer.
+    - Further flesh out long description for the packages.
+    - Reorganize Build-Depends for clarity.
+
  -- Ted Gould <ted@ubuntu.com>  Wed, 24 Oct 2012 15:43:27 +0200
