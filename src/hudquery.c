@@ -260,10 +260,12 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   HudQuery * query = HUD_QUERY(user_data);
 
   g_debug("Voice query is loading");
-  g_signal_emit_by_name(G_OBJECT(skel), "voice-query-loading");
+  hud_query_iface_com_canonical_hud_query_emit_voice_query_loading (
+      HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (skel));
   gchar * search_string = hud_query_voice_query (query);
   g_debug("Voice query is finished");
-  g_signal_emit_by_name(G_OBJECT(skel), "voice-query-finished", search_string);
+  hud_query_iface_com_canonical_hud_query_emit_voice_query_finished(
+      HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (skel), search_string);
 
   if (search_string == NULL)
     search_string = g_strdup("");
@@ -577,7 +579,8 @@ hud_query_utterance_loop(HudQuery *self, ad_rec_t * ad, ps_decoder_t * ps)
     if (TRUE) {
         /* Indicate listening for next utterance */
         g_debug("Voice query is listening");
-        g_signal_emit_by_name(G_OBJECT(self->skel), "voice-query-listening");
+        hud_query_iface_com_canonical_hud_query_emit_voice_query_listening (
+            HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
         fflush(stdout);
         fflush(stderr);
 
