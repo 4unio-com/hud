@@ -82,6 +82,7 @@ gboolean hud_test_utils_timeout_quit_func (gpointer user_data);
 
 void hud_test_utils_process_mainloop (const guint delay);
 
+void hud_test_utils_wait_for_connection_close (GDBusConnection *connection);
 
 
 void hud_test_utils_results_append_func (HudResult *result, gpointer user_data);
