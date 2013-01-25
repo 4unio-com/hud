@@ -23,6 +23,7 @@ noinst_LTLIBRARIES = \
 ####################
 
 libhud_service_la_SOURCES = \
+	abstract-app.h \
 	application-list.h \
 	application-list.c \
 	application-source.h \

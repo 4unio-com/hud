@@ -34,7 +34,7 @@ struct _HudApplicationSourcePrivate {
 	gchar * path;
 	AppIfaceComCanonicalHudApplication * skel;
 
-	BamfApplication * bamf_app;
+	AbstractApplication * bamf_app;
 
 	guint32 focused_window;
 
@@ -231,7 +231,7 @@ source_search (HudSource *     hud_source,
  * Return value: New #HudApplicationSource object
  */
 HudApplicationSource *
-hud_application_source_new_for_app (BamfApplication * bapp)
+hud_application_source_new_for_app (AbstractApplication * bapp)
 {
 	gchar * id = hud_application_source_bamf_app_id(bapp);
 	if (id == NULL) {
@@ -457,11 +457,17 @@ hud_application_source_is_empty (HudApplicationSource * app)
  * Return value: (transfer full): ID for the application
  */
 gchar *
-hud_application_source_bamf_app_id (BamfApplication * bapp)
+hud_application_source_bamf_app_id (AbstractApplication * bapp)
 {
+#ifdef HAVE_BAMF
 	g_return_val_if_fail(BAMF_IS_APPLICATION(bapp), NULL);
+#endif
 
-	const gchar * desktop_file = bamf_application_get_desktop_file(bapp);
+	const gchar * desktop_file = NULL;
+
+#ifdef HAVE_BAMF
+	desktop_file = bamf_application_get_desktop_file(bapp);
+#endif
 	if (desktop_file == NULL) {
 		/* Some apps might not be identifiable.  Eh, don't care then */
 		return NULL;
@@ -494,10 +500,12 @@ hud_application_source_bamf_app_id (BamfApplication * bapp)
  * and make sure we're all good.
  */
 void
-hud_application_source_focus (HudApplicationSource * app, BamfApplication * bapp, BamfWindow * window)
+hud_application_source_focus (HudApplicationSource * app, AbstractApplication * bapp, AbstractWindow * window)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
+#ifdef HAVE_BAMF
 	g_return_if_fail(BAMF_IS_APPLICATION(bapp));
+#endif
 
 	if (app->priv->bamf_app == NULL) {
 		app->priv->bamf_app = g_object_ref(bapp);
@@ -506,7 +514,10 @@ hud_application_source_focus (HudApplicationSource * app, BamfApplication * bapp
 	g_return_if_fail(app->priv->bamf_app == bapp);
 
 	hud_application_source_add_window(app, window);
+
+#ifdef HAVE_BAMF
 	app->priv->focused_window = bamf_window_get_xid(window);
+#endif
 
 	return;
 }
@@ -546,7 +557,7 @@ hud_application_source_get_id (HudApplicationSource * app)
 typedef struct _window_info_t window_info_t;
 struct _window_info_t {
 	HudApplicationSource * source;  /* Not a ref */
-	BamfWindow * window;            /* Not a ref */
+	AbstractWindow * window;        /* Not a ref */
 	guint32 xid;                    /* Can't be a ref */
 };
 
@@ -590,12 +601,17 @@ free_window_info (gpointer data)
  * have one BAMF listener in the application list.
  */
 void
-hud_application_source_add_window (HudApplicationSource * app, BamfWindow * window)
+hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * window)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
+#ifdef HAVE_BAMF
 	g_return_if_fail(BAMF_IS_WINDOW(window));
+#endif
 
-	guint32 xid = bamf_window_get_xid(window);
+	guint32 xid = 0;
+#ifdef HAVE_BAMF
+	xid = bamf_window_get_xid(window);
+#endif
 
 	if (app->priv->bamf_app == NULL) {
 		g_debug("No BAMF application object");
@@ -633,13 +649,18 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 	}
 
 	const gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
+	const gchar * icon = NULL;
+#ifdef HAVE_BAMF
 	const gchar * icon = bamf_view_get_icon(BAMF_VIEW(window));
+#endif
 
 	if (mm_collector == NULL) {
 		mm_collector = hud_menu_model_collector_new(app_id, icon, 0);
 
 		if (mm_collector != NULL) {
+#ifdef HAVE_BAMF
 			hud_menu_model_collector_add_window(mm_collector, window);
+#endif
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
 		}
 	}

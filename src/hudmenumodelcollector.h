@@ -19,8 +19,9 @@
 #ifndef __HUD_MENU_MODEL_COLLECTOR_H__
 #define __HUD_MENU_MODEL_COLLECTOR_H__
 
-#include <libbamf/libbamf.h>
 #include <gio/gio.h>
+
+#include "abstract-app.h"
 
 #define HUD_TYPE_MENU_MODEL_COLLECTOR                       (hud_menu_model_collector_get_type ())
 #define HUD_MENU_MODEL_COLLECTOR(inst)                      (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
@@ -38,7 +39,7 @@ HudMenuModelCollector * hud_menu_model_collector_new                    (const g
                                                                          guint        penalty);
 
 void                    hud_menu_model_collector_add_window             (HudMenuModelCollector * collector,
-                                                                         BamfWindow  *window);
+                                                                         AbstractWindow *        window);
 
 void                    hud_menu_model_collector_add_endpoint           (HudMenuModelCollector * collector,
                                                                          const gchar *prefix,

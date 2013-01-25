@@ -20,7 +20,7 @@
 #define __HUD_APPLICATION_SOURCE_H__
 
 #include <glib-object.h>
-#include <libbamf/libbamf.h>
+#include "abstract-app.h"
 
 G_BEGIN_DECLS
 
@@ -45,21 +45,21 @@ struct _HudApplicationSource {
 };
 
 GType                    hud_application_source_get_type          (void);
-HudApplicationSource *   hud_application_source_new_for_app       (BamfApplication *        bapp);
+HudApplicationSource *   hud_application_source_new_for_app       (AbstractApplication *    bapp);
 HudApplicationSource *   hud_application_source_new_for_id        (const gchar *            id);
 gboolean                 hud_application_source_is_empty          (HudApplicationSource *   app);
 void                     hud_application_source_focus             (HudApplicationSource *   app,
-                                                                   BamfApplication *        bapp,
-                                                                   BamfWindow *             window);
+                                                                   AbstractApplication *    bapp,
+                                                                   AbstractWindow *         window);
 const gchar *            hud_application_source_get_path          (HudApplicationSource *   app);
 const gchar *            hud_application_source_get_id            (HudApplicationSource *   app);
 void                     hud_application_source_add_window        (HudApplicationSource *   app,
-                                                                   BamfWindow *             window);
+                                                                   AbstractWindow *         window);
 gboolean                 hud_application_source_has_xid           (HudApplicationSource *   app,
                                                                    guint32                  xid);
 
 /* Helper functions */
-gchar *                  hud_application_source_bamf_app_id       (BamfApplication *        bapp);
+gchar *                  hud_application_source_bamf_app_id       (AbstractApplication *    bapp);
 
 G_END_DECLS
 

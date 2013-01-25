@@ -691,7 +691,7 @@ hud_dbusmenu_collector_new_for_endpoint (const gchar *application_id,
  * Returns: a new #HudDbusmenuCollector
  **/
 HudDbusmenuCollector *
-hud_dbusmenu_collector_new_for_window (BamfWindow  *window,
+hud_dbusmenu_collector_new_for_window (AbstractWindow  *window,
                                        const gchar *application_id,
                                        const gchar *icon)
 {
@@ -700,7 +700,10 @@ hud_dbusmenu_collector_new_for_window (BamfWindow  *window,
   collector = g_object_new (HUD_TYPE_DBUSMENU_COLLECTOR, NULL);
   collector->application_id = g_strdup (application_id);
   collector->icon = g_strdup (icon);
+  collector->xid = 0;
+#ifdef HAVE_BAMF
   collector->xid = bamf_window_get_xid (window);
+#endif
   collector->keyword_mapping = hud_keyword_mapping_new();
   hud_keyword_mapping_load(collector->keyword_mapping, collector->application_id, DATADIR, GNOMELOCALEDIR);
 
