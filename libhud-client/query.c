@@ -56,6 +56,10 @@ static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * 
 
 G_DEFINE_TYPE (HudClientQuery, hud_client_query, G_TYPE_OBJECT);
 
+static guint hud_client_query_signal_voice_query_loading;
+static guint hud_client_query_signal_voice_query_listening;
+static guint hud_client_query_signal_voice_query_finished;
+
 static void
 hud_client_query_class_init (HudClientQueryClass *klass)
 {
@@ -79,6 +83,18 @@ hud_client_query_class_init (HudClientQueryClass *klass)
 	                                              "HUD query",
 	                                              NULL,
 	                                              G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	hud_client_query_signal_voice_query_loading = g_signal_new (
+		"voice-query-loading", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST, 0, NULL,
+		NULL, g_cclosure_marshal_generic, G_TYPE_NONE, 0);
+
+	hud_client_query_signal_voice_query_listening = g_signal_new (
+		"voice-query-listening", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST, 0,
+		NULL, NULL, g_cclosure_marshal_generic, G_TYPE_NONE, 0);
+
+	hud_client_query_signal_voice_query_finished = g_signal_new (
+		"voice-query-finished", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST, 0, NULL,
+		NULL, g_cclosure_marshal_generic, G_TYPE_NONE, 1, G_TYPE_STRING );
 
 	return;
 }
@@ -133,6 +149,25 @@ get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
 }
 
 static void
+hud_client_query_voice_query_loading (_HudQueryComCanonicalHudQuery *object, gpointer user_data)
+{
+	g_signal_emit(user_data, hud_client_query_signal_voice_query_loading, 0);
+}
+
+static void
+hud_client_query_voice_query_listening (_HudQueryComCanonicalHudQuery *object, gpointer user_data)
+{
+	g_signal_emit(user_data, hud_client_query_signal_voice_query_listening, 0);
+}
+
+static void
+hud_client_query_voice_query_finished (_HudQueryComCanonicalHudQuery *object, const gchar *arg_query, gpointer user_data)
+{
+	g_signal_emit (user_data, hud_client_query_signal_voice_query_finished,
+	g_quark_try_string (arg_query), arg_query);
+}
+
+static void
 hud_client_query_constructed (GObject *object)
 {
 	HudClientQuery * cquery = HUD_CLIENT_QUERY(object);
@@ -140,11 +175,11 @@ hud_client_query_constructed (GObject *object)
 	G_OBJECT_CLASS (hud_client_query_parent_class)->constructed (object);
 
 	if (cquery->priv->connection == NULL) {
-	  cquery->priv->connection = hud_client_connection_get_ref();
+		cquery->priv->connection = hud_client_connection_get_ref();
 	}
 
 	if(cquery->priv->query == NULL) {
-	  cquery->priv->query = g_strdup("");
+		cquery->priv->query = g_strdup("");
 	}
 
 	gchar * path = NULL;
@@ -173,6 +208,13 @@ hud_client_query_constructed (GObject *object)
 	g_free(path);
 	g_free(results);
 	g_free(appstack);
+
+	g_signal_connect_object (cquery->priv->proxy, "voice-query-loading",
+		G_CALLBACK (hud_client_query_voice_query_loading), object, 0);
+	g_signal_connect_object (cquery->priv->proxy, "voice-query-listening",
+		G_CALLBACK (hud_client_query_voice_query_listening), object, 0);
+	g_signal_connect_object (cquery->priv->proxy, "voice-query-finished",
+		G_CALLBACK (hud_client_query_voice_query_finished), object, 0);
 }
 
 static void
