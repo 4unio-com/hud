@@ -14,6 +14,7 @@ namespace HudGtk {
 	}
 
 	class Window : Gtk.ApplicationWindow {
+		Gtk.Label voice_label;
 		Gtk.ListStore model;
 		HudClient.Query query;
 		
@@ -59,6 +60,21 @@ namespace HudGtk {
 
 			query.execute_command(key, 0);
 		}
+		
+		void voice_query_loading (HudClient.Query proxy) {
+			debug("Voice query is loading");
+			voice_label.label = "Loading";
+		}
+		
+		void voice_query_listening (HudClient.Query proxy) {
+			debug("Voice query is listening");
+			voice_label.label = "Listening";
+		}
+		
+		void voice_query_finished (HudClient.Query proxy, string query) {
+			debug("Voice query is finished, query=[%s]", query);
+			voice_label.label = "Idle";
+		}
 
 		public Window (Gtk.Application application) {
 			Object (application: application, title: "Hud");
@@ -73,6 +89,11 @@ namespace HudGtk {
 				error (e.message);
 			}
 
+			voice_label = builder.get_object ("voice-status") as Gtk.Label;
+			query.voice_query_loading.connect ( voice_query_loading );
+			query.voice_query_listening.connect ( voice_query_listening );
+			query.voice_query_finished.connect ( voice_query_finished );
+			
 			Dee.Model results = query.get_results_model();
 			results.row_added.connect (results_row_added);
 			results.row_removed.connect (results_row_removed);
