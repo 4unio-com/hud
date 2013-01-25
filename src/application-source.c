@@ -632,7 +632,7 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 		}
 	}
 
-	const gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
+	gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
 	const gchar * icon = bamf_view_get_icon(BAMF_VIEW(window));
 
 	if (mm_collector == NULL) {
@@ -651,6 +651,7 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 			hud_source_list_add(collector_list, HUD_SOURCE(dm_collector));
 		}
 	}
+	g_free (app_id);
 
 	return;
 }
