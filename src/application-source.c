@@ -651,7 +651,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	const gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
 	const gchar * icon = NULL;
 #ifdef HAVE_BAMF
-	const gchar * icon = bamf_view_get_icon(BAMF_VIEW(window));
+	icon = bamf_view_get_icon(BAMF_VIEW(window));
 #endif
 
 	if (mm_collector == NULL) {

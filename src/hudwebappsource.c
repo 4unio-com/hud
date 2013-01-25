@@ -86,7 +86,7 @@ hud_webapp_source_collector_changed (HudSource *source,
 
 #ifdef HAVE_BAMF
 static void
-hud_webapp_source_application_child_moved (Application *application,
+hud_webapp_source_application_child_moved (AbstractApplication *application,
 					     BamfView *child,
 					     gpointer user_data)
 {
