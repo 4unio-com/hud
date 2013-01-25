@@ -314,6 +314,28 @@ hud_client_query_get_appstack_model (HudClientQuery * cquery)
 }
 
 /**
+ * hud_client_query_set_appstack_app:
+ * @cquery: A #HudClientQuery
+ * @application_id: New application to get results from
+ *
+ * This revises the query application to be application_id.  Updates can
+ * be seen through the #DeeModel's.
+ */
+void
+hud_client_query_set_appstack_app (HudClientQuery *        cquery,
+                                   const gchar *           application_id)
+{
+	g_return_if_fail(HUD_CLIENT_IS_QUERY(cquery));
+
+	if (cquery->priv->proxy != NULL) {
+		gint revision = 0;
+		_hud_query_com_canonical_hud_query_call_update_app_sync(cquery->priv->proxy, application_id, &revision, NULL, NULL);
+	}
+
+	return;
+}
+
+/**
  * hud_client_query_execute_command:
  * @cquery: A #HudClientQuery
  * @command_key: The key from the results model for the entry to activate

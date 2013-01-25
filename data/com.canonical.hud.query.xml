@@ -16,6 +16,13 @@
 			<arg type="i" name="modelRevision" direction="out" />
 		</method>
 
+		<method name="UpdateApp">
+			<!-- in -->
+			<arg type="s" name="app" direction="in" />
+			<!-- out -->
+			<arg type="i" name="modelRevision" direction="out" />
+		</method>
+
 		<method name="CloseQuery">
 		</method>
 

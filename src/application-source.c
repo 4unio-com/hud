@@ -65,6 +65,12 @@ static void source_search                     (HudSource *                 hud_s
                                                HudTokenList *              search_string,
                                                void                      (*append_func) (HudResult * result, gpointer user_data),
                                                gpointer                    user_data);
+static void source_list_applications          (HudSource *                 hud_source,
+                                               HudTokenList *              search_string,
+                                               void                      (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                               gpointer                    user_data);
+static HudSource * source_get                 (HudSource *                 hud_source,
+                                               const gchar *               application_id);
 static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplication * skel,
                                                GDBusMethodInvocation *     invocation,
                                                GVariant *                  actions,
@@ -95,6 +101,8 @@ source_iface_init (HudSourceInterface *iface)
 	iface->use = source_use;
 	iface->unuse = source_unuse;
 	iface->search = source_search;
+	iface->list_applications = source_list_applications;
+	iface->get = source_get;
 
 	return;
 }
@@ -212,13 +220,69 @@ source_search (HudSource *     hud_source,
 {
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
 
-	if (app->priv->used_source == NULL) {
-		g_warning("A search without a use... ");
-		return;
+	if (app->priv->used_source != NULL) {
+		hud_source_search(app->priv->used_source, search_string, append_func, user_data);
+	} else {
+		if (g_hash_table_size (app->priv->windows) == 1){
+			GHashTableIter iter;
+			gpointer key, value;
+			g_hash_table_iter_init (&iter, app->priv->windows);
+			g_hash_table_iter_next (&iter, &key, &value);
+			HudSourceList *list = HUD_SOURCE_LIST(value);
+			if (list != NULL) {
+				hud_source_search(HUD_SOURCE(list), search_string, append_func, user_data);
+			} else {
+				g_warning("A search with a single window but no source list... ");
+			}
+		} else {
+			g_warning("A search without a use... ");
+		}
 	}
 
-	hud_source_search(app->priv->used_source, search_string, append_func, user_data);
 	return;
+}
+
+static void
+source_list_applications (HudSource *     hud_source,
+                          HudTokenList *  search_string,
+                          void           (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                          gpointer        user_data)
+{
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+
+	if (app->priv->used_source != NULL) {
+		hud_source_list_applications(app->priv->used_source, search_string, append_func, user_data);
+	} else {
+		if (g_hash_table_size (app->priv->windows) == 1){
+			GHashTableIter iter;
+			gpointer key, value;
+			g_hash_table_iter_init (&iter, app->priv->windows);
+			g_hash_table_iter_next (&iter, &key, &value);
+			HudSourceList *list = HUD_SOURCE_LIST(value);
+			if (list != NULL) {
+				hud_source_list_applications(HUD_SOURCE(list), search_string, append_func, user_data);
+			} else {
+				g_warning("A list with a single window but no source list... ");
+			}
+		} else {
+			g_warning("A list without a use... ");
+		}
+	}
+	
+	return;
+}
+
+static HudSource *
+source_get (HudSource *     hud_source,
+            const gchar *   application_id)
+{
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+
+	if (g_strcmp0 (application_id, app->priv->app_id) == 0) {
+		return hud_source;
+	}
+	
+	return NULL;
 }
 
 /**
@@ -559,6 +623,9 @@ window_destroyed (gpointer data, GObject * old_address)
 
 	window_info->window = NULL;
 
+	if (window_info->source->priv->focused_window == window_info->xid) {
+		window_info->source->priv->used_source = NULL;
+	}
 	g_hash_table_remove(window_info->source->priv->windows, GINT_TO_POINTER(window_info->xid));
 	/* NOTE: DO NOT use the window_info after this point as
 	   it may be free'd by the remove above. */
@@ -634,6 +701,13 @@ hud_application_source_add_window (HudApplicationSource * app, BamfWindow * wind
 
 	gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
 	const gchar * icon = bamf_view_get_icon(BAMF_VIEW(window));
+	if (icon == NULL) {
+		const gchar * desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
+		GKeyFile * kfile = g_key_file_new();
+		g_key_file_load_from_file(kfile, desktop_file, G_KEY_FILE_NONE, NULL);
+		icon = g_key_file_get_value(kfile, G_KEY_FILE_DESKTOP_GROUP, G_KEY_FILE_DESKTOP_KEY_ICON, NULL);
+		g_key_file_free(kfile);
+	}
 
 	if (mm_collector == NULL) {
 		mm_collector = hud_menu_model_collector_new(app_id, icon, 0);

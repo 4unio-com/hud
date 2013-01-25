@@ -11,4 +11,5 @@ libhud-client.so.1 libhud-client1 #MINVER#
  hud_client_query_get_type@Base 13.04.0
  hud_client_query_new@Base 13.04.0
  hud_client_query_new_for_connection@Base 13.04.0
+ hud_client_query_set_appstack_app@Base 13.04.0-0ubuntu1~ppa2
  hud_client_query_set_query@Base 13.04.0

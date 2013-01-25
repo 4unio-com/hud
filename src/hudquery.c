@@ -52,7 +52,8 @@ struct _HudQuery
 {
   GObject parent_instance;
 
-  HudSource *source;
+  HudSource *all_sources;
+  HudSource *current_source;
   gchar *search_string;
   HudTokenList *token_list;
   gint num_results;
@@ -115,6 +116,21 @@ results_list_populate (HudResult * result, gpointer user_data)
 	return;
 }
 
+/* Add a HudItem to the list of app results */
+static void
+app_results_list_populate (const gchar *application_id, const gchar *application_icon, gpointer user_data)
+{
+	HudQuery * query = (HudQuery *)user_data;
+
+	GVariant * columns[G_N_ELEMENTS(appstack_model_schema) + 1];
+	columns[0] = g_variant_new_string(application_id ? application_id : "");
+	columns[1] = g_variant_new_string(application_icon ? application_icon : "");
+	columns[2] = NULL;
+
+	dee_model_prepend_row(query->appstack_model, columns);
+	return;
+}
+
 /* Go through the list and find the item with the highest usage
    that the others will be compared against */
 static void
@@ -169,7 +185,11 @@ hud_query_refresh (HudQuery *query)
   query->max_usage = 0;
 
   /* Note that the results are kept sorted as they are collected using a GSequence */
-  hud_source_search (query->source, query->token_list, results_list_populate, query);
+  if (query->current_source != NULL) {
+    hud_source_search (query->current_source, query->token_list, results_list_populate, query);
+  } else {
+    g_debug("Current source was null. This should usually not happen outside tests in regular user use");
+  }
   g_debug("Num results: %d", g_sequence_get_length(query->results_list));
 
   g_sequence_foreach(query->results_list, results_list_max_usage, &query->max_usage);
@@ -179,6 +199,9 @@ hud_query_refresh (HudQuery *query)
   /* NOTE: Not freeing the items as the references are picked up by the DeeModel */
   g_sequence_free(query->results_list);
   query->results_list = NULL;
+
+  dee_model_clear(query->appstack_model);
+  hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, query);
 
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
 
@@ -224,9 +247,10 @@ hud_query_finalize (GObject *object)
   if (query->refresh_id)
     g_source_remove (query->refresh_id);
 
-  hud_source_unuse (query->source);
+  hud_source_unuse (query->all_sources);
 
-  g_object_unref (query->source);
+  g_object_unref (query->all_sources);
+  g_object_unref (query->current_source);
   if (query->token_list != NULL) {
     hud_token_list_free (query->token_list);
     query->token_list = NULL;
@@ -263,6 +287,29 @@ handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoca
 	if (query->search_string[0] != '\0') {
 		query->token_list = hud_token_list_new_from_string (query->search_string);
 	}
+
+	/* Refresh it all */
+	hud_query_refresh (query);
+
+	/* Tell DBus everything is going to be A-OK */
+	GVariant * modelrev = g_variant_new_int32(0);
+	g_dbus_method_invocation_return_value(invocation, g_variant_new_tuple(&modelrev, 1));
+
+	return TRUE;
+}
+
+/* Handle the DBus function UpdateApp */
+static gboolean
+handle_update_app (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, const gchar * app_id, gpointer user_data)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
+	HudQuery * query = HUD_QUERY(user_data);
+
+	g_debug("Updating App to: '%s'", app_id);
+
+	g_object_unref (query->current_source);
+	query->current_source = hud_source_get(query->all_sources, app_id);
+	g_object_ref (query->current_source);
 
 	/* Refresh it all */
 	hud_query_refresh (query);
@@ -342,6 +389,7 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint q
 
   /* NOTE: Connect to the functions before putting on the bus. */
   g_signal_connect(G_OBJECT(query->skel), "handle-update-query", G_CALLBACK(handle_update_query), query);
+  g_signal_connect(G_OBJECT(query->skel), "handle-update-app", G_CALLBACK(handle_update_app), query);
   g_signal_connect(G_OBJECT(query->skel), "handle-close-query", G_CALLBACK(handle_close_query), query);
   g_signal_connect(G_OBJECT(query->skel), "handle-execute-command", G_CALLBACK(handle_execute), query);
 
@@ -414,7 +462,8 @@ hud_query_class_init (HudQueryClass *class)
  * Returns: the new #HudQuery
  **/
 HudQuery *
-hud_query_new (HudSource   *source,
+hud_query_new (HudSource   *all_sources,
+               HudSource   *current_source,
                const gchar *search_string,
                gint         num_results,
                GDBusConnection *connection,
@@ -426,7 +475,8 @@ hud_query_new (HudSource   *source,
 
   query = g_object_new (HUD_TYPE_QUERY, NULL);
   hud_query_init_real(query, connection, query_count);
-  query->source = g_object_ref (source);
+  query->all_sources = g_object_ref (all_sources);
+  query->current_source = g_object_ref (current_source);
   query->search_string = g_strdup (search_string);
   query->token_list = NULL;
   
@@ -436,11 +486,11 @@ hud_query_new (HudSource   *source,
 
   query->num_results = num_results;
 
-  hud_source_use (query->source);
+  hud_source_use (query->all_sources);
 
   hud_query_refresh (query);
 
-  g_signal_connect_object (source, "changed", G_CALLBACK (hud_query_source_changed), query, 0);
+  g_signal_connect_object (all_sources, "changed", G_CALLBACK (hud_query_source_changed), query, 0);
 
   return query;
 }
@@ -499,5 +549,14 @@ hud_query_get_results_model(HudQuery *self)
   g_return_val_if_fail(HUD_IS_QUERY(self), NULL);
 
   return self->results_model;
+
+}
+
+DeeModel *
+hud_query_get_appstack_model(HudQuery *self)
+{
+  g_return_val_if_fail(HUD_IS_QUERY(self), NULL);
+
+  return self->appstack_model;
 
 }
