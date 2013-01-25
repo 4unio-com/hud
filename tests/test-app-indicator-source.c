@@ -135,7 +135,6 @@ test_app_indicator_source_add_remove ()
 
   dbus_test_service_stop(service);
   g_object_unref (service);
-  g_object_unref (connection);
 
   hud_test_utils_wait_for_connection_close(connection);
 }
@@ -228,7 +227,6 @@ test_app_indicator_source_start_empty ()
 
   dbus_test_service_stop(service);
   g_object_unref (service);
-  g_object_unref (connection);
 
   hud_test_utils_wait_for_connection_close(connection);
 }
@@ -310,7 +308,6 @@ test_app_indicator_source_change_title ()
 
   dbus_test_service_stop(service);
   g_object_unref (service);
-  g_object_unref (connection);
 
   hud_test_utils_wait_for_connection_close(connection);
 }

@@ -95,7 +95,6 @@ test_menus_dbusmenu_base (void)
 
 	g_object_unref(collector);
 	g_object_unref(service);
-	g_object_unref(session);
 
 	hud_test_utils_wait_for_connection_close(session);
 }
@@ -178,7 +177,6 @@ test_menus_dbusmenu_shortcuts (void)
 
 	g_object_unref(collector);
 	g_object_unref(service);
-	g_object_unref(session);
 
 	hud_test_utils_wait_for_connection_close(session);
 }
@@ -219,7 +217,6 @@ test_menus_model_base (void)
 
 	g_object_unref(collector);
 	g_object_unref(service);
-	g_object_unref(session);
 
 	hud_test_utils_wait_for_connection_close(session);
 }
@@ -269,7 +266,6 @@ test_menus_model_shortcuts (void)
 
 	g_object_unref(collector);
 	g_object_unref(service);
-	g_object_unref(session);
 
 	hud_test_utils_wait_for_connection_close(session);
 }

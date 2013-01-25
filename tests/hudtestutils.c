@@ -337,6 +337,10 @@ hud_test_utils_process_mainloop (const guint delay)
 void
 hud_test_utils_wait_for_connection_close (GDBusConnection *connection)
 {
+  g_object_add_weak_pointer(G_OBJECT(connection), (gpointer) &connection);
+
+  g_object_unref (connection);
+
   int wait_count;
   for (wait_count = 0; connection != NULL && wait_count < SESSION_MAX_WAIT;
       wait_count++)
