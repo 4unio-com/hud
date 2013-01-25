@@ -137,7 +137,7 @@ test_app_indicator_source_add_remove ()
   g_object_unref (service);
   g_object_unref (connection);
 
-  hud_test_utils_process_mainloop (100);
+  hud_test_utils_wait_for_connection_close(connection);
 }
 
 static void
@@ -230,7 +230,7 @@ test_app_indicator_source_start_empty ()
   g_object_unref (service);
   g_object_unref (connection);
 
-  hud_test_utils_process_mainloop (100);
+  hud_test_utils_wait_for_connection_close(connection);
 }
 
 static void
@@ -312,7 +312,7 @@ test_app_indicator_source_change_title ()
   g_object_unref (service);
   g_object_unref (connection);
 
-  hud_test_utils_process_mainloop (100);
+  hud_test_utils_wait_for_connection_close(connection);
 }
 
 int

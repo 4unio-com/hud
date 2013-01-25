@@ -97,7 +97,7 @@ test_menus_dbusmenu_base (void)
 	g_object_unref(service);
 	g_object_unref(session);
 
-	hud_test_utils_process_mainloop(100);
+	hud_test_utils_wait_for_connection_close(session);
 }
 
 struct {
@@ -180,7 +180,7 @@ test_menus_dbusmenu_shortcuts (void)
 	g_object_unref(service);
 	g_object_unref(session);
 
-	hud_test_utils_process_mainloop(100);
+	hud_test_utils_wait_for_connection_close(session);
 }
 
 /* Find an item in the base menu model */
@@ -221,7 +221,7 @@ test_menus_model_base (void)
 	g_object_unref(service);
 	g_object_unref(session);
 
-	hud_test_utils_process_mainloop(100);
+	hud_test_utils_wait_for_connection_close(session);
 }
 
 /* Create model items with various shortcuts */
@@ -271,7 +271,7 @@ test_menus_model_shortcuts (void)
 	g_object_unref(service);
 	g_object_unref(session);
 
-	hud_test_utils_process_mainloop(100);
+	hud_test_utils_wait_for_connection_close(session);
 }
 
 /* Build the test suite */
