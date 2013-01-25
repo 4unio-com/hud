@@ -135,15 +135,44 @@ get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
 static void
 hud_client_query_constructed (GObject *object)
 {
-	HudClientQuery * self = HUD_CLIENT_QUERY(object);
+	HudClientQuery * cquery = HUD_CLIENT_QUERY(object);
 
 	G_OBJECT_CLASS (hud_client_query_parent_class)->constructed (object);
 
-	if (self->priv->connection == NULL) {
-		self->priv->connection = hud_client_connection_get_ref();
+	if (cquery->priv->connection == NULL) {
+	  cquery->priv->connection = hud_client_connection_get_ref();
 	}
 
-	return;
+	if(cquery->priv->query == NULL) {
+	  cquery->priv->query = g_strdup("");
+	}
+
+	gchar * path = NULL;
+	gchar * results = NULL;
+	gchar * appstack = NULL;
+
+	/* This is perhaps a little extreme, but really, if this is failing
+	 there's a whole world of hurt for us. */
+	g_return_if_fail(hud_client_connection_new_query(cquery->priv->connection, cquery->priv->query, &path, &results, &appstack));
+
+	cquery->priv->proxy = _hud_query_com_canonical_hud_query_proxy_new_for_bus_sync(
+		G_BUS_TYPE_SESSION,
+		G_DBUS_PROXY_FLAGS_NONE,
+		hud_client_connection_get_address(cquery->priv->connection),
+		path,
+		NULL, /* GCancellable */
+		NULL  /* GError */
+	);
+
+	g_clear_object(&cquery->priv->results);
+	cquery->priv->results = dee_shared_model_new(results);
+
+	g_clear_object(&cquery->priv->appstack);
+	cquery->priv->appstack = dee_shared_model_new(appstack);
+
+	g_free(path);
+	g_free(results);
+	g_free(appstack);
 }
 
 static void
@@ -231,33 +260,6 @@ hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 	if (cquery->priv->proxy != NULL) {
 		gint revision = 0;
 		_hud_query_com_canonical_hud_query_call_update_query_sync(cquery->priv->proxy, cquery->priv->query, &revision, NULL, NULL);
-	} else {
-		gchar * path = NULL;
-		gchar * results = NULL;
-		gchar * appstack = NULL;
-		
-		/* This is perhaps a little extreme, but really, if this is failing
-		   there's a whole world of hurt for us. */
-		g_return_if_fail(hud_client_connection_new_query(cquery->priv->connection, cquery->priv->query, &path, &results, &appstack));
-
-		cquery->priv->proxy = _hud_query_com_canonical_hud_query_proxy_new_for_bus_sync(
-			G_BUS_TYPE_SESSION,
-			G_DBUS_PROXY_FLAGS_NONE,
-			hud_client_connection_get_address(cquery->priv->connection),
-			path,
-			NULL, /* GCancellable */
-			NULL  /* GError */
-		);
-
-		g_clear_object(&cquery->priv->results);
-		cquery->priv->results = dee_shared_model_new(results);
-
-		g_clear_object(&cquery->priv->appstack);
-		cquery->priv->appstack = dee_shared_model_new(appstack);
-
-		g_free(path);
-		g_free(results);
-		g_free(appstack);
 	}
 
 	g_object_notify(G_OBJECT(cquery), PROP_QUERY_S);
@@ -281,26 +283,35 @@ hud_client_query_get_query (HudClientQuery * cquery)
 	return cquery->priv->query;
 }
 
-void
-hud_client_query_voice_search (HudClientQuery * cquery)
+static void
+hud_client_query_voice_query_callback (GObject *source, GAsyncResult *result, gpointer user_data)
 {
-  g_return_if_fail(HUD_CLIENT_IS_QUERY(cquery));
+	g_assert(HUD_CLIENT_IS_QUERY(user_data));
+	HudClientQuery *cquery = HUD_CLIENT_QUERY(user_data);
+	gint revision = 0;
+	gchar *query = NULL;
+	GError *error = NULL;
+	if (!_hud_query_com_canonical_hud_query_call_voice_query_finish (cquery->priv->proxy, &revision, &query, result, &error))
+	{
+		g_warning("Voice query failed to finish: [%s]", error->message);
+		g_error_free(error);
+		return;
+	}
 
-  if (cquery->priv->proxy != NULL) {
-    g_debug("running voice search");
-    gint revision = 0;
-    g_clear_pointer(&cquery->priv->query, g_free);
-    GError *error = NULL;
-    gchar *query = NULL;
-    if (!_hud_query_com_canonical_hud_query_call_voice_query_sync (
-        cquery->priv->proxy, &revision, &query, NULL, NULL ))
-    {
-      g_warning("Error running voice search: [%s]", error->message);
-      g_error_free(error);
-      return;
-    }
-    g_object_notify(G_OBJECT(cquery), PROP_QUERY_S);
-  }
+	g_clear_pointer(&cquery->priv->query, g_free);
+	cquery->priv->query = query;
+	g_object_notify (G_OBJECT(cquery), PROP_QUERY_S);
+}
+
+void
+hud_client_query_voice_query (HudClientQuery * cquery)
+{
+	g_return_if_fail(HUD_CLIENT_IS_QUERY(cquery));
+
+	if (cquery->priv->proxy != NULL) {
+		g_debug("Running voice query");
+		_hud_query_com_canonical_hud_query_call_voice_query (cquery->priv->proxy, NULL, hud_client_query_voice_query_callback, cquery);
+	}
 }
 
 /**

@@ -34,6 +34,15 @@
 <!-- Signals -->
 		<!-- Most update signals come through the Dee model -->
 
+		<signal name="VoiceQueryLoading">
+		</signal>
+		
+		<signal name="VoiceQueryListening">
+		</signal>
+
+		<signal name="VoiceQueryFinished">
+			<arg type="s" name="query" direction="out" />
+		</signal>
 <!-- End of interesting stuff -->
 
 	</interface>

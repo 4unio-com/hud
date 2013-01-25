@@ -84,7 +84,7 @@ struct _HudQuery
 
 typedef GObjectClass HudQueryClass;
 
-static gchar * do_voice (HudSource * source_kinda);
+static gchar * hud_query_voice_query (HudQuery *self);
 
 G_DEFINE_TYPE (HudQuery, hud_query, G_TYPE_OBJECT)
 
@@ -259,10 +259,12 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
   HudQuery * query = HUD_QUERY(user_data);
 
+  g_debug("Voice query is loading");
+  g_signal_emit_by_name(G_OBJECT(skel), "voice-query-loading");
+  gchar * search_string = hud_query_voice_query (query);
+  g_debug("Voice query is finished");
+  g_signal_emit_by_name(G_OBJECT(skel), "voice-query-finished", search_string);
 
-  g_debug("Listening for speech");
-  gchar * search_string = do_voice (query->source);
-  g_debug("Completed listening");
   if (search_string == NULL)
     search_string = g_strdup("");
 
@@ -555,7 +557,7 @@ hud_query_get_results_model(HudQuery *self)
 /* Start code taken from PocketSphinx */
 
 static char const *
-utterance_loop(ad_rec_t * ad, ps_decoder_t * ps)
+hud_query_utterance_loop(HudQuery *self, ad_rec_t * ad, ps_decoder_t * ps)
 {
     int16 adbuf[4096];
     int32 k, ts, rem, score;
@@ -574,7 +576,8 @@ utterance_loop(ad_rec_t * ad, ps_decoder_t * ps)
 
     if (TRUE) {
         /* Indicate listening for next utterance */
-        printf("READY....\n");
+        g_debug("Voice query is listening");
+        g_signal_emit_by_name(G_OBJECT(self->skel), "voice-query-listening");
         fflush(stdout);
         fflush(stderr);
 
@@ -592,7 +595,7 @@ utterance_loop(ad_rec_t * ad, ps_decoder_t * ps)
         if (ps_start_utt(ps, NULL) < 0)
             g_error("ps_start_utt() failed\n");
         ps_process_raw(ps, adbuf, k, FALSE, FALSE);
-        printf("Listening...\n");
+        g_debug("Voice query has heard something");
         fflush(stdout);
 
         /* Note timestamp for this first block of data */
@@ -634,12 +637,12 @@ utterance_loop(ad_rec_t * ad, ps_decoder_t * ps)
         while (ad_read(ad, adbuf, 4096) >= 0);
         cont_ad_reset(cont);
 
-        printf("Stopped listening, please wait...\n");
+        g_debug("Voice query has stopped listening, processing...");
         fflush(stdout);
         /* Finish decoding, obtain and print result */
         ps_end_utt(ps);
         hyp = ps_get_hyp(ps, &score, &uttid);
-        printf("%s: %s (%d)\n", uttid, hyp, score);
+        g_debug("%s: %s (%d)\n", uttid, hyp, score);
         fflush(stdout);
 
         /* Exit if the first word spoken was GOODBYE */
@@ -666,7 +669,7 @@ static arg_t sphinx_cmd_ln[] = {
 
 /* Actually recognizing the Audio */
 static gchar *
-recognize_audio(const gchar * lm_filename, const gchar * pron_filename)
+hud_query_recognize_audio(HudQuery *self, const gchar * lm_filename, const gchar * pron_filename)
 {
   cmd_ln_t * spx_cmd = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
                                    "-hmm", "/usr/share/pocketsphinx/model/hmm/wsj1",
@@ -692,7 +695,7 @@ recognize_audio(const gchar * lm_filename, const gchar * pron_filename)
     return NULL;
   }
 
-  char const * hyp = utterance_loop(ad, decoder);
+  char const * hyp = hud_query_utterance_loop(self, ad, decoder);
   if (hyp == NULL) {
     g_warning("Utterance loop failed");
     ad_close(ad);
@@ -711,9 +714,9 @@ recognize_audio(const gchar * lm_filename, const gchar * pron_filename)
 
 /* Function to try and get a query from voice */
 static gchar *
-do_voice (HudSource * source_kinda)
+hud_query_voice_query (HudQuery *self)
 {
-  HudCollector * collector = hud_source_list_active_collector(HUD_SOURCE_LIST(source_kinda));
+  HudCollector * collector = hud_source_list_active_collector(HUD_SOURCE_LIST(self->source));
   if (collector == NULL) {
     /* No active window, that's fine, but we'll just move on */
     return NULL;
@@ -855,7 +858,7 @@ do_voice (HudSource * source_kinda)
   }
   g_free(unzipit);
 
-  gchar * retval = recognize_audio(lm_filename, pron_filename);
+  gchar * retval = hud_query_recognize_audio(self, lm_filename, pron_filename);
 
   if (string_file != 0) {
     g_unlink(string_filename);

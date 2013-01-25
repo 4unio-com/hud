@@ -47,7 +47,7 @@ namespace HudGtk {
 		}
 
 		void voice_pressed (Gtk.Button button) {
-			query.voice_search();
+			query.voice_query();
 		}
 
 		void view_activated (Gtk.TreeView view, Gtk.TreePath path, Gtk.TreeViewColumn column) {
