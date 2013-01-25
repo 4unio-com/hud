@@ -9,10 +9,16 @@ export G_MESSAGES_DEBUG=all
 override_dh_autoreconf:
 	NOCONFIGURE=1 dh_autoreconf ./autogen.sh
 
+DEB_HOST_ARCH_CPU := $(shell dpkg-architecture -qDEB_HOST_ARCH_CPU)
+
 override_dh_auto_configure:
 	# Manually specify compiler in case user has multiple valac's lying around,
 	# in which case 0.18 may not be the default.
-	dh_auto_configure -- VALAC=/usr/bin/valac-0.18 --enable-gtk-doc
+	ifeq ($(DEB_HOST_ARCH_CPU),arm)
+		dh_auto_configure -- VALAC=/usr/bin/valac-0.18 --enable-gtk-doc --disable-bamf
+	else
+		dh_auto_configure -- VALAC=/usr/bin/valac-0.18 --enable-gtk-doc
+	endif
 
 override_dh_install:
 	rm debian/tmp/usr/lib/*/*.la
