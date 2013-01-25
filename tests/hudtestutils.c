@@ -7,6 +7,11 @@
 #include <gio/gio.h>
 #include <stdarg.h>
 
+/* The max amount of time we should wait for the session bus to shutdown all
+ of its objects.  It's in another thread so it's hard to be deterministic
+ about when it should happen, but we need things cleaned up. */
+#define SESSION_MAX_WAIT 10
+
 static void
 dbus_mock_method_array_free_func(gpointer data)
 {
@@ -325,6 +330,22 @@ hud_test_utils_process_mainloop (const guint delay)
   g_main_loop_unref (temploop);
 }
 
+
+/*
+ * Waiting until the session bus shuts down
+ */
+void
+hud_test_utils_wait_for_connection_close (GDBusConnection *connection)
+{
+  int wait_count;
+  for (wait_count = 0; connection != NULL && wait_count < SESSION_MAX_WAIT;
+      wait_count++)
+  {
+    hud_test_utils_process_mainloop (100);
+  }
+
+  g_assert(wait_count != SESSION_MAX_WAIT);
+}
 
 void
 hud_test_utils_results_append_func(HudResult *result, gpointer user_data)
