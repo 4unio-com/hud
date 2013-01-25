@@ -32,10 +32,9 @@ typedef struct _HudStringList                                HudStringList;
 
 GType hud_manual_source_get_type ();
 
-HudManualSource * hud_manual_source_new ();
+HudManualSource * hud_manual_source_new (const gchar *application_id, const gchar *app_icon);
 
 void hud_manual_source_add (HudManualSource *self, HudStringList *tokens,
-    HudStringList *keywords, const gchar *shortcut, const gchar *desktop_file,
-    const gchar *app_icon, gboolean enabled);
+    HudStringList *keywords, const gchar *shortcut, gboolean enabled);
 
 #endif /* __HUD_MANUAL_SOURCE_H__ */

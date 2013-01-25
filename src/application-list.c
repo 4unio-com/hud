@@ -65,6 +65,12 @@ static void source_search                   (HudSource *               hud_sourc
                                              HudTokenList *            search_string,
                                              void                    (*append_func) (HudResult * result, gpointer user_data),
                                              gpointer                  user_data);
+static void source_list_applications        (HudSource *               hud_source,
+                                             HudTokenList *            search_string,
+                                             void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                             gpointer                  user_data);
+static HudSource * source_get               (HudSource *               hud_source,
+                                             const gchar *             application_id);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationList, hud_application_list, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -90,6 +96,8 @@ source_iface_init (HudSourceInterface *iface)
 	iface->use = source_use;
 	iface->unuse = source_unuse;
 	iface->search = source_search;
+	iface->list_applications = source_list_applications;
+	iface->get = source_get;
 
 	return;
 }
@@ -439,6 +447,40 @@ source_search (HudSource *     hud_source,
 	return;
 }
 
+static void
+source_list_applications (HudSource *               hud_source,
+                          HudTokenList *            search_string,
+                          void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                          gpointer                  user_data)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_LIST(hud_source));
+	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
+	GList * sources = g_hash_table_get_values(list->priv->applications);
+	GList * lsource = NULL;
+
+	for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
+		HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
+		if (appsource == NULL || HUD_SOURCE(appsource) == list->priv->used_source) continue;
+
+		hud_source_list_applications(HUD_SOURCE(appsource), search_string, append_func, user_data);
+	}
+	
+	if (list->priv->used_source != NULL) {
+		hud_source_list_applications(list->priv->used_source, search_string, append_func, user_data);
+	}
+}
+
+static HudSource *
+source_get (HudSource *     hud_source,
+            const gchar *   application_id)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(hud_source), NULL);
+	g_return_val_if_fail(application_id != NULL, NULL);
+	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
+
+	return g_hash_table_lookup(list->priv->applications, application_id);
+}
+
 /**
  * hud_application_list_new:
  *
@@ -469,13 +511,29 @@ hud_application_list_get_source (HudApplicationList * list, const gchar * id)
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 	g_return_val_if_fail(id != NULL, NULL);
 
-	HudApplicationSource * source = g_hash_table_lookup(list->priv->applications, id);
+	HudApplicationSource * source = HUD_APPLICATION_SOURCE(source_get(HUD_SOURCE(list), id));
 	if (source == NULL) {
 		source = hud_application_source_new_for_id(id);
 		g_hash_table_insert(list->priv->applications, g_strdup(id), source);
 	}
 
 	return source;
+}
+
+/**
+ * hud_application_list_get_focused_app:
+ * @list: A #HudApplicationList object
+ * 
+ * Gets the focused app source
+ *
+ * Return value: (transfer none): The current #HudApplicationSource
+ */
+HudSource *
+hud_application_list_get_focused_app (HudApplicationList * list)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
+	
+	return list->priv->used_source;
 }
 
 /**

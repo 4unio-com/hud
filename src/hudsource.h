@@ -43,6 +43,12 @@ struct _HudSourceInterface
                    HudTokenList *search_tokens,
                    void        (*append_func) (HudResult * result, gpointer user_data),
                    gpointer      user_data);
+  void (* list_applications) (HudSource    *source,
+                              HudTokenList *search_tokens,
+                              void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                              gpointer      user_data);
+  HudSource * (* get) (HudSource    *source,
+                       const gchar *application_id);
 };
 
 GType                   hud_source_get_type                             (void);
@@ -54,6 +60,14 @@ void                    hud_source_search                               (HudSour
                                                                          HudTokenList *search_tokens,
                                                                          void        (*append_func) (HudResult * result, gpointer user_data),
                                                                          gpointer      user_data);
+
+void                    hud_source_list_applications                    (HudSource    *source,
+                                                                         HudTokenList *search_tokens,
+                                                                         void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                                                         gpointer      user_data);
+
+HudSource *             hud_source_get                                  (HudSource    *source,
+                                                                         const gchar  *application_id);
 
 void                    hud_source_changed                              (HudSource    *source);
 

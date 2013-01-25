@@ -74,6 +74,8 @@ const gchar *      hud_client_query_get_query             (HudClientQuery *     
 
 DeeModel *         hud_client_query_get_results_model     (HudClientQuery *        cquery);
 DeeModel *         hud_client_query_get_appstack_model    (HudClientQuery *        cquery);
+void               hud_client_query_set_appstack_app      (HudClientQuery *        cquery,
+                                                           const gchar *           application_id);
 void               hud_client_query_execute_command       (HudClientQuery *        cquery,
                                                            GVariant *              command_key,
                                                            guint                   timestamp);

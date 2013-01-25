@@ -44,6 +44,6 @@ gchar * hud_random_source_make_words (GRand *rand,
 HudSource * hud_random_source_new (GRand *rand);
 
 HudSource * hud_random_source_new_full (GRand *rand, const gint max_depth,
-    const gint max_items, const gint max_words);
+    const gint max_items, const gint max_words, const gchar *application_id, const gchar *app_icon);
 
 #endif /* HUDRANDOMSOURCE_H_ */

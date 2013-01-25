@@ -63,7 +63,7 @@ test_query_performance (void)
           gchar *part_search = g_strndup (search, j);
 
           start_time = g_get_monotonic_time ();
-          query = hud_query_new (source, part_search, 1u<<30, g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL), 0);
+          query = hud_query_new (source, source, part_search, 1u<<30, g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL), 0);
           g_print ("%-60s: %dus\n", part_search,
                    (int) (g_get_monotonic_time () - start_time));
           g_object_unref (query);

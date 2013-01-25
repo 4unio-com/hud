@@ -664,6 +664,45 @@ hud_menu_model_collector_search (HudSource    *source,
     }
 }
 
+static void
+hud_menu_model_collector_list_applications (HudSource    *source,
+                                            HudTokenList *search_string,
+                                            void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                            gpointer      user_data)
+{
+  HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
+  GPtrArray *items;
+  gint i;
+
+  items = collector->items;
+
+  for (i = 0; i < items->len; i++)
+    {
+      HudResult *result;
+      HudItem *item;
+
+      item = g_ptr_array_index (items, i);
+      result = hud_result_get_if_matched (item, search_string, collector->penalty);
+      if (result) {
+        append_func(collector->app_id, collector->icon, user_data);
+        g_object_unref(result);
+        break;
+      }
+    }
+}
+
+static HudSource *
+hud_menu_model_collector_get (HudSource   *source,
+                              const gchar *application_id)
+{
+  HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
+
+  if (g_strcmp0(collector->app_id, application_id) == 0)
+    return source;
+
+  return NULL;
+}
+
 /* Free's the model data structure */
 static void
 model_data_free (gpointer data)
@@ -724,6 +763,8 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->use = hud_menu_model_collector_use;
   iface->unuse = hud_menu_model_collector_unuse;
   iface->search = hud_menu_model_collector_search;
+  iface->list_applications = hud_menu_model_collector_list_applications;
+  iface->get = hud_menu_model_collector_get;
 }
 
 static void
