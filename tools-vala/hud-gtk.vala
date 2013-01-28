@@ -16,6 +16,7 @@ namespace HudGtk {
 	class Window : Gtk.ApplicationWindow {
 		Gtk.Label voice_label;
 		Gtk.ListStore model;
+		Gtk.ListStore appstack_model;
 		HudClient.Query query;
 		
 		void results_row_added (Dee.Model results, Dee.ModelIter result_iter) {
@@ -40,6 +41,27 @@ namespace HudGtk {
 			Gtk.TreeIter iter;
 			model.get_iter(out iter, path);
 			model.remove(iter);
+		}
+
+		void appstack_results_row_added (Dee.Model results, Dee.ModelIter result_iter) {
+			var pos = results.get_position(result_iter);
+
+			Gtk.TreeIter iter;
+			appstack_model.insert(out iter, (int)pos);
+
+			appstack_model.set(iter, 0, results.get_string(result_iter, 0));
+			appstack_model.set(iter, 1, results.get_string(result_iter, 1));
+		}
+
+		void appstack_results_row_removed (Dee.Model results, Dee.ModelIter result_iter) {
+			var pos = results.get_position(result_iter);
+
+			string spath = "%d";
+			spath = spath.printf(pos);
+			Gtk.TreePath path = new Gtk.TreePath.from_string(spath);
+			Gtk.TreeIter iter;
+			appstack_model.get_iter(out iter, path);
+			appstack_model.remove(iter);
 		}
 
 		void entry_text_changed (Object object, ParamSpec pspec) {
@@ -76,6 +98,16 @@ namespace HudGtk {
 			voice_label.label = "Idle";
 		}
 
+		void appstack_view_activated (Gtk.TreeView view, Gtk.TreePath path, Gtk.TreeViewColumn column) {
+			Gtk.TreeIter iter;
+			string key;
+
+			appstack_model.get_iter (out iter, path);
+			appstack_model.get (iter, 0, out key);
+			
+			query.set_appstack_app(key);
+		}
+
 		public Window (Gtk.Application application) {
 			Object (application: application, title: "Hud");
 			set_default_size (500, 300);
@@ -98,11 +130,18 @@ namespace HudGtk {
 			results.row_added.connect (results_row_added);
 			results.row_removed.connect (results_row_removed);
 
+			Dee.Model appstack_results = query.get_appstack_model();
+			appstack_results.row_added.connect (appstack_results_row_added);
+			appstack_results.row_removed.connect (appstack_results_row_removed);
+
 			model = builder.get_object ("liststore") as Gtk.ListStore;
 			builder.get_object ("entry").notify["text"].connect (entry_text_changed);
 			(builder.get_object ("voice") as Gtk.Button).clicked.connect (voice_pressed);
 			(builder.get_object ("treeview") as Gtk.TreeView).row_activated.connect (view_activated);
 			add (builder.get_object ("grid") as Gtk.Widget);
+			
+			appstack_model = builder.get_object ("appstack_liststore") as Gtk.ListStore;
+			(builder.get_object ("appstack_treeview") as Gtk.TreeView).row_activated.connect (appstack_view_activated);
 		}
 	}
 

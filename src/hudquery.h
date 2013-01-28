@@ -34,7 +34,8 @@ typedef struct _HudQuery                                    HudQuery;
 
 GType                   hud_query_get_type                              (void);
 
-HudQuery *              hud_query_new                                   (HudSource   *source,
+HudQuery *              hud_query_new                                   (HudSource   *all_sources,
+                                                                         HudSource   *current_source,
                                                                          const gchar *search_string,
                                                                          gint         num_results,
                                                                          GDBusConnection *connection,
@@ -44,5 +45,6 @@ const gchar *           hud_query_get_path                              (HudQuer
 const gchar *           hud_query_get_results_name                      (HudQuery    *query);
 const gchar *           hud_query_get_appstack_name                     (HudQuery    *query);
 DeeModel    *           hud_query_get_results_model                     (HudQuery    *query);
+DeeModel    *           hud_query_get_appstack_model                    (HudQuery    *query);
 
 #endif /* __HUD_QUERY_H__ */

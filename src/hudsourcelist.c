@@ -98,6 +98,35 @@ hud_source_list_search (HudSource    *source,
 }
 
 static void
+hud_source_list_list_applications (HudSource    *source,
+                                   HudTokenList *search_string,
+                                   void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                   gpointer      user_data)
+{
+  HudSourceList *list = HUD_SOURCE_LIST (source);
+  GSList *node;
+
+  for (node = list->list; node; node = node->next)
+    hud_source_list_applications (node->data, search_string, append_func, user_data);
+}
+
+static HudSource *
+hud_source_list_get (HudSource   *source,
+                     const gchar *application_id)
+{
+  HudSourceList *list = HUD_SOURCE_LIST (source);
+  GSList *node;
+
+  for (node = list->list; node; node = node->next) {
+    HudSource *result = hud_source_get (node->data, application_id);
+    if (result != NULL)
+      return result;
+  }
+
+  return NULL;
+}
+
+static void
 hud_source_list_finalize (GObject *object)
 {
   HudSourceList *list = HUD_SOURCE_LIST (object);
@@ -120,6 +149,8 @@ hud_source_list_iface_init (HudSourceInterface *iface)
   iface->use = hud_source_list_use;
   iface->unuse = hud_source_list_unuse;
   iface->search = hud_source_list_search;
+  iface->list_applications = hud_source_list_list_applications;
+  iface->get = hud_source_list_get;
 }
 
 static void
