@@ -1,0 +1,2 @@
+
+SUBDIRS = hudkeywords bin

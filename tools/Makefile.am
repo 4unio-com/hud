@@ -6,6 +6,8 @@ BUILT_SOURCES =
 EXTRA_DIST =
 bin_PROGRAMS =
 
+SUBDIRS = hudkeywords
+
 #######################
 # HUD Pronounce
 #######################
