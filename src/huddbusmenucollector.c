@@ -803,7 +803,7 @@ hud_dbusmenu_collector_set_icon (HudDbusmenuCollector *collector,
  * Return Value: (element-type HudItem) (transfer full) A list of #HudItem
  * objects.  Free with g_list_free_full(g_object_unref)
  */
-GList *
+static GList *
 hud_dbusmenu_collector_get_items (HudSource * source)
 {
   g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(source), NULL);
