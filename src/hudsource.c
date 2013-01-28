@@ -187,10 +187,21 @@ hud_source_get (HudSource   *source,
     ->get (source, application_id);
 }
 
+/**
+ * hud_source_get_items:
+ * @collector: a #HudDbusmenuCollector
+ *
+ * Gets the items that have been collected at any point in time.
+ *
+ * Return Value: (element-type HudItem) (transfer full) A list of #HudItem
+ * objects.  Free with g_list_free_full(g_object_unref)
+ */
 GList *
 hud_source_get_items (HudSource *source)
 {
   g_return_val_if_fail(HUD_IS_SOURCE(source), NULL);
+
+  g_debug ("get_items on %s %p", G_OBJECT_TYPE_NAME (source), source);
 
   HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
   if (iface->get_items != NULL) {

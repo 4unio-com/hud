@@ -749,13 +749,6 @@ hud_application_source_has_xid (HudApplicationSource * app, guint32 xid)
 	return g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid)) != NULL;
 }
 
-/**
- * source_get_items:
- *
- * Returns the active collector if there is one
- *
- * Returns: (transfer none): A #HudCollector or NULL if none
- */
 static GList *
 source_get_items (HudSource * object)
 {
