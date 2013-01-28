@@ -86,6 +86,7 @@ PKG_CHECK_MODULES([HUD],[
 		dbusmenu-glib-0.4 >= $DBUSMENU_GLIB_REQUIRED_VERSION
 		sqlite3 >= $SQLITE_REQUIRED_VERSION
 		dee-1.0
+		pocketsphinx
 ])
 
 GTK_REQUIRED_VERSION=3.0
@@ -267,6 +268,9 @@ data/Makefile
 po/Makefile.in
 tools-vala/Makefile
 tools/Makefile
+tools/hudkeywords/Makefile
+tools/hudkeywords/bin/Makefile
+tools/hudkeywords/hudkeywords/Makefile
 tests/Makefile
 docs/Makefile
 docs/man/Makefile

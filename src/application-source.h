@@ -35,6 +35,8 @@ typedef struct _HudApplicationSource         HudApplicationSource;
 typedef struct _HudApplicationSourceClass    HudApplicationSourceClass;
 typedef struct _HudApplicationSourcePrivate  HudApplicationSourcePrivate;
 
+typedef struct _HudCollector                 HudCollector;
+
 struct _HudApplicationSourceClass {
 	GObjectClass parent_class;
 };

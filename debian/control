@@ -34,6 +34,11 @@ Build-Depends: bamfdaemon,
                valac-0.18,
                xvfb,
                python3-dbusmock,
+               libpocketsphinx-dev,
+               libsphinxbase-dev,
+               pocketsphinx-hmm-wsj1,
+               pocketsphinx-lm-wsj,
+               irstlm,
 Standards-Version: 3.9.4
 Homepage: http://launchpad.net/hud
 # If you aren't a member of ~indicator-applet-developers but need to upload
@@ -46,10 +51,19 @@ Package: hud
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
+         hud-cmudict,
 Conflicts: indicator-appmenu (<< 13),
 Description: Backend for the Unity HUD
  .
  This package provides a service for Unity's HUD
+
+Package: hud-cmudict
+Architecture: all
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+Description: CMU Dict for the Unity HUD
+ .
+ This package provides a dictionary for Unity's HUD
 
 Package: hud-tools
 Architecture: any

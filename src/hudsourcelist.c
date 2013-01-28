@@ -17,6 +17,7 @@
  */
 
 #include "hudsourcelist.h"
+#include "application-list.h"
 
 /**
  * SECTION:hudsourcelist
@@ -124,6 +125,35 @@ hud_source_list_get (HudSource   *source,
   return NULL;
 }
 
+/**
+ * hud_source_list_get_items:
+ * @list: a #HudSourceList
+ *
+ * Find the item collector that is associated with the active window.
+ *
+ * Return Value: (element-type HudItem) (transfer full) A list of #HudItem
+ * objects.  Free with g_list_free_full(g_object_unref)
+ */
+static GList *
+hud_source_list_get_items (HudSource *source)
+{
+  g_return_val_if_fail(HUD_IS_SOURCE_LIST(source), NULL);
+
+  HudSourceList *list = HUD_SOURCE_LIST(source);
+  GList *results = NULL;
+
+  GSList *node;
+  for (node = list->list; node; node = node->next) {
+    if (HUD_IS_SOURCE(node->data))
+    {
+      HudSource * source = HUD_SOURCE(node->data);
+      results = g_list_concat (results, hud_source_get_items (source));
+    }
+  }
+
+  return results;
+}
+
 static void
 hud_source_list_finalize (GObject *object)
 {
@@ -149,6 +179,7 @@ hud_source_list_iface_init (HudSourceInterface *iface)
   iface->search = hud_source_list_search;
   iface->list_applications = hud_source_list_list_applications;
   iface->get = hud_source_list_get;
+  iface->get_items = hud_source_list_get_items;
 }
 
 static void

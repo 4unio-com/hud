@@ -127,7 +127,7 @@ static void model_data_free                           (gpointer      data);
 static void hud_menu_model_collector_hud_awareness_cb (GObject      *source,
                                                        GAsyncResult *result,
                                                        gpointer      user_data);
-
+static GList * hud_menu_model_collector_get_items (HudSource * source);
 
 /* Functions */
 static gchar *
@@ -765,12 +765,15 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->search = hud_menu_model_collector_search;
   iface->list_applications = hud_menu_model_collector_list_applications;
   iface->get = hud_menu_model_collector_get;
+  iface->get_items = hud_menu_model_collector_get_items;
 }
 
 static void
 hud_menu_model_collector_class_init (HudMenuModelCollectorClass *class)
 {
-  class->finalize = hud_menu_model_collector_finalize;
+  GObjectClass *gobject_class = G_OBJECT_CLASS (class);
+
+  gobject_class->finalize = hud_menu_model_collector_finalize;
 }
 
 static void
@@ -995,4 +998,27 @@ hud_menu_model_collector_add_actions (HudMenuModelCollector * collector, GAction
 	g_hash_table_insert(collector->action_groups, local_prefix, group);
 
 	return;
+}
+
+/**
+ * hud_menu_model_collector_get_items:
+ * @collector: A #HudMenuModelCollector
+ *
+ * Get the list of items that are currently being watched
+ *
+ * Return value: (transfer full) (element-type HudItem): Items to look at
+ */
+static GList *
+hud_menu_model_collector_get_items (HudSource * source)
+{
+	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(source), NULL);
+	HudMenuModelCollector * mcollector = HUD_MENU_MODEL_COLLECTOR(source);
+
+	GList * retval = NULL;
+	int i;
+	for (i = 0; i < mcollector->items->len; i++) {
+		retval = g_list_prepend(retval, g_object_ref(g_ptr_array_index(mcollector->items, i)));
+	}
+
+	return retval;
 }

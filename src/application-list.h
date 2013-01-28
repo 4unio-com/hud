@@ -52,6 +52,8 @@ HudApplicationSource *  hud_application_list_get_source     (HudApplicationList 
 HudSource *             hud_application_list_get_focused_app (HudApplicationList * list);
 GList *                 hud_application_list_get_apps       (HudApplicationList * list);
 
+HudCollector *          hud_application_list_get_active_collector (HudApplicationList * list);
+
 G_END_DECLS
 
 #endif /* __HUD_APPLICATION_LIST_H__ */

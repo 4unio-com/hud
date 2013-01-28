@@ -6,6 +6,38 @@ BUILT_SOURCES =
 EXTRA_DIST =
 bin_PROGRAMS =
 
+SUBDIRS = hudkeywords
+
+#######################
+# HUD Pronounce
+#######################
+
+hud_pronounce_for_word_SOURCES = \
+	hud-pronounce-for-word.c
+
+hud_pronounce_for_word_CFLAGS = \
+	$(gtk_CFLAGS) \ 
+	$(HUD_CFLAGS) \
+	$(COVERAGE_CFLAGS) \
+	$(gtk_CFLAGS) \
+	-I $(top_srcdir) \
+	-I $(top_srcdir)/src \
+	-DDICT_PATH=\""$(pkgdatadir)/cmudict.0.7a"\" \
+	-Wall -Werror
+
+hud_pronounce_for_word_LDFLAGS = \
+	$(top_builddir)/src/libhud-service.la \
+	$(COVERAGE_LDFLAGS) \
+	$(HUD_LIBS)
+
+if BUILD_CLI
+bin_PROGRAMS += \
+	hud-pronounce-for-word
+else
+EXTRA_DIST += \
+	$(hud_pronounce_for_word_SOURCES)
+endif
+
 ####################
 # HUD CLI
 ####################

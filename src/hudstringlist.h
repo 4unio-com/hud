@@ -38,5 +38,7 @@ HudStringList *         hud_string_list_add_item                        (const g
                                                                          HudStringList *tail);
 
 gchar *                 hud_string_list_pretty_print                    (HudStringList *list);
+void                    hud_string_list_insert_pronounciation           (HudStringList * list,
+                                                                         GHashTable    * table);
 
 #endif /* __HUD_STRING_LIST_H__ */

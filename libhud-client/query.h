@@ -72,6 +72,8 @@ void               hud_client_query_set_query             (HudClientQuery *     
                                                            const gchar *           query);
 const gchar *      hud_client_query_get_query             (HudClientQuery *        cquery);
 
+void               hud_client_query_voice_query           (HudClientQuery *        cquery);
+
 DeeModel *         hud_client_query_get_results_model     (HudClientQuery *        cquery);
 DeeModel *         hud_client_query_get_appstack_model    (HudClientQuery *        cquery);
 void               hud_client_query_set_appstack_app      (HudClientQuery *        cquery,

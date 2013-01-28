@@ -71,6 +71,7 @@ static void source_list_applications        (HudSource *               hud_sourc
                                              gpointer                  user_data);
 static HudSource * source_get               (HudSource *               hud_source,
                                              const gchar *             application_id);
+static GList * source_get_items             (HudSource * list);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationList, hud_application_list, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -98,6 +99,7 @@ source_iface_init (HudSourceInterface *iface)
 	iface->search = source_search;
 	iface->list_applications = source_list_applications;
 	iface->get = source_get;
+	iface->get_items = source_get_items;
 
 	return;
 }
@@ -279,10 +281,11 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 
 	/* We care where we're going, not where we've been */
 	if (new_win == NULL) {
+    /* IGNORING CHANGE TO NULL WINDOW FOR NOW
 		if (list->priv->used_source != NULL) {
 			hud_source_unuse(list->priv->used_source);
 			list->priv->used_source = NULL;
-		}
+		}*/
 		return;
 	}
 
@@ -547,7 +550,23 @@ hud_application_list_get_focused_app (HudApplicationList * list)
 GList *
 hud_application_list_get_apps (HudApplicationList * list)
 {
-	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
+  g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 
-	return g_hash_table_get_values(list->priv->applications);
+  return g_hash_table_get_values(list->priv->applications);
+}
+
+/**
+ * hud_application_list_get_active_collector:
+ *
+ * Returns the active collector if there is one
+ *
+ * Returns: (transfer none): A #HudCollector or NULL if none
+ */
+GList *
+source_get_items (HudSource * source)
+{
+  g_return_val_if_fail(HUD_IS_APPLICATION_LIST(source), NULL);
+  HudApplicationList *list = HUD_APPLICATION_LIST(source);
+  g_return_val_if_fail(list->priv->used_source != NULL, NULL);
+  return hud_source_get_items(list->priv->used_source);
 }

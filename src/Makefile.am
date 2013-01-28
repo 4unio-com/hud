@@ -65,6 +65,8 @@ libhud_service_la_SOURCES = \
 	hudresult.c		\
 	load-app-info.h \
 	load-app-info.c \
+	pronounce-dict.c \
+	pronounce-dict.h \
 	usage-tracker.h \
 	usage-tracker.c
 
@@ -77,6 +79,7 @@ libhud_service_la_CFLAGS = \
 	$(BAMF_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
+	-DDICT_PATH=\""$(pkgdatadir)/cmudict.0.7a"\" \
 	-Wall -Werror
 
 #######################
