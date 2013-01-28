@@ -173,13 +173,15 @@ hud_webapp_source_list_applications (HudSource    *hud_source,
   for (walk = source->applications; walk != NULL; walk = walk->next)
     {
       HudWebappApplicationSource *application_source;
-      guint32 active_xid;
+      guint32 active_xid = 0;
       
       application_source = (HudWebappApplicationSource *)walk->data;
-      
-      active_xid = bamf_window_get_xid(bamf_matcher_get_active_window(source->matcher));
 
-      if (hud_webapp_source_should_search_app (application_source->application, active_xid))
+#ifdef HAVE_BAMF
+      active_xid = bamf_window_get_xid(bamf_matcher_get_active_window(source->matcher));
+#endif
+
+      if (active_xid != 0 && hud_webapp_source_should_search_app (application_source->application, active_xid))
         {
           hud_source_list_applications (application_source->collector, token_list, append_func, user_data);
         }
@@ -197,13 +199,15 @@ hud_webapp_source_get (HudSource   *hud_source,
   for (walk = source->applications; walk != NULL; walk = walk->next)
     {
       HudWebappApplicationSource *application_source;
-      guint32 active_xid;
+      guint32 active_xid = 0;
 
       application_source = (HudWebappApplicationSource *)walk->data;
 
+#ifdef HAVE_BAMF
       active_xid = bamf_window_get_xid(bamf_matcher_get_active_window(source->matcher));
+#endif
 
-      if (hud_webapp_source_should_search_app (application_source->application, active_xid))
+      if (active_xid != 0 && hud_webapp_source_should_search_app (application_source->application, active_xid))
         {
           HudSource *result = hud_source_get(application_source->collector, application_id);
           if (result != NULL)
