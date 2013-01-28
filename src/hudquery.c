@@ -893,6 +893,8 @@ hud_query_voice_query (HudQuery *self)
     close(lm_file);
   }
 
+  g_list_free_full(items, g_object_unref);
+
   g_debug("String: %s", string_filename);
   g_debug("Pronounciations: %s", pron_filename);
   g_debug("Lang Model: %s", lm_filename);

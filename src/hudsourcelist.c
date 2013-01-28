@@ -144,11 +144,10 @@ hud_source_list_get_items (HudSource *source)
 
   GSList *node;
   for (node = list->list; node; node = node->next) {
-    if (HUD_IS_SOURCE(node->data)) {
+    if (HUD_IS_SOURCE(node->data))
+    {
       HudSource * source = HUD_SOURCE(node->data);
-      GList* temp = hud_source_get_items (source);
-      results = g_list_concat (results, temp);
-      g_list_free(temp);
+      results = g_list_concat (results, hud_source_get_items (source));
     }
   }
 
