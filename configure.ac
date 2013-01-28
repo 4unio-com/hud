@@ -80,12 +80,10 @@ AM_CONDITIONAL([HAVE_VALA], [test -n "$VALA_API_GEN"])
 ###########################
 
 DBUSMENU_GLIB_REQUIRED_VERSION=0.4.0
-BAMF_REQUIRED_VERSION=0.2.53
 SQLITE_REQUIRED_VERSION=0.0
 
 PKG_CHECK_MODULES([HUD],[
 		dbusmenu-glib-0.4 >= $DBUSMENU_GLIB_REQUIRED_VERSION
-		libbamf3 
 		sqlite3 >= $SQLITE_REQUIRED_VERSION
 		dee-1.0
 		pocketsphinx
@@ -97,6 +95,23 @@ PKG_CHECK_MODULES(gtk,[
 ])
 
 PKG_CHECK_MODULES([DBUSMENU_JSON], [dbusmenu-jsonloader-0.4])
+
+###########################
+# BAMF Dependency
+###########################
+
+BAMF_REQUIRED_VERSION=0.2.53
+
+AC_ARG_ENABLE([bamf],
+    AC_HELP_STRING([--disable-bamf], [Disable bamf]),
+    [enable_bamf=$enableval], [enable_bamf=auto])
+
+AS_IF([test "x$enable_bamf" != "xno"],[
+PKG_CHECK_MODULES([BAMF],[
+		libbamf3 
+])
+AC_DEFINE([HAVE_BAMF], ["true"], ["Defined if we're building with BAMF"])
+])
 
 ###########################
 # CLI Dependencies

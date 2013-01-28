@@ -31,10 +31,12 @@ libhud_tests_la_SOURCES = \
 libhud_tests_la_LDFLAGS = \
 	$(top_builddir)/src/libhud-service.la \
 	$(DBUSTEST_LIBS) \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 libhud_tests_la_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	$(DBUSTEST_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -65,13 +67,15 @@ test_distance_SOURCES = \
 
 test_distance_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_distance_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 DISTCLEANFILES += \
 	$(DISTANCE_XML_REPORT) \
@@ -101,13 +105,15 @@ test_hud_item_SOURCES = \
 
 test_hud_item_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_hud_item_LDADD = \
 	$(top_builddir)/src/libhud-service.la \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 DISTCLEANFILES += \
 	$(HUD_ITEM_XML_REPORT) \
@@ -137,13 +143,15 @@ test_result_highlighting_SOURCES = \
 
 test_result_highlighting_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_result_highlighting_LDADD = \
 	$(top_builddir)/src/libhud-service.la \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 DISTCLEANFILES += \
 	$(RESULT_XML_REPORT) \
@@ -176,6 +184,7 @@ test_menu_input_SOURCES = \
 
 test_menu_input_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	$(DBUSTEST_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -190,39 +199,46 @@ test_menu_input_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
 	libhud-tests.la \
 	$(DBUSTEST_LIBS) \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 dbusmenu_json_loader_SOURCES = \
 	dbusmenu-json-loader.c
 
 dbusmenu_json_loader_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	$(DBUSMENU_JSON_CFLAGS) \
 	-Wall -Werror
 
 dbusmenu_json_loader_LDADD = \
 	$(DBUSMENU_JSON_LIBS) \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 test_menu_input_model_simple_SOURCES = \
 	test-menu-input-model-simple.c
 
 test_menu_input_model_simple_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-Wall -Werror
 
 test_menu_input_model_simple_LDADD = \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 test_menu_input_model_shortcuts_SOURCES = \
 	test-menu-input-model-shortcuts.c
 
 test_menu_input_model_shortcuts_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-Wall -Werror
 
 test_menu_input_model_shortcuts_LDADD = \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 EXTRA_DIST += \
 	test-menu-input-simple.json \
@@ -258,6 +274,7 @@ test_keyword_mapping_SOURCES = \
 
 test_keyword_mapping_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -265,7 +282,8 @@ test_keyword_mapping_CFLAGS = \
 
 test_keyword_mapping_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 DISTCLEANFILES += \
 	$(KEYWORD_XML_REPORT) \
@@ -295,6 +313,7 @@ test_string_list_SOURCES = \
 
 test_string_list_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -302,7 +321,8 @@ test_string_list_CFLAGS = \
 
 test_string_list_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 DISTCLEANFILES += \
 	$(STRING_LIST_XML_REPORT) \
@@ -332,6 +352,7 @@ test_source_SOURCES = \
 
 test_source_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	$(DBUSTEST_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
@@ -343,7 +364,8 @@ test_source_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 EXTRA_DIST += \
 	test-source.json
@@ -376,6 +398,7 @@ test_app_indicator_source_SOURCES = \
 
 test_app_indicator_source_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	$(DBUSTEST_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
@@ -386,7 +409,8 @@ test_app_indicator_source_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 DISTCLEANFILES += \
 	$(APP_INDICATOR_SOURCE_XML_REPORT) \
@@ -416,6 +440,7 @@ test_indicator_source_SOURCES = \
 
 test_indicator_source_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	$(DBUSTEST_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
@@ -426,7 +451,8 @@ test_indicator_source_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 DISTCLEANFILES += \
 	$(INDICATOR_SOURCE_XML_REPORT) \
@@ -456,6 +482,7 @@ test_application_list_SOURCES = \
 
 test_application_list_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	$(DBUSTEST_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
@@ -466,7 +493,8 @@ test_application_list_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 DISTCLEANFILES += \
 	$(APPLICATION_LIST_XML_REPORT) \
@@ -503,6 +531,7 @@ test_usage_db_simple_SOURCES = \
 
 test_usage_db_simple_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -510,7 +539,8 @@ test_usage_db_simple_CFLAGS = \
 
 test_usage_db_simple_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 DISTCLEANFILES += \
 	$(USAGE_DB_SIMPLE_XML_REPORT) \
@@ -549,6 +579,7 @@ test_usage_db_old_SOURCES = \
 
 test_usage_db_old_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -556,7 +587,8 @@ test_usage_db_old_CFLAGS = \
 
 test_usage_db_old_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 DISTCLEANFILES += \
 	$(USAGE_DB_OLD_XML_REPORT) \
@@ -596,6 +628,7 @@ test_usage_db_ancient_SOURCES = \
 
 test_usage_db_ancient_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -603,7 +636,8 @@ test_usage_db_ancient_CFLAGS = \
 
 test_usage_db_ancient_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 EXTRA_DIST += \
 	test-usage-db-ancient.sql \
@@ -641,6 +675,7 @@ test_usage_db_testapp_SOURCES = \
 
 test_usage_db_testapp_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -648,7 +683,8 @@ test_usage_db_testapp_CFLAGS = \
 
 test_usage_db_testapp_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 EXTRA_DIST += \
 	good-app-info/testapp100.desktop.hud-app-info \
@@ -752,13 +788,15 @@ test_bad_app_info_SOURCES = \
 
 test_bad_app_info_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_bad_app_info_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 #########################
 # Test Good App Info
@@ -775,13 +813,15 @@ test_load_app_info_SOURCES = \
 
 test_load_app_info_CFLAGS = \
 	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_load_app_info_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 test-good-app-info-tons-of-entries: good-app-info/tons-of-entries.hud-app-info test-load-app-info test-usage-dump-entries.sql Makefile.am
 	@echo "#!/bin/bash -e" > $@
@@ -835,11 +875,13 @@ check_PROGRAMS += \
 hud_performance_CFLAGS = \
 	-I$(top_builddir)/src		\
 	-I$(top_srcdir)/src		\
-	$(HUD_CFLAGS)
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS)
 hud_performance_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
 	libhud-tests.la \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 hud_performance_SOURCES = \
 	hud-performance.c
 

@@ -19,7 +19,8 @@
 #ifndef __HUD_DBUSMENU_COLLECTOR_H__
 #define __HUD_DBUSMENU_COLLECTOR_H__
 
-#include <libbamf/libbamf.h>
+#include "glib-object.h"
+#include "abstract-app.h"
 
 #define HUD_TYPE_DBUSMENU_COLLECTOR                         (hud_dbusmenu_collector_get_type ())
 #define HUD_DBUSMENU_COLLECTOR(inst)                        (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
@@ -37,7 +38,7 @@ HudDbusmenuCollector *  hud_dbusmenu_collector_new_for_endpoint         (const g
                                                                          guint        penalty,
                                                                          const gchar *bus_name,
                                                                          const gchar *object_path);
-HudDbusmenuCollector *  hud_dbusmenu_collector_new_for_window           (BamfWindow  *window,
+HudDbusmenuCollector *  hud_dbusmenu_collector_new_for_window           (AbstractWindow  *window,
                                                                          const gchar *application_id,
                                                                          const gchar *icon);
 void                    hud_dbusmenu_collector_set_prefix               (HudDbusmenuCollector *collector,

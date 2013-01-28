@@ -210,19 +210,17 @@ hud_test_utils_mock_dbus_connection_new(DbusTestService *service, const gchar *n
 {
   va_list ap;
 
-  DbusTestTask* dummy = dbus_test_task_new ();
-
   va_start (ap, name);
   while(name)
   {
     g_debug("Waiting for task [%s]", name);
+    DbusTestTask* dummy = dbus_test_task_new ();
     dbus_test_task_set_wait_for (dummy, name);
     name = va_arg(ap, const gchar *);
+    dbus_test_service_add_task (service, dummy);
+    g_object_unref (dummy);
   }
   va_end (ap);
-
-  dbus_test_service_add_task (service, dummy);
-  g_object_unref (dummy);
 
   /* Setup timeout */
   guint timeout_source = g_timeout_add_seconds (5, hud_test_utils_name_timeout,

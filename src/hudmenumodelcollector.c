@@ -26,7 +26,6 @@
 #include "hudkeywordmapping.h"
 #include "config.h"
 
-#include <libbamf/libbamf.h>
 #include <gio/gio.h>
 #include <string.h>
 
@@ -838,6 +837,7 @@ hud_menu_model_collector_new (const gchar *application_id,
 	return collector;
 }
 
+#ifdef HAVE_BAMF
 /**
  * hud_menu_model_collector_add_window:
  * @window: a #BamfWindow
@@ -918,6 +918,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
 
   return;
 }
+#endif
 
 /**
  * hud_menu_model_collector_add_endpoint:
