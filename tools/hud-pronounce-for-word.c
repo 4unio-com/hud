@@ -8,7 +8,9 @@ main (int argc, char * argv[])
 		return 1;
 	}
 
+#ifndef GLIB_VERSION_2_36
 	g_type_init();
+#endif
 
 	PronounceDict * dict = g_object_new(PRONOUNCE_DICT_TYPE, NULL);
 
