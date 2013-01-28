@@ -30,7 +30,6 @@
 
 #include "hudquery.h"
 #include "hud-query-iface.h"
-#include "hudcollector.h"
 #include "hudsourcelist.h"
 #include "hudresult.h"
 
@@ -778,13 +777,12 @@ hud_query_recognize_audio(HudQuery *self, const gchar * lm_filename, const gchar
 static gchar *
 hud_query_voice_query (HudQuery *self)
 {
-  HudCollector * collector = hud_source_list_active_collector(HUD_SOURCE_LIST(self->current_source));
-  if (collector == NULL) {
+  if (self->current_source == NULL) {
     /* No active window, that's fine, but we'll just move on */
     return NULL;
   }
 
-  GList * items = hud_collector_get_items(collector);
+  GList * items = hud_source_get_items(self->current_source);
   if (items == NULL) {
     /* The active window doesn't have items, that's cool.  We'll move on. */
     return NULL;

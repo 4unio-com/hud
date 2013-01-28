@@ -60,8 +60,6 @@ void                     hud_application_source_add_window        (HudApplicatio
 gboolean                 hud_application_source_has_xid           (HudApplicationSource *   app,
                                                                    guint32                  xid);
 
-HudCollector *           hud_application_source_get_active_collector   (HudApplicationSource *   app);
-
 /* Helper functions */
 gchar *                  hud_application_source_bamf_app_id       (BamfApplication *        bapp);
 

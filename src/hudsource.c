@@ -187,6 +187,19 @@ hud_source_get (HudSource   *source,
     ->get (source, application_id);
 }
 
+GList *
+hud_source_get_items (HudSource *source)
+{
+  g_return_val_if_fail(HUD_IS_SOURCE(source), NULL);
+
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->get_items != NULL) {
+    return iface->get_items(source);
+  }
+
+  return NULL;
+}
+
 /**
  * hud_source_changed:
  * @source: a #HudSource

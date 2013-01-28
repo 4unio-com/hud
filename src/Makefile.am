@@ -35,8 +35,6 @@ libhud_service_la_SOURCES = \
 	hudsettings.c		\
 	hudappmenuregistrar.h	\
 	hudappmenuregistrar.c	\
-	hudcollector.h \
-	hudcollector.c \
 	huddbusmenucollector.h	\
 	huddbusmenucollector.c	\
 	hudmenumodelcollector.h	\

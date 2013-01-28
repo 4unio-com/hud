@@ -23,7 +23,6 @@
 #include "hudsource.h"
 #include "hudresult.h"
 #include "huditem.h"
-#include "hudcollector.h"
 #include "hudkeywordmapping.h"
 #include "config.h"
 
@@ -64,7 +63,7 @@ struct _HudMenuModelContext
 
 struct _HudMenuModelCollector
 {
-  HudCollector parent_instance;
+  GObject parent_instance;
 
   /* Cancelled on finalize */
   GCancellable *cancellable;
@@ -129,7 +128,7 @@ static void model_data_free                           (gpointer      data);
 static void hud_menu_model_collector_hud_awareness_cb (GObject      *source,
                                                        GAsyncResult *result,
                                                        gpointer      user_data);
-static GList * get_items (HudCollector * collector);
+static GList * hud_menu_model_collector_get_items (HudSource * source);
 
 /* Functions */
 static gchar *
@@ -316,10 +315,10 @@ hud_model_item_new (HudMenuModelCollector *collector,
   return HUD_ITEM (item);
 }
 
-typedef HudCollectorClass HudMenuModelCollectorClass;
+typedef GObjectClass HudMenuModelCollectorClass;
 
 static void hud_menu_model_collector_iface_init (HudSourceInterface *iface);
-G_DEFINE_TYPE_WITH_CODE (HudMenuModelCollector, hud_menu_model_collector, HUD_TYPE_COLLECTOR,
+G_DEFINE_TYPE_WITH_CODE (HudMenuModelCollector, hud_menu_model_collector, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, hud_menu_model_collector_iface_init))
 
 /* XXX: There is a potential for unbounded recursion here if a hostile
@@ -767,6 +766,7 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->search = hud_menu_model_collector_search;
   iface->list_applications = hud_menu_model_collector_list_applications;
   iface->get = hud_menu_model_collector_get;
+  iface->get_items = hud_menu_model_collector_get_items;
 }
 
 static void
@@ -775,9 +775,6 @@ hud_menu_model_collector_class_init (HudMenuModelCollectorClass *class)
   GObjectClass *gobject_class = G_OBJECT_CLASS (class);
 
   gobject_class->finalize = hud_menu_model_collector_finalize;
-
-  HudCollectorClass * cclass = HUD_COLLECTOR_CLASS(class);
-  cclass->get_items = get_items;
 }
 
 static void
@@ -1011,10 +1008,10 @@ hud_menu_model_collector_add_actions (HudMenuModelCollector * collector, GAction
  * Return value: (transfer full) (element-type HudItem): Items to look at
  */
 static GList *
-get_items (HudCollector * collector)
+hud_menu_model_collector_get_items (HudSource * source)
 {
-	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector), NULL);
-	HudMenuModelCollector * mcollector = HUD_MENU_MODEL_COLLECTOR(collector);
+	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(source), NULL);
+	HudMenuModelCollector * mcollector = HUD_MENU_MODEL_COLLECTOR(source);
 
 	GList * retval = NULL;
 	int i;

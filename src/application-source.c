@@ -76,6 +76,7 @@ static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplicatio
                                                GVariant *                  actions,
                                                GVariant *                  descs,
                                                gpointer                    user_data);
+static GList * source_get_items               (HudSource *                 object);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationSource, hud_application_source, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -103,6 +104,7 @@ source_iface_init (HudSourceInterface *iface)
 	iface->search = source_search;
 	iface->list_applications = source_list_applications;
 	iface->get = source_get;
+	iface->get_items = source_get_items;
 
 	return;
 }
@@ -748,20 +750,19 @@ hud_application_source_has_xid (HudApplicationSource * app, guint32 xid)
 }
 
 /**
- * hud_application_source_get_active_collector:
+ * source_get_items:
  *
  * Returns the active collector if there is one
  *
  * Returns: (transfer none): A #HudCollector or NULL if none
  */
-HudCollector *
-hud_application_source_get_active_collector (HudApplicationSource * source)
+static GList *
+source_get_items (HudSource * object)
 {
-  g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(source), NULL);
+  g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(object), NULL);
+  HudApplicationSource *source = HUD_APPLICATION_SOURCE(object);
+
   g_return_val_if_fail(source->priv->used_source != NULL, NULL);
 
-  g_assert(HUD_IS_SOURCE_LIST(source->priv->used_source));
-  HudSourceList * collector_list = HUD_SOURCE_LIST(source->priv->used_source);
-
-  return hud_source_list_active_collector(collector_list);
+  return hud_source_get_items(source->priv->used_source);
 }
