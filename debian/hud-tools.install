@@ -1,3 +1,4 @@
 usr/bin
 usr/share/hud-gtk
 usr/share/man
+usr/lib/*/hud/hud-pronounce-for-word
