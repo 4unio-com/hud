@@ -12,8 +12,7 @@ bin_SCRIPTS = \
 	hud-list-applications
 
 pkglibexec_PROGRAMS = \
-	hud-service \
-	hud-pronounce-for-word
+	hud-service
 
 noinst_LTLIBRARIES = \
 	libhud-service-generated.la \
@@ -131,25 +130,6 @@ hud_verify_app_info_CFLAGS = \
 	$(COVERAGE_CFLAGS) \
 	-Wall -Werror
 hud_verify_app_info_LDFLAGS = \
-	$(COVERAGE_LDFLAGS) \
-	$(HUD_LIBS)
-
-#######################
-# HUD Pronounce
-#######################
-
-hud_pronounce_for_word_SOURCES = \
-	pronounce-dict.c \
-	pronounce-dict.h \
-	hud-pronounce-for-word.c
-
-hud_pronounce_for_word_CFLAGS = \
-	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
-	-DDICT_PATH=\""$(pkgdatadir)/cmudict.0.7a"\" \
-	-Wall -Werror
-
-hud_pronounce_for_word_LDFLAGS = \
 	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
