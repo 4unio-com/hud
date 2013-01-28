@@ -13,66 +13,66 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <child>
-      <object class="GtkEntry" id="entry">
-        <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="margin_left">6</property>
-        <property name="margin_right">6</property>
-        <property name="margin_top">6</property>
-        <property name="margin_bottom">6</property>
-        <property name="hexpand">True</property>
-        <property name="invisible_char">•</property>
-      </object>
-      <packing>
-        <property name="left_attach">0</property>
-        <property name="top_attach">0</property>
-        <property name="width">1</property>
-        <property name="height">1</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkGrid" id="grid-voice">
+      <object class="GtkGrid" id="grid-upper">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
-	      <object class="GtkLabel" id="voice-status">
-	        <property name="visible">True</property>
-	        <property name="can_focus">True</property>
-	        <property name="margin_left">6</property>
-	        <property name="margin_right">6</property>
-	        <property name="margin_top">6</property>
-	        <property name="margin_bottom">6</property>
-	        <property name="hexpand">True</property>
-	        <property name="label">Idle</property>
-	      </object>
-	      <packing>
-	        <property name="left_attach">0</property>
-	        <property name="top_attach">0</property>
-	        <property name="width">1</property>
-	        <property name="height">1</property>
-	      </packing>
-	    </child>
-	    <child>
-	      <object class="GtkButton" id="voice">
-	        <property name="visible">True</property>
-	        <property name="can_focus">True</property>
-	        <property name="margin_left">6</property>
-	        <property name="margin_right">6</property>
-	        <property name="margin_top">6</property>
-	        <property name="margin_bottom">6</property>
-	        <property name="hexpand">True</property>
-	        <property name="label">Voice</property>
-	      </object>
-	      <packing>
-	        <property name="left_attach">1</property>
-	        <property name="top_attach">0</property>
-	        <property name="width">5</property>
-	        <property name="height">1</property>
-	      </packing>
-	    </child>
+          <object class="GtkEntry" id="entry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="margin_left">6</property>
+            <property name="margin_right">6</property>
+            <property name="margin_top">6</property>
+            <property name="margin_bottom">6</property>
+            <property name="hexpand">True</property>
+            <property name="invisible_char">•</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">0</property>
+            <property name="width">1</property>
+            <property name="height">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="voice-status">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="margin_left">6</property>
+            <property name="margin_right">6</property>
+            <property name="margin_top">6</property>
+            <property name="margin_bottom">6</property>
+            <property name="hexpand">True</property>
+            <property name="label">Idle</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">0</property>
+            <property name="width">1</property>
+            <property name="height">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="voice">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="margin_left">6</property>
+            <property name="margin_right">6</property>
+            <property name="margin_top">6</property>
+            <property name="margin_bottom">6</property>
+            <property name="hexpand">True</property>
+            <property name="label">Voice</property>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">0</property>
+            <property name="width">5</property>
+            <property name="height">1</property>
+          </packing>
+        </child>
       </object>
       <packing>
-        <property name="left_attach">1</property>
+        <property name="left_attach">0</property>
         <property name="top_attach">0</property>
         <property name="width">1</property>
         <property name="height">1</property>
@@ -136,14 +136,14 @@
                   </attributes>
                 </child>
               </object>
-                </child>
-              </object>
             </child>
           </object>
+        </child>
+      </object>
       <packing>
         <property name="left_attach">0</property>
         <property name="top_attach">2</property>
-        <property name="width">2</property>
+        <property name="width">1</property>
         <property name="height">1</property>
       </packing>
     </child>
@@ -152,7 +152,7 @@
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="shadow_type">in</property>
-    <child>
+        <child>
           <object class="GtkTreeView" id="appstack_treeview">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -170,27 +170,27 @@
             <property name="search_column">0</property>
             <child internal-child="selection">
               <object class="GtkTreeSelection" id="treeview-selection1"/>
-    </child>
-    <child>
+            </child>
+            <child>
               <object class="GtkTreeViewColumn" id="description-column">
                 <property name="title" translatable="yes">Description</property>
-    <child>
+                <child>
                   <object class="GtkCellRendererText" id="description-renderer"/>
                   <attributes>
                     <attribute name="markup">0</attribute>
                   </attributes>
-    </child>
-    <child>
+                </child>
+                <child>
                   <object class="GtkCellRendererText" id="description-renderer1"/>
                   <attributes>
                     <attribute name="markup">1</attribute>
                   </attributes>
-    </child>
+                </child>
               </object>
-    </child>
+            </child>
           </object>
-    </child>
-  </object>
+        </child>
+      </object>
       <packing>
         <property name="left_attach">0</property>
         <property name="top_attach">1</property>
