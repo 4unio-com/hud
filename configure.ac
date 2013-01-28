@@ -253,6 +253,9 @@ data/Makefile
 po/Makefile.in
 tools-vala/Makefile
 tools/Makefile
+tools/hudkeywords/Makefile
+tools/hudkeywords/bin/Makefile
+tools/hudkeywords/hudkeywords/Makefile
 tests/Makefile
 docs/Makefile
 docs/man/Makefile
