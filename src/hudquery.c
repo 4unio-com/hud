@@ -754,8 +754,8 @@ static gchar *
 hud_query_recognize_audio(HudQuery *self, const gchar * lm_filename, const gchar * pron_filename)
 {
   cmd_ln_t * spx_cmd = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
-                                   "-hmm", "/usr/share/pocketsphinx/model/hmm/wsj1",
-                                   "-mdef", "/usr/share/pocketsphinx/model/hmm/wsj1/mdef",
+                                   "-hmm", "/usr/share/pocketsphinx/model/hmm/en_US/hub4wsj_sc_8k",
+                                   "-mdef", "/usr/share/pocketsphinx/model/hmm/en_US/hub4wsj_sc_8k/mdef",
                                    "-lm", lm_filename,
                                    "-dict", pron_filename,
                                    NULL);
