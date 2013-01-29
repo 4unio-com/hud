@@ -1,8 +1,8 @@
-hud (13.04.0-0ubuntu1~ppa3) UNRELEASED; urgency=low
+hud (13.04.0-0ubuntu1~ppa3) quantal; urgency=low
 
   * Bumping version
 
- -- Ted Gould <ted@ubuntu.com>  Tue, 29 Jan 2013 21:24:29 +0000
+ -- Ted Gould <ted@ubuntu.com>  Tue, 29 Jan 2013 21:24:45 +0000
 
 hud (13.04.0-0ubuntu1~ppa2) quantal; urgency=low
 
