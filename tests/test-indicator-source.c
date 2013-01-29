@@ -70,9 +70,8 @@ test_indicator_source_datetime ()
 
   hud_token_list_free(search);
   g_object_unref (source);
-  dbus_test_service_stop(service);
   g_object_unref (service);
-  g_object_unref (connection);
+  hud_test_utils_wait_for_connection_close(connection);
 }
 
 static void
@@ -107,9 +106,8 @@ test_indicator_source_session ()
 
   hud_token_list_free(search);
   g_object_unref (source);
-  dbus_test_service_stop(service);
   g_object_unref (service);
-  g_object_unref (connection);
+  hud_test_utils_wait_for_connection_close(connection);
 }
 
 static void
@@ -144,9 +142,8 @@ test_indicator_source_sound ()
 
   hud_token_list_free(search);
   g_object_unref (source);
-  dbus_test_service_stop(service);
   g_object_unref (service);
-  g_object_unref (connection);
+  hud_test_utils_wait_for_connection_close(connection);
 }
 
 static void
@@ -180,9 +177,8 @@ test_indicator_source_messages ()
 
   hud_token_list_free(search);
   g_object_unref (source);
-  dbus_test_service_stop(service);
   g_object_unref (service);
-  g_object_unref (connection);
+  hud_test_utils_wait_for_connection_close(connection);
 }
 
 int

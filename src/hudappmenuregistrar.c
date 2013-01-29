@@ -308,6 +308,11 @@ hud_app_menu_registrar_name_vanished (GDBusConnection *connection,
 
   g_debug ("name vanished");
 
+  if(connection == NULL)
+    {
+      return;
+    }
+
   if (registrar->subscription > 0)
     {
       g_dbus_connection_signal_unsubscribe (connection, registrar->subscription);

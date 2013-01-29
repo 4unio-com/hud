@@ -364,9 +364,8 @@ test_hud_query_sequence ()
 
   hud_test_utils_process_mainloop(100);
 
-  dbus_test_service_stop(service);
   g_object_unref (service);
-  g_object_unref (session);
+  hud_test_utils_wait_for_connection_close(session);
 }
 
 static void
@@ -513,9 +512,8 @@ test_hud_query_sequence_counter_increment ()
 
   hud_test_utils_process_mainloop(100);
 
-  dbus_test_service_stop(service);
   g_object_unref (service);
-  g_object_unref (session);
+  hud_test_utils_wait_for_connection_close(session);
 }
 
 int
