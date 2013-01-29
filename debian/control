@@ -56,14 +56,6 @@ Description: Backend for the Unity HUD
  .
  This package provides a service for Unity's HUD
 
-Package: hud-cmudict
-Architecture: all
-Depends: ${misc:Depends},
-         ${shlibs:Depends},
-Description: CMU Dict for the Unity HUD
- .
- This package provides a dictionary for Unity's HUD
-
 Package: hud-tools
 Architecture: any
 Depends: ${misc:Depends},

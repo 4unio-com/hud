@@ -25,5 +25,4 @@ EXTRA_DIST = \
 CLEANFILES = \
 	$(dbus_services_DATA)
 
-pkgdata_DATA = \
-	cmudict.0.7a
+pkgdata_DATA = 
