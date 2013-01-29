@@ -58,6 +58,7 @@ G_DEFINE_TYPE (HudClientQuery, hud_client_query, G_TYPE_OBJECT);
 
 static guint hud_client_query_signal_voice_query_loading;
 static guint hud_client_query_signal_voice_query_listening;
+static guint hud_client_query_signal_voice_query_heard_something;
 static guint hud_client_query_signal_voice_query_finished;
 
 static void
@@ -101,6 +102,15 @@ hud_client_query_class_init (HudClientQueryClass *klass)
 	hud_client_query_signal_voice_query_listening = g_signal_new (
 		"voice-query-listening", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST, 0,
 		NULL, NULL, g_cclosure_marshal_generic, G_TYPE_NONE, 0);
+
+	/**
+   * HudClientQuery::voice-query-heard-something:
+   *
+   * The voice recognition toolkit has heard an utterance.
+   */
+  hud_client_query_signal_voice_query_heard_something = g_signal_new (
+    "voice-query-heard-something", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST,
+    0, NULL, NULL, g_cclosure_marshal_generic, G_TYPE_NONE, 0);
 
 	/**
    * HudClientQuery::voice-query-finished:
@@ -176,6 +186,12 @@ hud_client_query_voice_query_listening (_HudQueryComCanonicalHudQuery *object, g
 }
 
 static void
+hud_client_query_voice_query_heard_something (_HudQueryComCanonicalHudQuery *object, gpointer user_data)
+{
+  g_signal_emit(user_data, hud_client_query_signal_voice_query_heard_something, 0);
+}
+
+static void
 hud_client_query_voice_query_finished (_HudQueryComCanonicalHudQuery *object, const gchar *arg_query, gpointer user_data)
 {
 	g_signal_emit (user_data, hud_client_query_signal_voice_query_finished,
@@ -228,6 +244,8 @@ hud_client_query_constructed (GObject *object)
 		G_CALLBACK (hud_client_query_voice_query_loading), object, 0);
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-listening",
 		G_CALLBACK (hud_client_query_voice_query_listening), object, 0);
+	g_signal_connect_object (cquery->priv->proxy, "voice-query-heard-something",
+	    G_CALLBACK (hud_client_query_voice_query_heard_something), object, 0);
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-finished",
 		G_CALLBACK (hud_client_query_voice_query_finished), object, 0);
 }

@@ -46,6 +46,9 @@
 		
 		<signal name="VoiceQueryListening">
 		</signal>
+		
+		<signal name="VoiceQueryHeardSomething">
+		</signal>
 
 		<signal name="VoiceQueryFinished">
 			<arg type="s" name="query" direction="out" />
