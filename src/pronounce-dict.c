@@ -17,7 +17,7 @@ static void pronounce_dict_class_init (PronounceDictClass *klass);
 static void pronounce_dict_init       (PronounceDict *self);
 static void pronounce_dict_dispose    (GObject *object);
 static void pronounce_dict_finalize   (GObject *object);
-static void load_dict                 (PronounceDict * dict);
+static void load_dict                 (PronounceDict * dict, const gchar *dict_path);
 
 G_DEFINE_TYPE (PronounceDict, pronounce_dict, G_TYPE_OBJECT);
 
@@ -52,10 +52,6 @@ pronounce_dict_init (PronounceDict *self)
 	self->priv = PRONOUNCE_DICT_GET_PRIVATE(self);
 
 	self->priv->dict = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, str_list_free);
-
-	load_dict(self);
-
-	return;
 }
 
 /* Drop references */
@@ -81,14 +77,14 @@ pronounce_dict_finalize (GObject *object)
 
 /* Load the dictionary from a file */
 static void
-load_dict (PronounceDict * dict)
+load_dict (PronounceDict * dict, const gchar *dict_path)
 {
-	if (!g_file_test(DICT_PATH, G_FILE_TEST_EXISTS)) {
-		g_warning("Unable to find dictionary '%s'!", DICT_PATH);
+	if (!g_file_test(dict_path, G_FILE_TEST_EXISTS)) {
+		g_warning("Unable to find dictionary '%s'!", dict_path);
 		return;
 	}
 
-	GFile * dict_file = g_file_new_for_path(DICT_PATH);
+	GFile * dict_file = g_file_new_for_path(dict_path);
 	GFileInputStream * stream = g_file_read(dict_file, NULL, NULL);
 	GDataInputStream * dstream = g_data_input_stream_new(G_INPUT_STREAM(stream));
 
@@ -268,12 +264,20 @@ pronounce_dict_lookup_word(PronounceDict * dict, gchar * word)
 }
 
 PronounceDict *
+pronounce_dict_new (const gchar *dict_path)
+{
+  PronounceDict *dict = g_object_new(PRONOUNCE_DICT_TYPE, NULL);
+  load_dict(dict, dict_path);
+  return dict;
+}
+
+PronounceDict *
 pronounce_dict_get (void)
 {
 	static PronounceDict * global = NULL;
 
 	if (global == NULL) {
-		global = g_object_new(PRONOUNCE_DICT_TYPE, NULL);
+	  global = pronounce_dict_new(DICT_PATH);
 	}
 
 	return global;
