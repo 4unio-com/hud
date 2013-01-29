@@ -105,16 +105,21 @@ load_dict (PronounceDict * dict)
 			continue;
 		}
 
+		if (line[0] == '#') {
+			g_free(line);
+			continue;
+		}
+
 		/* Break it on the tab so that we have the name and the phonetics
 		   broken apart */
-		gchar ** split = g_strsplit(line, "  ", 2);
+		gchar ** split = g_strsplit_set(line, " \t", 2);
 		if (split[0] == NULL) {
 			g_strfreev(split);
 			continue;
 		}
 
 		gchar * word = split[0];
-		gchar * phonetics = split[1];
+		gchar * phonetics = g_strstrip(split[1]);
 
 		gunichar charone = g_utf8_get_char(word);
 
