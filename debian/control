@@ -48,9 +48,8 @@ Package: hud
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         hud-cmudict,
-         pocketsphinx-hmm-wsj1,
-         pocketsphinx-lm-wsj,
+         pocketsphinx-hmm-en-hub4wsj,
+         pocketsphinx-lm-en-hub4,
          irstlm,
 Conflicts: indicator-appmenu (<< 13),
 Description: Backend for the Unity HUD
@@ -185,4 +184,3 @@ Description: typelib file for libhud-client-1
  .
  This package can be used by other packages using the GIRepository format to
  generate dynamic bindings for libdbusmenu-gtk4.
-
