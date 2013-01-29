@@ -22,7 +22,6 @@ hud_pronounce_for_word_CFLAGS = \
 	$(gtk_CFLAGS) \
 	-I $(top_srcdir) \
 	-I $(top_srcdir)/src \
-	-DDICT_PATH=\""$(pkgdatadir)/cmudict.0.7a"\" \
 	-Wall -Werror
 
 hud_pronounce_for_word_LDFLAGS = \

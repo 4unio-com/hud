@@ -329,6 +329,45 @@ DISTCLEANFILES += \
 	$(STRING_LIST_XML_REPORT:.xml=-xunit.xml)
 
 ######################
+# Test Pronounce Dict
+######################
+
+TESTS += \
+	test-pronounce-dict-test
+
+check_PROGRAMS += \
+	test-pronounce-dict
+
+PRONOUNCE_DICT_XML_REPORT = test-pronounce-dict.xml
+
+test-pronounce-dict-test: test-pronounce-dict Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(PRONOUNCE_DICT_XML_REPORT) $(builddir)/test-pronounce-dict >> $@
+	@echo gtester2xunit $(PRONOUNCE_DICT_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_pronounce_dict_SOURCES = \
+	test-pronounce-dict.c
+
+test_pronounce_dict_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_pronounce_dict_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+DISTCLEANFILES += \
+	$(PRONOUNCE_DICT_XML_REPORT) \
+	$(PRONOUNCE_DICT_XML_REPORT:.xml=-xunit.xml)
+
+######################
 # Test Source
 ######################
 
