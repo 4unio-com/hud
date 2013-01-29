@@ -657,6 +657,8 @@ hud_query_utterance_loop(HudQuery *self, ad_rec_t * ad, ps_decoder_t * ps)
             g_error("ps_start_utt() failed\n");
         ps_process_raw(ps, adbuf, k, FALSE, FALSE);
         g_debug("Voice query has heard something");
+        hud_query_iface_com_canonical_hud_query_emit_voice_query_heard_something(
+                    HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
         fflush(stdout);
 
         /* Note timestamp for this first block of data */
