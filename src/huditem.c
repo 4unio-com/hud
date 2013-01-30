@@ -463,3 +463,20 @@ hud_item_insert_pronounciation (HudItem * item, GHashTable * table)
 	hud_string_list_insert_pronounciation(item->priv->tokens, table);
 	return;
 }
+
+GRegex *
+hud_item_alphanumeric_regex_get (void)
+{
+  static GRegex *alphanumeric_regex = NULL;
+
+  if (alphanumeric_regex == NULL) {
+    GError *error = NULL;
+    alphanumeric_regex = g_regex_new("…", 0, 0, &error);
+    if (alphanumeric_regex == NULL) {
+      g_error("Compiling regex failed: [%s]", error->message);
+      g_error_free(error);
+    }
+  }
+
+  return alphanumeric_regex;
+}

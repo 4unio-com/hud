@@ -86,5 +86,6 @@ gchar *                 hud_item_get_context                            (HudItem
 const gchar *           hud_item_get_shortcut                           (HudItem       *item);
 void                    hud_item_insert_pronounciation                  (HudItem       * item,
                                                                          GHashTable    * table);
+GRegex *                hud_item_alphanumeric_regex_get                 (void);
 
 #endif /* __HUD_ITEM_H__ */

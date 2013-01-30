@@ -873,11 +873,18 @@ hud_query_voice_query (HudQuery *self)
     }
 
     gchar *upper = g_utf8_strup(command, g_utf8_strlen(command, -1));
+    gchar *filtered = g_regex_replace (hud_item_alphanumeric_regex_get (), upper,
+              -1, 0, "", 0, &error);
+    if (filtered == NULL) {
+      g_error("Regex replace failed: [%s]", error->message);
+      g_error_free(error);
+    }
 
     g_output_stream_write(string_output, "<s> ", g_utf8_strlen("<s> ", -1), NULL, NULL);
-    g_output_stream_write(string_output, upper, g_utf8_strlen(upper, -1), NULL, NULL);
+    g_output_stream_write(string_output, filtered, g_utf8_strlen(filtered, -1), NULL, NULL);
     g_output_stream_write(string_output, " </s>\n", g_utf8_strlen(" </s>\n", -1), NULL, NULL);
 
+    g_free(filtered);
     g_free(upper);
   }
 
@@ -924,17 +931,17 @@ hud_query_voice_query (HudQuery *self)
 
   gchar * retval = hud_query_recognize_audio(self, lm_filename, pron_filename);
 
-  if (string_file != 0) {
-    g_unlink(string_filename);
-  }
-
-  if (pron_file != 0) {
-    g_unlink(pron_filename);
-  }
-
-  if (lm_file != 0) {
-    g_unlink(lm_filename);
-  }
+//  if (string_file != 0) {
+//    g_unlink(string_filename);
+//  }
+//
+//  if (pron_file != 0) {
+//    g_unlink(pron_filename);
+//  }
+//
+//  if (lm_file != 0) {
+//    g_unlink(lm_filename);
+//  }
 
   g_free(string_filename);
   g_free(pron_filename);
