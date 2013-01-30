@@ -104,6 +104,10 @@ struct _HudMenuModelCollector
    * apps and indicators.
    */
   gint use_count;
+
+  /* This is the export path that we've been given */
+  gchar * base_export_path;
+  guint muxer_export;
 };
 
 typedef struct _model_data_t model_data_t;
@@ -765,6 +769,11 @@ hud_menu_model_collector_finalize (GObject *object)
   if (collector->refresh_id)
     g_source_remove (collector->refresh_id);
 
+  if (collector->muxer_export) {
+    g_dbus_connection_unexport_action_group(collector->session, collector->muxer_export);
+    collector->muxer_export = 0;
+  }
+
   g_slist_free_full (collector->models, model_data_free);
   g_clear_object (&collector->muxer);
 
@@ -775,6 +784,8 @@ hud_menu_model_collector_finalize (GObject *object)
   g_object_unref (collector->keyword_mapping);
 
   g_ptr_array_unref (collector->items);
+
+  g_clear_pointer(&collector->base_export_path, g_free);
 
   G_OBJECT_CLASS (hud_menu_model_collector_parent_class)
     ->finalize (object);
@@ -1070,7 +1081,23 @@ hud_menu_model_collector_set_export_path (HudMenuModelCollector * collector, con
 	g_return_if_fail(path != NULL);
 	g_return_if_fail(g_variant_is_object_path(path));
 
+	if (collector->base_export_path != NULL) {
+		g_warning("Base object path already set");
+		return;
+	}
 
+	collector->base_export_path = g_strdup(path);
+
+	GError * error = NULL;
+	collector->muxer_export = g_dbus_connection_export_action_group(collector->session,
+	                                                                collector->base_export_path,
+	                                                                G_ACTION_GROUP(collector->muxer),
+	                                                                &error);
+
+	if (error != NULL) {
+		g_warning("Unable to export action group: %s", error->message);
+		g_error_free(error);
+	}
 
 	return;
 }
