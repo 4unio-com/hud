@@ -1055,3 +1055,22 @@ hud_menu_model_collector_get_items (HudSource * source)
 
 	return retval;
 }
+
+/**
+ * hud_menu_model_collector_set_export_path:
+ * @collector: A #HudMenuModelCollector
+ * @path: A valid dbus object path
+ *
+ * Set a path to export the menu models and actions on.
+ */
+void
+hud_menu_model_collector_set_export_path (HudMenuModelCollector * collector, const gchar * path)
+{
+	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+	g_return_if_fail(path != NULL);
+	g_return_if_fail(g_variant_is_object_path(path));
+
+
+
+	return;
+}

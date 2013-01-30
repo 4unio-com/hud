@@ -55,4 +55,8 @@ void                    hud_menu_model_collector_add_actions            (HudMenu
                                                                          GActionGroup *   group,
                                                                          const gchar *    prefix);
 
+void                    hud_menu_model_collector_set_export_path        (HudMenuModelCollector * collector,
+                                                                         const gchar *    path);
+
+
 #endif /* __HUD_MENU_MODEL_COLLECTOR_H__ */
