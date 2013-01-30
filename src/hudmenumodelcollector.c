@@ -112,12 +112,17 @@ struct _HudMenuModelCollector
 
 typedef struct _model_data_t model_data_t;
 struct _model_data_t {
+	GDBusConnection *session;
+
 	GMenuModel * model;
 	gboolean is_hud_aware;
 	GCancellable * cancellable;
 	gchar * path;
 	gchar * label;
 	guint recurse;
+
+	GMenu * export;
+	guint export_id;
 };
 
 typedef struct
@@ -569,7 +574,9 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   g_object_set_data (G_OBJECT(model), RECURSE_DATA, GINT_TO_POINTER(recurse));
   g_signal_connect (model, "items-changed", G_CALLBACK (hud_menu_model_collector_model_changed), collector);
 
+  /* Setup the base structure */
   model_data_t * model_data = g_new0(model_data_t, 1);
+  model_data->session = collector->session;
   model_data->model = g_object_ref(model);
   model_data->is_hud_aware = FALSE;
   model_data->cancellable = g_cancellable_new();
@@ -577,6 +584,16 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   model_data->label = g_strdup(label);
   model_data->recurse = recurse;
 
+  /* Create the exported model */
+  model_data->export = g_menu_new();
+  GMenuItem * item = g_menu_item_new_section(NULL, model_data->model);
+  g_menu_append_item(model_data->export, item);
+
+  gchar * menu_path = g_strdup_printf("%s/menu%p", collector->base_export_path, model_data);
+  model_data->export_id = g_dbus_connection_export_menu_model(collector->session, menu_path, G_MENU_MODEL(model_data->export), NULL);
+  g_free(menu_path);
+
+  /* Add to our list of models */
   collector->models = g_slist_prepend (collector->models, model_data);
 
   if (path != NULL) {
@@ -748,6 +765,10 @@ model_data_free (gpointer data)
 	/* Make sure we don't have an operation outstanding */
 	g_cancellable_cancel (model_data->cancellable);
 	g_clear_object(&model_data->cancellable);
+
+	/* Stop exporting our menu */
+	g_dbus_connection_unexport_menu_model(model_data->session, model_data->export_id);
+	g_clear_object(&model_data->export);
 
 	g_clear_pointer(&model_data->path, g_free);
 	g_clear_pointer(&model_data->label, g_free);
