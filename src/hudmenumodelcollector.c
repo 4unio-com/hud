@@ -122,6 +122,8 @@ typedef struct
   GRemoteActionGroup *group;
   gchar *action_name;
   GVariant *target;
+
+  GMenuModel * submodel;
 } HudModelItem;
 
 typedef HudItemClass HudModelItemClass;
@@ -247,6 +249,7 @@ hud_model_item_finalize (GObject *object)
 {
   HudModelItem *item = (HudModelItem *) object;
 
+  g_clear_object(&item->submodel);
   g_object_unref (item->group);
   g_free (item->action_name);
 
@@ -323,6 +326,8 @@ static void
 hud_model_item_set_submenu (HudModelItem * item, GMenuModel * submenu)
 {
 	g_return_if_fail(G_IS_MENU_MODEL(submenu));
+
+	item->submodel = g_object_ref(submenu);
 
 	return;
 }
