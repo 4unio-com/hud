@@ -931,17 +931,17 @@ hud_query_voice_query (HudQuery *self)
 
   gchar * retval = hud_query_recognize_audio(self, lm_filename, pron_filename);
 
-//  if (string_file != 0) {
-//    g_unlink(string_filename);
-//  }
-//
-//  if (pron_file != 0) {
-//    g_unlink(pron_filename);
-//  }
-//
-//  if (lm_file != 0) {
-//    g_unlink(lm_filename);
-//  }
+  if (string_file != 0) {
+    g_unlink(string_filename);
+  }
+
+  if (pron_file != 0) {
+    g_unlink(pron_filename);
+  }
+
+  if (lm_file != 0) {
+    g_unlink(lm_filename);
+  }
 
   g_free(string_filename);
   g_free(pron_filename);
