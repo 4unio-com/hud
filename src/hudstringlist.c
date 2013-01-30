@@ -270,7 +270,6 @@ hud_string_list_insert_pronounciation (HudStringList * list, GHashTable * table)
         g_error_free(error);
       }
       gchar** pronounce = pronounce_dict_lookup_word (dict, filtered);
-		  g_debug("inserting [%d] pronunciation(s) for [%s]", g_strv_length(pronounce), filtered);
 
       g_hash_table_insert (table, g_strdup (filtered), pronounce);
 			g_free(filtered);
