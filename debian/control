@@ -48,8 +48,8 @@ Package: hud
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         pocketsphinx-hmm-en-hub4wsj,
-         pocketsphinx-lm-en-hub4,
+         pocketsphinx-hmm-en-hub4wsj (>= 0.8.0),
+         pocketsphinx-lm-en-hub4 (>= 0.8.0),
          irstlm,
 Conflicts: indicator-appmenu (<< 13),
 Description: Backend for the Unity HUD
