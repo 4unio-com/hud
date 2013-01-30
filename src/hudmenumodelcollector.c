@@ -318,6 +318,15 @@ hud_model_item_new (HudMenuModelCollector *collector,
   return HUD_ITEM (item);
 }
 
+/* Set the submenu property for the item */
+static void
+hud_model_item_set_submenu (HudModelItem * item, GMenuModel * submenu)
+{
+	g_return_if_fail(G_IS_MENU_MODEL(submenu));
+
+	return;
+}
+
 typedef GObjectClass HudMenuModelCollectorClass;
 
 static void hud_menu_model_collector_iface_init (HudSourceInterface *iface);
@@ -471,6 +480,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       gchar *action_namespace = NULL;
       gchar *action = NULL;
       gchar *accel = NULL;
+      HudItem *item = NULL;
 
 
       g_menu_model_get_item_attribute (model, i, "action-namespace", "s", &action_namespace);
@@ -486,7 +496,6 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       if (action && label)
         {
           GVariant *target;
-          HudItem *item;
 
           target = g_menu_model_get_item_attribute_value (model, i, G_MENU_ATTRIBUTE_TARGET, NULL);
 
@@ -514,6 +523,10 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SUBMENU)))
         {
           hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse - 1);
+          if (item != NULL && recurse <= 1)
+            {
+              hud_model_item_set_submenu((HudModelItem *)item, link);
+            }
           g_object_unref (link);
         }
 
