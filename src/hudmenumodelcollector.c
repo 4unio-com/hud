@@ -25,6 +25,7 @@
 #include "huditem.h"
 #include "hudkeywordmapping.h"
 #include "config.h"
+#include "action-muxer.h"
 
 #include <gio/gio.h>
 #include <string.h>
@@ -75,7 +76,7 @@ struct _HudMenuModelCollector
   gchar *unique_bus_name;
 
   /* GActionGroup's indexed by their prefix */
-  GHashTable * action_groups;
+  GActionMuxer * muxer;
 
   /* Boring details about the app/indicator we are showing. */
   gchar *app_id;
@@ -286,12 +287,12 @@ hud_model_item_new (HudMenuModelCollector *collector,
   HudModelItem *item;
   const gchar *stripped_action_name;
   gchar *prefix;
-  GDBusActionGroup *group = NULL;
+  GActionGroup *group = NULL;
   HudStringList *full_label, *keywords;
 
   prefix = hud_menu_model_context_get_prefix (context, action_name);
 
-  group = g_hash_table_lookup(collector->action_groups, prefix);
+  group = g_action_muxer_get(collector->muxer, prefix);
 
   if (!group)
     {
@@ -765,7 +766,7 @@ hud_menu_model_collector_finalize (GObject *object)
     g_source_remove (collector->refresh_id);
 
   g_slist_free_full (collector->models, model_data_free);
-  g_clear_pointer (&collector->action_groups, g_hash_table_unref);
+  g_clear_object (&collector->muxer);
 
   g_object_unref (collector->session);
   g_free (collector->unique_bus_name);
@@ -784,7 +785,7 @@ hud_menu_model_collector_init (HudMenuModelCollector *collector)
 {
   collector->items = g_ptr_array_new_with_free_func (g_object_unref);
   collector->cancellable = g_cancellable_new ();
-  collector->action_groups = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+  collector->muxer = g_action_muxer_new();
   collector->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 }
 
@@ -1027,7 +1028,7 @@ hud_menu_model_collector_add_actions (HudMenuModelCollector * collector, GAction
 		local_prefix = g_strdup(prefix);
 	}
 
-	g_hash_table_insert(collector->action_groups, local_prefix, group);
+	g_action_muxer_insert(collector->muxer, local_prefix, group);
 
 	return;
 }

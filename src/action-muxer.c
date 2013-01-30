@@ -483,3 +483,19 @@ g_action_muxer_remove (GActionMuxer *muxer,
     g_clear_object (&muxer->global_actions);
 }
 
+/*
+ * g_action_muxer_get:
+ * @muxer: a #GActionMuxer
+ * @prefix: (allow-none): the prefix of the action group to get, or NULL
+ *
+ * Looks for an action group and returns it if found
+ *
+ * Return value: (transfer none): Action group that matches @prefix
+ */
+GActionGroup *
+g_action_muxer_get (GActionMuxer * muxer, const gchar * prefix)
+{
+  g_return_val_if_fail (G_IS_ACTION_MUXER (muxer), NULL);
+
+  return prefix ? g_hash_table_lookup (muxer->groups, prefix) : muxer->global_actions;
+}
