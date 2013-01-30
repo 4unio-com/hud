@@ -384,6 +384,10 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 		if (mm_collector != NULL) {
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
 		}
+
+		gchar * export_path = g_strdup_printf("%s/window%X", app->priv->path, xid);
+		hud_menu_model_collector_set_export_path(mm_collector, export_path);
+		g_free(export_path);
 	}
 
 	if (dcollector != NULL) {
@@ -744,6 +748,10 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 #endif
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
 		}
+
+		gchar * export_path = g_strdup_printf("%s/window%X", app->priv->path, xid);
+		hud_menu_model_collector_set_export_path(mm_collector, export_path);
+		g_free(export_path);
 	}
 
 	if (dm_collector == NULL) {
