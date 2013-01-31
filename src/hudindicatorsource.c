@@ -50,13 +50,17 @@ typedef struct
   const gchar *indicator_name;
   const gchar *user_visible_name;
   const gchar *icon;
+  const gchar *dbus_path;
   gboolean     uses_gmenumodel;
 } IndicatorInfo;
+
+#define HUD_PATH_BASE "/com/canonical/hud/indicator/"
 
 static const IndicatorInfo indicator_info[] = {
   {
     .dbus_name         = "com.canonical.indicator.datetime",
     .dbus_menu_path    = "/com/canonical/indicator/datetime/menu",
+    .dbus_path         = HUD_PATH_BASE "datetime",
     .indicator_name    = "indicator-datetime",
     .user_visible_name = N_("Date"),
     .icon              = "office-calendar"
@@ -64,6 +68,7 @@ static const IndicatorInfo indicator_info[] = {
   {
     .dbus_name         = "com.canonical.indicator.session",
     .dbus_menu_path    = "/com/canonical/indicator/session/menu",
+    .dbus_path         = HUD_PATH_BASE "session",
     .indicator_name    = "indicator-session-device",
     .user_visible_name = N_("Device"),
     .icon              = "system-devices-panel"
@@ -71,6 +76,7 @@ static const IndicatorInfo indicator_info[] = {
   {
     .dbus_name         = "com.canonical.indicator.sound",
     .dbus_menu_path    = "/com/canonical/indicator/sound/menu",
+    .dbus_path         = HUD_PATH_BASE "sound",
     .indicator_name    = "indicator-sound",
     .user_visible_name = N_("Sound"),
     .icon              = "audio-volume-high-panel"
@@ -78,6 +84,7 @@ static const IndicatorInfo indicator_info[] = {
   {
     .dbus_name         = "com.canonical.indicator.messages",
     .dbus_menu_path    = "/com/canonical/indicator/messages/menu",
+    .dbus_path         = HUD_PATH_BASE "messages",
     .indicator_name    = "indicator-messages",
     .user_visible_name = N_("Messages"),
     .icon              = "indicator-messages",
@@ -227,7 +234,7 @@ hud_indicator_source_name_appeared (GDBusConnection *connection,
 
   if (indicator->info->uses_gmenumodel)
     {
-      HudMenuModelCollector *collector = hud_menu_model_collector_new(indicator->info->indicator_name, indicator->info->icon, hud_settings.indicator_penalty, NULL);
+      HudMenuModelCollector *collector = hud_menu_model_collector_new(indicator->info->indicator_name, indicator->info->icon, hud_settings.indicator_penalty, indicator->info->dbus_path);
 
       hud_menu_model_collector_add_endpoint (collector,
                                              _(indicator->info->user_visible_name),

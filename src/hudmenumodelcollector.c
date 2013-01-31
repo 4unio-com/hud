@@ -590,7 +590,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   g_menu_append_item(model_data->export, item);
 
   if (collector->base_export_path != NULL) {
-    gchar * menu_path = g_strdup_printf("%s/menu%p", collector->base_export_path, model_data);
+    gchar * menu_path = g_strdup_printf("%s/menu%X", collector->base_export_path, GPOINTER_TO_UINT(model_data));
     g_debug("Exporting menu model: %s", menu_path);
     model_data->export_id = g_dbus_connection_export_menu_model(collector->session, menu_path, G_MENU_MODEL(model_data->export), NULL);
     g_free(menu_path);
@@ -894,6 +894,9 @@ hud_menu_model_collector_new (const gchar *application_id,
                               guint        penalty,
                               const gchar *export_path)
 {
+	g_return_val_if_fail(application_id != NULL, NULL);
+	g_return_val_if_fail(export_path != NULL, NULL);
+
 	HudMenuModelCollector * collector = g_object_new(HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
 
 	collector->app_id = g_strdup (application_id);
@@ -903,11 +906,6 @@ hud_menu_model_collector_new (const gchar *application_id,
 
 	collector->keyword_mapping = hud_keyword_mapping_new();
 	hud_keyword_mapping_load(collector->keyword_mapping, collector->app_id, DATADIR, GNOMELOCALEDIR);
-
-	if (export_path == NULL) {
-		g_warning("NO export path on %s", application_id);
-		return collector;
-	}
 
 	GError * error = NULL;
 	collector->muxer_export = g_dbus_connection_export_action_group(collector->session,
