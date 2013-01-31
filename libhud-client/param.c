@@ -21,8 +21,11 @@
 #endif
 
 #include "param.h"
+#include <gio/gio.h>
 
 struct _HudClientParamPrivate {
+	GDBusConnection * session;
+
 	const gchar * base_action;
 	const gchar * action_path;
 	const gchar * model_path;
@@ -56,12 +59,18 @@ static void
 hud_client_param_init (HudClientParam *self)
 {
 	self->priv = HUD_CLIENT_PARAM_GET_PRIVATE(self);
+
+	self->priv->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+
 	return;
 }
 
 static void
 hud_client_param_dispose (GObject *object)
 {
+	HudClientParam * param = HUD_CLIENT_PARAM(object);
+
+	g_clear_object(&param->priv->session);
 
 	G_OBJECT_CLASS (hud_client_param_parent_class)->dispose (object);
 	return;
