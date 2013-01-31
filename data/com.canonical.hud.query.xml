@@ -38,7 +38,7 @@
 			<arg type="u" name="timestamp" direction="in" />
 		</method>
 
-		<method name="ExecuteParameratized">
+		<method name="ExecuteParameterized">
 			<!-- in -->
 			<arg type="v" name="item" direction="in" />
 			<arg type="u" name="timestamp" direction="in" />
