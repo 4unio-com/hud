@@ -490,7 +490,19 @@ hud_client_query_execute_command (HudClientQuery * cquery, GVariant * command_ke
 HudClientParam *
 hud_client_query_execute_param_command (HudClientQuery * cquery, GVariant * command_key, guint timestamp)
 {
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+	g_return_val_if_fail(command_key != NULL, NULL);
 
+	gchar * action_path = NULL;
+	gchar * model_path = NULL;
+	gint section = 0;
 
-	return NULL;
+	_hud_query_com_canonical_hud_query_call_execute_parameterized_sync(cquery->priv->proxy, command_key, timestamp, &action_path, &model_path, &section, NULL, NULL);
+
+	HudClientParam * param = hud_client_param_new(action_path, model_path, section);
+
+	g_free(action_path);
+	g_free(model_path);
+
+	return param;
 }

@@ -60,7 +60,11 @@ struct _HudClientParam {
 	HudClientParamPrivate * priv;
 };
 
-GType hud_client_param_get_type (void);
+GType                  hud_client_param_get_type  (void);
+
+HudClientParam *       hud_client_param_new       (const gchar *     action_path,
+                                                   const gchar *     model_path,
+                                                   gint              model_section);
 
 /**
 	SECTION:param

@@ -70,3 +70,23 @@ hud_client_param_finalize (GObject *object)
 	G_OBJECT_CLASS (hud_client_param_parent_class)->finalize (object);
 	return;
 }
+
+/**
+ * hud_client_param_new:
+ * @action_path: DBus path to the action object
+ * @model_path: DBus path to the menu model object
+ * @model_section: Section of the model to use
+ *
+ * Create a new #HudClientParam object for adjusting a specified
+ * paramaterized dialog.
+ *
+ * Return value: (transfer full): A new #HudClientParam dialog
+ */
+HudClientParam *
+hud_client_param_new (const gchar * action_path, const gchar * model_path, gint model_section)
+{
+
+
+
+	return NULL;
+}
