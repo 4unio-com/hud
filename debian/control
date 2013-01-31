@@ -36,9 +36,6 @@ Build-Depends: bamfdaemon,
                python3-dbusmock,
                libpocketsphinx-dev,
                libsphinxbase-dev,
-               pocketsphinx-hmm-wsj1,
-               pocketsphinx-lm-wsj,
-               irstlm,
 Standards-Version: 3.9.4
 Homepage: http://launchpad.net/hud
 # If you aren't a member of ~indicator-applet-developers but need to upload
@@ -52,6 +49,9 @@ Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          hud-cmudict,
+         pocketsphinx-hmm-wsj1,
+         pocketsphinx-lm-wsj,
+         irstlm,
 Conflicts: indicator-appmenu (<< 13),
 Description: Backend for the Unity HUD
  .
