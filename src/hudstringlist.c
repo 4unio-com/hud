@@ -241,7 +241,7 @@ hud_string_list_add_item (const gchar *item, HudStringList *stringlist)
 /**
  * hud_string_list_insert_pronounciation:
  * @list: A #HudStringList
- * @table: A hash table of (gchar *, gchar **)
+ * @user_data: Composite of a #GHashTable of (gchar *, gchar**) and a regex for removing undesirable characters
  *
  * Looks up the various tokens in the pronounciation database and adds them
  * to the hash table if they're not already represented.

@@ -451,7 +451,7 @@ hud_item_get_shortcut (HudItem *item)
 /**
  * hud_item_insert_pronounciation:
  * @item: A #HudItem
- * @table: A #GHashTabel of (gchar *, gchar**)
+ * @user_data: Composite of a #GHashTable of (gchar *, gchar**) and a regex for removing undesirable characters
  *
  * Get the pronounciations of all the tokens for this item.
  */
