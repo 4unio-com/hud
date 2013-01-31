@@ -73,6 +73,7 @@ hud_client_param_finalize (GObject *object)
 
 /**
  * hud_client_param_new:
+ * @base_action: The action to send events for the dialog on
  * @action_path: DBus path to the action object
  * @model_path: DBus path to the menu model object
  * @model_section: Section of the model to use
@@ -83,10 +84,12 @@ hud_client_param_finalize (GObject *object)
  * Return value: (transfer full): A new #HudClientParam dialog
  */
 HudClientParam *
-hud_client_param_new (const gchar * action_path, const gchar * model_path, gint model_section)
+hud_client_param_new (const gchar * base_action, const gchar * action_path, const gchar * model_path, gint model_section)
 {
 
 
 
 	return NULL;
 }
+
+

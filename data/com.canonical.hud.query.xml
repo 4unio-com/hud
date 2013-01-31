@@ -43,6 +43,7 @@
 			<arg type="v" name="item" direction="in" />
 			<arg type="u" name="timestamp" direction="in" />
 			<!-- out -->
+			<arg type="s" name="baseAction" direction="out" />
 			<arg type="o" name="actionPath" direction="out" />
 			<arg type="o" name="modelPath" direction="out" />
 			<arg type="i" name="modelSection" direction="out" />
