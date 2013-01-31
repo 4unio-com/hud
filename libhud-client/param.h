@@ -62,7 +62,8 @@ struct _HudClientParam {
 
 GType                  hud_client_param_get_type  (void);
 
-HudClientParam *       hud_client_param_new       (const gchar *     base_action,
+HudClientParam *       hud_client_param_new       (const gchar *     dbus_address,
+                                                   const gchar *     base_action,
                                                    const gchar *     action_path,
                                                    const gchar *     model_path,
                                                    gint              model_section);

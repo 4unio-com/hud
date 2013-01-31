@@ -26,9 +26,10 @@
 struct _HudClientParamPrivate {
 	GDBusConnection * session;
 
-	const gchar * base_action;
-	const gchar * action_path;
-	const gchar * model_path;
+	gchar * dbus_address;
+	gchar * base_action;
+	gchar * action_path;
+	gchar * model_path;
 	gint model_section;
 };
 
@@ -91,6 +92,7 @@ hud_client_param_finalize (GObject *object)
 
 /**
  * hud_client_param_new:
+ * @dbus_address: The address on dbus to find the actions
  * @base_action: The action to send events for the dialog on
  * @action_path: DBus path to the action object
  * @model_path: DBus path to the menu model object
@@ -102,7 +104,7 @@ hud_client_param_finalize (GObject *object)
  * Return value: (transfer full): A new #HudClientParam dialog
  */
 HudClientParam *
-hud_client_param_new (const gchar * base_action, const gchar * action_path, const gchar * model_path, gint model_section)
+hud_client_param_new (const gchar * dbus_address, const gchar * base_action, const gchar * action_path, const gchar * model_path, gint model_section)
 {
 	g_return_val_if_fail(base_action != NULL, NULL);
 	g_return_val_if_fail(g_variant_is_object_path(action_path), NULL);
@@ -110,6 +112,7 @@ hud_client_param_new (const gchar * base_action, const gchar * action_path, cons
 
 	HudClientParam * param = g_object_new(HUD_CLIENT_TYPE_PARAM, NULL);
 
+	param->priv->dbus_address = g_strdup(dbus_address);
 	param->priv->base_action = g_strdup(base_action);
 	param->priv->action_path = g_strdup(action_path);
 	param->priv->model_path = g_strdup(model_path);
