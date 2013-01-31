@@ -381,3 +381,22 @@ hud_test_utils_source_assert_result (GPtrArray* results, const guint index, cons
   g_assert_cmpstr(hud_string_list_get_head(tokens), ==, value);
 }
 
+static gboolean hud_test_utils_ignore_dbus_null_connection_callback (
+    const gchar *log_domain, GLogLevelFlags level, const gchar *message,
+    gpointer user_data)
+{
+  if (g_strcmp0 (log_domain, "GLib-GIO") == 0
+      && g_str_has_prefix (message,
+          "g_dbus_connection_call_finish_internal: assertion 'G_IS_DBUS_CONNECTION'"))
+  {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+void
+hud_test_utils_ignore_dbus_null_connection()
+{
+  g_test_log_set_fatal_handler(hud_test_utils_ignore_dbus_null_connection_callback, NULL);
+}
