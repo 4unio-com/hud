@@ -26,6 +26,7 @@
 #include <glib-object.h>
 #include <dee.h>
 #include <libhud-client/connection.h>
+#include <libhud-client/param.h>
 
 G_BEGIN_DECLS
 
@@ -79,6 +80,9 @@ DeeModel *         hud_client_query_get_appstack_model    (HudClientQuery *     
 void               hud_client_query_set_appstack_app      (HudClientQuery *        cquery,
                                                            const gchar *           application_id);
 void               hud_client_query_execute_command       (HudClientQuery *        cquery,
+                                                           GVariant *              command_key,
+                                                           guint                   timestamp);
+HudClientParam *   hud_client_query_execute_param_command (HudClientQuery *        cquery,
                                                            GVariant *              command_key,
                                                            guint                   timestamp);
 
