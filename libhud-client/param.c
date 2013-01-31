@@ -23,11 +23,14 @@
 #include "param.h"
 
 struct _HudClientParamPrivate {
-	int dummy;
+	const gchar * base_action;
+	const gchar * action_path;
+	const gchar * model_path;
+	gint model_section;
 };
 
 #define HUD_CLIENT_PARAM_GET_PRIVATE(o) \
-(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_CLIENT_PARAM_TYPE, HudClientParamPrivate))
+(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_CLIENT_TYPE_PARAM, HudClientParamPrivate))
 
 static void hud_client_param_class_init (HudClientParamClass *klass);
 static void hud_client_param_init       (HudClientParam *self);
@@ -52,6 +55,7 @@ hud_client_param_class_init (HudClientParamClass *klass)
 static void
 hud_client_param_init (HudClientParam *self)
 {
+	self->priv = HUD_CLIENT_PARAM_GET_PRIVATE(self);
 	return;
 }
 
@@ -66,6 +70,11 @@ hud_client_param_dispose (GObject *object)
 static void
 hud_client_param_finalize (GObject *object)
 {
+	HudClientParam * param = HUD_CLIENT_PARAM(object);
+
+	g_clear_pointer(&param->priv->base_action, g_free);
+	g_clear_pointer(&param->priv->action_path, g_free);
+	g_clear_pointer(&param->priv->model_path, g_free);
 
 	G_OBJECT_CLASS (hud_client_param_parent_class)->finalize (object);
 	return;
@@ -86,10 +95,18 @@ hud_client_param_finalize (GObject *object)
 HudClientParam *
 hud_client_param_new (const gchar * base_action, const gchar * action_path, const gchar * model_path, gint model_section)
 {
+	g_return_val_if_fail(base_action != NULL, NULL);
+	g_return_val_if_fail(g_variant_is_object_path(action_path), NULL);
+	g_return_val_if_fail(g_variant_is_object_path(model_path), NULL);
 
+	HudClientParam * param = g_object_new(HUD_CLIENT_TYPE_PARAM, NULL);
 
+	param->priv->base_action = g_strdup(base_action);
+	param->priv->action_path = g_strdup(action_path);
+	param->priv->model_path = g_strdup(model_path);
+	param->priv->model_section = model_section;
 
-	return NULL;
+	return param;
 }
 
 
