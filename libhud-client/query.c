@@ -474,3 +474,23 @@ hud_client_query_execute_command (HudClientQuery * cquery, GVariant * command_ke
 
 	return;
 }
+
+/**
+ * hud_client_query_execute_param_command:
+ * @cquery: A #HudClientQuery
+ * @command_key: The key from the results model for the entry to activate
+ * @timestamp: Timestamp for the user event
+ *
+ * Executes a command that results in a parameterized dialog
+ * which is controlled using the returned #HudClientParam object.
+ * When created this sends the "opened" event to the application.
+ *
+ * Return Value: (transfer full): Object to control the parameterized dialog.
+ */
+HudClientParam *
+hud_client_query_execute_param_command (HudClientQuery * cquery, GVariant * command_key, guint timestamp)
+{
+
+
+	return NULL;
+}
