@@ -40,6 +40,8 @@ static void hud_client_param_class_init (HudClientParamClass *klass);
 static void hud_client_param_init       (HudClientParam *self);
 static void hud_client_param_dispose    (GObject *object);
 static void hud_client_param_finalize   (GObject *object);
+static void action_write_state          (HudClientParam *  param,
+                                         const gchar *     action);
 
 G_DEFINE_TYPE (HudClientParam, hud_client_param, G_TYPE_OBJECT);
 
@@ -70,6 +72,8 @@ static void
 hud_client_param_dispose (GObject *object)
 {
 	HudClientParam * param = HUD_CLIENT_PARAM(object);
+
+	action_write_state(param, "end");
 
 	g_clear_object(&param->priv->session);
 
