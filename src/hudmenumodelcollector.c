@@ -589,9 +589,12 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   GMenuItem * item = g_menu_item_new_section(NULL, model_data->model);
   g_menu_append_item(model_data->export, item);
 
-  gchar * menu_path = g_strdup_printf("%s/menu%p", collector->base_export_path, model_data);
-  model_data->export_id = g_dbus_connection_export_menu_model(collector->session, menu_path, G_MENU_MODEL(model_data->export), NULL);
-  g_free(menu_path);
+  if (collector->base_export_path != NULL) {
+    gchar * menu_path = g_strdup_printf("%s/menu%p", collector->base_export_path, model_data);
+    g_debug("Exporting menu model: %s", menu_path);
+    model_data->export_id = g_dbus_connection_export_menu_model(collector->session, menu_path, G_MENU_MODEL(model_data->export), NULL);
+    g_free(menu_path);
+  }
 
   /* Add to our list of models */
   collector->models = g_slist_prepend (collector->models, model_data);
@@ -879,6 +882,7 @@ hud_menu_model_collector_hud_awareness_cb (GObject      *source,
  * @application_id: a unique identifier for the application
  * @icon: the icon for the appliction
  * @penalty: the penalty to apply to all results
+ * @export_path: the path to export items on dbus
  *
  * Create a new #HudMenuModelCollector object
  *
@@ -887,16 +891,34 @@ hud_menu_model_collector_hud_awareness_cb (GObject      *source,
 HudMenuModelCollector *
 hud_menu_model_collector_new (const gchar *application_id,
                               const gchar *icon,
-                              guint        penalty)
+                              guint        penalty,
+                              const gchar *export_path)
 {
 	HudMenuModelCollector * collector = g_object_new(HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
 
 	collector->app_id = g_strdup (application_id);
 	collector->icon = g_strdup (icon);
 	collector->penalty = penalty;
+	collector->base_export_path = g_strdup(export_path);
 
 	collector->keyword_mapping = hud_keyword_mapping_new();
 	hud_keyword_mapping_load(collector->keyword_mapping, collector->app_id, DATADIR, GNOMELOCALEDIR);
+
+	if (export_path == NULL) {
+		g_warning("NO export path on %s", application_id);
+		return collector;
+	}
+
+	GError * error = NULL;
+	collector->muxer_export = g_dbus_connection_export_action_group(collector->session,
+	                                                                collector->base_export_path,
+	                                                                G_ACTION_GROUP(collector->muxer),
+	                                                                &error);
+
+	if (error != NULL) {
+		g_warning("Unable to export action group: %s", error->message);
+		g_error_free(error);
+	}
 
 	return collector;
 }
@@ -1088,37 +1110,3 @@ hud_menu_model_collector_get_items (HudSource * source)
 	return retval;
 }
 
-/**
- * hud_menu_model_collector_set_export_path:
- * @collector: A #HudMenuModelCollector
- * @path: A valid dbus object path
- *
- * Set a path to export the menu models and actions on.
- */
-void
-hud_menu_model_collector_set_export_path (HudMenuModelCollector * collector, const gchar * path)
-{
-	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
-	g_return_if_fail(path != NULL);
-	g_return_if_fail(g_variant_is_object_path(path));
-
-	if (collector->base_export_path != NULL) {
-		g_warning("Base object path already set");
-		return;
-	}
-
-	collector->base_export_path = g_strdup(path);
-
-	GError * error = NULL;
-	collector->muxer_export = g_dbus_connection_export_action_group(collector->session,
-	                                                                collector->base_export_path,
-	                                                                G_ACTION_GROUP(collector->muxer),
-	                                                                &error);
-
-	if (error != NULL) {
-		g_warning("Unable to export action group: %s", error->message);
-		g_error_free(error);
-	}
-
-	return;
-}
