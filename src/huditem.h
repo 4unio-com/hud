@@ -38,6 +38,8 @@ typedef struct _HudItemPrivate                              HudItemPrivate;
 typedef struct _HudItemClass                                HudItemClass;
 typedef struct _HudItem                                     HudItem;
 
+typedef struct _HudItemPronunciationData                    HudItemPronunciationData;
+
 struct _HudItemClass
 {
   GObjectClass parent_class;
@@ -52,6 +54,12 @@ struct _HudItem
   GObject parent_instance;
 
   HudItemPrivate *priv;
+};
+
+struct _HudItemPronunciationData
+{
+  GHashTable *table;
+  GRegex *regex;
 };
 
 GType                   hud_item_get_type                               (void);
@@ -85,7 +93,6 @@ const gchar *           hud_item_get_command                            (HudItem
 gchar *                 hud_item_get_context                            (HudItem       *item);
 const gchar *           hud_item_get_shortcut                           (HudItem       *item);
 void                    hud_item_insert_pronounciation                  (HudItem       * item,
-                                                                         GHashTable    * table);
-GRegex *                hud_item_alphanumeric_regex_get                 (void);
+                                                                         HudItemPronunciationData    * user_data);
 
 #endif /* __HUD_ITEM_H__ */

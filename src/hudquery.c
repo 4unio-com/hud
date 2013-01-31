@@ -80,6 +80,8 @@ struct _HudQuery
 
   GSequence * results_list; /* Should almost always be NULL except when refreshing the query */
   guint max_usage; /* Used to make the GList search easier */
+
+  GRegex * alphanumeric_regex;
 };
 
 typedef GObjectClass HudQueryClass;
@@ -108,6 +110,21 @@ static const gchar * appstack_model_schema[] = {
 	"s", /* Application ID */
 	"s", /* Icon Name */
 };
+
+static GRegex *
+hud_query_alphanumeric_regex_new (void)
+{
+  GRegex *alphanumeric_regex = NULL;
+
+  GError *error = NULL;
+  alphanumeric_regex = g_regex_new("…|\\.\\.\\.", 0, 0, &error);
+  if (alphanumeric_regex == NULL) {
+    g_error("Compiling regex failed: [%s]", error->message);
+    g_error_free(error);
+  }
+
+  return alphanumeric_regex;
+}
 
 static gint
 compare_func (gconstpointer a, gconstpointer b, gpointer user_data)
@@ -473,6 +490,8 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint q
                "results-model", query->results_name,
                NULL);
 
+  query->alphanumeric_regex = hud_query_alphanumeric_regex_new();
+
   g_dbus_interface_skeleton_flush(G_DBUS_INTERFACE_SKELETON(query->skel));
 }
 
@@ -792,7 +811,8 @@ hud_query_voice_query (HudQuery *self)
 
   /* Get the pronounciations for the items */
   GHashTable * pronounciations = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify)g_strfreev);
-  g_list_foreach(items, (GFunc)hud_item_insert_pronounciation, pronounciations);
+  HudItemPronunciationData pronounciation_data = {pronounciations, self->alphanumeric_regex};
+  g_list_foreach(items, (GFunc)hud_item_insert_pronounciation, &pronounciation_data);
 
   /* Get our cache together */
   gchar * string_filename = NULL;
@@ -873,7 +893,7 @@ hud_query_voice_query (HudQuery *self)
     }
 
     gchar *upper = g_utf8_strup(command, g_utf8_strlen(command, -1));
-    gchar *filtered = g_regex_replace (hud_item_alphanumeric_regex_get (), upper,
+    gchar *filtered = g_regex_replace (self->alphanumeric_regex, upper,
               -1, 0, "", 0, &error);
     if (filtered == NULL) {
       g_error("Regex replace failed: [%s]", error->message);

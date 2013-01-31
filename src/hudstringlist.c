@@ -247,11 +247,14 @@ hud_string_list_add_item (const gchar *item, HudStringList *stringlist)
  * to the hash table if they're not already represented.
  */
 void
-hud_string_list_insert_pronounciation (HudStringList * list, GHashTable * table)
+hud_string_list_insert_pronounciation (HudStringList * list, HudItemPronunciationData * user_data)
 {
 	if (list == NULL) {
 		return;
 	}
+
+	GHashTable *table = user_data->table;
+	GRegex *regex = user_data->regex;
 
 	gchar * upper = g_utf8_strup(list->head, -1);
 	gchar ** splitted = g_strsplit(upper, " ", -1);
@@ -263,8 +266,8 @@ hud_string_list_insert_pronounciation (HudStringList * list, GHashTable * table)
 	for (i = 0; splitted[i] != NULL; i++) {
 		if (g_hash_table_lookup(table, splitted[i]) == NULL) {
 		  GError *error = NULL;
-      gchar *filtered = g_regex_replace (hud_item_alphanumeric_regex_get (), splitted[i],
-          -1, 0, "", 0, &error);
+      gchar *filtered = g_regex_replace (regex, splitted[i], -1, 0, "", 0,
+          &error);
       if (filtered == NULL) {
         g_error("Regex replace failed: [%s]", error->message);
         g_error_free(error);
@@ -278,5 +281,5 @@ hud_string_list_insert_pronounciation (HudStringList * list, GHashTable * table)
 
 	g_strfreev(splitted);
 
-	return hud_string_list_insert_pronounciation(list->tail, table);
+	return hud_string_list_insert_pronounciation(list->tail, user_data);
 }
