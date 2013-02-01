@@ -67,5 +67,11 @@ typedef struct _HudModelItem                       HudModelItem;
 
 GType                   hud_model_item_get_type                         (void);
 gboolean                hud_model_item_is_parameterized                 (HudModelItem *         item);
+void                    hud_model_item_activate_parameterized           (HudModelItem *         item,
+                                                                         guint32                timestamp,
+                                                                         const gchar **         base_action,
+                                                                         const gchar **         action_path,
+                                                                         const gchar **         model_path,
+                                                                         gint *                 section);
 
 #endif /* __HUD_MENU_MODEL_COLLECTOR_H__ */

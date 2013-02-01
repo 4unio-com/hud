@@ -353,8 +353,37 @@ hud_model_item_set_submenu (HudModelItem * item, GMenuModel * submenu)
 gboolean
 hud_model_item_is_parameterized (HudModelItem * item)
 {
+	g_return_val_if_fail(HUD_IS_MODEL_ITEM(item), FALSE);
 
 	return FALSE;
+}
+
+/**
+ * hud_model_item_activate_parameterized:
+ * @item: A #HudModelItem to check
+ * @timestamp: The time of the user event from the dispaly server
+ * @base_action: Action to activate the base events on
+ * @action_path: Path that the actions can be found on
+ * @model_path: Path to the models
+ * @section: Model section to use
+ * 
+ * Uses the item to find all the information about creating a parameterized
+ * view of the item in the HUD.
+ */
+void
+hud_model_item_activate_parameterized (HudModelItem * item, guint32 timestamp, const gchar ** base_action, const gchar ** action_path, const gchar ** model_path, gint * section)
+{
+	g_return_if_fail(HUD_IS_MODEL_ITEM(item));
+
+	/* Make sure we have a place to put things, we require it */
+	g_return_if_fail(base_action != NULL);
+	g_return_if_fail(action_path != NULL);
+	g_return_if_fail(model_path != NULL);
+	g_return_if_fail(section != NULL);
+
+
+
+	return;
 }
 
 typedef GObjectClass HudMenuModelCollectorClass;

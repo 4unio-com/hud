@@ -440,9 +440,21 @@ handle_parameterized (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoc
 		return TRUE;
 	}
 
+	const gchar * base_action;
+	const gchar * action_path;
+	const gchar * model_path;
+	gint model_section;
 
+	hud_model_item_activate_parameterized(HUD_MODEL_ITEM(item), timestamp, &base_action, &action_path, &model_path, &model_section);
 
-	g_dbus_method_invocation_return_value(invocation, NULL);
+	GVariantBuilder tuple;
+	g_variant_builder_init(&tuple, G_VARIANT_TYPE_TUPLE);
+	g_variant_builder_add_value(&tuple, g_variant_new_string(base_action));
+	g_variant_builder_add_value(&tuple, g_variant_new_object_path(action_path));
+	g_variant_builder_add_value(&tuple, g_variant_new_object_path(model_path));
+	g_variant_builder_add_value(&tuple, g_variant_new_int32(model_section));
+
+	g_dbus_method_invocation_return_value(invocation, g_variant_builder_end(&tuple));
 	return TRUE;
 }
 
