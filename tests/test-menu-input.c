@@ -196,7 +196,8 @@ test_menus_model_base (void)
 
 	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
 	                                                                 "no-icon",
-	                                                                 0); /* penalty */
+	                                                                 0, /* penalty */
+	                                                                 "/test/collector");
 
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
@@ -237,7 +238,8 @@ test_menus_model_shortcuts (void)
 
 	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
 	                                                                 "no-icon",
-	                                                                 0); /* penalty */
+	                                                                 0, /* penalty */
+	                                                                 "/test/collector");
 
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
@@ -302,7 +304,8 @@ test_menus_model_deep (void)
 
 	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
 	                                                                 "no-icon",
-	                                                                 0); /* penalty */
+	                                                                 0, /* penalty */
+	                                                                 "/test/collector");
 
 	g_assert(collector != NULL);
 	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
@@ -312,6 +315,7 @@ test_menus_model_deep (void)
 	hud_menu_model_collector_add_endpoint(collector,
 	                                      "Prefix",
 	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH,
 	                                      HUD_TEST_UTILS_LOADER_PATH);
 
 	hud_test_utils_process_mainloop(100);
