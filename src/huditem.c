@@ -451,15 +451,15 @@ hud_item_get_shortcut (HudItem *item)
 /**
  * hud_item_insert_pronounciation:
  * @item: A #HudItem
- * @table: A #GHashTabel of (gchar *, gchar**)
+ * @user_data: Composite of a #GHashTable of (gchar *, gchar**) and a regex for removing undesirable characters
  *
  * Get the pronounciations of all the tokens for this item.
  */
 void
-hud_item_insert_pronounciation (HudItem * item, GHashTable * table)
+hud_item_insert_pronounciation (HudItem * item, HudItemPronunciationData * user_data)
 {
 	g_return_if_fail(HUD_IS_ITEM(item));
 
-	hud_string_list_insert_pronounciation(item->priv->tokens, table);
+	hud_string_list_insert_pronounciation(item->priv->tokens, user_data);
 	return;
 }

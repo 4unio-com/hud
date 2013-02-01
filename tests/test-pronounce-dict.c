@@ -67,10 +67,34 @@ test_hud_pronouce_dict_semicolon ()
 }
 
 static void
+test_hud_pronouce_dict_lowercase ()
+{
+  PronounceDict *dict = pronounce_dict_new("test-pronounce-dict-lowercase.dic");
+
+  {
+    gchar** pronounciations = pronounce_dict_lookup_word (dict, "hello");
+    g_assert_cmpint(g_strv_length(pronounciations), ==, 2);
+    g_assert_cmpstr(pronounciations[0], ==, "HH AH L OW");
+    g_assert_cmpstr(pronounciations[1], ==, "HH EH L OW");
+    g_strfreev(pronounciations);
+  }
+
+  {
+    gchar** pronounciations = pronounce_dict_lookup_word (dict, "there");
+    g_assert_cmpint(g_strv_length(pronounciations), ==, 1);
+    g_assert_cmpstr(pronounciations[0], ==, "DH EH R");
+    g_strfreev(pronounciations);
+  }
+
+  g_object_unref(dict);
+}
+
+static void
 test_string_list_suite ()
 {
   g_test_add_func ("/hud/pronounce_dict/hashes", test_hud_pronouce_dict_hashes);
   g_test_add_func ("/hud/pronounce_dict/semicolon", test_hud_pronouce_dict_semicolon);
+  g_test_add_func ("/hud/pronounce_dict/lowercase", test_hud_pronouce_dict_lowercase);
 }
 
 gint

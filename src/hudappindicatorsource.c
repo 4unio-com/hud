@@ -240,6 +240,12 @@ hud_app_indicator_source_ready (GObject      *connection,
 
   g_clear_object (&source->cancellable);
 
+  if (source == NULL)
+  {
+    g_debug("Callback invoked with null connection");
+    return;
+  }
+
   reply = g_dbus_connection_call_finish (G_DBUS_CONNECTION (connection), result, &error);
 
   if (reply)

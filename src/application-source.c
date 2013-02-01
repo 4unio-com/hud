@@ -172,6 +172,34 @@ hud_application_source_finalize (GObject *object)
 	return;
 }
 
+static HudSource *
+get_used_source (HudApplicationSource *app)
+{
+  if (app->priv->used_source != NULL )
+  {
+    return app->priv->used_source;
+  }
+
+  if (g_hash_table_size (app->priv->windows) == 1)
+  {
+    GHashTableIter iter;
+    gpointer key, value;
+    g_hash_table_iter_init (&iter, app->priv->windows);
+    g_hash_table_iter_next (&iter, &key, &value);
+    HudSourceList *list = HUD_SOURCE_LIST(value);
+    if (list != NULL )
+    {
+      return HUD_SOURCE(list) ;
+    }
+
+    g_warning("A list with a single window but no source list... ");
+    return NULL ;
+  }
+
+  g_warning("A list without a use or a single window... ");
+  return NULL ;
+}
+
 /* Source interface using this source */
 static void
 source_use (HudSource *hud_source)
@@ -220,28 +248,14 @@ source_search (HudSource *     hud_source,
                void          (*append_func) (HudResult * result, gpointer user_data),
                gpointer        user_data)
 {
-	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+  HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
 
-	if (app->priv->used_source != NULL) {
-		hud_source_search(app->priv->used_source, search_string, append_func, user_data);
-	} else {
-		if (g_hash_table_size (app->priv->windows) == 1){
-			GHashTableIter iter;
-			gpointer key, value;
-			g_hash_table_iter_init (&iter, app->priv->windows);
-			g_hash_table_iter_next (&iter, &key, &value);
-			HudSourceList *list = HUD_SOURCE_LIST(value);
-			if (list != NULL) {
-				hud_source_search(HUD_SOURCE(list), search_string, append_func, user_data);
-			} else {
-				g_warning("A search with a single window but no source list... ");
-			}
-		} else {
-			g_warning("A search without a use... ");
-		}
-	}
+  HudSource *source = get_used_source (app);
 
-	return;
+  if (source != NULL )
+  {
+    hud_source_search (source, search_string, append_func, user_data);
+  }
 }
 
 static void
@@ -250,28 +264,14 @@ source_list_applications (HudSource *     hud_source,
                           void           (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
                           gpointer        user_data)
 {
-	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+  HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
 
-	if (app->priv->used_source != NULL) {
-		hud_source_list_applications(app->priv->used_source, search_string, append_func, user_data);
-	} else {
-		if (g_hash_table_size (app->priv->windows) == 1){
-			GHashTableIter iter;
-			gpointer key, value;
-			g_hash_table_iter_init (&iter, app->priv->windows);
-			g_hash_table_iter_next (&iter, &key, &value);
-			HudSourceList *list = HUD_SOURCE_LIST(value);
-			if (list != NULL) {
-				hud_source_list_applications(HUD_SOURCE(list), search_string, append_func, user_data);
-			} else {
-				g_warning("A list with a single window but no source list... ");
-			}
-		} else {
-			g_warning("A list without a use... ");
-		}
-	}
-	
-	return;
+  HudSource *source = get_used_source (app);
+
+  if (source != NULL )
+  {
+    hud_source_list_applications (source, search_string, append_func, user_data);
+  }
 }
 
 static HudSource *
@@ -783,9 +783,14 @@ static GList *
 source_get_items (HudSource * object)
 {
   g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(object), NULL);
-  HudApplicationSource *source = HUD_APPLICATION_SOURCE(object);
+  HudApplicationSource *app = HUD_APPLICATION_SOURCE(object);
 
-  g_return_val_if_fail(source->priv->used_source != NULL, NULL);
+  HudSource *source = get_used_source (app);
 
-  return hud_source_get_items(source->priv->used_source);
+  if (source != NULL )
+  {
+    return hud_source_get_items (source);
+  }
+
+  return NULL ;
 }

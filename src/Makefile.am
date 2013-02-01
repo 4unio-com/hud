@@ -81,7 +81,7 @@ libhud_service_la_CFLAGS = \
 	$(BAMF_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
-	-DDICT_PATH=\""$(pkgdatadir)/cmudict.0.7a"\" \
+	-DDICT_PATH=\""/usr/share/pocketsphinx/model/lm/en_US/cmu07a.dic"\" \
 	-Wall -Werror
 
 #######################

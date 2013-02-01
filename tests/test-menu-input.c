@@ -68,6 +68,8 @@ test_menus_dbusmenu_base_search (HudResult * result, gpointer user_data)
 static void
 test_menus_dbusmenu_base (void) 
 {
+  hud_test_utils_ignore_dbus_null_connection();
+
 	DbusTestService * service = NULL;
 	GDBusConnection * session = NULL;
 
@@ -143,6 +145,8 @@ test_menus_dbusmenu_shortcut_search (HudResult * result, gpointer user_data)
 static void
 test_menus_dbusmenu_shortcuts (void) 
 {
+  hud_test_utils_ignore_dbus_null_connection();
+
 	DbusTestService * service = NULL;
 	GDBusConnection * session = NULL;
 
@@ -202,6 +206,7 @@ test_menus_model_base (void)
 	hud_menu_model_collector_add_endpoint(collector,
 	                                      "Prefix",
 	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH,
 	                                      HUD_TEST_UTILS_LOADER_PATH);
 
 	hud_test_utils_process_mainloop(100);
@@ -242,6 +247,7 @@ test_menus_model_shortcuts (void)
 	hud_menu_model_collector_add_endpoint(collector,
 	                                      "Prefix",
 	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH,
 	                                      HUD_TEST_UTILS_LOADER_PATH);
 
 	hud_test_utils_process_mainloop(100);
