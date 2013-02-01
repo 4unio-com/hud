@@ -32,6 +32,7 @@
 
 #define DEFAULT_MENU_DEPTH  10
 #define RECURSE_DATA        "hud-menu-model-recurse-level"
+#define EXPORT_PATH         "hud-menu-model-export-path"
 
 /**
  * SECTION:hudmenumodelcollector
@@ -130,6 +131,7 @@ struct _HudModelItem {
 
   GRemoteActionGroup *group;
   gchar *action_name;
+  gchar *action_path;
   GVariant *target;
 
   GMenuModel * submodel;
@@ -261,6 +263,7 @@ hud_model_item_finalize (GObject *object)
   g_clear_object(&item->submodel);
   g_object_unref (item->group);
   g_free (item->action_name);
+  g_free (item->action_path);
 
   if (item->target)
     g_variant_unref (item->target);
@@ -332,11 +335,12 @@ hud_model_item_new (HudMenuModelCollector *collector,
 
 /* Set the submenu property for the item */
 static void
-hud_model_item_set_submenu (HudModelItem * item, GMenuModel * submenu)
+hud_model_item_set_submenu (HudModelItem * item, GMenuModel * submenu, const gchar * action_path)
 {
 	g_return_if_fail(G_IS_MENU_MODEL(submenu));
 
 	item->submodel = g_object_ref(submenu);
+	item->action_path = g_strdup(action_path);
 
 	return;
 }
@@ -381,6 +385,10 @@ hud_model_item_activate_parameterized (HudModelItem * item, guint32 timestamp, c
 	g_return_if_fail(model_path != NULL);
 	g_return_if_fail(section != NULL);
 
+	*base_action = item->action_name;
+	*model_path = (const gchar *)g_object_get_data(G_OBJECT(item->submodel), EXPORT_PATH);
+	*action_path = item->action_path;
+	*section = 1;
 
 
 	return;
@@ -584,7 +592,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
           hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse - 1);
           if (item != NULL && recurse <= 1)
             {
-              hud_model_item_set_submenu((HudModelItem *)item, link);
+              hud_model_item_set_submenu((HudModelItem *)item, link, collector->base_export_path);
             }
           g_object_unref (link);
         }
@@ -637,7 +645,8 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
     gchar * menu_path = g_strdup_printf("%s/menu%X", collector->base_export_path, GPOINTER_TO_UINT(model_data));
     g_debug("Exporting menu model: %s", menu_path);
     model_data->export_id = g_dbus_connection_export_menu_model(collector->session, menu_path, G_MENU_MODEL(model_data->export), NULL);
-    g_free(menu_path);
+
+    g_object_set_data_full(G_OBJECT(model_data->model), EXPORT_PATH, menu_path, g_free);
   }
 
   /* Add to our list of models */
