@@ -47,7 +47,7 @@ typedef struct
 {
   const gchar *dbus_name;
   const gchar *dbus_menu_path;
-  const gchar *action_path;
+  const gchar *action_path; /* Only if gmenumodel */
   const gchar *indicator_name;
   const gchar *user_visible_name;
   const gchar *icon;
@@ -279,7 +279,8 @@ hud_indicator_source_name_appeared (GDBusConnection *connection,
       hud_menu_model_collector_add_endpoint (collector,
                                              _(indicator->info->user_visible_name),
                                              name_owner,
-                                             indicator->info->dbus_menu_path);
+                                             indicator->info->dbus_menu_path,
+                                             indicator->info->action_path);
 
       indicator->collector = HUD_SOURCE (collector);
     }
