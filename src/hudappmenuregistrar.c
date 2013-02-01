@@ -228,6 +228,12 @@ hud_app_menu_registrar_ready (GObject      *source,
 
   g_clear_object (&registrar->cancellable);
 
+  if (source == NULL)
+  {
+    g_debug("Callback invoked with null connection");
+    return;
+  }
+
   reply = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
 
   if (reply)

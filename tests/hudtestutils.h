@@ -92,5 +92,6 @@ gint hud_test_utils_results_compare_func (gconstpointer a, gconstpointer b);
 void hud_test_utils_source_assert_result (GPtrArray* results, const guint index,
     const gchar* value);
 
+void hud_test_utils_ignore_dbus_null_connection();
 
 #endif /* HUDTESTUTILS_H_ */

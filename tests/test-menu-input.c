@@ -68,6 +68,8 @@ test_menus_dbusmenu_base_search (HudResult * result, gpointer user_data)
 static void
 test_menus_dbusmenu_base (void) 
 {
+  hud_test_utils_ignore_dbus_null_connection();
+
 	DbusTestService * service = NULL;
 	GDBusConnection * session = NULL;
 
@@ -143,6 +145,8 @@ test_menus_dbusmenu_shortcut_search (HudResult * result, gpointer user_data)
 static void
 test_menus_dbusmenu_shortcuts (void) 
 {
+  hud_test_utils_ignore_dbus_null_connection();
+
 	DbusTestService * service = NULL;
 	GDBusConnection * session = NULL;
 

@@ -114,7 +114,7 @@ load_dict (PronounceDict * dict, const gchar *dict_path)
 			continue;
 		}
 
-		gchar * word = split[0];
+		gchar * word = g_utf8_strup(split[0], -1);
 		gchar * phonetics = g_strstrip(split[1]);
 
 		gunichar charone = g_utf8_get_char(word);
@@ -168,6 +168,7 @@ load_dict (PronounceDict * dict, const gchar *dict_path)
 		phono_list = g_list_append(phono_list, g_strdup(phonetics));
 		g_hash_table_insert(dict->priv->dict, g_strdup(word), phono_list);
 
+		g_free(word);
 		g_strfreev(split);
 		g_free(line);
 	}

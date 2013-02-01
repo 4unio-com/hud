@@ -783,6 +783,12 @@ hud_menu_model_collector_hud_awareness_cb (GObject      *source,
 {
   GVariant *reply;
 
+  if (source == NULL)
+  {
+    g_debug("Callback invoked with null connection");
+    return;
+  }
+
   /* The goal of this function is to set either the
    * app_menu_is_hud_aware or menubar_is_hud_aware flag (which we have a
    * pointer to in user_data) to TRUE in the case that the remote

@@ -12,7 +12,7 @@ main (int argc, char * argv[])
 	g_type_init();
 #endif
 
-	PronounceDict * dict = g_object_new(PRONOUNCE_DICT_TYPE, NULL);
+	PronounceDict * dict = pronounce_dict_get();
 
 	gchar ** pronounce = pronounce_dict_lookup_word(dict, argv[1]);
 	gchar * pron = NULL;
@@ -20,6 +20,9 @@ main (int argc, char * argv[])
 
 	for (i = 0; (pron = pronounce[i]) != NULL; i++) {
 		g_print("%s:\t%s\n", argv[1], pron);
+	}
+	if (i == 0) {
+	  g_message("No pronunciations");
 	}
 
 	g_strfreev(pronounce);
