@@ -32,6 +32,7 @@
 #include "hud-query-iface.h"
 #include "hudsourcelist.h"
 #include "hudresult.h"
+#include "hudmenumodelcollector.h"
 
 /**
  * SECTION:hudquery
@@ -417,6 +418,28 @@ handle_parameterized (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoc
 {
 	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
 	//HudQuery * query = HUD_QUERY(user_data);
+
+	GVariant * inner = g_variant_get_variant(command_id);
+	guint64 id = g_variant_get_uint64(inner);
+	g_variant_unref(inner);
+
+	HudItem * item = hud_item_lookup(id);
+
+	if (item == NULL) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS, "Item specified by command key does not exist");
+		return TRUE;
+	}
+
+	if (!HUD_IS_MODEL_ITEM(item)) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS, "Item specified by command is not a menu model item");
+		return TRUE;
+	}
+
+	if (!hud_model_item_is_parameterized(HUD_MODEL_ITEM(item))) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS, "Item specified by command does not have parameterized actions");
+		return TRUE;
+	}
+
 
 
 	g_dbus_method_invocation_return_value(invocation, NULL);

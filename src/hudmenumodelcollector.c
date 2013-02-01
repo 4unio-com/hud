@@ -125,8 +125,7 @@ struct _model_data_t {
 	guint export_id;
 };
 
-typedef struct
-{
+struct _HudModelItem {
   HudItem parent_instance;
 
   GRemoteActionGroup *group;
@@ -134,7 +133,7 @@ typedef struct
   GVariant *target;
 
   GMenuModel * submodel;
-} HudModelItem;
+};
 
 typedef HudItemClass HudModelItemClass;
 
@@ -340,6 +339,22 @@ hud_model_item_set_submenu (HudModelItem * item, GMenuModel * submenu)
 	item->submodel = g_object_ref(submenu);
 
 	return;
+}
+
+/**
+ * hud_model_item_is_parameterized:
+ * @item: A #HudModelItem to check
+ *
+ * Check to see if an item represents a parameterized set of
+ * actions.
+ *
+ * Return value: Whether this has parameterized actions or not
+ */
+gboolean
+hud_model_item_is_parameterized (HudModelItem * item)
+{
+
+	return FALSE;
 }
 
 typedef GObjectClass HudMenuModelCollectorClass;
