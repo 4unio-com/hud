@@ -123,6 +123,10 @@ AC_ARG_ENABLE([hybris],
 
 AS_IF([test "x$enable_hybris" != "xno"],[
 AC_DEFINE([HAVE_HYBRIS], [1], [Defined if we are building with Hybris])
+HYBRIS_CFLAGS="-I/usr/include/hybris"
+HYBRIS_LIBS="-lubuntu_application_api"
+AC_SUBST([HYBRIS_CFLAGS])
+AC_SUBST([HYBRIS_LIBS])
 ])
 
 ###########################
