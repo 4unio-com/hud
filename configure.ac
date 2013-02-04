@@ -126,6 +126,14 @@ AC_DEFINE([HAVE_HYBRIS], [1], [Defined if we are building with Hybris])
 ])
 
 ###########################
+# Sanity Check
+###########################
+
+AS_IF([test "x$enable_hybris" == "x$enable_bamf"],[
+AC_MSG_ERROR([Invalid to use hybris and bamf together or neither of them])
+])
+
+###########################
 # CLI Dependencies
 ###########################
 
