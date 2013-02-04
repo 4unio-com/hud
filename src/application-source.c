@@ -462,7 +462,11 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	while (g_variant_iter_loop(&action_iter, "(vso)", &id, &prefix, &object)) {
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
 
+#ifdef HAVE_HYBRIS
+		guint32 idn = WINDOW_ID_CONSTANT;
+#else
 		guint32 idn = g_variant_get_int32(id);
+#endif
 
 		HudMenuModelCollector * collector = NULL;
 		get_collectors(app, idn, app->priv->app_id, NULL, &collector);
@@ -480,7 +484,11 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	while (g_variant_iter_loop(&desc_iter, "(vo)", &id, &object)) {
 		g_debug("Adding descriptions: %s", object);
 
+#ifdef HAVE_HYBRIS
+		guint32 idn = WINDOW_ID_CONSTANT;
+#else
 		guint32 idn = g_variant_get_int32(id);
+#endif
 
 		HudMenuModelCollector * collector = NULL;
 		get_collectors(app, idn, app->priv->app_id, NULL, &collector);
