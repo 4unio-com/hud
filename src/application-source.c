@@ -528,11 +528,17 @@ hud_application_source_bamf_app_id (AbstractApplication * bapp)
 #ifdef HAVE_BAMF
 	g_return_val_if_fail(BAMF_IS_APPLICATION(bapp), NULL);
 #endif
+#ifdef HAVE_HYBRIS
+	/* Hybris has no way to check if the pointer is valid */
+#endif
 
 	const gchar * desktop_file = NULL;
 
 #ifdef HAVE_BAMF
 	desktop_file = bamf_application_get_desktop_file(bapp);
+#endif
+#ifdef HAVE_HYBRIS
+	desktop_file = ubuntu_ui_session_properties_get_desktop_file_hint(bapp);
 #endif
 	if (desktop_file == NULL) {
 		/* Some apps might not be identifiable.  Eh, don't care then */
@@ -572,6 +578,9 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 #ifdef HAVE_BAMF
 	g_return_if_fail(BAMF_IS_APPLICATION(bapp));
 #endif
+#ifdef HAVE_HYBRIS
+	/* Hybris has no way to check if the pointer is valid */
+#endif
 
 	if (app->priv->bamf_app == NULL) {
 		app->priv->bamf_app = g_object_ref(bapp);
@@ -583,6 +592,9 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 
 #ifdef HAVE_BAMF
 	app->priv->focused_window = bamf_window_get_xid(window);
+#endif
+#ifdef HAVE_HYBRIS
+	app->priv->focused_window = ubuntu_ui_session_properties_get_window(window);
 #endif
 
 	return;
@@ -676,10 +688,16 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 #ifdef HAVE_BAMF
 	g_return_if_fail(BAMF_IS_WINDOW(window));
 #endif
+#ifdef HAVE_HYBRIS
+	/* Hybris has no way to check if the pointer is valid */
+#endif
 
 	guint32 xid = 0;
 #ifdef HAVE_BAMF
 	xid = bamf_window_get_xid(window);
+#endif
+#ifdef HAVE_HYBRIS
+	app->priv->focused_window = ubuntu_ui_session_properties_get_window(window);
 #endif
 
 	if (app->priv->bamf_app == NULL) {
@@ -722,10 +740,16 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 #ifdef HAVE_BAMF
 	icon = bamf_view_get_icon(BAMF_VIEW(window));
 #endif
+#ifdef HAVE_BAMF
+	/* Hybris can't find window icons, so we want to pull it from the desktop file */
+#endif
 	if (icon == NULL) {
 		const gchar * desktop_file = NULL;
 #ifdef HAVE_BAMF
 		desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
+#endif
+#ifdef HAVE_HYBRIS
+		desktop_file = ubuntu_ui_session_properties_get_desktop_file_hint(app->priv->bamf_app);
 #endif
 		if (desktop_file != NULL) {
 			GKeyFile * kfile = g_key_file_new();
@@ -741,6 +765,9 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 		if (mm_collector != NULL) {
 #ifdef HAVE_BAMF
 			hud_menu_model_collector_add_window(mm_collector, window);
+#endif
+#ifdef HAVE_HYBRIS
+			/* We only have GApplication based windows on the desktop, so we don't need this currently */
 #endif
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
 		}
