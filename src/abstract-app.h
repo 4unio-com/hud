@@ -28,19 +28,17 @@
 typedef BamfWindow AbstractWindow;
 typedef BamfApplication AbstractApplication;
 
-#else
-
-typedef struct _dummyWindow AbstractWindow;
-typedef struct _dummyApplication AbstractApplication;
-
-struct _dummyWindow {
-	int dummy;
-};
-
-struct _dummyApplication {
-	int dummy;
-};
-
 #endif /* HAVE_BAMF */
+
+#ifdef HAVE_HYBRIS
+
+#include <ubuntu/ui/ubuntu_ui_session_service.h>
+
+typedef ubuntu_ui_session_properties AbstractWindow;
+typedef ubuntu_ui_session_properties AbstractApplication;
+
+#define _ubuntu_ui_session_properties_get_window_id(props) (5)
+
+#endif /* HAVE_HYBRIS */
 
 #endif /* __HUD_ABSTRACT_APP_H__ */
