@@ -594,7 +594,7 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 	app->priv->focused_window = bamf_window_get_xid(window);
 #endif
 #ifdef HAVE_HYBRIS
-	app->priv->focused_window = ubuntu_ui_session_properties_get_window(window);
+	app->priv->focused_window = _ubuntu_ui_session_properties_get_window_id(window);
 #endif
 
 	return;
@@ -697,7 +697,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	xid = bamf_window_get_xid(window);
 #endif
 #ifdef HAVE_HYBRIS
-	app->priv->focused_window = ubuntu_ui_session_properties_get_window(window);
+	app->priv->focused_window = _ubuntu_ui_session_properties_get_window_id(window);
 #endif
 
 	if (app->priv->bamf_app == NULL) {
