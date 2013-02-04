@@ -59,6 +59,12 @@ static void view_opened                     (BamfMatcher *             matcher,
                                              BamfView *                view,
                                              gpointer                  user_data);
 #endif
+#ifdef HAVE_HYBRIS
+static void session_born                    (ubuntu_ui_session_properties props,
+                                             void *                    context);
+static void session_focused                 (ubuntu_ui_session_properties props,
+                                             void *                    context);
+#endif
 static void source_use                      (HudSource *               hud_source);
 static void source_unuse                    (HudSource *               hud_source);
 static void source_search                   (HudSource *               hud_source,
@@ -104,11 +110,20 @@ source_iface_init (HudSourceInterface *iface)
 	return;
 }
 
+#ifdef HAVE_HYBRIS
+/* Observer definition for libhybris */
+static ubuntu_ui_session_lifecycle_observer observer_definition = {
+	.on_session_born = session_born,
+	.on_session_focused = session_focused,
+};
+#endif
+
 /* Instance Init */
 static void
 hud_application_list_init (HudApplicationList *self)
 {
 	self->priv = HUD_APPLICATION_LIST_GET_PRIVATE(self);
+	self->priv->applications = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 
 #ifdef HAVE_BAMF
 	self->priv->matcher = bamf_matcher_get_default();
@@ -119,8 +134,11 @@ hud_application_list_init (HudApplicationList *self)
 		"view-opened",
 		G_CALLBACK(view_opened), self);
 #endif
+#ifdef HAVE_HYBRIS
+	observer_definition.context = self;
+	ubuntu_ui_session_install_session_lifecycle_observer(&observer_definition);
+#endif
 
-	self->priv->applications = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 
 #ifdef HAVE_BAMF
 	GList * apps = bamf_matcher_get_applications(self->priv->matcher);
@@ -155,6 +173,10 @@ hud_application_list_init (HudApplicationList *self)
 
 		view_opened(self->priv->matcher, BAMF_VIEW(window->data), self);
 	}
+#endif
+#ifdef HAVE_HYBRIS
+	/* Hybris doesn't work like this.  When the observers are registered those
+	   functions are called like the session are just added automatically */
 #endif
 
 	return;
@@ -359,6 +381,26 @@ view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 	}
 
 	hud_application_source_add_window(source, BAMF_WINDOW(view));
+
+	return;
+}
+#endif
+
+#ifdef HAVE_HYBRIS
+/* When a new session gets created */
+static void
+session_born (ubuntu_ui_session_properties props, void * context)
+{
+
+	return;
+}
+#endif
+
+#ifdef HAVE_HYBRIS
+/* When a session gets focus */
+static void
+session_focused (ubuntu_ui_session_properties props, void * context)
+{
 
 	return;
 }
