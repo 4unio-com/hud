@@ -56,7 +56,12 @@ no_dee_add_match (const gchar * log_domain, GLogLevelFlags level, const gchar * 
 	}
 
 	if (g_strcmp0(log_domain, "GLib-GIO") == 0 && 
-			g_str_has_prefix(message, "g_dbus_connection_call_finish_internal: assertion 'G_IS_DBUS_CONNECTION'")) {
+			g_str_has_prefix(message, "g_dbus_connection_call_finish_internal: assertion 'G_IS_DBUS_CONNECTION")) {
+		return FALSE;
+	}
+
+	if (g_strcmp0(log_domain, "GLib-GIO") == 0 && 
+			g_str_has_prefix(message, "g_dbus_connection_call_finish_internal: assertion `G_IS_DBUS_CONNECTION")) {
 		return FALSE;
 	}
 
