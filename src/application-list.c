@@ -420,6 +420,17 @@ view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 static void
 session_born (ubuntu_ui_session_properties props, void * context)
 {
+	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+
+	HudApplicationSource * source = bamf_app_to_source(list, &props);
+	if (source == NULL) {
+		return;
+	}
+
+	/* NOTE: Nothing to do here, since there are no windows and no
+	   information on them, we can't really start getting the menus
+	   from them or anything.  But we can makes sure that the appliction
+	   exists in the DBus representation. */
 
 	return;
 }
