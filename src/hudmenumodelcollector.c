@@ -930,7 +930,8 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
  * hud_menu_model_collector_add_endpoint:
  * @prefix: the title to prefix to all items
  * @bus_name: a D-Bus bus name
- * @object_path: an object path at the destination given by @bus_name
+ * @menu_path: an object path at the destination given by @bus_name for the menu model
+ * @action_path: an object path at the destination given by @bus_name for the actions
  *
  * Creates a new #HudMenuModelCollector for the specified endpoint.
  *
@@ -950,13 +951,14 @@ void
 hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
                                        const gchar *prefix,
                                        const gchar *bus_name,
-                                       const gchar *object_path)
+                                       const gchar *menu_path,
+                                       const gchar *action_path)
 {
   g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
-  hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, bus_name, object_path)), NULL);
+  hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, bus_name, action_path)), NULL);
 
-  GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, object_path);
+  GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, menu_path);
   hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix);
   g_object_unref(app_menu);
 

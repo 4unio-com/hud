@@ -44,7 +44,8 @@ void                    hud_menu_model_collector_add_window             (HudMenu
 void                    hud_menu_model_collector_add_endpoint           (HudMenuModelCollector * collector,
                                                                          const gchar *prefix,
                                                                          const gchar *bus_name,
-                                                                         const gchar *object_path);
+                                                                         const gchar *menu_path,
+                                                                         const gchar *action_path);
 
 void                    hud_menu_model_collector_add_model              (HudMenuModelCollector * collector,
                                                                          GMenuModel *   model,
