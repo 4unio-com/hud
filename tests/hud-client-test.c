@@ -112,6 +112,8 @@ test_connection_create (void)
 static void
 test_query_create (void)
 {
+	g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
 	DbusTestService * service = NULL;
 	GDBusConnection * session = NULL;
 
