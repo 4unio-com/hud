@@ -34,7 +34,12 @@ struct _HudApplicationSourcePrivate {
 	gchar * path;
 	AppIfaceComCanonicalHudApplication * skel;
 
+#ifdef HAVE_BAMF
 	AbstractApplication * bamf_app;
+#endif
+#ifdef HAVE_HYBRIS
+	gchar * desktop_file;
+#endif
 
 	guint32 focused_window;
 
@@ -153,7 +158,9 @@ hud_application_source_dispose (GObject *object)
 		g_clear_object(&self->priv->skel);
 	}
 
+#ifdef HAVE_BAMF
 	g_clear_object(&self->priv->bamf_app);
+#endif
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->dispose (object);
 	return;
@@ -167,6 +174,9 @@ hud_application_source_finalize (GObject *object)
 
 	g_clear_pointer(&self->priv->app_id, g_free);
 	g_clear_pointer(&self->priv->path, g_free);
+#ifdef HAVE_HYBRIS
+	g_clear_pointer(&self->priv->desktop_file, g_free);
+#endif
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->finalize (object);
 	return;
@@ -307,7 +317,12 @@ hud_application_source_new_for_app (AbstractApplication * bapp)
 	HudApplicationSource * source = hud_application_source_new_for_id(id);
 	g_free(id);
 
+#ifdef HAVE_BAMF
 	source->priv->bamf_app = g_object_ref(bapp);
+#endif
+#ifdef HAVE_HYBRIS
+	source->priv->desktop_file = g_strdup(ubuntu_ui_session_properties_get_desktop_file_hint(*bapp));
+#endif
 
 	return source;
 }
@@ -590,11 +605,18 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 	/* Hybris has no way to check if the pointer is valid */
 #endif
 
+#ifdef HAVE_BAMF
 	if (app->priv->bamf_app == NULL) {
 		app->priv->bamf_app = g_object_ref(bapp);
 	}
 
 	g_return_if_fail(app->priv->bamf_app == bapp);
+#endif
+#ifdef HAVE_HYBRIS
+	if (app->priv->desktop_file == NULL) {
+		app->priv->desktop_file = g_strdup(ubuntu_ui_session_properties_get_desktop_file_hint(*bapp));
+	}
+#endif
 
 	hud_application_source_add_window(app, window);
 
@@ -708,10 +730,12 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	app->priv->focused_window = _ubuntu_ui_session_properties_get_window_id(window);
 #endif
 
+#ifdef HAVE_BAMF
 	if (app->priv->bamf_app == NULL) {
 		g_debug("No BAMF application object");
 		return;
 	}
+#endif
 
 	window_info_t * window_info = g_new0(window_info_t, 1);
 	window_info->window = window;
@@ -743,7 +767,12 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 		}
 	}
 
+#ifdef HAVE_BAMF
 	gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
+#endif
+#ifdef HAVE_HYBRIS
+	gchar * app_id = g_strdup(app->priv->app_id);
+#endif
 	const gchar * icon = NULL;
 #ifdef HAVE_BAMF
 	icon = bamf_view_get_icon(BAMF_VIEW(window));
@@ -757,7 +786,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 		desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
 #endif
 #ifdef HAVE_HYBRIS
-		desktop_file = ubuntu_ui_session_properties_get_desktop_file_hint(*app->priv->bamf_app);
+		desktop_file = app->priv->desktop_file;
 #endif
 		if (desktop_file != NULL) {
 			GKeyFile * kfile = g_key_file_new();
