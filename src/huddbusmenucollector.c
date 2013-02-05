@@ -747,6 +747,9 @@ hud_dbusmenu_collector_new_for_window (AbstractWindow  *window,
 #ifdef HAVE_BAMF
   collector->xid = bamf_window_get_xid (window);
 #endif
+#ifdef HAVE_HYBRIS
+  collector->xid = _ubuntu_ui_session_properties_get_window_id(window);
+#endif
   collector->keyword_mapping = hud_keyword_mapping_new();
   hud_keyword_mapping_load(collector->keyword_mapping, collector->application_id, DATADIR, GNOMELOCALEDIR);
 
