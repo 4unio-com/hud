@@ -106,13 +106,35 @@ load_dict (PronounceDict * dict, const gchar *dict_path)
 			continue;
 		}
 
-		/* Break it on the tab so that we have the name and the phonetics
-		   broken apart */
-		gchar ** split = g_strsplit_set(line, " \t", 2);
-		if (split[0] == NULL) {
-			g_strfreev(split);
-			continue;
+		gchar ** split = NULL;
+
+		gchar *htk_start = g_strrstr(line, "[");
+		gchar *htk_end = g_strrstr(line, "]");
+
+		/* If we have the HTK style dict */
+		if (htk_start != NULL && htk_end != NULL)
+		{
+		  GArray *split_array = g_array_sized_new(TRUE, FALSE, sizeof(gchar *), 2);
+
+		  gchar *first = g_strndup(line, htk_start - line);
+		  first = g_strchomp(first);
+		  g_array_append_val(split_array, first);
+
+		  gchar *second = g_strdup(htk_end + 1);
+      g_array_append_val(split_array, second);
+
+      split = (gchar **) g_array_free(split_array, FALSE);
 		}
+		else
+		{
+      /* Break it on the tab so that we have the name and the phonetics
+         broken apart */
+      split = g_strsplit_set(line, " \t", 2);
+      if (split[0] == NULL) {
+        g_strfreev(split);
+        continue;
+      }
+	  }
 
 		gchar * word = g_utf8_strup(split[0], -1);
 		gchar * phonetics = g_strstrip(split[1]);
