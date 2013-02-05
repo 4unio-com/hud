@@ -38,6 +38,8 @@ typedef struct _HudItemPrivate                              HudItemPrivate;
 typedef struct _HudItemClass                                HudItemClass;
 typedef struct _HudItem                                     HudItem;
 
+typedef struct _HudItemPronunciationData                    HudItemPronunciationData;
+
 struct _HudItemClass
 {
   GObjectClass parent_class;
@@ -54,25 +56,32 @@ struct _HudItem
   HudItemPrivate *priv;
 };
 
+struct _HudItemPronunciationData
+{
+  GHashTable *table;
+  GRegex *regex;
+};
+
 GType                   hud_item_get_type                               (void);
 
 gpointer                hud_item_construct                              (GType          g_type,
                                                                          HudStringList *tokens,
                                                                          HudStringList *token_list,
                                                                          const gchar   *shortcut,
-                                                                         const gchar   *desktop_file,
+                                                                         const gchar   *app_id,
                                                                          const gchar   *app_icon,
                                                                          gboolean       enabled);
 HudItem *               hud_item_new                                    (HudStringList *tokens,
                                                                          HudStringList *keywords,
                                                                          const gchar   *shortcut,
-                                                                         const gchar   *desktop_file,
+                                                                         const gchar   *app_id,
                                                                          const gchar   *app_icon,
                                                                          gboolean       enabled);
 void                    hud_item_activate                               (HudItem       *item,
                                                                          GVariant      *platform_data);
 HudStringList *         hud_item_get_tokens                             (HudItem       *item);
 HudStringList *         hud_item_get_keywords                             (HudItem       *item);
+const gchar *           hud_item_get_app_id                             (HudItem       *item);
 const gchar *           hud_item_get_app_icon                           (HudItem       *item);
 const gchar *           hud_item_get_item_icon                          (HudItem       *item);
 guint                   hud_item_get_usage                              (HudItem       *item);
@@ -83,5 +92,7 @@ HudTokenList *          hud_item_get_token_list                         (HudItem
 const gchar *           hud_item_get_command                            (HudItem       *item);
 gchar *                 hud_item_get_context                            (HudItem       *item);
 const gchar *           hud_item_get_shortcut                           (HudItem       *item);
+void                    hud_item_insert_pronounciation                  (HudItem       * item,
+                                                                         HudItemPronunciationData    * user_data);
 
 #endif /* __HUD_ITEM_H__ */

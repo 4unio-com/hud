@@ -205,7 +205,7 @@ shortcut_string_for_menuitem (DbusmenuMenuitem * mi)
 
 static HudDbusmenuItem *
 hud_dbusmenu_item_new (HudStringList    *context,
-                       const gchar      *desktop_file,
+                       const gchar      *application_id,
                        const gchar      *icon,
                        HudKeywordMapping *keyword_mapping,
                        DbusmenuMenuitem *menuitem)
@@ -255,7 +255,7 @@ hud_dbusmenu_item_new (HudStringList    *context,
   if (enabled)
     enabled &= !dbusmenu_menuitem_property_exist (menuitem, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY);
 
-  item = hud_item_construct (hud_dbusmenu_item_get_type (), full_label, keywords, shortcut, desktop_file, icon, enabled);
+  item = hud_item_construct (hud_dbusmenu_item_get_type (), full_label, keywords, shortcut, application_id, icon, enabled);
   item->menuitem = g_object_ref (menuitem);
 
   hud_string_list_unref (full_label);
@@ -286,6 +286,8 @@ struct _HudDbusmenuCollector
 typedef GObjectClass HudDbusmenuCollectorClass;
 
 static void hud_dbusmenu_collector_iface_init (HudSourceInterface *iface);
+static GList * hud_dbusmenu_collector_get_items (HudSource * source);
+
 G_DEFINE_TYPE_WITH_CODE (HudDbusmenuCollector, hud_dbusmenu_collector, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, hud_dbusmenu_collector_iface_init))
 
@@ -370,6 +372,43 @@ hud_dbusmenu_collector_search (HudSource    *source,
       if (result)
         append_func(result, user_data);
     }
+}
+
+static void
+hud_dbusmenu_collector_list_application (HudSource    *source,
+                                         HudTokenList *search_string,
+                                         void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                         gpointer      user_data)
+{
+  HudDbusmenuCollector *collector = HUD_DBUSMENU_COLLECTOR (source);
+  GHashTableIter iter;
+  gpointer item;
+
+  g_hash_table_iter_init (&iter, collector->items);
+  while (g_hash_table_iter_next (&iter, NULL, &item))
+    {
+      HudResult *result;
+
+      result = hud_result_get_if_matched (item, search_string, collector->penalty);
+      if (result) {
+        append_func(collector->application_id, collector->icon, user_data);
+        g_object_unref(result);
+        break;
+      }
+    }
+}
+
+
+static HudSource *
+hud_dbusmenu_collector_get (HudSource     *source,
+                            const gchar   *application_id)
+{
+  HudDbusmenuCollector *collector = HUD_DBUSMENU_COLLECTOR (source);
+
+  if (g_strcmp0 (application_id, collector->application_id) == 0)
+    return source;
+
+  return NULL;
 }
 
 static void
@@ -620,12 +659,16 @@ hud_dbusmenu_collector_iface_init (HudSourceInterface *iface)
   iface->use = hud_dbusmenu_collector_use;
   iface->unuse = hud_dbusmenu_collector_unuse;
   iface->search = hud_dbusmenu_collector_search;
+  iface->list_applications = hud_dbusmenu_collector_list_application;
+  iface->get = hud_dbusmenu_collector_get;
+  iface->get_items = hud_dbusmenu_collector_get_items;
 }
 
 static void
 hud_dbusmenu_collector_class_init (HudDbusmenuCollectorClass *class)
 {
-  class->finalize = hud_dbusmenu_collector_finalize;
+  GObjectClass * gclass = G_OBJECT_CLASS(class);
+  gclass->finalize = hud_dbusmenu_collector_finalize;
 }
 
 /**
@@ -691,16 +734,19 @@ hud_dbusmenu_collector_new_for_endpoint (const gchar *application_id,
  * Returns: a new #HudDbusmenuCollector
  **/
 HudDbusmenuCollector *
-hud_dbusmenu_collector_new_for_window (BamfWindow  *window,
-                                       const gchar *desktop_file,
+hud_dbusmenu_collector_new_for_window (AbstractWindow  *window,
+                                       const gchar *application_id,
                                        const gchar *icon)
 {
   HudDbusmenuCollector *collector;
 
   collector = g_object_new (HUD_TYPE_DBUSMENU_COLLECTOR, NULL);
-  collector->application_id = g_strdup (desktop_file);
+  collector->application_id = g_strdup (application_id);
   collector->icon = g_strdup (icon);
+  collector->xid = 0;
+#ifdef HAVE_BAMF
   collector->xid = bamf_window_get_xid (window);
+#endif
   collector->keyword_mapping = hud_keyword_mapping_new();
   hud_keyword_mapping_load(collector->keyword_mapping, collector->application_id, DATADIR, GNOMELOCALEDIR);
 
@@ -749,4 +795,24 @@ hud_dbusmenu_collector_set_icon (HudDbusmenuCollector *collector,
   g_free (collector->icon);
   collector->icon = g_strdup (icon);
   hud_dbusmenu_collector_setup_root (collector, collector->root);
+}
+
+/**
+ * hud_dbusmenu_collector_get_items:
+ * @collector: a #HudDbusmenuCollector
+ *
+ * Gets the items that have been collected at any point in time.
+ *
+ * Return Value: (element-type HudItem) (transfer full) A list of #HudItem
+ * objects.  Free with g_list_free_full(g_object_unref)
+ */
+static GList *
+hud_dbusmenu_collector_get_items (HudSource * source)
+{
+  g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(source), NULL);
+  HudDbusmenuCollector * dcollector = HUD_DBUSMENU_COLLECTOR(source);
+
+  GList * hashvals = g_hash_table_get_values (dcollector->items);
+
+  return g_list_copy_deep (hashvals, (GCopyFunc) g_object_ref, NULL );
 }

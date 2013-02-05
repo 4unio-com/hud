@@ -240,6 +240,12 @@ hud_app_indicator_source_ready (GObject      *connection,
 
   g_clear_object (&source->cancellable);
 
+  if (source == NULL)
+  {
+    g_debug("Callback invoked with null connection");
+    return;
+  }
+
   reply = g_dbus_connection_call_finish (G_DBUS_CONNECTION (connection), result, &error);
 
   if (reply)
@@ -387,6 +393,43 @@ hud_app_indicator_source_search (HudSource    *hud_source,
 }
 
 static void
+hud_app_indicator_source_list_applications (HudSource    *hud_source,
+                                            HudTokenList *search_tokens,
+                                            void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                            gpointer      user_data)
+{
+  HudAppIndicatorSource *source = HUD_APP_INDICATOR_SOURCE (hud_source);
+  GSequenceIter *iter;
+
+  iter = g_sequence_get_begin_iter (source->indicators);
+
+  while (!g_sequence_iter_is_end (iter))
+    {
+      hud_source_list_applications (g_sequence_get (iter), search_tokens, append_func, user_data);
+      iter = g_sequence_iter_next (iter);
+    }
+}
+
+static HudSource *
+hud_app_indicator_source_get (HudSource     *hud_source,
+                              const gchar   *application_id)
+{
+  HudAppIndicatorSource *source = HUD_APP_INDICATOR_SOURCE (hud_source);
+  GSequenceIter *iter;
+
+  iter = g_sequence_get_begin_iter (source->indicators);
+
+  while (!g_sequence_iter_is_end (iter))
+    {
+      HudSource *result = hud_source_get (g_sequence_get (iter), application_id);
+      if (result != NULL)
+        return result;
+      iter = g_sequence_iter_next (iter);
+    }
+  return NULL;
+}
+
+static void
 hud_app_indicator_source_finalize (GObject *object)
 {
   g_debug("hud_app_indicator_source_finalize");
@@ -418,6 +461,8 @@ hud_app_indicator_source_iface_init (HudSourceInterface *iface)
   iface->use = hud_app_indicator_source_use;
   iface->unuse = hud_app_indicator_source_unuse;
   iface->search = hud_app_indicator_source_search;
+  iface->list_applications = hud_app_indicator_source_list_applications;
+  iface->get = hud_app_indicator_source_get;
 }
 
 static void

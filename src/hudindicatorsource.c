@@ -47,6 +47,7 @@ typedef struct
 {
   const gchar *dbus_name;
   const gchar *dbus_menu_path;
+  const gchar *action_path; /* Only if gmenumodel */
   const gchar *indicator_name;
   const gchar *user_visible_name;
   const gchar *icon;
@@ -78,9 +79,55 @@ static const IndicatorInfo indicator_info[] = {
   {
     .dbus_name         = "com.canonical.indicator.messages",
     .dbus_menu_path    = "/com/canonical/indicator/messages/menu",
+    .action_path       = "/com/canonical/indicator/messages/menu",
     .indicator_name    = "indicator-messages",
     .user_visible_name = N_("Messages"),
     .icon              = "indicator-messages",
+    .uses_gmenumodel   = TRUE
+  },
+  {
+    .dbus_name         = "com.canonical.indicator.messages",
+    .dbus_menu_path    = "/com/canonical/indicator/messages/phone",
+    .action_path       = "/com/canonical/indicator/messages",
+    .indicator_name    = "indicator-messages-phone",
+    .user_visible_name = N_("Messages"),
+    .icon              = "indicator-messages",
+    .uses_gmenumodel   = TRUE
+  },
+  {
+    .dbus_name         = "com.canonical.indicator.battery",
+    .dbus_menu_path    = "/com/canonical/indicator/battery/phone",
+    .action_path       = "/com/canonical/indicator/battery",
+    .indicator_name    = "indicator-battery-phone",
+    .user_visible_name = N_("Battery"),
+    .icon              = "indicator-battery",
+    .uses_gmenumodel   = TRUE
+  },
+  {
+    .dbus_name         = "com.canonical.indicator.time",
+    .dbus_menu_path    = "/com/canonical/indicator/time/phone",
+    .action_path       = "/com/canonical/indicator/time",
+    .indicator_name    = "indicator-time-phone",
+    .user_visible_name = N_("Date and Time"),
+    .icon              = "indicator-time",
+    .uses_gmenumodel   = TRUE
+  },
+  {
+    .dbus_name         = "com.canonical.settings.network",
+    .dbus_menu_path    = "/com/canonical/settings/network/phone",
+    .action_path       = "/com/canonical/settings/network",
+    .indicator_name    = "indicator-network-phone",
+    .user_visible_name = N_("Network"),
+    .icon              = "indicator-network",
+    .uses_gmenumodel   = TRUE
+  },
+  {
+    .dbus_name         = "com.canonical.settings.sound",
+    .dbus_menu_path    = "/com/canonical/settings/sound/phone",
+    .action_path       = "/com/canonical/settings/sound",
+    .indicator_name    = "indicator-sound-phone",
+    .user_visible_name = N_("Sound"),
+    .icon              = "indicator-sound",
     .uses_gmenumodel   = TRUE
   }
 };
@@ -157,6 +204,37 @@ hud_indicator_source_search (HudSource    *hud_source,
 }
 
 static void
+hud_indicator_source_list_applications (HudSource    *hud_source,
+                                        HudTokenList *search_string,
+                                        void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                        gpointer      user_data)
+{
+  HudIndicatorSource *source = HUD_INDICATOR_SOURCE (hud_source);
+  gint i;
+
+  for (i = 0; i < source->n_indicators; i++)
+    if (source->indicators[i].collector)
+      hud_source_list_applications (source->indicators[i].collector, search_string, append_func, user_data);
+}
+
+static HudSource *
+hud_indicator_source_get (HudSource     *hud_source,
+                          const gchar   *application_id)
+{
+  HudIndicatorSource *source = HUD_INDICATOR_SOURCE (hud_source);
+  gint i;
+
+  for (i = 0; i < source->n_indicators; i++)
+    if (source->indicators[i].collector) {
+      HudSource *result = hud_source_get (source->indicators[i].collector, application_id);
+      if (result != NULL)
+        return result;
+    }
+
+  return NULL;
+}
+
+static void
 hud_indicator_source_finalize (GObject *object)
 {
   gint i;
@@ -201,7 +279,8 @@ hud_indicator_source_name_appeared (GDBusConnection *connection,
       hud_menu_model_collector_add_endpoint (collector,
                                              _(indicator->info->user_visible_name),
                                              name_owner,
-                                             indicator->info->dbus_menu_path);
+                                             indicator->info->dbus_menu_path,
+                                             indicator->info->action_path);
 
       indicator->collector = HUD_SOURCE (collector);
     }
@@ -273,6 +352,8 @@ hud_indicator_source_iface_init (HudSourceInterface *iface)
   iface->use = hud_indicator_source_use;
   iface->unuse = hud_indicator_source_unuse;
   iface->search = hud_indicator_source_search;
+  iface->list_applications = hud_indicator_source_list_applications;
+  iface->get = hud_indicator_source_get;
 }
 
 static void

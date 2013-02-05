@@ -22,6 +22,7 @@
 #include <glib.h>
 
 typedef struct _HudStringList                               HudStringList;
+typedef struct _HudItemPronunciationData                    HudItemPronunciationData;
 
 void                    hud_string_list_unref                           (HudStringList *list);
 HudStringList *         hud_string_list_ref                             (HudStringList *list);
@@ -38,5 +39,7 @@ HudStringList *         hud_string_list_add_item                        (const g
                                                                          HudStringList *tail);
 
 gchar *                 hud_string_list_pretty_print                    (HudStringList *list);
+void                    hud_string_list_insert_pronounciation           (HudStringList * list,
+                                                                         HudItemPronunciationData * user_data);
 
 #endif /* __HUD_STRING_LIST_H__ */

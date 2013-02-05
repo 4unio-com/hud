@@ -155,6 +155,62 @@ hud_source_search (HudSource    *source,
     ->search (source, search_string, append_func, user_data);
 }
 
+void
+hud_source_list_applications (HudSource    *source,
+                              HudTokenList *search_tokens,
+                              void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                              gpointer      user_data)
+{
+  g_debug ("list_applications on %s %p", G_OBJECT_TYPE_NAME (source), source);
+
+  HUD_SOURCE_GET_IFACE (source)
+    ->list_applications (source, search_tokens, append_func, user_data);
+}
+
+/**
+ * hud_source_get:
+ * @source; a #HudSource
+ *
+ * Mark a #HudSource as "in use" (ie: actively being queried).
+ *
+ * Gets the last source that is responsible of giving results for application_id
+ **/
+HudSource *
+hud_source_get (HudSource   *source,
+                const gchar *application_id)
+{
+  g_return_val_if_fail (HUD_IS_SOURCE (source), NULL);
+
+  g_debug ("get on %s %p", G_OBJECT_TYPE_NAME (source), source);
+
+  return HUD_SOURCE_GET_IFACE (source)
+    ->get (source, application_id);
+}
+
+/**
+ * hud_source_get_items:
+ * @collector: a #HudDbusmenuCollector
+ *
+ * Gets the items that have been collected at any point in time.
+ *
+ * Return Value: (element-type HudItem) (transfer full) A list of #HudItem
+ * objects.  Free with g_list_free_full(g_object_unref)
+ */
+GList *
+hud_source_get_items (HudSource *source)
+{
+  g_return_val_if_fail(HUD_IS_SOURCE(source), NULL);
+
+  g_debug ("get_items on %s %p", G_OBJECT_TYPE_NAME (source), source);
+
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->get_items != NULL) {
+    return iface->get_items(source);
+  }
+
+  return NULL;
+}
+
 /**
  * hud_source_changed:
  * @source: a #HudSource

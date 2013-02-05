@@ -26,7 +26,6 @@
 #include "hudkeywordmapping.h"
 #include "config.h"
 
-#include <libbamf/libbamf.h>
 #include <gio/gio.h>
 #include <string.h>
 
@@ -132,7 +131,7 @@ static void model_data_free                           (gpointer      data);
 static void hud_menu_model_collector_hud_awareness_cb (GObject      *source,
                                                        GAsyncResult *result,
                                                        gpointer      user_data);
-
+static GList * hud_menu_model_collector_get_items (HudSource * source);
 
 /* Functions */
 static gchar *
@@ -678,6 +677,45 @@ hud_menu_model_collector_search (HudSource    *source,
     }
 }
 
+static void
+hud_menu_model_collector_list_applications (HudSource    *source,
+                                            HudTokenList *search_string,
+                                            void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                            gpointer      user_data)
+{
+  HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
+  GPtrArray *items;
+  gint i;
+
+  items = collector->items;
+
+  for (i = 0; i < items->len; i++)
+    {
+      HudResult *result;
+      HudItem *item;
+
+      item = g_ptr_array_index (items, i);
+      result = hud_result_get_if_matched (item, search_string, collector->penalty);
+      if (result) {
+        append_func(collector->app_id, collector->icon, user_data);
+        g_object_unref(result);
+        break;
+      }
+    }
+}
+
+static HudSource *
+hud_menu_model_collector_get (HudSource   *source,
+                              const gchar *application_id)
+{
+  HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
+
+  if (g_strcmp0(collector->app_id, application_id) == 0)
+    return source;
+
+  return NULL;
+}
+
 /* Free's the model data structure */
 static void
 model_data_free (gpointer data)
@@ -738,12 +776,17 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->use = hud_menu_model_collector_use;
   iface->unuse = hud_menu_model_collector_unuse;
   iface->search = hud_menu_model_collector_search;
+  iface->list_applications = hud_menu_model_collector_list_applications;
+  iface->get = hud_menu_model_collector_get;
+  iface->get_items = hud_menu_model_collector_get_items;
 }
 
 static void
 hud_menu_model_collector_class_init (HudMenuModelCollectorClass *class)
 {
-  class->finalize = hud_menu_model_collector_finalize;
+  GObjectClass *gobject_class = G_OBJECT_CLASS (class);
+
+  gobject_class->finalize = hud_menu_model_collector_finalize;
 }
 
 static void
@@ -752,6 +795,12 @@ hud_menu_model_collector_hud_awareness_cb (GObject      *source,
                                            gpointer      user_data)
 {
   GVariant *reply;
+
+  if (source == NULL)
+  {
+    g_debug("Callback invoked with null connection");
+    return;
+  }
 
   /* The goal of this function is to set either the
    * app_menu_is_hud_aware or menubar_is_hud_aware flag (which we have a
@@ -807,14 +856,13 @@ hud_menu_model_collector_new (const gchar *application_id,
 	return collector;
 }
 
+#ifdef HAVE_BAMF
 /**
  * hud_menu_model_collector_add_window:
  * @window: a #BamfWindow
  *
  * If the given @window has #GMenuModel-style menus then returns a
  * collector for them, otherwise returns %NULL.
- *
- * @desktop_file is used for usage tracking.
  *
  * Returns: a #HudMenuModelCollector, or %NULL
  **/
@@ -889,12 +937,14 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
 
   return;
 }
+#endif
 
 /**
  * hud_menu_model_collector_add_endpoint:
  * @prefix: the title to prefix to all items
  * @bus_name: a D-Bus bus name
- * @object_path: an object path at the destination given by @bus_name
+ * @menu_path: an object path at the destination given by @bus_name for the menu model
+ * @action_path: an object path at the destination given by @bus_name for the actions
  *
  * Creates a new #HudMenuModelCollector for the specified endpoint.
  *
@@ -914,13 +964,14 @@ void
 hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
                                        const gchar *prefix,
                                        const gchar *bus_name,
-                                       const gchar *object_path)
+                                       const gchar *menu_path,
+                                       const gchar *action_path)
 {
   g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
-  hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, bus_name, object_path)), NULL);
+  hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, bus_name, action_path)), NULL);
 
-  GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, object_path);
+  GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, menu_path);
   hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix, DEFAULT_MENU_DEPTH);
   g_object_unref(app_menu);
 
@@ -969,4 +1020,27 @@ hud_menu_model_collector_add_actions (HudMenuModelCollector * collector, GAction
 	g_hash_table_insert(collector->action_groups, local_prefix, group);
 
 	return;
+}
+
+/**
+ * hud_menu_model_collector_get_items:
+ * @collector: A #HudMenuModelCollector
+ *
+ * Get the list of items that are currently being watched
+ *
+ * Return value: (transfer full) (element-type HudItem): Items to look at
+ */
+static GList *
+hud_menu_model_collector_get_items (HudSource * source)
+{
+	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(source), NULL);
+	HudMenuModelCollector * mcollector = HUD_MENU_MODEL_COLLECTOR(source);
+
+	GList * retval = NULL;
+	int i;
+	for (i = 0; i < mcollector->items->len; i++) {
+		retval = g_list_prepend(retval, g_object_ref(g_ptr_array_index(mcollector->items, i)));
+	}
+
+	return retval;
 }

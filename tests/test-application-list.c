@@ -211,9 +211,11 @@ test_window_source_menu_model ()
 
   hud_test_utils_process_mainloop (100);
 
-  dbus_test_service_stop(service);
   g_object_unref (service);
   g_object_unref (connection);
+  /* FIXME: We would like to do this here, but dbus makes us exit with a non-zero code
+  hud_test_utils_wait_for_connection_close(connection);
+  */
 }
 
 int

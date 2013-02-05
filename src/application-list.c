@@ -22,7 +22,7 @@
 #include "config.h"
 #endif
 
-#include <libbamf/libbamf.h>
+#include "abstract-app.h"
 
 #include "application-list.h"
 #include "application-source.h"
@@ -31,10 +31,12 @@
 typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
 
 struct _HudApplicationListPrivate {
+#ifdef HAVE_BAMF
 	BamfMatcher * matcher;
 	gulong matcher_app_sig;
 	gulong matcher_view_open_sig;
 	gulong matcher_view_close_sig;
+#endif
 
 	GHashTable * applications;
 	HudSource * used_source; /* Not a reference */
@@ -48,6 +50,7 @@ static void hud_application_list_init       (HudApplicationList *      self);
 static void hud_application_list_dispose    (GObject *                 object);
 static void hud_application_list_finalize   (GObject *                 object);
 static void source_iface_init               (HudSourceInterface *      iface);
+#ifdef HAVE_BAMF
 static void window_changed                  (BamfMatcher *             matcher,
                                              BamfWindow *              old_window,
                                              BamfWindow *              new_window,
@@ -55,12 +58,20 @@ static void window_changed                  (BamfMatcher *             matcher,
 static void view_opened                     (BamfMatcher *             matcher,
                                              BamfView *                view,
                                              gpointer                  user_data);
+#endif
 static void source_use                      (HudSource *               hud_source);
 static void source_unuse                    (HudSource *               hud_source);
 static void source_search                   (HudSource *               hud_source,
                                              HudTokenList *            search_string,
                                              void                    (*append_func) (HudResult * result, gpointer user_data),
                                              gpointer                  user_data);
+static void source_list_applications        (HudSource *               hud_source,
+                                             HudTokenList *            search_string,
+                                             void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                             gpointer                  user_data);
+static HudSource * source_get               (HudSource *               hud_source,
+                                             const gchar *             application_id);
+static GList * source_get_items             (HudSource * list);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationList, hud_application_list, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -86,6 +97,9 @@ source_iface_init (HudSourceInterface *iface)
 	iface->use = source_use;
 	iface->unuse = source_unuse;
 	iface->search = source_search;
+	iface->list_applications = source_list_applications;
+	iface->get = source_get;
+	iface->get_items = source_get_items;
 
 	return;
 }
@@ -96,6 +110,7 @@ hud_application_list_init (HudApplicationList *self)
 {
 	self->priv = HUD_APPLICATION_LIST_GET_PRIVATE(self);
 
+#ifdef HAVE_BAMF
 	self->priv->matcher = bamf_matcher_get_default();
 	self->priv->matcher_app_sig = g_signal_connect(self->priv->matcher,
 		"active-window-changed",
@@ -103,9 +118,11 @@ hud_application_list_init (HudApplicationList *self)
 	self->priv->matcher_view_open_sig = g_signal_connect(self->priv->matcher,
 		"view-opened",
 		G_CALLBACK(view_opened), self);
+#endif
 
 	self->priv->applications = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 
+#ifdef HAVE_BAMF
 	GList * apps = bamf_matcher_get_applications(self->priv->matcher);
 	GList * app = NULL;
 	for (app = apps; app != NULL; app = g_list_next(app)) {
@@ -138,6 +155,7 @@ hud_application_list_init (HudApplicationList *self)
 
 		view_opened(self->priv->matcher, BAMF_VIEW(window->data), self);
 	}
+#endif
 
 	return;
 }
@@ -153,22 +171,30 @@ hud_application_list_dispose (GObject *object)
 		self->priv->used_source = NULL;
 	}
 
+#ifdef HAVE_BAMF
 	if (self->priv->matcher_app_sig != 0 && self->priv->matcher != NULL) {
 		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_app_sig);
 	}
 	self->priv->matcher_app_sig = 0;
+#endif
 
+#ifdef HAVE_BAMF
 	if (self->priv->matcher_view_open_sig != 0 && self->priv->matcher != NULL) {
 		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_view_open_sig);
 	}
 	self->priv->matcher_view_open_sig = 0;
+#endif
 
+#ifdef HAVE_BAMF
 	if (self->priv->matcher_view_close_sig != 0 && self->priv->matcher != NULL) {
 		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_view_close_sig);
 	}
 	self->priv->matcher_view_close_sig = 0;
+#endif
 
+#ifdef HAVE_BAMF
 	g_clear_object(&self->priv->matcher);
+#endif
 
 	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
 
@@ -187,7 +213,7 @@ hud_application_list_finalize (GObject *object)
 
 /* Get a source from a BamfApp */
 static HudApplicationSource *
-bamf_app_to_source (HudApplicationList * list, BamfApplication * bapp)
+bamf_app_to_source (HudApplicationList * list, AbstractApplication * bapp)
 {
 	gchar * id = hud_application_source_bamf_app_id(bapp);
 	if (id == NULL) {
@@ -206,8 +232,8 @@ bamf_app_to_source (HudApplicationList * list, BamfApplication * bapp)
 	return source;
 }
 
-static gboolean
-hud_application_list_name_in_ignore_list (BamfWindow *window)
+/* static */ gboolean /* TODO: Removed static for compile in the non-BAMF case, fix when we get platform API hooked in */
+hud_application_list_name_in_ignore_list (AbstractWindow *window)
 {
   static const gchar * const ignored_names[] = {
     "Hud Prototype Test",
@@ -221,11 +247,13 @@ hud_application_list_name_in_ignore_list (BamfWindow *window)
     "unity-2d-shell"
   };
   gboolean ignored = FALSE;
-  gchar *window_name;
+  gchar *window_name = NULL;
   gint i;
 
+#ifdef HAVE_BAMF
   window_name = bamf_view_get_name (BAMF_VIEW (window));
   g_debug ("checking window name '%s'", window_name);
+#endif
 
   /* sometimes bamf returns NULL here... protect ourselves */
   if (window_name == NULL)
@@ -244,6 +272,7 @@ hud_application_list_name_in_ignore_list (BamfWindow *window)
   return ignored;
 }
 
+#ifdef HAVE_BAMF
 /* Called each time the focused application changes */
 static void
 window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_win, gpointer user_data)
@@ -252,10 +281,11 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 
 	/* We care where we're going, not where we've been */
 	if (new_win == NULL) {
+    /* IGNORING CHANGE TO NULL WINDOW FOR NOW
 		if (list->priv->used_source != NULL) {
 			hud_source_unuse(list->priv->used_source);
 			list->priv->used_source = NULL;
-		}
+		}*/
 		return;
 	}
 
@@ -305,7 +335,9 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 
 	return;
 }
+#endif
 
+#ifdef HAVE_BAMF
 /* A new view has been opened by BAMF */
 static void
 view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
@@ -330,6 +362,7 @@ view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 
 	return;
 }
+#endif
 
 /* Source interface using this source */
 static void
@@ -338,7 +371,12 @@ source_use (HudSource *hud_source)
 	g_return_if_fail(HUD_IS_APPLICATION_LIST(hud_source));
 	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
 
-	BamfApplication * app = bamf_matcher_get_active_application(list->priv->matcher);
+	AbstractApplication * app = NULL;
+
+#ifdef HAVE_BAMF
+	app = bamf_matcher_get_active_application(list->priv->matcher);
+#endif
+
 	HudApplicationSource * source = NULL;
 
 	if (app != NULL) {
@@ -348,7 +386,12 @@ source_use (HudSource *hud_source)
 	/* If we weren't able to use BAMF, let's try to find a source
 	   for the window. */
 	if (source == NULL) {
-		guint32 xid = bamf_window_get_xid(bamf_matcher_get_active_window(list->priv->matcher));
+		guint32 xid = 0;
+
+#ifdef HAVE_BAMF
+		xid = bamf_window_get_xid(bamf_matcher_get_active_window(list->priv->matcher));
+#endif
+
 		GList * sources = g_hash_table_get_values(list->priv->applications);
 		GList * lsource = NULL;
 
@@ -407,6 +450,40 @@ source_search (HudSource *     hud_source,
 	return;
 }
 
+static void
+source_list_applications (HudSource *               hud_source,
+                          HudTokenList *            search_string,
+                          void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                          gpointer                  user_data)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_LIST(hud_source));
+	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
+	GList * sources = g_hash_table_get_values(list->priv->applications);
+	GList * lsource = NULL;
+
+	for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
+		HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
+		if (appsource == NULL || HUD_SOURCE(appsource) == list->priv->used_source) continue;
+
+		hud_source_list_applications(HUD_SOURCE(appsource), search_string, append_func, user_data);
+	}
+	
+	if (list->priv->used_source != NULL) {
+		hud_source_list_applications(list->priv->used_source, search_string, append_func, user_data);
+	}
+}
+
+static HudSource *
+source_get (HudSource *     hud_source,
+            const gchar *   application_id)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(hud_source), NULL);
+	g_return_val_if_fail(application_id != NULL, NULL);
+	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
+
+	return g_hash_table_lookup(list->priv->applications, application_id);
+}
+
 /**
  * hud_application_list_new:
  *
@@ -437,13 +514,29 @@ hud_application_list_get_source (HudApplicationList * list, const gchar * id)
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 	g_return_val_if_fail(id != NULL, NULL);
 
-	HudApplicationSource * source = g_hash_table_lookup(list->priv->applications, id);
+	HudApplicationSource * source = HUD_APPLICATION_SOURCE(source_get(HUD_SOURCE(list), id));
 	if (source == NULL) {
 		source = hud_application_source_new_for_id(id);
 		g_hash_table_insert(list->priv->applications, g_strdup(id), source);
 	}
 
 	return source;
+}
+
+/**
+ * hud_application_list_get_focused_app:
+ * @list: A #HudApplicationList object
+ * 
+ * Gets the focused app source
+ *
+ * Return value: (transfer none): The current #HudApplicationSource
+ */
+HudSource *
+hud_application_list_get_focused_app (HudApplicationList * list)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
+	
+	return list->priv->used_source;
 }
 
 /**
@@ -457,7 +550,23 @@ hud_application_list_get_source (HudApplicationList * list, const gchar * id)
 GList *
 hud_application_list_get_apps (HudApplicationList * list)
 {
-	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
+  g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 
-	return g_hash_table_get_values(list->priv->applications);
+  return g_hash_table_get_values(list->priv->applications);
+}
+
+/**
+ * hud_application_list_get_active_collector:
+ *
+ * Returns the active collector if there is one
+ *
+ * Returns: (transfer none): A #HudCollector or NULL if none
+ */
+GList *
+source_get_items (HudSource * source)
+{
+  g_return_val_if_fail(HUD_IS_APPLICATION_LIST(source), NULL);
+  HudApplicationList *list = HUD_APPLICATION_LIST(source);
+  g_return_val_if_fail(list->priv->used_source != NULL, NULL);
+  return hud_source_get_items(list->priv->used_source);
 }

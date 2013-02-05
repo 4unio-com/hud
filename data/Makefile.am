@@ -19,7 +19,10 @@ EXTRA_DIST = \
 	$(dbus_interfaces_DATA) \
 	com.canonical.hud.Application.xml \
 	$(dbus_services_DATA:.service=.service.in) \
-	$(gsettings_SCHEMAS)
+	$(gsettings_SCHEMAS) \
+	$(pkgdata_DATA)
 
 CLEANFILES = \
 	$(dbus_services_DATA)
+
+pkgdata_DATA = 

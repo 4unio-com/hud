@@ -15,6 +15,19 @@
 			<!-- out -->
 			<arg type="i" name="modelRevision" direction="out" />
 		</method>
+		
+		<method name="VoiceQuery">
+			<!-- out -->
+			<arg type="i" name="modelRevision" direction="out" />
+			<arg type="s" name="query" direction="out" />
+		</method>
+
+		<method name="UpdateApp">
+			<!-- in -->
+			<arg type="s" name="app" direction="in" />
+			<!-- out -->
+			<arg type="i" name="modelRevision" direction="out" />
+		</method>
 
 		<method name="CloseQuery">
 		</method>
@@ -28,6 +41,18 @@
 <!-- Signals -->
 		<!-- Most update signals come through the Dee model -->
 
+		<signal name="VoiceQueryLoading">
+		</signal>
+		
+		<signal name="VoiceQueryListening">
+		</signal>
+		
+		<signal name="VoiceQueryHeardSomething">
+		</signal>
+
+		<signal name="VoiceQueryFinished">
+			<arg type="s" name="query" direction="out" />
+		</signal>
 <!-- End of interesting stuff -->
 
 	</interface>

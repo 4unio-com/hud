@@ -53,7 +53,7 @@ struct _HudItemPrivate
 {
   GObject parent_instance;
 
-  gchar *desktop_file;
+  gchar *app_id;
 
   HudTokenList *token_list;
   HudStringList *tokens;
@@ -77,7 +77,7 @@ hud_item_finalize (GObject *object)
   hud_token_list_free (item->priv->token_list);
   hud_string_list_unref (item->priv->tokens);
   hud_string_list_unref (item->priv->keywords);
-  g_free (item->priv->desktop_file);
+  g_free (item->priv->app_id);
   g_free (item->priv->app_icon);
   g_free (item->priv->usage_tag);
   g_free (item->priv->shortcut);
@@ -132,7 +132,7 @@ hud_item_setup_usage (HudItem *item)
       hud_item_format_tokens (tag, item->priv->tokens);
       item->priv->usage_tag = g_string_free (tag, FALSE);
       item->priv->usage = usage_tracker_get_usage (usage_tracker_get_instance (),
-                                                   item->priv->desktop_file, item->priv->usage_tag);
+                                                   item->priv->app_id, item->priv->usage_tag);
     }
 }
 
@@ -141,7 +141,7 @@ hud_item_setup_usage (HudItem *item)
  * @g_type: a #GType
  * @tokens: the search tokens for the item
  * @shortcut: Keyboard shortcut for the item
- * @desktop_file: the desktop file of the provider of the item
+ * @app_id: a string identifying the application
  * @app_icon: the icon name for the application that created this item
  * @enabled: if the item is enabled
  *
@@ -157,7 +157,7 @@ hud_item_construct (GType          g_type,
                     HudStringList *tokens,
                     HudStringList *keywords,
                     const gchar   *shortcut,
-                    const gchar   *desktop_file,
+                    const gchar   *app_id,
                     const gchar   *app_icon,
                     gboolean       enabled)
 {
@@ -166,7 +166,7 @@ hud_item_construct (GType          g_type,
   item = g_object_new (g_type, NULL);
   item->priv->tokens = hud_string_list_ref (tokens);
   item->priv->keywords = hud_string_list_ref (keywords);
-  item->priv->desktop_file = g_strdup (desktop_file);
+  item->priv->app_id = g_strdup (app_id);
   item->priv->app_icon = g_strdup (app_icon);
   item->priv->shortcut = g_strdup (shortcut);
   item->priv->enabled = enabled;
@@ -175,7 +175,7 @@ hud_item_construct (GType          g_type,
 
   g_hash_table_insert (hud_item_table, &item->priv->id, item);
 
-  if (desktop_file)
+  if (app_id)
     hud_item_setup_usage (item);
 
   return item;
@@ -185,7 +185,7 @@ hud_item_construct (GType          g_type,
  * hud_item_new:
  * @tokens: the search tokens for the item
  * @shortcut: Keyboard shortcut for the item
- * @desktop_file: the desktop file of the provider of the item
+ * @app_id: a string identifying the application
  * @app_icon: the icon name for the application that created this item
  * @enabled: if the item is enabled
  *
@@ -200,11 +200,11 @@ HudItem *
 hud_item_new (HudStringList *tokens,
               HudStringList *keywords,
               const gchar   *shortcut,
-              const gchar   *desktop_file,
+              const gchar   *app_id,
               const gchar   *app_icon,
               gboolean       enabled)
 {
-  return hud_item_construct (HUD_TYPE_ITEM, tokens, keywords, shortcut, desktop_file, app_icon, enabled);
+  return hud_item_construct (HUD_TYPE_ITEM, tokens, keywords, shortcut, app_id, app_icon, enabled);
 }
 
 /**
@@ -229,9 +229,9 @@ hud_item_activate (HudItem  *item,
 
   if (item->priv->usage_tag)
     {
-      usage_tracker_mark_usage (usage_tracker_get_instance (), item->priv->desktop_file, item->priv->usage_tag);
+      usage_tracker_mark_usage (usage_tracker_get_instance (), item->priv->app_id, item->priv->usage_tag);
       item->priv->usage = usage_tracker_get_usage (usage_tracker_get_instance (),
-                                                   item->priv->desktop_file, item->priv->usage_tag);
+                                                   item->priv->app_id, item->priv->usage_tag);
     }
 }
 
@@ -283,6 +283,21 @@ const gchar *
 hud_item_get_item_icon (HudItem *item)
 {
   return "";
+}
+
+/**
+ * hud_item_get_app_id:
+ * @item: a #HudItem
+ *
+ * Gets the desktop file of the application that @item lies within.
+ *
+ * Returns: the desktop file , or "" if there is no desktop file
+ **/
+
+const gchar *
+hud_item_get_app_id (HudItem *item)
+{
+  return item->priv->app_id ? item->priv->app_id : "";
 }
 
 /**
@@ -389,9 +404,7 @@ hud_item_get_command (HudItem *item)
 		return _("No Command");
 	}
 
-	const gchar * head = hud_string_list_get_head(item->priv->tokens);
-
-	return head;
+	return hud_string_list_get_head(item->priv->tokens);
 }
 
 /**
@@ -433,4 +446,20 @@ hud_item_get_shortcut (HudItem *item)
 	g_return_val_if_fail(HUD_IS_ITEM(item), "");
 
 	return item->priv->shortcut;
+}
+
+/**
+ * hud_item_insert_pronounciation:
+ * @item: A #HudItem
+ * @user_data: Composite of a #GHashTable of (gchar *, gchar**) and a regex for removing undesirable characters
+ *
+ * Get the pronounciations of all the tokens for this item.
+ */
+void
+hud_item_insert_pronounciation (HudItem * item, HudItemPronunciationData * user_data)
+{
+	g_return_if_fail(HUD_IS_ITEM(item));
+
+	hud_string_list_insert_pronounciation(item->priv->tokens, user_data);
+	return;
 }

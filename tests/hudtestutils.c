@@ -7,6 +7,11 @@
 #include <gio/gio.h>
 #include <stdarg.h>
 
+/* The max amount of time we should wait for the session bus to shutdown all
+ of its objects.  It's in another thread so it's hard to be deterministic
+ about when it should happen, but we need things cleaned up. */
+#define SESSION_MAX_WAIT 10
+
 static void
 dbus_mock_method_array_free_func(gpointer data)
 {
@@ -205,19 +210,17 @@ hud_test_utils_mock_dbus_connection_new(DbusTestService *service, const gchar *n
 {
   va_list ap;
 
-  DbusTestTask* dummy = dbus_test_task_new ();
-
   va_start (ap, name);
   while(name)
   {
     g_debug("Waiting for task [%s]", name);
+    DbusTestTask* dummy = dbus_test_task_new ();
     dbus_test_task_set_wait_for (dummy, name);
     name = va_arg(ap, const gchar *);
+    dbus_test_service_add_task (service, dummy);
+    g_object_unref (dummy);
   }
   va_end (ap);
-
-  dbus_test_service_add_task (service, dummy);
-  g_object_unref (dummy);
 
   /* Setup timeout */
   guint timeout_source = g_timeout_add_seconds (5, hud_test_utils_name_timeout,
@@ -326,6 +329,26 @@ hud_test_utils_process_mainloop (const guint delay)
 }
 
 
+/*
+ * Waiting until the session bus shuts down
+ */
+void
+hud_test_utils_wait_for_connection_close (GDBusConnection *connection)
+{
+  g_object_add_weak_pointer(G_OBJECT(connection), (gpointer) &connection);
+
+  g_object_unref (connection);
+
+  int wait_count;
+  for (wait_count = 0; connection != NULL && wait_count < SESSION_MAX_WAIT;
+      wait_count++)
+  {
+    hud_test_utils_process_mainloop (100);
+  }
+
+  g_assert(wait_count != SESSION_MAX_WAIT);
+}
+
 void
 hud_test_utils_results_append_func(HudResult *result, gpointer user_data)
 {
@@ -358,3 +381,29 @@ hud_test_utils_source_assert_result (GPtrArray* results, const guint index, cons
   g_assert_cmpstr(hud_string_list_get_head(tokens), ==, value);
 }
 
+static gboolean hud_test_utils_ignore_dbus_null_connection_callback (
+    const gchar *log_domain, GLogLevelFlags level, const gchar *message,
+    gpointer user_data)
+{
+  if (g_strcmp0 (log_domain, "GLib-GIO") == 0
+      && g_str_has_prefix (message,
+          "g_dbus_connection_call_finish_internal: assertion 'G_IS_DBUS_CONNECTION"))
+  {
+    return FALSE;
+  }
+
+  if (g_strcmp0 (log_domain, "GLib-GIO") == 0
+      && g_str_has_prefix (message,
+          "g_dbus_connection_call_finish_internal: assertion `G_IS_DBUS_CONNECTION"))
+  {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+void
+hud_test_utils_ignore_dbus_null_connection()
+{
+  g_test_log_set_fatal_handler(hud_test_utils_ignore_dbus_null_connection_callback, NULL);
+}

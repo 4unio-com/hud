@@ -110,6 +110,27 @@ test_source_call_update_query (gpointer user_data)
   return FALSE;
 }
 
+static gpointer
+test_source_call_update_app (gpointer user_data)
+{
+  TestSourceThreadData* thread_data = (TestSourceThreadData*) user_data;
+  HudQueryIfaceComCanonicalHudQuery *proxy = test_source_create_proxy (
+      thread_data);
+
+  gint model_revision;
+  GError *error = NULL;
+  if (!hud_query_iface_com_canonical_hud_query_call_update_app_sync (proxy,
+      thread_data->query, &model_revision, NULL, &error))
+  {
+    g_warning("%s %s\n", "The request failed:", error->message);
+    g_error_free (error);
+  }
+
+  g_object_unref (proxy);
+
+  return FALSE;
+}
+
 static void
 test_source_make_assertions (HudQuery* query, const gchar *appstack,
     const gchar *path, const gchar *name, const gchar **expected_rows,
@@ -138,11 +159,38 @@ test_source_make_assertions (HudQuery* query, const gchar *appstack,
   }
 }
 
+static void
+test_source_make_assertions_ext (HudQuery* query, const gchar *appstack,
+    const gchar **expected_appstack_ids, const gchar **expected_appstack_icons, const guint expected_appstack_count,
+    const gchar *path, const gchar *name, const gchar **expected_rows,
+    const guint32 *expected_distances, const guint expected_count)
+{
+  guint row;
+
+  test_source_make_assertions(query, appstack, path, name, expected_rows, expected_distances, expected_count);
+
+  DeeModel* model = hud_query_get_appstack_model (query);
+  g_assert_cmpint(dee_model_get_n_rows(model), ==, expected_appstack_count);
+
+  for (row = 0; row < expected_appstack_count; row++)
+  {
+    DeeModelIter* iter = dee_model_get_iter_at_row (model, row);
+
+    g_debug("Id: %s", dee_model_get_string(model, iter, 0));
+    g_debug("Expected Id: %s", expected_appstack_ids[row]);
+    g_debug("Icon: %s", dee_model_get_string(model, iter, 1));
+    g_debug("Exp Icon: %s", expected_appstack_icons[row]);
+
+    g_assert_cmpstr(dee_model_get_string(model, iter, 0), ==, expected_appstack_ids[row]);
+    g_assert_cmpstr(dee_model_get_string(model, iter, 1), ==, expected_appstack_icons[row]);
+  }
+}
+
 static HudQuery*
 test_source_create_query (GDBusConnection *session, HudSource *source, const gchar *search, const guint query_count)
 {
   g_debug ("query: [%s], on [%s]", search, g_dbus_connection_get_unique_name(session));
-  return hud_query_new (source, search, 1u << 30, session, query_count);
+  return hud_query_new (source, source, search, 1u << 30, session, query_count);
 }
 
 static void
@@ -161,7 +209,7 @@ test_hud_query_sequence ()
 
   hud_test_utils_process_mainloop (100);
 
-  HudManualSource *manual_source = hud_manual_source_new();
+  HudManualSource *manual_source = hud_manual_source_new("manual_app", "manual_icon");
 
   HudSourceList *source_list = hud_source_list_new();
   hud_source_list_add(source_list, HUD_SOURCE(collector));
@@ -265,11 +313,11 @@ test_hud_query_sequence ()
 
       HudStringList *tokens = hud_string_list_add_item("extra", NULL);
       tokens = hud_string_list_add_item("something dare", tokens);
-      hud_manual_source_add(manual_source, tokens, NULL, "shortcut1", NULL, NULL, TRUE);
+      hud_manual_source_add(manual_source, tokens, NULL, "shortcut1", TRUE);
 
       HudStringList *tokens2 = hud_string_list_add_item("extra", NULL);
       tokens2 = hud_string_list_add_item("something else darn", tokens2);
-      hud_manual_source_add(manual_source, tokens2, NULL, "shortcut2", NULL, NULL, TRUE);
+      hud_manual_source_add(manual_source, tokens2, NULL, "shortcut2", TRUE);
 
       hud_test_utils_process_mainloop(50);
 
@@ -277,6 +325,33 @@ test_hud_query_sequence ()
       const guint32 expected_distances_after[4] = { 0, 2, 11, 30 };
 
       test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, 4);
+
+      g_object_unref (query);
+    }
+
+  /* Test query currentSource */
+  {
+      gchar *search = "dare";
+      const gchar *expected[2] = { "mess strand", "bowl"};
+      const guint32 expected_distances[2] = { 2, 30 };
+      const gchar *appstack_expected_ids[2] = { "test-id", "manual_app"};
+      const gchar *appstack_expected_icons[2] = { "no-icon", "manual_icon" };
+      const gchar *appstack = "com.canonical.hud.query6.appstack";
+      const gchar *path = "/com/canonical/hud/query6";
+      const gchar *name = "com.canonical.hud.query6.results";
+
+      HudQuery *query = hud_query_new (HUD_SOURCE(source_list), HUD_SOURCE(collector), search, 1u << 30, session, 6);
+      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, 2, path, name, expected, expected_distances, 2);
+
+      // Change the app to the manual_source
+      TestSourceThreadData thread_data = {session, path, "manual_app"};
+      GThread* thread = g_thread_new ("update_app", test_source_call_update_app, &thread_data);
+      hud_test_utils_process_mainloop(100);
+      g_thread_join(thread);
+
+      const gchar *expected_after[2] = { "something dare", "something else darn"};
+      const guint32 expected_distances_after[2] = { 0, 11 };
+      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, 2, path, name, expected_after, expected_distances_after, 2);
 
       g_object_unref (query);
     }
@@ -289,9 +364,8 @@ test_hud_query_sequence ()
 
   hud_test_utils_process_mainloop(100);
 
-  dbus_test_service_stop(service);
   g_object_unref (service);
-  g_object_unref (session);
+  hud_test_utils_wait_for_connection_close(session);
 }
 
 static void
@@ -310,7 +384,7 @@ test_hud_query_sequence_counter_increment ()
 
   hud_test_utils_process_mainloop (100);
 
-  HudManualSource *manual_source = hud_manual_source_new();
+  HudManualSource *manual_source = hud_manual_source_new(NULL, NULL);
 
   HudSourceList *source_list = hud_source_list_new();
   hud_source_list_add(source_list, HUD_SOURCE(collector));
@@ -414,11 +488,11 @@ test_hud_query_sequence_counter_increment ()
 
       HudStringList *tokens = hud_string_list_add_item("extra", NULL);
       tokens = hud_string_list_add_item("something dare", tokens);
-      hud_manual_source_add(manual_source, tokens, NULL, "shortcut1", NULL, NULL, TRUE);
+      hud_manual_source_add(manual_source, tokens, NULL, "shortcut1", TRUE);
 
       HudStringList *tokens2 = hud_string_list_add_item("extra", NULL);
       tokens2 = hud_string_list_add_item("something else darn", tokens2);
-      hud_manual_source_add(manual_source, tokens2, NULL, "shortcut2", NULL, NULL, TRUE);
+      hud_manual_source_add(manual_source, tokens2, NULL, "shortcut2", TRUE);
 
       hud_test_utils_process_mainloop(50);
 
@@ -438,9 +512,8 @@ test_hud_query_sequence_counter_increment ()
 
   hud_test_utils_process_mainloop(100);
 
-  dbus_test_service_stop(service);
   g_object_unref (service);
-  g_object_unref (session);
+  hud_test_utils_wait_for_connection_close(session);
 }
 
 int

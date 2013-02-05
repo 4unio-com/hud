@@ -29,8 +29,12 @@ IGNORE_HFILES = \
 	utils.h					\
 	window-menus.h
 
-GTKDOC_CFLAGS = -I$(top_srcdir)/src $(HUD_CFLAGS)
+GTKDOC_CFLAGS = \
+	-I$(top_srcdir)/src \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS)
 
 GTKDOC_LIBS = \
 	$(top_builddir)/src/libhud-service.la \
-	$(HUD_LIBS)
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)

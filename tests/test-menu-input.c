@@ -68,6 +68,8 @@ test_menus_dbusmenu_base_search (HudResult * result, gpointer user_data)
 static void
 test_menus_dbusmenu_base (void) 
 {
+  hud_test_utils_ignore_dbus_null_connection();
+
 	DbusTestService * service = NULL;
 	GDBusConnection * session = NULL;
 
@@ -95,9 +97,8 @@ test_menus_dbusmenu_base (void)
 
 	g_object_unref(collector);
 	g_object_unref(service);
-	g_object_unref(session);
 
-	hud_test_utils_process_mainloop(100);
+	hud_test_utils_wait_for_connection_close(session);
 }
 
 struct {
@@ -144,6 +145,8 @@ test_menus_dbusmenu_shortcut_search (HudResult * result, gpointer user_data)
 static void
 test_menus_dbusmenu_shortcuts (void) 
 {
+  hud_test_utils_ignore_dbus_null_connection();
+
 	DbusTestService * service = NULL;
 	GDBusConnection * session = NULL;
 
@@ -178,9 +181,8 @@ test_menus_dbusmenu_shortcuts (void)
 
 	g_object_unref(collector);
 	g_object_unref(service);
-	g_object_unref(session);
 
-	hud_test_utils_process_mainloop(100);
+	hud_test_utils_wait_for_connection_close(session);
 }
 
 /* Find an item in the base menu model */
@@ -204,6 +206,7 @@ test_menus_model_base (void)
 	hud_menu_model_collector_add_endpoint(collector,
 	                                      "Prefix",
 	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH,
 	                                      HUD_TEST_UTILS_LOADER_PATH);
 
 	hud_test_utils_process_mainloop(100);
@@ -219,9 +222,8 @@ test_menus_model_base (void)
 
 	g_object_unref(collector);
 	g_object_unref(service);
-	g_object_unref(session);
 
-	hud_test_utils_process_mainloop(100);
+	hud_test_utils_wait_for_connection_close(session);
 }
 
 /* Create model items with various shortcuts */
@@ -245,6 +247,7 @@ test_menus_model_shortcuts (void)
 	hud_menu_model_collector_add_endpoint(collector,
 	                                      "Prefix",
 	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH,
 	                                      HUD_TEST_UTILS_LOADER_PATH);
 
 	hud_test_utils_process_mainloop(100);
@@ -269,9 +272,8 @@ test_menus_model_shortcuts (void)
 
 	g_object_unref(collector);
 	g_object_unref(service);
-	g_object_unref(session);
 
-	hud_test_utils_process_mainloop(100);
+	hud_test_utils_wait_for_connection_close(session);
 }
 
 /* Gets called for each item in the collector, there should be only one */

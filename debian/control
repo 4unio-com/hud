@@ -34,6 +34,8 @@ Build-Depends: bamfdaemon,
                valac-0.18,
                xvfb,
                python3-dbusmock,
+               libpocketsphinx-dev,
+               libsphinxbase-dev,
 Standards-Version: 3.9.4
 Homepage: http://launchpad.net/hud
 # If you aren't a member of ~indicator-applet-developers but need to upload
@@ -46,6 +48,9 @@ Package: hud
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
+         pocketsphinx-hmm-en-hub4wsj (>= 0.8.0),
+         pocketsphinx-lm-en-hub4 (>= 0.8.0),
+         irstlm,
 Conflicts: indicator-appmenu (<< 13),
 Description: Backend for the Unity HUD
  .
@@ -171,4 +176,3 @@ Description: typelib file for libhud-client-1
  .
  This package can be used by other packages using the GIRepository format to
  generate dynamic bindings for libdbusmenu-gtk4.
-
