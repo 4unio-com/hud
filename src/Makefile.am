@@ -59,6 +59,8 @@ libhud_service_la_SOURCES = \
 	hudquery.c		\
 	hudstringlist.h		\
 	hudstringlist.c		\
+	hudsphinx.h		\
+	hudsphinx.c		\
 	huditem.h		\
 	huditem.c		\
 	hudkeywordmapping.h		\
