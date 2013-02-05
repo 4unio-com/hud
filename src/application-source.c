@@ -488,7 +488,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
 
-		hud_menu_model_collector_add_model(collector, G_MENU_MODEL(model), NULL);
+		hud_menu_model_collector_add_model(collector, G_MENU_MODEL(model), NULL, 1);
 		add_id_to_connection(app, session, sender, idn);
 	}
 
