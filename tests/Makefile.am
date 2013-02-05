@@ -940,11 +940,13 @@ hud_performance_SOURCES = \
 # libhud-client-test
 #####################################
 
+TESTS += \
+	libhud-client-tester
+
 LIBHUD_XML_REPORT = libhud-client-test.xml
 libhud-client-tester: libhud-client-test Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo . $(abs_top_srcdir)/tests/run-xvfb.sh >> $@
-	@echo export G_MESSAGES_DEBUG=all >> $@
 	@echo gtester --verbose -k -o $(LIBHUD_XML_REPORT) $(abs_builddir)/libhud-client-test >> $@
 	@echo gtester2xunit $(LIBHUD_XML_REPORT) >> $@
 	@chmod +x $@
