@@ -37,6 +37,9 @@ struct _HudApplicationListPrivate {
 	gulong matcher_view_open_sig;
 	gulong matcher_view_close_sig;
 #endif
+#ifdef HAVE_HYBRIS
+	HudApplicationSource * last_focused_source; /* Not a reference */
+#endif
 
 	GHashTable * applications;
 	HudSource * used_source; /* Not a reference */
@@ -63,6 +66,8 @@ static void view_opened                     (BamfMatcher *             matcher,
 static void session_born                    (ubuntu_ui_session_properties props,
                                              void *                    context);
 static void session_focused                 (ubuntu_ui_session_properties props,
+                                             void *                    context);
+static void session_unfocused               (ubuntu_ui_session_properties props,
                                              void *                    context);
 #endif
 static void source_use                      (HudSource *               hud_source);
@@ -117,7 +122,7 @@ source_iface_init (HudSourceInterface *iface)
 static ubuntu_ui_session_lifecycle_observer observer_definition = {
 	.on_session_requested = NULL,
 	.on_session_born = session_born,
-	.on_session_unfocused = NULL,
+	.on_session_unfocused = session_unfocused,
 	.on_session_focused = session_focused,
 	.on_session_died = NULL,
 	.context = NULL,
@@ -397,6 +402,19 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 	   we can't get window IDs anyway. */
 	hud_application_source_add_window(source, &props);
 
+	/* Used to track focus for use... unclear about race conditions */
+	g_warn_if_fail(list->priv->last_focused_source == NULL);
+	list->priv->last_focused_source = source;
+
+	return;
+}
+
+/* When something looses focus, hopefully everything is paired */
+static void
+session_unfocused (ubuntu_ui_session_properties props, void * context)
+{
+	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+	list->priv->last_focused_source = NULL;
 	return;
 }
 #endif
@@ -456,17 +474,24 @@ source_use (HudSource *hud_source)
 	g_return_if_fail(HUD_IS_APPLICATION_LIST(hud_source));
 	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
 
-	AbstractApplication * app = NULL;
+	HudApplicationSource * source = NULL;
 
 #ifdef HAVE_BAMF
+	AbstractApplication * app = NULL;
 	app = bamf_matcher_get_active_application(list->priv->matcher);
-#endif
-
-	HudApplicationSource * source = NULL;
 
 	if (app != NULL) {
 		source = bamf_app_to_source(list, app);
 	}
+#endif
+
+#ifdef HAVE_HYBRIS
+	/* Hybris doesn't allow us to query what is currently focused,
+	   we'll just have to hope we've tracked it perfectly.  Hopefully
+	   there are no races in the API, we can't protect ourselves against
+	   them in any way. */
+	source = list->priv->last_focused_source;
+#endif
 
 	/* If we weren't able to use BAMF, let's try to find a source
 	   for the window. */
@@ -475,6 +500,10 @@ source_use (HudSource *hud_source)
 
 #ifdef HAVE_BAMF
 		xid = bamf_window_get_xid(bamf_matcher_get_active_window(list->priv->matcher));
+#endif
+#ifdef HAVE_HYBRIS
+		/* Hybris has no concept of windows yet, we have to work around it with this */
+		xid = WINDOW_ID_CONSTANT;
 #endif
 
 		GList * sources = g_hash_table_get_values(list->priv->applications);
