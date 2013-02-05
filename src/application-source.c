@@ -665,10 +665,13 @@ hud_application_source_get_id (HudApplicationSource * app)
 typedef struct _window_info_t window_info_t;
 struct _window_info_t {
 	HudApplicationSource * source;  /* Not a ref */
+#ifdef HAVE_BAMF
 	AbstractWindow * window;        /* Not a ref */
+#endif
 	guint32 xid;                    /* Can't be a ref */
 };
 
+#ifdef HAVE_BAMF
 /* When I window gets destroyed we want to clean up it's collectors
    and all that jazz. */
 static void
@@ -687,6 +690,7 @@ window_destroyed (gpointer data, GObject * old_address)
 
 	return;
 }
+#endif
 
 /* If the collector gets free'd first we need to deallocate the memory
    and make sure we don't keep the weak reference. */
@@ -695,9 +699,11 @@ free_window_info (gpointer data)
 {
 	window_info_t * window_info = (window_info_t *)data;
 
+#ifdef HAVE_BAMF
 	if (window_info->window != NULL) {
 		g_object_weak_unref(G_OBJECT(window_info->window), window_destroyed, window_info);
 	}
+#endif
 
 	g_free(window_info);
 	return;
@@ -738,11 +744,14 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 #endif
 
 	window_info_t * window_info = g_new0(window_info_t, 1);
-	window_info->window = window;
 	window_info->xid = xid;
 	window_info->source = app;
 
+#ifdef HAVE_BAMF
+	/* Uhm, this is how we were managing this memory... uhg, hybris */
+	window_info->window = window;
 	g_object_weak_ref(G_OBJECT(window), window_destroyed, window_info);
+#endif
 
 	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
 	if (collector_list == NULL) {
