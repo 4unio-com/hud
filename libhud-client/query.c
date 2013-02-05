@@ -57,6 +57,7 @@ static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * 
 G_DEFINE_TYPE (HudClientQuery, hud_client_query, G_TYPE_OBJECT);
 
 static guint hud_client_query_signal_voice_query_loading;
+static guint hud_client_query_signal_voice_query_failed;
 static guint hud_client_query_signal_voice_query_listening;
 static guint hud_client_query_signal_voice_query_heard_something;
 static guint hud_client_query_signal_voice_query_finished;
@@ -93,6 +94,16 @@ hud_client_query_class_init (HudClientQueryClass *klass)
 	hud_client_query_signal_voice_query_loading = g_signal_new (
 		"voice-query-loading", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST, 0, NULL,
 		NULL, g_cclosure_marshal_generic, G_TYPE_NONE, 0);
+
+	/**
+   * HudClientQuery::voice-query-failed:
+   *
+   * The voice recognition toolkit has failed to connect to the audio device.
+   * The specific cause is provided as an argument.
+   */
+  hud_client_query_signal_voice_query_failed = g_signal_new (
+    "voice-query-failed", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST, 0, NULL,
+    NULL, g_cclosure_marshal_generic, G_TYPE_NONE, 1, G_TYPE_STRING );
 
 	/**
    * HudClientQuery::voice-query-listening:
@@ -180,6 +191,13 @@ hud_client_query_voice_query_loading (_HudQueryComCanonicalHudQuery *object, gpo
 }
 
 static void
+hud_client_query_voice_query_failed (_HudQueryComCanonicalHudQuery *object, const gchar *arg_cause, gpointer user_data)
+{
+  g_signal_emit (user_data, hud_client_query_signal_voice_query_failed,
+      g_quark_try_string (arg_cause), arg_cause);
+}
+
+static void
 hud_client_query_voice_query_listening (_HudQueryComCanonicalHudQuery *object, gpointer user_data)
 {
 	g_signal_emit(user_data, hud_client_query_signal_voice_query_listening, 0);
@@ -242,6 +260,8 @@ hud_client_query_constructed (GObject *object)
 
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-loading",
 		G_CALLBACK (hud_client_query_voice_query_loading), object, 0);
+	g_signal_connect_object (cquery->priv->proxy, "voice-query-failed",
+	    G_CALLBACK (hud_client_query_voice_query_failed), object, 0);
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-listening",
 		G_CALLBACK (hud_client_query_voice_query_listening), object, 0);
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-heard-something",
@@ -386,7 +406,9 @@ hud_client_query_voice_query_callback (GObject *source, GAsyncResult *result, gp
  *
  * Will cause a series of signals to be emitted indicating progress:
  * - voice-query-loading - the voice recognition toolkit is loading.
+ * - voice-query-failed - the voice recognition toolkit has failed to initialize.
  * - voice-query-listening - the voice recognition toolkit is listening to speech.
+ * - voice-query-heard-something - the voice recognition toolkit has heard a complete utterance.
  * - voice-query-finished - the voice recognition toolkit has completed, and has a (possibly empty) result.
  */
 void
