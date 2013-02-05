@@ -110,7 +110,31 @@ AS_IF([test "x$enable_bamf" != "xno"],[
 PKG_CHECK_MODULES([BAMF],[
 		libbamf3 
 ])
-AC_DEFINE([HAVE_BAMF], ["true"], ["Defined if we're building with BAMF"])
+AC_DEFINE([HAVE_BAMF], [1], [Defined if we are building with BAMF])
+])
+
+###########################
+# Hybris Dependency
+###########################
+
+AC_ARG_ENABLE([hybris],
+    AC_HELP_STRING([--disable-hybris], [Disable hybris]),
+    [enable_hybris=$enableval], [enable_hybris=auto])
+
+AS_IF([test "x$enable_hybris" != "xno"],[
+AC_DEFINE([HAVE_HYBRIS], [1], [Defined if we are building with libhybris])
+HYBRIS_CFLAGS="-I/usr/include/hybris"
+HYBRIS_LIBS="-lubuntu_application_api"
+AC_SUBST([HYBRIS_CFLAGS])
+AC_SUBST([HYBRIS_LIBS])
+])
+
+###########################
+# Sanity Check
+###########################
+
+AS_IF([test "x$enable_hybris" == "x$enable_bamf"],[
+AC_MSG_ERROR([Invalid to use hybris and bamf together or neither of them])
 ])
 
 ###########################

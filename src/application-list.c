@@ -37,6 +37,10 @@ struct _HudApplicationListPrivate {
 	gulong matcher_view_open_sig;
 	gulong matcher_view_close_sig;
 #endif
+#ifdef HAVE_HYBRIS
+	HudApplicationSource * last_focused_source; /* Not a reference */
+	ubuntu_ui_session_lifecycle_observer observer_definition;
+#endif
 
 	GHashTable * applications;
 	HudSource * used_source; /* Not a reference */
@@ -58,6 +62,18 @@ static void window_changed                  (BamfMatcher *             matcher,
 static void view_opened                     (BamfMatcher *             matcher,
                                              BamfView *                view,
                                              gpointer                  user_data);
+#endif
+#ifdef HAVE_HYBRIS
+static void session_requested               (ubuntu_ui_well_known_application app,
+                                             void *                    context);
+static void session_born                    (ubuntu_ui_session_properties props,
+                                             void *                    context);
+static void session_focused                 (ubuntu_ui_session_properties props,
+                                             void *                    context);
+static void session_unfocused               (ubuntu_ui_session_properties props,
+                                             void *                    context);
+static void session_died                    (ubuntu_ui_session_properties props,
+                                             void *                    context);
 #endif
 static void source_use                      (HudSource *               hud_source);
 static void source_unuse                    (HudSource *               hud_source);
@@ -109,6 +125,7 @@ static void
 hud_application_list_init (HudApplicationList *self)
 {
 	self->priv = HUD_APPLICATION_LIST_GET_PRIVATE(self);
+	self->priv->applications = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 
 #ifdef HAVE_BAMF
 	self->priv->matcher = bamf_matcher_get_default();
@@ -119,8 +136,17 @@ hud_application_list_init (HudApplicationList *self)
 		"view-opened",
 		G_CALLBACK(view_opened), self);
 #endif
+#ifdef HAVE_HYBRIS
+	self->priv->observer_definition.on_session_requested = session_requested;
+	self->priv->observer_definition.on_session_born = session_born;
+	self->priv->observer_definition.on_session_unfocused = session_unfocused;
+	self->priv->observer_definition.on_session_focused = session_focused;
+	self->priv->observer_definition.on_session_died = session_died;
+	self->priv->observer_definition.context = self;
 
-	self->priv->applications = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+	ubuntu_ui_session_install_session_lifecycle_observer(&self->priv->observer_definition);
+#endif
+
 
 #ifdef HAVE_BAMF
 	GList * apps = bamf_matcher_get_applications(self->priv->matcher);
@@ -155,6 +181,10 @@ hud_application_list_init (HudApplicationList *self)
 
 		view_opened(self->priv->matcher, BAMF_VIEW(window->data), self);
 	}
+#endif
+#ifdef HAVE_HYBRIS
+	/* Hybris doesn't work like this.  When the observers are registered those
+	   functions are called like the session are just added automatically */
 #endif
 
 	return;
@@ -196,6 +226,10 @@ hud_application_list_dispose (GObject *object)
 	g_clear_object(&self->priv->matcher);
 #endif
 
+#ifdef HAVE_HYBRIS
+	/* Nothing to do as Hybris has no way to unregister our observer */
+#endif
+
 	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
 
 	G_OBJECT_CLASS (hud_application_list_parent_class)->dispose (object);
@@ -232,9 +266,15 @@ bamf_app_to_source (HudApplicationList * list, AbstractApplication * bapp)
 	return source;
 }
 
-/* static */ gboolean /* TODO: Removed static for compile in the non-BAMF case, fix when we get platform API hooked in */
+static gboolean
 hud_application_list_name_in_ignore_list (AbstractWindow *window)
 {
+#ifdef HAVE_HYBRIS
+  /* Hybris only supports a very limited set of windows, which
+     doesn't include any debugging tools.  So we can just exit. */
+  return FALSE;
+#endif
+
   static const gchar * const ignored_names[] = {
     "Hud Prototype Test",
     "Hud",
@@ -337,6 +377,61 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 }
 #endif
 
+#ifdef HAVE_HYBRIS
+/* When a session gets focus */
+static void
+session_focused (ubuntu_ui_session_properties props, void * context)
+{
+	if (hud_application_list_name_in_ignore_list(&props)) {
+		return;
+	}
+
+	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+
+	HudApplicationSource * source = bamf_app_to_source(list, &props);
+	if (source == NULL) {
+		return;
+	}
+
+	/* NOTE: We don't really have a window to add here, but this
+	   also adjusts focus, which is how we're passing it down.  So
+	   what'll happen is that this'll trigger the dummy function since
+	   we can't get window IDs anyway. */
+	hud_application_source_add_window(source, &props);
+
+	/* Used to track focus for use... unclear about race conditions */
+	g_warn_if_fail(list->priv->last_focused_source == NULL);
+	list->priv->last_focused_source = source;
+
+	return;
+}
+
+/* When something looses focus, hopefully everything is paired */
+static void
+session_unfocused (ubuntu_ui_session_properties props, void * context)
+{
+	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+	list->priv->last_focused_source = NULL;
+	return;
+}
+
+/* This function does nothing, but Hybris isn't smart enough to handle
+   NULL pointers, so we need to fill in the structure. */
+static void
+session_requested (ubuntu_ui_well_known_application app, void * context)
+{
+	return;
+}
+
+/* This function does nothing, but Hybris isn't smart enough to handle
+   NULL pointers, so we need to fill in the structure. */
+static void
+session_died (ubuntu_ui_session_properties props, void * context)
+{
+	return;
+}
+#endif
+
 #ifdef HAVE_BAMF
 /* A new view has been opened by BAMF */
 static void
@@ -364,6 +459,27 @@ view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 }
 #endif
 
+#ifdef HAVE_HYBRIS
+/* When a new session gets created */
+static void
+session_born (ubuntu_ui_session_properties props, void * context)
+{
+	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+
+	HudApplicationSource * source = bamf_app_to_source(list, &props);
+	if (source == NULL) {
+		return;
+	}
+
+	/* NOTE: Nothing to do here, since there are no windows and no
+	   information on them, we can't really start getting the menus
+	   from them or anything.  But we can makes sure that the appliction
+	   exists in the DBus representation. */
+
+	return;
+}
+#endif
+
 /* Source interface using this source */
 static void
 source_use (HudSource *hud_source)
@@ -371,17 +487,24 @@ source_use (HudSource *hud_source)
 	g_return_if_fail(HUD_IS_APPLICATION_LIST(hud_source));
 	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
 
-	AbstractApplication * app = NULL;
+	HudApplicationSource * source = NULL;
 
 #ifdef HAVE_BAMF
+	AbstractApplication * app = NULL;
 	app = bamf_matcher_get_active_application(list->priv->matcher);
-#endif
-
-	HudApplicationSource * source = NULL;
 
 	if (app != NULL) {
 		source = bamf_app_to_source(list, app);
 	}
+#endif
+
+#ifdef HAVE_HYBRIS
+	/* Hybris doesn't allow us to query what is currently focused,
+	   we'll just have to hope we've tracked it perfectly.  Hopefully
+	   there are no races in the API, we can't protect ourselves against
+	   them in any way. */
+	source = list->priv->last_focused_source;
+#endif
 
 	/* If we weren't able to use BAMF, let's try to find a source
 	   for the window. */
@@ -390,6 +513,10 @@ source_use (HudSource *hud_source)
 
 #ifdef HAVE_BAMF
 		xid = bamf_window_get_xid(bamf_matcher_get_active_window(list->priv->matcher));
+#endif
+#ifdef HAVE_HYBRIS
+		/* Hybris has no concept of windows yet, we have to work around it with this */
+		xid = WINDOW_ID_CONSTANT;
 #endif
 
 		GList * sources = g_hash_table_get_values(list->priv->applications);
