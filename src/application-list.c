@@ -218,6 +218,10 @@ hud_application_list_dispose (GObject *object)
 	g_clear_object(&self->priv->matcher);
 #endif
 
+#ifdef HAVE_HYBRIS
+	/* Nothing to do as Hybris has no way to unregister our observer */
+#endif
+
 	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
 
 	G_OBJECT_CLASS (hud_application_list_parent_class)->dispose (object);
@@ -254,9 +258,15 @@ bamf_app_to_source (HudApplicationList * list, AbstractApplication * bapp)
 	return source;
 }
 
-/* static */ gboolean /* TODO: Removed static for compile in the non-BAMF case, fix when we get platform API hooked in */
+static gboolean
 hud_application_list_name_in_ignore_list (AbstractWindow *window)
 {
+#ifdef HAVE_HYBRIS
+  /* Hybris only supports a very limited set of windows, which
+     doesn't include any debugging tools.  So we can just exit. */
+  return FALSE;
+#endif
+
   static const gchar * const ignored_names[] = {
     "Hud Prototype Test",
     "Hud",
@@ -401,6 +411,9 @@ session_born (ubuntu_ui_session_properties props, void * context)
 static void
 session_focused (ubuntu_ui_session_properties props, void * context)
 {
+	if (hud_application_list_name_in_ignore_list(&props)) {
+		return;
+	}
 
 	return;
 }
