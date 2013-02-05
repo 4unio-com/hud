@@ -32,6 +32,7 @@
 #include "hud-query-iface.h"
 #include "hudsourcelist.h"
 #include "hudresult.h"
+#include "hudmenumodelcollector.h"
 
 /**
  * SECTION:hudquery
@@ -428,6 +429,52 @@ handle_execute (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation 
 	return TRUE;
 }
 
+/* Handle getting parameterized from DBus */
+static gboolean
+handle_parameterized (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, GVariant * command_id, guint timestamp, gpointer user_data)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
+	//HudQuery * query = HUD_QUERY(user_data);
+
+	GVariant * inner = g_variant_get_variant(command_id);
+	guint64 id = g_variant_get_uint64(inner);
+	g_variant_unref(inner);
+
+	HudItem * item = hud_item_lookup(id);
+
+	if (item == NULL) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS, "Item specified by command key does not exist");
+		return TRUE;
+	}
+
+	if (!HUD_IS_MODEL_ITEM(item)) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS, "Item specified by command is not a menu model item");
+		return TRUE;
+	}
+
+	if (!hud_model_item_is_parameterized(HUD_MODEL_ITEM(item))) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS, "Item specified by command does not have parameterized actions");
+		return TRUE;
+	}
+
+	const gchar * base_action;
+	const gchar * action_path;
+	const gchar * model_path;
+	gint model_section;
+
+	hud_model_item_activate_parameterized(HUD_MODEL_ITEM(item), timestamp, &base_action, &action_path, &model_path, &model_section);
+
+	GVariantBuilder tuple;
+	g_variant_builder_init(&tuple, G_VARIANT_TYPE_TUPLE);
+	g_variant_builder_add_value(&tuple, g_variant_new_string(base_action));
+	g_variant_builder_add_value(&tuple, g_variant_new_object_path(action_path));
+	g_variant_builder_add_value(&tuple, g_variant_new_object_path(model_path));
+	g_variant_builder_add_value(&tuple, g_variant_new_int32(model_section));
+
+	g_dbus_method_invocation_return_value(invocation, g_variant_builder_end(&tuple));
+	return TRUE;
+}
+
 /* Handle the DBus function CloseQuery */
 static gboolean
 handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
@@ -462,6 +509,7 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint q
   g_signal_connect(G_OBJECT(query->skel), "handle-voice-query", G_CALLBACK(handle_voice_query), query);
   g_signal_connect(G_OBJECT(query->skel), "handle-close-query", G_CALLBACK(handle_close_query), query);
   g_signal_connect(G_OBJECT(query->skel), "handle-execute-command", G_CALLBACK(handle_execute), query);
+  g_signal_connect(G_OBJECT(query->skel), "handle-execute-parameterized", G_CALLBACK(handle_parameterized), query);
 
   query->object_path = g_strdup_printf("/com/canonical/hud/query%d", query->querynumber);
   if (!g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),

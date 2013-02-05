@@ -40,3 +40,24 @@ HUD_CLIENT_IS_CONNECTION_CLASS
 HUD_CLIENT_TYPE_CONNECTION
 hud_client_connection_get_type
 </SECTION>
+
+<SECTION>
+<FILE>param</FILE>
+HudClientParam
+HudClientParamClass
+hud_client_param_get_actions
+hud_client_param_get_address
+hud_client_param_get_model
+hud_client_param_get_section
+hud_client_param_new
+hud_client_query_execute_param_command
+<SUBSECTION Standard>
+HUD_CLIENT_IS_PARAM
+HUD_CLIENT_IS_PARAM_CLASS
+HUD_CLIENT_PARAM
+HUD_CLIENT_PARAM_CLASS
+HUD_CLIENT_PARAM_GET_CLASS
+HUD_CLIENT_TYPE_PARAM
+HudClientParamPrivate
+hud_client_param_get_type
+</SECTION>

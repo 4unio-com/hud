@@ -25,9 +25,14 @@
 #include "huditem.h"
 #include "hudkeywordmapping.h"
 #include "config.h"
+#include "action-muxer.h"
 
 #include <gio/gio.h>
 #include <string.h>
+
+#define DEFAULT_MENU_DEPTH  10
+#define RECURSE_DATA        "hud-menu-model-recurse-level"
+#define EXPORT_PATH         "hud-menu-model-export-path"
 
 /**
  * SECTION:hudmenumodelcollector
@@ -72,7 +77,7 @@ struct _HudMenuModelCollector
   gchar *unique_bus_name;
 
   /* GActionGroup's indexed by their prefix */
-  GHashTable * action_groups;
+  GActionMuxer * muxer;
 
   /* Boring details about the app/indicator we are showing. */
   gchar *app_id;
@@ -100,25 +105,37 @@ struct _HudMenuModelCollector
    * apps and indicators.
    */
   gint use_count;
+
+  /* This is the export path that we've been given */
+  gchar * base_export_path;
+  guint muxer_export;
 };
 
 typedef struct _model_data_t model_data_t;
 struct _model_data_t {
+	GDBusConnection *session;
+
 	GMenuModel * model;
 	gboolean is_hud_aware;
 	GCancellable * cancellable;
 	gchar * path;
 	gchar * label;
+	guint recurse;
+
+	GMenu * export;
+	guint export_id;
 };
 
-typedef struct
-{
+struct _HudModelItem {
   HudItem parent_instance;
 
   GRemoteActionGroup *group;
   gchar *action_name;
+  gchar *action_path;
   GVariant *target;
-} HudModelItem;
+
+  GMenuModel * submodel;
+};
 
 typedef HudItemClass HudModelItemClass;
 
@@ -243,8 +260,10 @@ hud_model_item_finalize (GObject *object)
 {
   HudModelItem *item = (HudModelItem *) object;
 
+  g_clear_object(&item->submodel);
   g_object_unref (item->group);
   g_free (item->action_name);
+  g_free (item->action_path);
 
   if (item->target)
     g_variant_unref (item->target);
@@ -279,12 +298,12 @@ hud_model_item_new (HudMenuModelCollector *collector,
   HudModelItem *item;
   const gchar *stripped_action_name;
   gchar *prefix;
-  GDBusActionGroup *group = NULL;
+  GActionGroup *group = NULL;
   HudStringList *full_label, *keywords;
 
   prefix = hud_menu_model_context_get_prefix (context, action_name);
 
-  group = g_hash_table_lookup(collector->action_groups, prefix);
+  group = g_action_muxer_get(collector->muxer, prefix);
 
   if (!group)
     {
@@ -314,6 +333,67 @@ hud_model_item_new (HudMenuModelCollector *collector,
   return HUD_ITEM (item);
 }
 
+/* Set the submenu property for the item */
+static void
+hud_model_item_set_submenu (HudModelItem * item, GMenuModel * submenu, const gchar * action_path)
+{
+	g_return_if_fail(G_IS_MENU_MODEL(submenu));
+
+	item->submodel = g_object_ref(submenu);
+	item->action_path = g_strdup(action_path);
+
+	return;
+}
+
+/**
+ * hud_model_item_is_parameterized:
+ * @item: A #HudModelItem to check
+ *
+ * Check to see if an item represents a parameterized set of
+ * actions.
+ *
+ * Return value: Whether this has parameterized actions or not
+ */
+gboolean
+hud_model_item_is_parameterized (HudModelItem * item)
+{
+	g_return_val_if_fail(HUD_IS_MODEL_ITEM(item), FALSE);
+
+	return FALSE;
+}
+
+/**
+ * hud_model_item_activate_parameterized:
+ * @item: A #HudModelItem to check
+ * @timestamp: The time of the user event from the dispaly server
+ * @base_action: Action to activate the base events on
+ * @action_path: Path that the actions can be found on
+ * @model_path: Path to the models
+ * @section: Model section to use
+ * 
+ * Uses the item to find all the information about creating a parameterized
+ * view of the item in the HUD.
+ */
+void
+hud_model_item_activate_parameterized (HudModelItem * item, guint32 timestamp, const gchar ** base_action, const gchar ** action_path, const gchar ** model_path, gint * section)
+{
+	g_return_if_fail(HUD_IS_MODEL_ITEM(item));
+
+	/* Make sure we have a place to put things, we require it */
+	g_return_if_fail(base_action != NULL);
+	g_return_if_fail(action_path != NULL);
+	g_return_if_fail(model_path != NULL);
+	g_return_if_fail(section != NULL);
+
+	*base_action = item->action_name;
+	*model_path = (const gchar *)g_object_get_data(G_OBJECT(item->submodel), EXPORT_PATH);
+	*action_path = item->action_path;
+	*section = 1;
+
+
+	return;
+}
+
 typedef GObjectClass HudMenuModelCollectorClass;
 
 static void hud_menu_model_collector_iface_init (HudSourceInterface *iface);
@@ -334,7 +414,8 @@ static void hud_menu_model_collector_add_model_internal  (HudMenuModelCollector 
                                                           const gchar           *path,
                                                           HudMenuModelContext   *parent_context,
                                                           const gchar           *action_namespace,
-                                                          const gchar           *label);
+                                                          const gchar           *label,
+                                                          guint                  recurse);
 
 static void hud_menu_model_collector_disconnect (gpointer               data,
                                                  gpointer               user_data);
@@ -346,7 +427,7 @@ readd_models (gpointer data, gpointer user_data)
 	HudMenuModelCollector *collector = user_data;
 	model_data_t * model_data = data;
 
-    hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label);
+    hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label, model_data->recurse);
 	return;
 }
 
@@ -437,6 +518,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
   HudMenuModelContext *context;
   gboolean changed;
   gint i;
+  guint recurse = 0;
 
   if (collector->refresh_id)
     /* We have a refresh scheduled already.  Ignore. */
@@ -455,6 +537,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
     }
 
   context = g_object_get_qdata (G_OBJECT (model), hud_menu_model_collector_context_quark ());
+  recurse = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(model), RECURSE_DATA));
 
   changed = FALSE;
   for (i = position; i < position + added; i++)
@@ -464,6 +547,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       gchar *action_namespace = NULL;
       gchar *action = NULL;
       gchar *accel = NULL;
+      HudItem *item = NULL;
 
 
       g_menu_model_get_item_attribute (model, i, "action-namespace", "s", &action_namespace);
@@ -479,7 +563,6 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       if (action && label)
         {
           GVariant *target;
-          HudItem *item;
 
           target = g_menu_model_get_item_attribute_value (model, i, G_MENU_ATTRIBUTE_TARGET, NULL);
 
@@ -500,13 +583,17 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
        */
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SECTION)))
         {
-          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label);
+          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse);
           g_object_unref (link);
         }
 
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SUBMENU)))
         {
-          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label);
+          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse - 1);
+          if (item != NULL && recurse <= 1)
+            {
+              hud_model_item_set_submenu((HudModelItem *)item, link, collector->base_export_path);
+            }
           g_object_unref (link);
         }
 
@@ -526,21 +613,43 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
                                              const gchar           *path,
                                              HudMenuModelContext   *parent_context,
                                              const gchar           *action_namespace,
-                                             const gchar           *label)
+                                             const gchar           *label,
+                                             guint                  recurse)
 {
   g_return_if_fail(G_IS_MENU_MODEL(model));
 
+  if (recurse == 0)
+    return;
+
   gint n_items;
 
+  g_object_set_data (G_OBJECT(model), RECURSE_DATA, GINT_TO_POINTER(recurse));
   g_signal_connect (model, "items-changed", G_CALLBACK (hud_menu_model_collector_model_changed), collector);
 
+  /* Setup the base structure */
   model_data_t * model_data = g_new0(model_data_t, 1);
+  model_data->session = collector->session;
   model_data->model = g_object_ref(model);
   model_data->is_hud_aware = FALSE;
   model_data->cancellable = g_cancellable_new();
   model_data->path = g_strdup(path);
   model_data->label = g_strdup(label);
+  model_data->recurse = recurse;
 
+  /* Create the exported model */
+  model_data->export = g_menu_new();
+  GMenuItem * item = g_menu_item_new_section(NULL, model_data->model);
+  g_menu_append_item(model_data->export, item);
+
+  if (collector->base_export_path != NULL) {
+    gchar * menu_path = g_strdup_printf("%s/menu%X", collector->base_export_path, GPOINTER_TO_UINT(model_data));
+    g_debug("Exporting menu model: %s", menu_path);
+    model_data->export_id = g_dbus_connection_export_menu_model(collector->session, menu_path, G_MENU_MODEL(model_data->export), NULL);
+
+    g_object_set_data_full(G_OBJECT(model_data->model), EXPORT_PATH, menu_path, g_free);
+  }
+
+  /* Add to our list of models */
   collector->models = g_slist_prepend (collector->models, model_data);
 
   if (path != NULL) {
@@ -713,6 +822,10 @@ model_data_free (gpointer data)
 	g_cancellable_cancel (model_data->cancellable);
 	g_clear_object(&model_data->cancellable);
 
+	/* Stop exporting our menu */
+	g_dbus_connection_unexport_menu_model(model_data->session, model_data->export_id);
+	g_clear_object(&model_data->export);
+
 	g_clear_pointer(&model_data->path, g_free);
 	g_clear_pointer(&model_data->label, g_free);
 
@@ -733,8 +846,13 @@ hud_menu_model_collector_finalize (GObject *object)
   if (collector->refresh_id)
     g_source_remove (collector->refresh_id);
 
+  if (collector->muxer_export) {
+    g_dbus_connection_unexport_action_group(collector->session, collector->muxer_export);
+    collector->muxer_export = 0;
+  }
+
   g_slist_free_full (collector->models, model_data_free);
-  g_clear_pointer (&collector->action_groups, g_hash_table_unref);
+  g_clear_object (&collector->muxer);
 
   g_object_unref (collector->session);
   g_free (collector->unique_bus_name);
@@ -743,6 +861,8 @@ hud_menu_model_collector_finalize (GObject *object)
   g_object_unref (collector->keyword_mapping);
 
   g_ptr_array_unref (collector->items);
+
+  g_clear_pointer(&collector->base_export_path, g_free);
 
   G_OBJECT_CLASS (hud_menu_model_collector_parent_class)
     ->finalize (object);
@@ -753,7 +873,7 @@ hud_menu_model_collector_init (HudMenuModelCollector *collector)
 {
   collector->items = g_ptr_array_new_with_free_func (g_object_unref);
   collector->cancellable = g_cancellable_new ();
-  collector->action_groups = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+  collector->muxer = g_action_muxer_new();
   collector->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 }
 
@@ -821,6 +941,7 @@ hud_menu_model_collector_hud_awareness_cb (GObject      *source,
  * @application_id: a unique identifier for the application
  * @icon: the icon for the appliction
  * @penalty: the penalty to apply to all results
+ * @export_path: the path to export items on dbus
  *
  * Create a new #HudMenuModelCollector object
  *
@@ -829,16 +950,32 @@ hud_menu_model_collector_hud_awareness_cb (GObject      *source,
 HudMenuModelCollector *
 hud_menu_model_collector_new (const gchar *application_id,
                               const gchar *icon,
-                              guint        penalty)
+                              guint        penalty,
+                              const gchar *export_path)
 {
+	g_return_val_if_fail(application_id != NULL, NULL);
+	g_return_val_if_fail(export_path != NULL, NULL);
+
 	HudMenuModelCollector * collector = g_object_new(HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
 
 	collector->app_id = g_strdup (application_id);
 	collector->icon = g_strdup (icon);
 	collector->penalty = penalty;
+	collector->base_export_path = g_strdup(export_path);
 
 	collector->keyword_mapping = hud_keyword_mapping_new();
 	hud_keyword_mapping_load(collector->keyword_mapping, collector->app_id, DATADIR, GNOMELOCALEDIR);
+
+	GError * error = NULL;
+	collector->muxer_export = g_dbus_connection_export_action_group(collector->session,
+	                                                                collector->base_export_path,
+	                                                                G_ACTION_GROUP(collector->muxer),
+	                                                                &error);
+
+	if (error != NULL) {
+		g_warning("Unable to export action group: %s", error->message);
+		g_error_free(error);
+	}
 
 	return collector;
 }
@@ -898,14 +1035,14 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   if (app_menu_object_path)
     {
       app_menu = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, app_menu_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH);
       g_object_unref(app_menu);
     }
 
   if (menubar_object_path)
     {
       menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, menubar_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH);
       g_object_unref(menubar);
     }
 
@@ -959,27 +1096,28 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
   hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, bus_name, action_path)), NULL);
 
   GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, menu_path);
-  hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix);
+  hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix, DEFAULT_MENU_DEPTH);
   g_object_unref(app_menu);
 
   return;
 }
 
 /**
- * hud_menu_model_collector_add_mode:
+ * hud_menu_model_collector_add_model:
  * @collector: A #HudMenuModelCollector object
  * @model: Model to add
  * @prefix: (allow none): Text prefix to add to all entries if needed
+ * @recurse: Amount of levels to go down the model.
  *
  * Adds a Menu Model to the collector.
  */
 void
-hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuModel * model, const gchar * prefix)
+hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuModel * model, const gchar * prefix, guint recurse)
 {
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_MENU_MODEL(model));
 
-	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix);
+	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix, recurse);
 }
 
 /**
@@ -1003,7 +1141,7 @@ hud_menu_model_collector_add_actions (HudMenuModelCollector * collector, GAction
 		local_prefix = g_strdup(prefix);
 	}
 
-	g_hash_table_insert(collector->action_groups, local_prefix, group);
+	g_action_muxer_insert(collector->muxer, local_prefix, group);
 
 	return;
 }
@@ -1030,3 +1168,4 @@ hud_menu_model_collector_get_items (HudSource * source)
 
 	return retval;
 }
+

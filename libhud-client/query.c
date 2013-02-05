@@ -474,3 +474,39 @@ hud_client_query_execute_command (HudClientQuery * cquery, GVariant * command_ke
 
 	return;
 }
+
+/**
+ * hud_client_query_execute_param_command:
+ * @cquery: A #HudClientQuery
+ * @command_key: The key from the results model for the entry to activate
+ * @timestamp: Timestamp for the user event
+ *
+ * Executes a command that results in a parameterized dialog
+ * which is controlled using the returned #HudClientParam object.
+ * When created this sends the "opened" event to the application.
+ *
+ * Return Value: (transfer full): Object to control the parameterized dialog.
+ */
+HudClientParam *
+hud_client_query_execute_param_command (HudClientQuery * cquery, GVariant * command_key, guint timestamp)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+	g_return_val_if_fail(command_key != NULL, NULL);
+
+	gchar * sender = g_dbus_proxy_get_name_owner(G_DBUS_PROXY(cquery->priv->proxy));
+	gchar * base_action = NULL;
+	gchar * action_path = NULL;
+	gchar * model_path = NULL;
+	gint section = 0;
+
+	_hud_query_com_canonical_hud_query_call_execute_parameterized_sync(cquery->priv->proxy, command_key, timestamp, &base_action, &action_path, &model_path, &section, NULL, NULL);
+
+	HudClientParam * param = hud_client_param_new(sender, base_action, action_path, model_path, section);
+
+	g_free(sender);
+	g_free(base_action);
+	g_free(action_path);
+	g_free(model_path);
+
+	return param;
+}
