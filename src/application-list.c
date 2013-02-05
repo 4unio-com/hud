@@ -39,6 +39,7 @@ struct _HudApplicationListPrivate {
 #endif
 #ifdef HAVE_HYBRIS
 	HudApplicationSource * last_focused_source; /* Not a reference */
+	ubuntu_ui_session_lifecycle_observer observer_definition;
 #endif
 
 	GHashTable * applications;
@@ -119,20 +120,6 @@ source_iface_init (HudSourceInterface *iface)
 	return;
 }
 
-#ifdef HAVE_HYBRIS
-/* Observer definition for libhybris */
-/* NOTE: Can't be const because context must be set at runtime, this will break
-   if more than one application list is allocated. */
-static ubuntu_ui_session_lifecycle_observer observer_definition = {
-	.on_session_requested = session_requested,
-	.on_session_born = session_born,
-	.on_session_unfocused = session_unfocused,
-	.on_session_focused = session_focused,
-	.on_session_died = session_died,
-	.context = NULL,
-};
-#endif
-
 /* Instance Init */
 static void
 hud_application_list_init (HudApplicationList *self)
@@ -150,8 +137,14 @@ hud_application_list_init (HudApplicationList *self)
 		G_CALLBACK(view_opened), self);
 #endif
 #ifdef HAVE_HYBRIS
-	observer_definition.context = self;
-	ubuntu_ui_session_install_session_lifecycle_observer(&observer_definition);
+	self->priv->observer_definition.on_session_requested = session_requested;
+	self->priv->observer_definition.on_session_born = session_born;
+	self->priv->observer_definition.on_session_unfocused = session_unfocused;
+	self->priv->observer_definition.on_session_focused = session_focused;
+	self->priv->observer_definition.on_session_died = session_died;
+	self->priv->observer_definition.context = self;
+
+	ubuntu_ui_session_install_session_lifecycle_observer(&self->priv->observer_definition);
 #endif
 
 
