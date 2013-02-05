@@ -312,6 +312,7 @@ test_menus_model_deep (void)
 	hud_menu_model_collector_add_endpoint(collector,
 	                                      "Prefix",
 	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH,
 	                                      HUD_TEST_UTILS_LOADER_PATH);
 
 	hud_test_utils_process_mainloop(100);
