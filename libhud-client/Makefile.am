@@ -1,6 +1,4 @@
 
-SUBDIRS = tests
-
 lib_LTLIBRARIES = libhud-client.la
 
 ABI_VERSION = 1
