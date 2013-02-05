@@ -2,6 +2,8 @@
 #include <libdbustest/dbus-test.h>
 #include <hud-client.h>
 
+#include "hudtestutils.h"
+
 /* Kill everything if we fail */
 static gboolean
 unable_to_start_hud (gpointer user_data)
@@ -102,7 +104,7 @@ test_connection_create (void)
 
 	g_object_unref(con);
 	g_object_unref(service);
-	g_object_unref(session);
+	hud_test_utils_wait_for_connection_close(session);
 
 	return;
 }
@@ -136,7 +138,7 @@ test_query_create (void)
 
 	g_object_unref(query);
 	g_object_unref(service);
-	g_object_unref(session);
+	hud_test_utils_wait_for_connection_close(session);
 
 	return;
 }
@@ -166,7 +168,7 @@ test_query_update (void)
 
 	g_object_unref(query);
 	g_object_unref(service);
-	g_object_unref(session);
+	hud_test_utils_wait_for_connection_close(session);
 
 	return;
 }
@@ -208,7 +210,7 @@ test_query_custom (void)
 	g_object_unref(con);
 	g_object_unref(query);
 	g_object_unref(service);
-	g_object_unref(session);
+	hud_test_utils_wait_for_connection_close(session);
 
 	return;
 }

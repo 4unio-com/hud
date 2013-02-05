@@ -965,6 +965,7 @@ libhud_client_test_CFLAGS = \
 	$(TEST_CFLAGS)
 libhud_client_test_LDADD = \
 	$(top_builddir)/libhud-client/libhud-client.la \
+	libhud-tests.la \
 	$(HUD_LIBS) \
 	$(DBUSTEST_LIBS) \
 	$(TEST_LIBS)
