@@ -369,6 +369,19 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 }
 #endif
 
+#ifdef HAVE_HYBRIS
+/* When a session gets focus */
+static void
+session_focused (ubuntu_ui_session_properties props, void * context)
+{
+	if (hud_application_list_name_in_ignore_list(&props)) {
+		return;
+	}
+
+	return;
+}
+#endif
+
 #ifdef HAVE_BAMF
 /* A new view has been opened by BAMF */
 static void
@@ -401,19 +414,6 @@ view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 static void
 session_born (ubuntu_ui_session_properties props, void * context)
 {
-
-	return;
-}
-#endif
-
-#ifdef HAVE_HYBRIS
-/* When a session gets focus */
-static void
-session_focused (ubuntu_ui_session_properties props, void * context)
-{
-	if (hud_application_list_name_in_ignore_list(&props)) {
-		return;
-	}
 
 	return;
 }
