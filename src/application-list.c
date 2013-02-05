@@ -384,6 +384,19 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 		return;
 	}
 
+	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+
+	HudApplicationSource * source = bamf_app_to_source(list, &props);
+	if (source == NULL) {
+		return;
+	}
+
+	/* NOTE: We don't really have a window to add here, but this
+	   also adjusts focus, which is how we're passing it down.  So
+	   what'll happen is that this'll trigger the dummy function since
+	   we can't get window IDs anyway. */
+	hud_application_source_add_window(source, &props);
+
 	return;
 }
 #endif
