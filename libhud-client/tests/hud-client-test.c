@@ -2,6 +2,14 @@
 #include <libdbustest/dbus-test.h>
 #include <hud-client.h>
 
+/* Kill everything if we fail */
+static gboolean
+unable_to_start_hud (gpointer user_data)
+{
+	g_error("Unable to start HUD service in time");
+	return FALSE;
+}
+
 /* Pull all the code to start the HUD service into one helper function */
 static void
 start_hud_service (DbusTestService ** service, GDBusConnection ** session)
@@ -20,9 +28,15 @@ start_hud_service (DbusTestService ** service, GDBusConnection ** session)
 	dbus_test_service_add_task(*service, dummy);
 	g_object_unref(dummy);
 
+	/* Add a timeout */
+	gulong timeout = g_timeout_add_seconds(5, unable_to_start_hud, NULL);
+
 	/* Get HUD up and running and us on that bus */
 	g_debug("Starting up HUD service");
 	dbus_test_service_start_tasks(*service);
+
+	/* Remove timeout */
+	g_source_remove(timeout);
 
 	/* Set us not to exit when the service goes */
 	*session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
