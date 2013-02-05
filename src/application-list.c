@@ -63,11 +63,15 @@ static void view_opened                     (BamfMatcher *             matcher,
                                              gpointer                  user_data);
 #endif
 #ifdef HAVE_HYBRIS
+static void session_requested               (ubuntu_ui_well_known_application app,
+                                             void *                    context);
 static void session_born                    (ubuntu_ui_session_properties props,
                                              void *                    context);
 static void session_focused                 (ubuntu_ui_session_properties props,
                                              void *                    context);
 static void session_unfocused               (ubuntu_ui_session_properties props,
+                                             void *                    context);
+static void session_died                    (ubuntu_ui_session_properties props,
                                              void *                    context);
 #endif
 static void source_use                      (HudSource *               hud_source);
@@ -120,11 +124,11 @@ source_iface_init (HudSourceInterface *iface)
 /* NOTE: Can't be const because context must be set at runtime, this will break
    if more than one application list is allocated. */
 static ubuntu_ui_session_lifecycle_observer observer_definition = {
-	.on_session_requested = NULL,
+	.on_session_requested = session_requested,
 	.on_session_born = session_born,
 	.on_session_unfocused = session_unfocused,
 	.on_session_focused = session_focused,
-	.on_session_died = NULL,
+	.on_session_died = session_died,
 	.context = NULL,
 };
 #endif
@@ -415,6 +419,22 @@ session_unfocused (ubuntu_ui_session_properties props, void * context)
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(context);
 	list->priv->last_focused_source = NULL;
+	return;
+}
+
+/* This function does nothing, but Hybris isn't smart enough to handle
+   NULL pointers, so we need to fill in the structure. */
+static void
+session_requested (ubuntu_ui_well_known_application app, void * context)
+{
+	return;
+}
+
+/* This function does nothing, but Hybris isn't smart enough to handle
+   NULL pointers, so we need to fill in the structure. */
+static void
+session_died (ubuntu_ui_session_properties props, void * context)
+{
 	return;
 }
 #endif
