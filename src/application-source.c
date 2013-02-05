@@ -546,7 +546,7 @@ hud_application_source_bamf_app_id (AbstractApplication * bapp)
 	desktop_file = bamf_application_get_desktop_file(bapp);
 #endif
 #ifdef HAVE_HYBRIS
-	desktop_file = ubuntu_ui_session_properties_get_desktop_file_hint(bapp);
+	desktop_file = ubuntu_ui_session_properties_get_desktop_file_hint(*bapp);
 #endif
 	if (desktop_file == NULL) {
 		/* Some apps might not be identifiable.  Eh, don't care then */
