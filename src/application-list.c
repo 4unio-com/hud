@@ -112,9 +112,15 @@ source_iface_init (HudSourceInterface *iface)
 
 #ifdef HAVE_HYBRIS
 /* Observer definition for libhybris */
+/* NOTE: Can't be const because context must be set at runtime, this will break
+   if more than one application list is allocated. */
 static ubuntu_ui_session_lifecycle_observer observer_definition = {
+	.on_session_requested = NULL,
 	.on_session_born = session_born,
+	.on_session_unfocused = NULL,
 	.on_session_focused = session_focused,
+	.on_session_died = NULL,
+	.context = NULL,
 };
 #endif
 
