@@ -757,7 +757,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 		desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
 #endif
 #ifdef HAVE_HYBRIS
-		desktop_file = ubuntu_ui_session_properties_get_desktop_file_hint(app->priv->bamf_app);
+		desktop_file = ubuntu_ui_session_properties_get_desktop_file_hint(*app->priv->bamf_app);
 #endif
 		if (desktop_file != NULL) {
 			GKeyFile * kfile = g_key_file_new();
