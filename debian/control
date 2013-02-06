@@ -36,6 +36,7 @@ Build-Depends: bamfdaemon,
                python3-dbusmock,
                libpocketsphinx-dev,
                libsphinxbase-dev,
+               julius (>= 4.2.2-0ubuntu2),
                libjulius-dev (>= 4.2.2-0ubuntu2),
                libhybris-dev,
 Standards-Version: 3.9.4
