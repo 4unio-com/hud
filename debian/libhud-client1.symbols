@@ -5,11 +5,11 @@ libhud-client.so.1 libhud-client1 #MINVER#
  hud_client_connection_new@Base 13.04.0
  hud_client_connection_new_query@Base 13.04.0
  hud_client_param_get_actions@Base 13.04.0-0ubuntu1~ppa3
- hud_client_param_get_address@Base 13.04.0-0ubuntu1~ppa3
  hud_client_param_get_model@Base 13.04.0-0ubuntu1~ppa3
- hud_client_param_get_section@Base 13.04.0-0ubuntu1~ppa3
  hud_client_param_get_type@Base 13.04.0-0ubuntu1~ppa3
  hud_client_param_new@Base 13.04.0-0ubuntu1~ppa3
+ hud_client_param_send_cancel@Base 13.04.0-0ubuntu1~ppa3
+ hud_client_param_send_reset@Base 13.04.0-0ubuntu1~ppa3
  hud_client_query_execute_command@Base 13.04.0
  hud_client_query_get_appstack_model@Base 13.04.0
  hud_client_query_execute_param_command@Base 13.04.0-0ubuntu1~ppa3
