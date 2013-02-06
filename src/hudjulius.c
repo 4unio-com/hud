@@ -212,7 +212,7 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
     const gchar *hlist)
 {
   const gchar *argv[] =
-  { "julius", "-input", "pulseaudio", "-gram", gram, "-h", hmm, "-hlist", hlist };
+  { "julius", "-input", "alsa", "-gram", gram, "-h", hmm, "-hlist", hlist };
   const gint argc = 9;
 
   Jconf *jconf = j_config_load_args_new (argc, (char **)argv);
@@ -379,8 +379,8 @@ hud_julius_build_grammar (HudJulius *self, GList *items)
           /* we only need to write out the vocab entry for a new token */
           g_output_stream_write (voca_output, "% ", g_utf8_strlen ("% ", -1),
                                       NULL, NULL );
-          g_output_stream_write (voca_output, word,
-                        g_utf8_strlen (word, -1), NULL, NULL );
+          g_output_stream_write (voca_output, voca_id_str,
+                        g_utf8_strlen (voca_id_str, -1), NULL, NULL );
           g_output_stream_write (voca_output, ":\n", g_utf8_strlen (":\n", -1),
                               NULL, NULL );
 
@@ -410,8 +410,8 @@ hud_julius_build_grammar (HudJulius *self, GList *items)
 
         gchar *voca_id_str = g_strdup_printf("TOKEN_%d", voca_id);
 
-        g_output_stream_write (grammar_output, word,
-            g_utf8_strlen (word, -1), NULL, NULL );
+        g_output_stream_write (grammar_output, voca_id_str,
+            g_utf8_strlen (voca_id_str, -1), NULL, NULL );
         g_output_stream_write (grammar_output, " ", g_utf8_strlen (" ", -1),
                       NULL, NULL );
         g_free(voca_id_str);
