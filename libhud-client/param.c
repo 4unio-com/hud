@@ -31,6 +31,9 @@ struct _HudClientParamPrivate {
 	gchar * action_path;
 	gchar * model_path;
 	gint model_section;
+
+	GMenuModel * model;
+	GActionGroup * actions;
 };
 
 #define HUD_CLIENT_PARAM_GET_PRIVATE(o) \
@@ -75,6 +78,8 @@ hud_client_param_dispose (GObject *object)
 
 	action_write_state(param, "end");
 
+	g_clear_object(&param->priv->model);
+	g_clear_object(&param->priv->actions);
 	g_clear_object(&param->priv->session);
 
 	G_OBJECT_CLASS (hud_client_param_parent_class)->dispose (object);
@@ -176,25 +181,17 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 	param->priv->model_path = g_strdup(model_path);
 	param->priv->model_section = model_section;
 
+	g_warn_if_fail(model_section == 1);
+	GDBusMenuModel * base_model = g_dbus_menu_model_get(param->priv->session, param->priv->dbus_address, param->priv->model_path);
+	param->priv->model = g_menu_model_get_item_link(G_MENU_MODEL(base_model), 0, G_MENU_LINK_SUBMENU);
+	g_object_unref(base_model);
+
+	GDBusActionGroup * dbus_ag = g_dbus_action_group_get(param->priv->session, param->priv->dbus_address, param->priv->action_path);
+	param->priv->actions = G_ACTION_GROUP(dbus_ag);
+
 	action_write_state(param, "start");
 
 	return param;
-}
-
-/**
- * hud_client_param_get_address:
- * @param: The #HudClientParam to query
- *
- * The address on dbus of everything
- *
- * Return value: Address to chat with
- */
-const gchar *
-hud_client_param_get_address (HudClientParam * param)
-{
-	g_return_val_if_fail(HUD_CLIENT_IS_PARAM(param), NULL);
-
-	return param->priv->dbus_address;
 }
 
 /**
@@ -203,14 +200,14 @@ hud_client_param_get_address (HudClientParam * param)
  *
  * The object path to the actions
  *
- * Return value: An object path
+ * Return value: (transfer none): A #GActionGroup that has the actions in it
  */
-const gchar *
+GActionGroup *
 hud_client_param_get_actions (HudClientParam * param)
 {
 	g_return_val_if_fail(HUD_CLIENT_IS_PARAM(param), NULL);
 
-	return param->priv->action_path;
+	return param->priv->actions;
 }
 
 /**
@@ -219,28 +216,44 @@ hud_client_param_get_actions (HudClientParam * param)
  *
  * The object path to the model
  *
- * Return value: An object path
+ * Return value: (transfer none): The menu model of the pane
  */
-const gchar *
+GMenuModel *
 hud_client_param_get_model (HudClientParam * param)
 {
 	g_return_val_if_fail(HUD_CLIENT_IS_PARAM(param), NULL);
 
-	return param->priv->model_path;
+	return param->priv->model;
 }
 
 /**
- * hud_client_param_get_section:
+ * hud_client_param_send_reset:
  * @param: The #HudClientParam to query
  *
- * The section in the model to use as the base
- *
- * Return value: An index to the model
+ * Send the command to the application to reset the values
+ * of the actions in the pane.
  */
-gint
-hud_client_param_get_section (HudClientParam * param)
+void
+hud_client_param_send_reset (HudClientParam * param)
 {
-	g_return_val_if_fail(HUD_CLIENT_IS_PARAM(param), 0);
+	g_return_if_fail(HUD_CLIENT_IS_PARAM(param));
 
-	return param->priv->model_section;
+	action_write_state(param, "reset");
+	return;
+}
+
+/**
+ * hud_client_param_send_cancel:
+ * @param: The #HudClientParam to query
+ *
+ * Send the command to the application to cancel the values
+ * of the actions in the panel and expect it to close soon.
+ */
+void
+hud_client_param_send_cancel (HudClientParam * param)
+{
+	g_return_if_fail(HUD_CLIENT_IS_PARAM(param));
+
+	action_write_state(param, "cancel");
+	return;
 }

@@ -3,6 +3,7 @@
 HudClientQuery
 HudClientQueryClass
 hud_client_query_execute_command
+hud_client_query_execute_param_command
 hud_client_query_get_appstack_model
 hud_client_query_get_query
 hud_client_query_get_results_model
@@ -46,11 +47,10 @@ hud_client_connection_get_type
 HudClientParam
 HudClientParamClass
 hud_client_param_get_actions
-hud_client_param_get_address
 hud_client_param_get_model
-hud_client_param_get_section
 hud_client_param_new
-hud_client_query_execute_param_command
+hud_client_param_send_cancel
+hud_client_param_send_reset
 <SUBSECTION Standard>
 HUD_CLIENT_IS_PARAM
 HUD_CLIENT_IS_PARAM_CLASS
