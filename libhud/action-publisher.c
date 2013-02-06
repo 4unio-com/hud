@@ -1314,14 +1314,14 @@ hud_action_description_get_action_target (HudActionDescription *description)
 /**
  * hud_action_description_add_description:
  * @parent: a #HudActionDescription
- * @child: The child #HudActionDescription to add
+ * @child: The child #GMenuModel to add
  *
  * A function to put one action description as a child for the first
  * one.  This is used for parameterized actions where one can set up
  * children that are displayed on the 'dialog' mode of the HUD.
  */
 void
-hud_action_description_add_description (HudActionDescription * parent, HudActionDescription * child)
+hud_action_description_set_parameterized (HudActionDescription * parent, GMenuModel * child)
 {
 
 	return;
