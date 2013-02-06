@@ -36,7 +36,7 @@ Build-Depends: bamfdaemon,
                python3-dbusmock,
                libpocketsphinx-dev,
                libsphinxbase-dev,
-               libjulius-dev,
+               libjulius-dev (>= 4.2.2-0ubuntu2),
                libhybris-dev,
 Standards-Version: 3.9.4
 Homepage: http://launchpad.net/hud
@@ -53,7 +53,7 @@ Depends: ${misc:Depends},
          pocketsphinx-hmm-en-hub4wsj (>= 0.8.0),
          pocketsphinx-lm-en-hub4 (>= 0.8.0),
          irstlm,
-         julius-voxforge,
+         julius-voxforge (>= 0.1.1~daily20130206),
 Conflicts: indicator-appmenu (<< 13),
 Description: Backend for the Unity HUD
  .
