@@ -1335,6 +1335,21 @@ hud_action_description_get_action_target (HudActionDescription *description)
 void
 hud_action_description_set_parameterized (HudActionDescription * parent, GMenuModel * child)
 {
+	g_return_if_fail(HUD_IS_ACTION_DESCRIPTION(parent));
+	g_return_if_fail(child == NULL || G_IS_MENU_MODEL(child)); /* NULL is allowed to clear it */
+
+	if (parent->links == NULL) {
+		parent->links = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+	}
+
+	if (child != NULL) {
+		g_hash_table_insert(parent->links, g_strdup(G_MENU_LINK_SUBMENU), g_object_ref(child));
+	} else {
+		g_hash_table_remove(parent->links, G_MENU_LINK_SUBMENU);
+	}
+
+	g_signal_emit (parent, hud_action_description_changed_signal,
+	               g_quark_try_string (G_MENU_LINK_SUBMENU), G_MENU_LINK_SUBMENU);
 
 	return;
 }
