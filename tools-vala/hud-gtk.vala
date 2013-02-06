@@ -88,6 +88,15 @@ namespace HudGtk {
 			voice_label.label = "Loading";
 		}
 		
+		void voice_query_failed (HudClient.Query proxy, string cause) {
+			debug("Voice query failed, cause=[%s]", cause);
+			voice_label.label = "Idle";
+			var dialog = new Gtk.MessageDialog(null,Gtk.DialogFlags.MODAL,Gtk.MessageType.ERROR, Gtk.ButtonsType.OK, "Voice query failed, cause=[%s]", cause);
+			dialog.set_title("Voice query failed");
+			dialog.run();
+			dialog.destroy();
+		}
+		
 		void voice_query_listening (HudClient.Query proxy) {
 			debug("Voice query is listening");
 			voice_label.label = "Listening";
@@ -128,6 +137,7 @@ namespace HudGtk {
 
 			voice_label = builder.get_object ("voice-status") as Gtk.Label;
 			query.voice_query_loading.connect ( voice_query_loading );
+			query.voice_query_failed.connect ( voice_query_failed );
 			query.voice_query_listening.connect ( voice_query_listening );
 			query.voice_query_heard_something.connect ( voice_query_heard_something );
 			query.voice_query_finished.connect ( voice_query_finished );

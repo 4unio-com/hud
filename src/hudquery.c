@@ -714,15 +714,39 @@ hud_query_utterance_loop(HudQuery *self, cmd_ln_t *config, ps_decoder_t *ps)
 
   if ((ad = ad_open_dev (cmd_ln_str_r (config, "-adcdev"),
       (int) cmd_ln_float32_r(config, "-samprate"))) == NULL )
-    g_error("Failed to open audio device\n");
+  {
+    g_warning("Failed to open audio device");
+    hud_query_iface_com_canonical_hud_query_emit_voice_query_failed (
+        HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel),
+        "Failed to open audio device");
+    return NULL;
+  }
 
   /* Initialize continuous listening module */
   if ((cont = cont_ad_init (ad, ad_read)) == NULL )
-    g_error("Failed to initialize voice activity detection\n");
+  {
+    hud_query_iface_com_canonical_hud_query_emit_voice_query_failed (
+        HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel),
+        "Failed to initialize voice activity detection");
+    g_warning("Failed to initialize voice activity detection");
+    return NULL;
+  }
   if (ad_start_rec (ad) < 0)
-    g_error("Failed to start recording\n");
+  {
+    hud_query_iface_com_canonical_hud_query_emit_voice_query_failed (
+            HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel),
+            "Failed to start recording");
+    g_warning("Failed to start recording");
+    return NULL;
+  }
   if (cont_ad_calib (cont) < 0)
-    g_error("Failed to calibrate voice activity detection\n");
+  {
+    hud_query_iface_com_canonical_hud_query_emit_voice_query_failed (
+                HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel),
+                "Failed to calibrate voice activity detection");
+    g_warning("Failed to calibrate voice activity detection");
+    return NULL;
+  }
 
   /* Indicate listening for next utterance */
   g_debug("Voice query is listening");
@@ -736,7 +760,13 @@ hud_query_utterance_loop(HudQuery *self, cmd_ln_t *config, ps_decoder_t *ps)
     sleep_msec (100);
 
   if (k < 0)
-    g_error("Failed to read audio");
+  {
+    g_warning("Failed to read audio");
+    hud_query_iface_com_canonical_hud_query_emit_voice_query_failed (
+        HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel),
+        "Failed to read audio");
+    return NULL;
+  }
 
   /*
    * Non-zero amount of data received; start recognition of new utterance.

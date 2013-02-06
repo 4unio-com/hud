@@ -54,6 +54,10 @@
 
 		<signal name="VoiceQueryLoading">
 		</signal>
+
+		<signal name="VoiceQueryFailed">
+			<arg type="s" name="cause" direction="out" />
+		</signal>
 		
 		<signal name="VoiceQueryListening">
 		</signal>
