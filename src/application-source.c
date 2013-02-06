@@ -622,7 +622,7 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 #ifdef HAVE_HYBRIS
 	if (app->priv->desktop_file == NULL) {
 		app->priv->desktop_file = g_strdup(ubuntu_ui_session_properties_get_desktop_file_hint(*bapp));
-		app_iface_com_canonical_hud_application_set_desktop_path(source->priv->skel, app->priv->desktop_file);
+		app_iface_com_canonical_hud_application_set_desktop_path(app->priv->skel, app->priv->desktop_file);
 	}
 #endif
 
