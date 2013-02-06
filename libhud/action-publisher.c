@@ -1310,3 +1310,19 @@ hud_action_description_get_action_target (HudActionDescription *description)
 {
   return description->target;
 }
+
+/**
+ * hud_action_description_add_description:
+ * @parent: a #HudActionDescription
+ * @child: The child #HudActionDescription to add
+ *
+ * A function to put one action description as a child for the first
+ * one.  This is used for parameterized actions where one can set up
+ * children that are displayed on the 'dialog' mode of the HUD.
+ */
+void
+hud_action_description_add_description (HudActionDescription * parent, HudActionDescription * child)
+{
+
+	return;
+}
