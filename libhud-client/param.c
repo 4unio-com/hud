@@ -99,28 +99,6 @@ hud_client_param_finalize (GObject *object)
 	return;
 }
 
-/* Handle the async callback from the DBus call and make sure it
-   prints out something so we can track it */
-static void
-state_write_cb (GObject * object, GAsyncResult * res, gpointer user_data)
-{
-	const gchar * call = (const gchar *)user_data;
-	g_debug("Call '%s' completed", call);
-
-	GError * error = NULL;
-	GVariant * ret = g_dbus_connection_call_finish(G_DBUS_CONNECTION(object), res, &error);
-
-	if (error != NULL) {
-		g_warning("Unable to call '%s' on action: %s", call, error->message);
-	}
-
-	if (ret != NULL) {
-		g_variant_unref(ret);
-	}
-
-	return;
-}
-
 /* Writes to the base action a particular state */
 static void
 action_write_state (HudClientParam * param, const gchar * action)
@@ -131,24 +109,33 @@ action_write_state (HudClientParam * param, const gchar * action)
 		return;
 	}
 
-	GVariantBuilder tuple;
-	g_variant_builder_init(&tuple, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value(&tuple, g_variant_new_string(action));
-	g_variant_builder_add_value(&tuple, g_variant_new_string(""));
-	g_variant_builder_add_value(&tuple, g_variant_new_array(G_VARIANT_TYPE_VARIANT, NULL, 0));
+	g_return_if_fail(g_action_group_has_action(param->priv->actions, param->priv->base_action));
 
-	g_dbus_connection_call(param->priv->session,
-	                       param->priv->dbus_address,
-	                       param->priv->action_path,
-	                       "org.gtk.Actions",
-	                       "Activate",
-	                       g_variant_builder_end(&tuple),
-	                       NULL, /* return value */
-	                       G_DBUS_CALL_FLAGS_NONE,
-	                       -1, /* default timeout */
-	                       NULL, /* cancellable */
-	                       state_write_cb,
-	                       (gpointer)action);
+	const GVariantType * type = g_action_group_get_action_parameter_type(param->priv->actions, param->priv->base_action);
+
+	GVariant * action_param = NULL;
+
+	if (g_variant_type_equal(type, G_VARIANT_TYPE_STRING)) {
+		action_param = g_variant_new_string(action);
+	} else if (g_variant_type_equal(type, G_VARIANT_TYPE("(ssav)"))) {
+		GVariantBuilder tuple;
+
+		g_variant_builder_init(&tuple, G_VARIANT_TYPE_TUPLE);
+		g_variant_builder_add_value(&tuple, g_variant_new_string(action));
+		g_variant_builder_add_value(&tuple, g_variant_new_string(""));
+		g_variant_builder_add_value(&tuple, g_variant_new_array(G_VARIANT_TYPE_VARIANT, NULL, 0));
+
+		action_param = g_variant_builder_end(&tuple);
+	}
+
+	if (action_param == NULL) {
+		gchar * typestring = g_variant_type_dup_string(type);
+		g_warning("Unable to signal to a action with the parameter type of: %s", typestring);
+		g_free(typestring);
+		return;
+	}
+
+	g_action_group_activate_action(param->priv->actions, param->priv->base_action, action_param);
 
 	return;
 }
