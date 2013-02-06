@@ -6,6 +6,7 @@ libhud.so.1 libhud1 #MINVER#
  hud_action_description_new@Base 13.04.0
  hud_action_description_set_attribute@Base 13.04.0
  hud_action_description_set_attribute_value@Base 13.04.0
+ hud_action_description_set_parameterized@Base 13.04.0-0ubuntu1~ppa3
  hud_action_entries_install@Base 13.04.0
  hud_action_get_is_active@Base 13.04.0
  hud_action_get_operation@Base 13.04.0

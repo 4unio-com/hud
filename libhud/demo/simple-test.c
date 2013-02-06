@@ -31,6 +31,17 @@ main (int argc, char * argv[])
 	hud_action_publisher_add_action_group(publisher, "hud", "/actions");
 	hud_action_publisher_add_description(publisher, desc);
 
+	HudActionDescription * paramdesc = hud_action_description_new("hud.simple-action", NULL);
+	hud_action_description_set_attribute_value(paramdesc, G_MENU_ATTRIBUTE_LABEL, g_variant_new_string("Parameterized Action"));
+	hud_action_publisher_add_description(publisher, paramdesc);
+
+	GMenu * menu = g_menu_new();
+	g_menu_append_item(menu, g_menu_item_new("Item One", "hud.simple-action")); /* leaks mem */
+	g_menu_append_item(menu, g_menu_item_new("Item Two", "hud.simple-action"));
+	g_menu_append_item(menu, g_menu_item_new("Item Three", "hud.simple-action"));
+
+	hud_action_description_set_parameterized(paramdesc, G_MENU_MODEL(menu));
+
 	hud_manager_add_actions(manager, publisher);
 
 	GMainLoop * mainloop = g_main_loop_new(NULL, FALSE);
