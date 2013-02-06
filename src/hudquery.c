@@ -26,6 +26,7 @@
 #include "hudresult.h"
 #include "hudmenumodelcollector.h"
 #include "hudsphinx.h"
+#include "hudjulius.h"
 
 /**
  * SECTION:hudquery
@@ -259,7 +260,7 @@ hud_query_finalize (GObject *object)
     hud_token_list_free (query->token_list);
     query->token_list = NULL;
   }
-  g_free (query->search_string);
+  g_clear_pointer(&query->search_string, g_free);
 
   g_clear_pointer(&query->object_path, g_free);
   g_clear_pointer(&query->results_name, g_free);
@@ -279,10 +280,14 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   g_debug("Voice query is loading");
   hud_query_iface_com_canonical_hud_query_emit_voice_query_loading (
       HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (skel));
-  HudSphinx *sphinx = hud_sphinx_new (skel);
-  gchar * search_string = hud_sphinx_voice_query (sphinx,
+//  HudSphinx *sphinx = hud_sphinx_new (skel);
+//  gchar * search_string = hud_sphinx_voice_query (sphinx,
+//      query->current_source);
+//  g_object_unref(sphinx);
+  HudJulius *julius = hud_julius_new (skel);
+  gchar * search_string = hud_julius_voice_query (julius,
       query->current_source);
-  g_object_unref(sphinx);
+  g_object_unref(julius);
   g_debug("Voice query is finished");
   hud_query_iface_com_canonical_hud_query_emit_voice_query_finished(
       HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (skel), search_string);

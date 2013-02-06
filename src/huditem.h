@@ -38,6 +38,7 @@ typedef struct _HudItemPrivate                              HudItemPrivate;
 typedef struct _HudItemClass                                HudItemClass;
 typedef struct _HudItem                                     HudItem;
 
+typedef struct _PronounceDict                               PronounceDict;
 typedef struct _HudItemPronunciationData                    HudItemPronunciationData;
 
 struct _HudItemClass
@@ -60,6 +61,8 @@ struct _HudItemPronunciationData
 {
   GHashTable *table;
   GRegex *regex;
+  GPtrArray *list;
+  PronounceDict *dict;
 };
 
 GType                   hud_item_get_type                               (void);

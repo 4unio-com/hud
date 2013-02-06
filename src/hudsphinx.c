@@ -19,6 +19,7 @@
 #include "hudsphinx.h"
 #include "hud-query-iface.h"
 #include "hudsource.h"
+#include "pronounce-dict.h"
 
 /* Pocket Sphinx */
 #include "pocketsphinx.h"
@@ -72,11 +73,7 @@ hud_sphinx_init (HudSphinx *self)
 static void
 hud_sphinx_finalize (GObject *object)
 {
-  g_debug("finalize:");
   HudSphinx *self = HUD_SPHINX (object);
-  g_debug("self=[%p]", self);
-  g_debug("self->skel=[%p]", self->skel);
-  g_debug("self->alpha=[%p]", self->alphanumeric_regex);
 
   g_clear_object(&self->skel);
   g_clear_pointer(&self->alphanumeric_regex, g_regex_unref);
@@ -90,11 +87,6 @@ hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery * skel)
 {
   HudSphinx *self = g_object_new (HUD_TYPE_SPHINX, NULL);
   self->skel = g_object_ref(skel);
-
-  g_debug("new;");
-  g_debug("self=[%p]", self);
-  g_debug("self->skel=[%p]", self->skel);
-  g_debug("self->alpha=[%p]", self->alphanumeric_regex);
 
   return self;
 }
@@ -299,6 +291,12 @@ hud_sphinx_recognize_audio(HudSphinx *self, const gchar * lm_filename, const gch
   return hyp;
 }
 
+static void
+free_func (gpointer data)
+{
+  g_ptr_array_free((GPtrArray*) data, TRUE);
+}
+
 /* Function to try and get a query from voice */
 gchar *
 hud_sphinx_voice_query (HudSphinx *self, HudSource *source)
@@ -316,8 +314,10 @@ hud_sphinx_voice_query (HudSphinx *self, HudSource *source)
 
   /* Get the pronounciations for the items */
   GHashTable * pronounciations = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify)g_strfreev);
-  HudItemPronunciationData pronounciation_data = {pronounciations, self->alphanumeric_regex};
+  GPtrArray *command_list = g_ptr_array_new_with_free_func(free_func);
+  HudItemPronunciationData pronounciation_data = {pronounciations, self->alphanumeric_regex, command_list, pronounce_dict_get_sphinx()};
   g_list_foreach(items, (GFunc)hud_item_insert_pronounciation, &pronounciation_data);
+  g_ptr_array_free(command_list, TRUE);
 
   /* Get our cache together */
   gchar * string_filename = NULL;

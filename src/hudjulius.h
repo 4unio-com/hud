@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2012 Canonical Ltd.
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3, as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranties of
+ * MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef HUDJULIUS_H_
 #define HUDJULIUS_H_
 
@@ -14,21 +30,9 @@
 #define HUD_JULIUS_GET_CLASS(obj)        (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_TYPE_JULIUS, HudJuliusClass))
 
 typedef struct _HudJulius        HudJulius;
-typedef struct _HudJuliusClass   HudJuliusClass;
 
-struct _HudJulius
-{
-  GObject parent_instance;
-
-  /* instance members */
-};
-
-struct _HudJuliusClass
-{
-  GObjectClass parent_class;
-
-  /* class members */
-};
+typedef struct _HudQueryIfaceComCanonicalHudQuery HudQueryIfaceComCanonicalHudQuery;
+typedef struct _HudSource         HudSource;
 
 /* used by HUD_TYPE_JULIUS */
 GType hud_julius_get_type (void);
@@ -36,5 +40,9 @@ GType hud_julius_get_type (void);
 /*
  * Method definitions.
  */
+
+HudJulius * hud_julius_new(HudQueryIfaceComCanonicalHudQuery * skel);
+
+gchar * hud_julius_voice_query (HudJulius *self, HudSource *source);
 
 #endif /* HUDJULIUS_H_ */
