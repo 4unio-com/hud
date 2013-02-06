@@ -1195,7 +1195,7 @@ hud_action_description_new (const gchar *action_name,
                        g_variant_ref_sink (g_variant_new_string (action_name)));
 
   if (action_target)
-    g_hash_table_insert (description->attrs, g_strdup ("target"), g_variant_ref (action_target));
+    g_hash_table_insert (description->attrs, g_strdup ("target"), g_variant_ref_sink (action_target));
 
   return description;
 }
