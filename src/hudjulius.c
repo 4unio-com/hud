@@ -458,7 +458,25 @@ hud_julius_build_grammar (HudJulius *self, GList *items)
 
 static void rm_rf(const gchar *path)
 {
-
+  GError *error = NULL;
+  GDir *dir = g_dir_open(path, 0, &error);
+  if (dir == NULL)
+  {
+    g_warning("Could not open directory [%s] for deletion: [%s]", path, error->message);
+    g_error_free(error);
+    return;
+  }
+  const gchar *file_name;
+  while ((file_name = g_dir_read_name(dir)))
+  {
+    gchar *file_path = g_build_filename(path, file_name, NULL);
+    g_debug("removing file [%s]", file_path);
+    g_remove(file_path);
+    g_free(file_path);
+  }
+  g_dir_close(dir);
+  g_debug("removing dir [%s]", path);
+  g_rmdir(path);
 }
 
 gchar *
