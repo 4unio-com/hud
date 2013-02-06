@@ -107,11 +107,13 @@ hud_cli_SOURCES = \
 	hud.interface.c
 
 hud_cli_CFLAGS = \
+	$(gtk_CFLAGS) \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-Wall -Werror
 
 hud_cli_LDFLAGS = \
+	$(gtk_LIBS) \
 	$(HUD_LIBS) \
 	$(COVERAGE_LDFLAGS) \
 	-lreadline -lcurses
