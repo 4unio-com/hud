@@ -640,6 +640,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   model_data->export = g_menu_new();
   GMenuItem * item = g_menu_item_new_section(NULL, model_data->model);
   g_menu_append_item(model_data->export, item);
+  g_object_unref(item);
 
   if (collector->base_export_path != NULL) {
     gchar * menu_path = g_strdup_printf("%s/menu%X", collector->base_export_path, GPOINTER_TO_UINT(model_data));
@@ -1093,7 +1094,9 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
 {
   g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
-  hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, bus_name, action_path)), NULL);
+  GActionGroup * group = G_ACTION_GROUP(g_dbus_action_group_get (collector->session, bus_name, action_path));
+  hud_menu_model_collector_add_actions(collector, group, NULL);
+  g_object_unref(group);
 
   GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, menu_path);
   hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix, DEFAULT_MENU_DEPTH);
@@ -1168,4 +1171,3 @@ hud_menu_model_collector_get_items (HudSource * source)
 
 	return retval;
 }
-

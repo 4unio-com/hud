@@ -34,7 +34,12 @@ struct _HudApplicationSourcePrivate {
 	gchar * path;
 	AppIfaceComCanonicalHudApplication * skel;
 
+#ifdef HAVE_BAMF
 	AbstractApplication * bamf_app;
+#endif
+#ifdef HAVE_HYBRIS
+	gchar * desktop_file;
+#endif
 
 	guint32 focused_window;
 
@@ -153,7 +158,9 @@ hud_application_source_dispose (GObject *object)
 		g_clear_object(&self->priv->skel);
 	}
 
+#ifdef HAVE_BAMF
 	g_clear_object(&self->priv->bamf_app);
+#endif
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->dispose (object);
 	return;
@@ -167,6 +174,9 @@ hud_application_source_finalize (GObject *object)
 
 	g_clear_pointer(&self->priv->app_id, g_free);
 	g_clear_pointer(&self->priv->path, g_free);
+#ifdef HAVE_HYBRIS
+	g_clear_pointer(&self->priv->desktop_file, g_free);
+#endif
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->finalize (object);
 	return;
@@ -307,7 +317,12 @@ hud_application_source_new_for_app (AbstractApplication * bapp)
 	HudApplicationSource * source = hud_application_source_new_for_id(id);
 	g_free(id);
 
+#ifdef HAVE_BAMF
 	source->priv->bamf_app = g_object_ref(bapp);
+#endif
+#ifdef HAVE_HYBRIS
+	source->priv->desktop_file = g_strdup(ubuntu_ui_session_properties_get_desktop_file_hint(*bapp));
+#endif
 
 	return source;
 }
@@ -464,7 +479,11 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	while (g_variant_iter_loop(&action_iter, "(vso)", &id, &prefix, &object)) {
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
 
+#ifdef HAVE_HYBRIS
+		guint32 idn = WINDOW_ID_CONSTANT;
+#else
 		guint32 idn = g_variant_get_int32(id);
+#endif
 
 		HudMenuModelCollector * collector = NULL;
 		get_collectors(app, idn, app->priv->app_id, NULL, &collector);
@@ -482,7 +501,11 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	while (g_variant_iter_loop(&desc_iter, "(vo)", &id, &object)) {
 		g_debug("Adding descriptions: %s", object);
 
+#ifdef HAVE_HYBRIS
+		guint32 idn = WINDOW_ID_CONSTANT;
+#else
 		guint32 idn = g_variant_get_int32(id);
+#endif
 
 		HudMenuModelCollector * collector = NULL;
 		get_collectors(app, idn, app->priv->app_id, NULL, &collector);
@@ -530,11 +553,17 @@ hud_application_source_bamf_app_id (AbstractApplication * bapp)
 #ifdef HAVE_BAMF
 	g_return_val_if_fail(BAMF_IS_APPLICATION(bapp), NULL);
 #endif
+#ifdef HAVE_HYBRIS
+	/* Hybris has no way to check if the pointer is valid */
+#endif
 
 	const gchar * desktop_file = NULL;
 
 #ifdef HAVE_BAMF
 	desktop_file = bamf_application_get_desktop_file(bapp);
+#endif
+#ifdef HAVE_HYBRIS
+	desktop_file = ubuntu_ui_session_properties_get_desktop_file_hint(*bapp);
 #endif
 	if (desktop_file == NULL) {
 		/* Some apps might not be identifiable.  Eh, don't care then */
@@ -574,17 +603,30 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 #ifdef HAVE_BAMF
 	g_return_if_fail(BAMF_IS_APPLICATION(bapp));
 #endif
+#ifdef HAVE_HYBRIS
+	/* Hybris has no way to check if the pointer is valid */
+#endif
 
+#ifdef HAVE_BAMF
 	if (app->priv->bamf_app == NULL) {
 		app->priv->bamf_app = g_object_ref(bapp);
 	}
 
 	g_return_if_fail(app->priv->bamf_app == bapp);
+#endif
+#ifdef HAVE_HYBRIS
+	if (app->priv->desktop_file == NULL) {
+		app->priv->desktop_file = g_strdup(ubuntu_ui_session_properties_get_desktop_file_hint(*bapp));
+	}
+#endif
 
 	hud_application_source_add_window(app, window);
 
 #ifdef HAVE_BAMF
 	app->priv->focused_window = bamf_window_get_xid(window);
+#endif
+#ifdef HAVE_HYBRIS
+	app->priv->focused_window = _ubuntu_ui_session_properties_get_window_id(window);
 #endif
 
 	return;
@@ -625,10 +667,13 @@ hud_application_source_get_id (HudApplicationSource * app)
 typedef struct _window_info_t window_info_t;
 struct _window_info_t {
 	HudApplicationSource * source;  /* Not a ref */
+#ifdef HAVE_BAMF
 	AbstractWindow * window;        /* Not a ref */
+#endif
 	guint32 xid;                    /* Can't be a ref */
 };
 
+#ifdef HAVE_BAMF
 /* When I window gets destroyed we want to clean up it's collectors
    and all that jazz. */
 static void
@@ -647,6 +692,7 @@ window_destroyed (gpointer data, GObject * old_address)
 
 	return;
 }
+#endif
 
 /* If the collector gets free'd first we need to deallocate the memory
    and make sure we don't keep the weak reference. */
@@ -655,9 +701,11 @@ free_window_info (gpointer data)
 {
 	window_info_t * window_info = (window_info_t *)data;
 
+#ifdef HAVE_BAMF
 	if (window_info->window != NULL) {
 		g_object_weak_unref(G_OBJECT(window_info->window), window_destroyed, window_info);
 	}
+#endif
 
 	g_free(window_info);
 	return;
@@ -678,23 +726,34 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 #ifdef HAVE_BAMF
 	g_return_if_fail(BAMF_IS_WINDOW(window));
 #endif
+#ifdef HAVE_HYBRIS
+	/* Hybris has no way to check if the pointer is valid */
+#endif
 
 	guint32 xid = 0;
 #ifdef HAVE_BAMF
 	xid = bamf_window_get_xid(window);
 #endif
+#ifdef HAVE_HYBRIS
+	app->priv->focused_window = _ubuntu_ui_session_properties_get_window_id(window);
+#endif
 
+#ifdef HAVE_BAMF
 	if (app->priv->bamf_app == NULL) {
 		g_debug("No BAMF application object");
 		return;
 	}
+#endif
 
 	window_info_t * window_info = g_new0(window_info_t, 1);
-	window_info->window = window;
 	window_info->xid = xid;
 	window_info->source = app;
 
+#ifdef HAVE_BAMF
+	/* Uhm, this is how we were managing this memory... uhg, hybris */
+	window_info->window = window;
 	g_object_weak_ref(G_OBJECT(window), window_destroyed, window_info);
+#endif
 
 	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
 	if (collector_list == NULL) {
@@ -719,15 +778,26 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 		}
 	}
 
+#ifdef HAVE_BAMF
 	gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
+#endif
+#ifdef HAVE_HYBRIS
+	gchar * app_id = g_strdup(app->priv->app_id);
+#endif
 	const gchar * icon = NULL;
 #ifdef HAVE_BAMF
 	icon = bamf_view_get_icon(BAMF_VIEW(window));
+#endif
+#ifdef HAVE_BAMF
+	/* Hybris can't find window icons, so we want to pull it from the desktop file */
 #endif
 	if (icon == NULL) {
 		const gchar * desktop_file = NULL;
 #ifdef HAVE_BAMF
 		desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
+#endif
+#ifdef HAVE_HYBRIS
+		desktop_file = app->priv->desktop_file;
 #endif
 		if (desktop_file != NULL) {
 			GKeyFile * kfile = g_key_file_new();
@@ -745,6 +815,9 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 		if (mm_collector != NULL) {
 #ifdef HAVE_BAMF
 			hud_menu_model_collector_add_window(mm_collector, window);
+#endif
+#ifdef HAVE_HYBRIS
+			/* We only have GApplication based windows on the desktop, so we don't need this currently */
 #endif
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
 		}
