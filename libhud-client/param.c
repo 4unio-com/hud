@@ -31,6 +31,9 @@ struct _HudClientParamPrivate {
 	gchar * action_path;
 	gchar * model_path;
 	gint model_section;
+
+	GMenuModel * model;
+	GActionGroup * actions;
 };
 
 #define HUD_CLIENT_PARAM_GET_PRIVATE(o) \
@@ -75,6 +78,8 @@ hud_client_param_dispose (GObject *object)
 
 	action_write_state(param, "end");
 
+	g_clear_object(&param->priv->model);
+	g_clear_object(&param->priv->actions);
 	g_clear_object(&param->priv->session);
 
 	G_OBJECT_CLASS (hud_client_param_parent_class)->dispose (object);
@@ -175,6 +180,14 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 	param->priv->action_path = g_strdup(action_path);
 	param->priv->model_path = g_strdup(model_path);
 	param->priv->model_section = model_section;
+
+	g_warn_if_fail(model_section == 1);
+	GDBusMenuModel * base_model = g_dbus_menu_model_get(param->priv->session, param->priv->dbus_address, param->priv->model_path);
+	param->priv->model = g_menu_model_get_item_link(G_MENU_MODEL(base_model), 0, G_MENU_LINK_SUBMENU);
+	g_object_unref(base_model);
+
+	GDBusActionGroup * dbus_ag = g_dbus_action_group_get(param->priv->session, param->priv->dbus_address, param->priv->action_path);
+	param->priv->actions = G_ACTION_GROUP(dbus_ag);
 
 	action_write_state(param, "start");
 
