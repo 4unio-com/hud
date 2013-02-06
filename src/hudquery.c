@@ -103,6 +103,7 @@ static const gchar * results_model_schema[] = {
 	"a(ii)", /* Highlights in description */
 	"s", /* Shortcut */
 	"u", /* Distance */
+	"b", /* Parameterized */
 };
 
 /* Schema that is used in the DeeModel representing
@@ -189,7 +190,8 @@ results_list_to_model (gpointer data, gpointer user_data)
 	columns[4] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
 	columns[5] = g_variant_new_string(hud_item_get_shortcut(item));
 	columns[6] = g_variant_new_uint32(hud_result_get_distance(result, query->max_usage));
-	columns[7] = NULL;
+	columns[7] = g_variant_new_boolean(FALSE);
+	columns[8] = NULL;
 
 	g_free(context);
 
