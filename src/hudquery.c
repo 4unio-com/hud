@@ -190,7 +190,7 @@ results_list_to_model (gpointer data, gpointer user_data)
 	columns[4] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
 	columns[5] = g_variant_new_string(hud_item_get_shortcut(item));
 	columns[6] = g_variant_new_uint32(hud_result_get_distance(result, query->max_usage));
-	columns[7] = g_variant_new_boolean(FALSE);
+	columns[7] = g_variant_new_boolean(HUD_IS_MODEL_ITEM(item) ? hud_model_item_is_parameterized(HUD_MODEL_ITEM(item)) : FALSE);
 	columns[8] = NULL;
 
 	g_free(context);
