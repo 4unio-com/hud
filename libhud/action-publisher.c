@@ -85,6 +85,7 @@ struct _HudActionDescription
   gchar *action;
   GVariant *target;
   GHashTable *attrs;
+  GHashTable *links;
 };
 
 guint hud_action_description_changed_signal;
@@ -126,7 +127,17 @@ hud_aux_get_item_links (GMenuModel  *model,
                         gint         item_index,
                         GHashTable **links)
 {
-  *links = g_hash_table_new (NULL, NULL);
+  HudAux *aux = (HudAux *) model;
+  GSequenceIter *iter;
+  HudActionDescription *description;
+
+  iter = g_sequence_get_iter_at_pos (aux->publisher->descriptions, item_index);
+  description = g_sequence_get (iter);
+
+  if (description->links != NULL)
+    *links = g_hash_table_ref(description->links);
+  else
+    *links = g_hash_table_new (NULL, NULL);
 }
 
 static void
@@ -1141,6 +1152,7 @@ hud_action_description_finalize (GObject *object)
   if (description->target)
     g_variant_unref (description->target);
   g_hash_table_unref (description->attrs);
+  g_clear_pointer(&description->links, g_hash_table_unref);
 
   G_OBJECT_CLASS (hud_action_description_parent_class)
     ->finalize (object);
