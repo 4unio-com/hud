@@ -394,7 +394,9 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 		}
 	}
 	if (mm_collector == NULL) {
-		mm_collector = hud_menu_model_collector_new(appid, NULL, 0);
+		gchar * export_path = g_strdup_printf("%s/window%X", app->priv->path, xid);
+		mm_collector = hud_menu_model_collector_new(appid, NULL, 0, export_path);
+		g_free(export_path);
 
 		if (mm_collector != NULL) {
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
@@ -806,7 +808,9 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	}
 
 	if (mm_collector == NULL) {
-		mm_collector = hud_menu_model_collector_new(app_id, icon, 0);
+		gchar * export_path = g_strdup_printf("%s/window%X", app->priv->path, xid);
+		mm_collector = hud_menu_model_collector_new(app_id, icon, 0, export_path);
+		g_free(export_path);
 
 		if (mm_collector != NULL) {
 #ifdef HAVE_BAMF

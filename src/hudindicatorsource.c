@@ -51,13 +51,17 @@ typedef struct
   const gchar *indicator_name;
   const gchar *user_visible_name;
   const gchar *icon;
+  const gchar *dbus_path;
   gboolean     uses_gmenumodel;
 } IndicatorInfo;
+
+#define HUD_PATH_BASE "/com/canonical/hud/indicator/"
 
 static const IndicatorInfo indicator_info[] = {
   {
     .dbus_name         = "com.canonical.indicator.datetime",
     .dbus_menu_path    = "/com/canonical/indicator/datetime/menu",
+    .dbus_path         = HUD_PATH_BASE "datetime",
     .indicator_name    = "indicator-datetime",
     .user_visible_name = N_("Date"),
     .icon              = "office-calendar"
@@ -65,6 +69,7 @@ static const IndicatorInfo indicator_info[] = {
   {
     .dbus_name         = "com.canonical.indicator.session",
     .dbus_menu_path    = "/com/canonical/indicator/session/menu",
+    .dbus_path         = HUD_PATH_BASE "session",
     .indicator_name    = "indicator-session-device",
     .user_visible_name = N_("Device"),
     .icon              = "system-devices-panel"
@@ -72,6 +77,7 @@ static const IndicatorInfo indicator_info[] = {
   {
     .dbus_name         = "com.canonical.indicator.sound",
     .dbus_menu_path    = "/com/canonical/indicator/sound/menu",
+    .dbus_path         = HUD_PATH_BASE "sound",
     .indicator_name    = "indicator-sound",
     .user_visible_name = N_("Sound"),
     .icon              = "audio-volume-high-panel"
@@ -80,6 +86,7 @@ static const IndicatorInfo indicator_info[] = {
     .dbus_name         = "com.canonical.indicator.messages",
     .dbus_menu_path    = "/com/canonical/indicator/messages/menu",
     .action_path       = "/com/canonical/indicator/messages/menu",
+    .dbus_path         = HUD_PATH_BASE "messages",
     .indicator_name    = "indicator-messages",
     .user_visible_name = N_("Messages"),
     .icon              = "indicator-messages",
@@ -89,6 +96,7 @@ static const IndicatorInfo indicator_info[] = {
     .dbus_name         = "com.canonical.indicator.messages",
     .dbus_menu_path    = "/com/canonical/indicator/messages/phone",
     .action_path       = "/com/canonical/indicator/messages",
+    .dbus_path         = HUD_PATH_BASE "messages_phone",
     .indicator_name    = "indicator-messages-phone",
     .user_visible_name = N_("Messages"),
     .icon              = "indicator-messages",
@@ -98,6 +106,7 @@ static const IndicatorInfo indicator_info[] = {
     .dbus_name         = "com.canonical.indicator.battery",
     .dbus_menu_path    = "/com/canonical/indicator/battery/phone",
     .action_path       = "/com/canonical/indicator/battery",
+    .dbus_path         = HUD_PATH_BASE "battery",
     .indicator_name    = "indicator-battery-phone",
     .user_visible_name = N_("Battery"),
     .icon              = "indicator-battery",
@@ -107,6 +116,7 @@ static const IndicatorInfo indicator_info[] = {
     .dbus_name         = "com.canonical.indicator.time",
     .dbus_menu_path    = "/com/canonical/indicator/time/phone",
     .action_path       = "/com/canonical/indicator/time",
+    .dbus_path         = HUD_PATH_BASE "time",
     .indicator_name    = "indicator-time-phone",
     .user_visible_name = N_("Date and Time"),
     .icon              = "indicator-time",
@@ -116,6 +126,7 @@ static const IndicatorInfo indicator_info[] = {
     .dbus_name         = "com.canonical.settings.network",
     .dbus_menu_path    = "/com/canonical/settings/network/phone",
     .action_path       = "/com/canonical/settings/network",
+    .dbus_path         = HUD_PATH_BASE "network",
     .indicator_name    = "indicator-network-phone",
     .user_visible_name = N_("Network"),
     .icon              = "indicator-network",
@@ -125,6 +136,7 @@ static const IndicatorInfo indicator_info[] = {
     .dbus_name         = "com.canonical.settings.sound",
     .dbus_menu_path    = "/com/canonical/settings/sound/phone",
     .action_path       = "/com/canonical/settings/sound",
+    .dbus_path         = HUD_PATH_BASE "sound",
     .indicator_name    = "indicator-sound-phone",
     .user_visible_name = N_("Sound"),
     .icon              = "indicator-sound",
@@ -274,7 +286,7 @@ hud_indicator_source_name_appeared (GDBusConnection *connection,
 
   if (indicator->info->uses_gmenumodel)
     {
-      HudMenuModelCollector *collector = hud_menu_model_collector_new(indicator->info->indicator_name, indicator->info->icon, hud_settings.indicator_penalty);
+      HudMenuModelCollector *collector = hud_menu_model_collector_new(indicator->info->indicator_name, indicator->info->icon, hud_settings.indicator_penalty, indicator->info->dbus_path);
 
       hud_menu_model_collector_add_endpoint (collector,
                                              _(indicator->info->user_visible_name),

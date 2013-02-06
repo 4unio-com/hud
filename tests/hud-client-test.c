@@ -2,6 +2,16 @@
 #include <libdbustest/dbus-test.h>
 #include <hud-client.h>
 
+#include "hudtestutils.h"
+
+/* Kill everything if we fail */
+static gboolean
+unable_to_start_hud (gpointer user_data)
+{
+	g_error("Unable to start HUD service in time");
+	return FALSE;
+}
+
 /* Pull all the code to start the HUD service into one helper function */
 static void
 start_hud_service (DbusTestService ** service, GDBusConnection ** session)
@@ -20,9 +30,15 @@ start_hud_service (DbusTestService ** service, GDBusConnection ** session)
 	dbus_test_service_add_task(*service, dummy);
 	g_object_unref(dummy);
 
+	/* Add a timeout */
+	gulong timeout = g_timeout_add_seconds(5, unable_to_start_hud, NULL);
+
 	/* Get HUD up and running and us on that bus */
 	g_debug("Starting up HUD service");
 	dbus_test_service_start_tasks(*service);
+
+	/* Remove timeout */
+	g_source_remove(timeout);
 
 	/* Set us not to exit when the service goes */
 	*session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
@@ -40,7 +56,12 @@ no_dee_add_match (const gchar * log_domain, GLogLevelFlags level, const gchar * 
 	}
 
 	if (g_strcmp0(log_domain, "GLib-GIO") == 0 && 
-			g_str_has_prefix(message, "g_dbus_connection_call_finish_internal: assertion 'G_IS_DBUS_CONNECTION'")) {
+			g_str_has_prefix(message, "g_dbus_connection_call_finish_internal: assertion 'G_IS_DBUS_CONNECTION")) {
+		return FALSE;
+	}
+
+	if (g_strcmp0(log_domain, "GLib-GIO") == 0 && 
+			g_str_has_prefix(message, "g_dbus_connection_call_finish_internal: assertion `G_IS_DBUS_CONNECTION")) {
 		return FALSE;
 	}
 
@@ -88,7 +109,7 @@ test_connection_create (void)
 
 	g_object_unref(con);
 	g_object_unref(service);
-	g_object_unref(session);
+	hud_test_utils_wait_for_connection_close(session);
 
 	return;
 }
@@ -96,6 +117,8 @@ test_connection_create (void)
 static void
 test_query_create (void)
 {
+	g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
 	DbusTestService * service = NULL;
 	GDBusConnection * session = NULL;
 
@@ -122,7 +145,7 @@ test_query_create (void)
 
 	g_object_unref(query);
 	g_object_unref(service);
-	g_object_unref(session);
+	hud_test_utils_wait_for_connection_close(session);
 
 	return;
 }
@@ -152,7 +175,7 @@ test_query_update (void)
 
 	g_object_unref(query);
 	g_object_unref(service);
-	g_object_unref(session);
+	hud_test_utils_wait_for_connection_close(session);
 
 	return;
 }
@@ -194,7 +217,7 @@ test_query_custom (void)
 	g_object_unref(con);
 	g_object_unref(query);
 	g_object_unref(service);
-	g_object_unref(session);
+	hud_test_utils_wait_for_connection_close(session);
 
 	return;
 }
@@ -204,8 +227,8 @@ test_suite (void)
 {
 	g_test_add_func ("/hud/client/connection/create",   test_connection_create);
 	g_test_add_func ("/hud/client/query/create",   test_query_create);
-	// g_test_add_func ("/hud/client/query/update",   test_query_update);
-	// g_test_add_func ("/hud/client/query/custom",   test_query_custom);
+	g_test_add_func ("/hud/client/query/update",   test_query_update);
+	g_test_add_func ("/hud/client/query/custom",   test_query_custom);
 
 	return;
 }

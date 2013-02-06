@@ -1,6 +1,4 @@
 
-SUBDIRS = tests
-
 lib_LTLIBRARIES = libhud-client.la
 
 ABI_VERSION = 1
@@ -13,6 +11,7 @@ libhud_client_include_base_HEADERS = \
 libhud_client_includedir = $(includedir)/libhud-client-$(API_VERSION)/libhud-client
 libhud_client_include_HEADERS = \
 	connection.h \
+	param.h \
 	query.h
 
 noinst_LTLIBRARIES = libhud-client-generated.la
@@ -33,6 +32,8 @@ libhud_client_generated_la_LIBADD = \
 libhud_client_la_SOURCES = \
 	connection.h \
 	connection.c \
+	param.h \
+	param.c \
 	query.h \
 	query.c \
 	hud-client.h

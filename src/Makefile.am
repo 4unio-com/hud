@@ -24,6 +24,8 @@ noinst_LTLIBRARIES = \
 
 libhud_service_la_SOURCES = \
 	abstract-app.h \
+	action-muxer.h \
+	action-muxer.c \
 	application-list.h \
 	application-list.c \
 	application-source.h \
