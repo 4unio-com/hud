@@ -73,6 +73,9 @@ const gchar *          hud_client_param_get_actions   (HudClientParam * param);
 const gchar *          hud_client_param_get_model     (HudClientParam * param);
 gint                   hud_client_param_get_section   (HudClientParam * param);
 
+void                   hud_client_param_send_reset    (HudClientParam * param);
+void                   hud_client_param_send_cancel   (HudClientParam * param);
+
 /**
 	SECTION:param
 	@short_description: Track a parameterized view

@@ -244,3 +244,35 @@ hud_client_param_get_section (HudClientParam * param)
 
 	return param->priv->model_section;
 }
+
+/**
+ * hud_client_param_send_reset:
+ * @param: The #HudClientParam to query
+ *
+ * Send the command to the application to reset the values
+ * of the actions in the pane.
+ */
+void
+hud_client_param_send_reset (HudClientParam * param)
+{
+	g_return_if_fail(HUD_CLIENT_IS_PARAM(param));
+
+	action_write_state(param, "reset");
+	return;
+}
+
+/**
+ * hud_client_param_send_cancel:
+ * @param: The #HudClientParam to query
+ *
+ * Send the command to the application to cancel the values
+ * of the actions in the panel and expect it to close soon.
+ */
+void
+hud_client_param_send_cancel (HudClientParam * param)
+{
+	g_return_if_fail(HUD_CLIENT_IS_PARAM(param));
+
+	action_write_state(param, "cancel");
+	return;
+}
