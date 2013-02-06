@@ -115,6 +115,12 @@ test_hud_pronouce_dict_htk ()
     g_strfreev(pronounciations);
   }
 
+  {
+    gchar** pronounciations = pronounce_dict_lookup_word (dict, "zoom");
+    g_assert_cmpint(g_strv_length(pronounciations), ==, 0);
+    g_strfreev(pronounciations);
+  }
+
   g_object_unref(dict);
 }
 
