@@ -200,14 +200,14 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
  *
  * The object path to the actions
  *
- * Return value: A #GActionGroup that has the actions in it
+ * Return value: (transfer none): A #GActionGroup that has the actions in it
  */
 GActionGroup *
 hud_client_param_get_actions (HudClientParam * param)
 {
 	g_return_val_if_fail(HUD_CLIENT_IS_PARAM(param), NULL);
 
-	return NULL;
+	return param->priv->actions;
 }
 
 /**
@@ -216,14 +216,14 @@ hud_client_param_get_actions (HudClientParam * param)
  *
  * The object path to the model
  *
- * Return value: The menu model of the pane
+ * Return value: (transfer none): The menu model of the pane
  */
 GMenuModel *
 hud_client_param_get_model (HudClientParam * param)
 {
 	g_return_val_if_fail(HUD_CLIENT_IS_PARAM(param), NULL);
 
-	return NULL;
+	return param->priv->model;
 }
 
 /**
