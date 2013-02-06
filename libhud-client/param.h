@@ -25,6 +25,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
@@ -68,10 +69,8 @@ HudClientParam *       hud_client_param_new           (const gchar *     dbus_ad
                                                        const gchar *     model_path,
                                                        gint              model_section);
 
-const gchar *          hud_client_param_get_address   (HudClientParam * param);
-const gchar *          hud_client_param_get_actions   (HudClientParam * param);
-const gchar *          hud_client_param_get_model     (HudClientParam * param);
-gint                   hud_client_param_get_section   (HudClientParam * param);
+GActionGroup *         hud_client_param_get_actions   (HudClientParam * param);
+GMenuModel *           hud_client_param_get_model     (HudClientParam * param);
 
 void                   hud_client_param_send_reset    (HudClientParam * param);
 void                   hud_client_param_send_cancel   (HudClientParam * param);

@@ -182,35 +182,19 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 }
 
 /**
- * hud_client_param_get_address:
- * @param: The #HudClientParam to query
- *
- * The address on dbus of everything
- *
- * Return value: Address to chat with
- */
-const gchar *
-hud_client_param_get_address (HudClientParam * param)
-{
-	g_return_val_if_fail(HUD_CLIENT_IS_PARAM(param), NULL);
-
-	return param->priv->dbus_address;
-}
-
-/**
  * hud_client_param_get_actions:
  * @param: The #HudClientParam to query
  *
  * The object path to the actions
  *
- * Return value: An object path
+ * Return value: A #GActionGroup that has the actions in it
  */
-const gchar *
+GActionGroup *
 hud_client_param_get_actions (HudClientParam * param)
 {
 	g_return_val_if_fail(HUD_CLIENT_IS_PARAM(param), NULL);
 
-	return param->priv->action_path;
+	return NULL;
 }
 
 /**
@@ -219,30 +203,14 @@ hud_client_param_get_actions (HudClientParam * param)
  *
  * The object path to the model
  *
- * Return value: An object path
+ * Return value: The menu model of the pane
  */
-const gchar *
+GMenuModel *
 hud_client_param_get_model (HudClientParam * param)
 {
 	g_return_val_if_fail(HUD_CLIENT_IS_PARAM(param), NULL);
 
-	return param->priv->model_path;
-}
-
-/**
- * hud_client_param_get_section:
- * @param: The #HudClientParam to query
- *
- * The section in the model to use as the base
- *
- * Return value: An index to the model
- */
-gint
-hud_client_param_get_section (HudClientParam * param)
-{
-	g_return_val_if_fail(HUD_CLIENT_IS_PARAM(param), 0);
-
-	return param->priv->model_section;
+	return NULL;
 }
 
 /**
