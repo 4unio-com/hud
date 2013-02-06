@@ -16,7 +16,7 @@ hud_pronounce_for_word_SOURCES = \
 	hud-pronounce-for-word.c
 
 hud_pronounce_for_word_CFLAGS = \
-	$(gtk_CFLAGS) \ 
+	$(gtk_CFLAGS) \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	$(gtk_CFLAGS) \
@@ -45,7 +45,7 @@ hud_cli_SOURCES = \
 	hud-cli.c
 
 hud_cli_CFLAGS = \
-	$(gtk_CFLAGS) \ 
+	$(gtk_CFLAGS) \
 	$(HUD_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	$(gtk_CFLAGS) \

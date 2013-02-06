@@ -1171,4 +1171,3 @@ hud_menu_model_collector_get_items (HudSource * source)
 
 	return retval;
 }
-

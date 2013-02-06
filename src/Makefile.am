@@ -79,6 +79,7 @@ libhud_service_la_LDFLAGS = \
 libhud_service_la_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(BAMF_CFLAGS) \
+	$(HYBRIS_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-DDICT_PATH=\""/usr/share/pocketsphinx/model/lm/en_US/cmu07a.dic"\" \
@@ -93,6 +94,7 @@ hud_service_SOURCES = hud-service.c
 hud_service_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(BAMF_CFLAGS) \
+	$(HYBRIS_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-Wall -Werror
@@ -100,6 +102,7 @@ hud_service_LDADD = \
 	libhud-service.la	\
 	$(COVERAGE_LDFLAGS) \
 	$(BAMF_LIBS) \
+	$(HYBRIS_LIBS) \
 	$(HUD_LIBS)
 
 
@@ -115,11 +118,13 @@ hud_dump_application_SOURCES = \
 hud_dump_application_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(BAMF_CFLAGS) \
+	$(HYBRIS_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-Wall -Werror
 hud_dump_application_LDFLAGS = \
 	$(COVERAGE_LDFLAGS) \
 	$(BAMF_LIBS) \
+	$(HYBRIS_LIBS) \
 	$(HUD_LIBS)
 
 #######################
@@ -136,11 +141,13 @@ hud_verify_app_info_SOURCES = \
 hud_verify_app_info_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(BAMF_CFLAGS) \
+	$(HYBRIS_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-Wall -Werror
 hud_verify_app_info_LDFLAGS = \
 	$(COVERAGE_LDFLAGS) \
 	$(BAMF_LIBS) \
+	$(HYBRIS_LIBS) \
 	$(HUD_LIBS)
 
 #######################
@@ -160,6 +167,7 @@ libhud_service_generated_la_SOURCES = \
 libhud_service_generated_la_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(BAMF_CFLAGS) \
+	$(HYBRIS_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-Wall -Werror
 
