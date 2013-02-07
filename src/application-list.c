@@ -382,16 +382,19 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 static void
 session_focused (ubuntu_ui_session_properties props, void * context)
 {
+	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+	list->priv->last_focused_source = NULL;
+
 	if (hud_application_list_name_in_ignore_list(&props)) {
 		return;
 	}
-
-	HudApplicationList * list = HUD_APPLICATION_LIST(context);
 
 	HudApplicationSource * source = bamf_app_to_source(list, &props);
 	if (source == NULL) {
 		return;
 	}
+
+	g_debug("Changing focus to: %s", hud_application_source_get_id(source));
 
 	/* NOTE: We don't really have a window to add here, but this
 	   also adjusts focus, which is how we're passing it down.  So
