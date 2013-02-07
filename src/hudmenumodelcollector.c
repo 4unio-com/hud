@@ -599,7 +599,6 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SUBMENU)))
         {
           hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse - 1);
-		  g_debug("Internal model export path: %s", (gchar *)g_object_get_data(G_OBJECT(link), EXPORT_PATH));
           if (item != NULL && recurse <= 1)
             {
               hud_model_item_set_submenu((HudModelItem *)item, link, collector->base_export_path);
