@@ -156,16 +156,22 @@ action_write_state (HudClientParam * param, const gchar * action)
 HudClientParam *
 hud_client_param_new (const gchar * dbus_address, const gchar * base_action, const gchar * action_path, const gchar * model_path, gint model_section)
 {
+	g_return_val_if_fail(dbus_address != NULL);
+	/* NOTE: base_action is not required -- though probably a NULL string */
 	g_return_val_if_fail(g_variant_is_object_path(action_path), NULL);
 	g_return_val_if_fail(g_variant_is_object_path(model_path), NULL);
 
 	HudClientParam * param = g_object_new(HUD_CLIENT_TYPE_PARAM, NULL);
 
 	param->priv->dbus_address = g_strdup(dbus_address);
-	param->priv->base_action = g_strdup(base_action);
 	param->priv->action_path = g_strdup(action_path);
 	param->priv->model_path = g_strdup(model_path);
 	param->priv->model_section = model_section;
+
+	/* Keep the value NULL if we've got an empty string */
+	if (base_action != NULL && base_action[0] != '\0') {
+		param->priv->base_action = g_strdup(base_action);
+	}
 
 	g_warn_if_fail(model_section == 1);
 	GDBusMenuModel * base_model = g_dbus_menu_model_get(param->priv->session, param->priv->dbus_address, param->priv->model_path);
