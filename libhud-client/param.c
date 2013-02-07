@@ -32,8 +32,12 @@ struct _HudClientParamPrivate {
 	gchar * model_path;
 	gint model_section;
 
+	/* These are the ones we care about */
 	GMenuModel * model;
 	GActionGroup * actions;
+
+	/* This is what we need to get those */
+	GDBusMenuModel * base_model;
 };
 
 /* Signals */
@@ -104,6 +108,7 @@ hud_client_param_dispose (GObject *object)
 
 	action_write_state(param, "end");
 
+	g_clear_object(&param->priv->base_model);
 	g_clear_object(&param->priv->model);
 	g_clear_object(&param->priv->actions);
 	g_clear_object(&param->priv->session);
@@ -194,9 +199,8 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 	param->priv->model_section = model_section;
 
 	g_warn_if_fail(model_section == 1);
-	GDBusMenuModel * base_model = g_dbus_menu_model_get(param->priv->session, param->priv->dbus_address, param->priv->model_path);
-	param->priv->model = g_menu_model_get_item_link(G_MENU_MODEL(base_model), 0, G_MENU_LINK_SUBMENU);
-	g_object_unref(base_model);
+	param->priv->base_model = g_dbus_menu_model_get(param->priv->session, param->priv->dbus_address, param->priv->model_path);
+	param->priv->model = g_menu_model_get_item_link(G_MENU_MODEL(param->priv->base_model), 0, G_MENU_LINK_SUBMENU);
 
 	GDBusActionGroup * dbus_ag = g_dbus_action_group_get(param->priv->session, param->priv->dbus_address, param->priv->action_path);
 	param->priv->actions = G_ACTION_GROUP(dbus_ag);
