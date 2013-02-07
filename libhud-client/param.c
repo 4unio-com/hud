@@ -162,7 +162,17 @@ action_write_state (HudClientParam * param, const gchar * action)
 		return;
 	}
 
-	g_return_if_fail(g_action_group_has_action(param->priv->actions, param->priv->base_action));
+	if (!g_action_group_has_action(param->priv->actions, param->priv->base_action)) {
+		if (param->priv->action_added != 0) {
+			/* We're looking for the action, queue the command */
+			param->priv->queued_commands = g_list_append(param->priv->queued_commands, g_strdup(action));
+			return;
+		} else {
+			/* Uhm, oh, my!  We shouldn't be here */
+			g_warning("We've got an action name, but it doesn't exist, and we've given up looking.  Why would we give up?");
+			return;
+		}
+	}
 
 	const GVariantType * type = g_action_group_get_action_parameter_type(param->priv->actions, param->priv->base_action);
 
