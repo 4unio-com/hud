@@ -441,18 +441,30 @@ handle_parameterized (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoc
 		return TRUE;
 	}
 
-	const gchar * base_action;
-	const gchar * action_path;
-	const gchar * model_path;
-	gint model_section;
+	const gchar * base_action = NULL;
+	const gchar * action_path = NULL;
+	const gchar * model_path = NULL;
+	gint model_section = 0;
 
 	hud_model_item_activate_parameterized(HUD_MODEL_ITEM(item), timestamp, &base_action, &action_path, &model_path, &model_section);
 
+	if (base_action == NULL) {
+		/* This value can be NULL, but variants require an empty string */
+		base_action = "";
+	}
+
+	if (base_action == NULL ||
+			action_path == NULL || !g_variant_is_object_path(action_path) ||
+			model_path == NULL || !g_variant_is_object_path(model_path)) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, "Values returned by the model item are invalid");
+		return TRUE;
+	}
+
 	GVariantBuilder tuple;
 	g_variant_builder_init(&tuple, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value(&tuple, g_variant_new_string(base_action ? base_action : ""));
-	g_variant_builder_add_value(&tuple, g_variant_new_object_path(action_path ? action_path : "/"));
-	g_variant_builder_add_value(&tuple, g_variant_new_object_path(model_path ? model_path : "/"));
+	g_variant_builder_add_value(&tuple, g_variant_new_string(base_action));
+	g_variant_builder_add_value(&tuple, g_variant_new_object_path(action_path));
+	g_variant_builder_add_value(&tuple, g_variant_new_object_path(model_path));
 	g_variant_builder_add_value(&tuple, g_variant_new_int32(model_section));
 
 	g_dbus_method_invocation_return_value(invocation, g_variant_builder_end(&tuple));
