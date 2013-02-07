@@ -520,8 +520,15 @@ hud_client_query_execute_param_command (HudClientQuery * cquery, GVariant * comm
 	gchar * action_path = NULL;
 	gchar * model_path = NULL;
 	gint section = 0;
+	GError * error = NULL;
 
-	_hud_query_com_canonical_hud_query_call_execute_parameterized_sync(cquery->priv->proxy, command_key, timestamp, &base_action, &action_path, &model_path, &section, NULL, NULL);
+	_hud_query_com_canonical_hud_query_call_execute_parameterized_sync(cquery->priv->proxy, command_key, timestamp, &base_action, &action_path, &model_path, &section, NULL, &error);
+
+	if (error != NULL) {
+		g_warning("Unable to execute paramereterized action: %s", error->message);
+		g_error_free(error);
+		return NULL;
+	}
 
 	HudClientParam * param = hud_client_param_new(sender, base_action, action_path, model_path, section);
 
