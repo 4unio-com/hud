@@ -216,6 +216,29 @@ base_model_items (GMenuModel * model, gint position, gint removed, gint added, g
 	return;
 }
 
+/* Look to see if our base item gets added to the actions
+   list on the service side */
+static void
+action_added (GActionGroup * group, const gchar * action_name, gpointer user_data)
+{
+	g_return_if_fail(HUD_CLIENT_IS_PARAM(user_data));
+
+	HudClientParam * param = HUD_CLIENT_PARAM(user_data);
+
+	if (g_strcmp0(param->priv->base_action, action_name) != 0) {
+		/* This is not the action we're looking for */
+		return;
+	}
+
+	/* We don't need to know again */
+	if (param->priv->action_added != 0) {
+		g_signal_handler_disconnect(param->priv->actions, param->priv->action_added);
+		param->priv->action_added = 0;
+	}
+
+	return;
+}
+
 /**
  * hud_client_param_new:
  * @dbus_address: The address on dbus to find the actions
@@ -249,6 +272,7 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 
 	GDBusActionGroup * dbus_ag = g_dbus_action_group_get(param->priv->session, param->priv->dbus_address, param->priv->action_path);
 	param->priv->actions = G_ACTION_GROUP(dbus_ag);
+	param->priv->action_added = g_signal_connect(G_OBJECT(param->priv->actions), "action-added", G_CALLBACK(action_added), param);
 
 	action_write_state(param, "start");
 
