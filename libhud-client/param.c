@@ -288,7 +288,12 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 
 	g_warn_if_fail(model_section == 1);
 	param->priv->base_model = g_dbus_menu_model_get(param->priv->session, param->priv->dbus_address, param->priv->model_path);
-	param->priv->base_model_changes = g_signal_connect(G_OBJECT(param->priv->base_model), "items-changed", G_CALLBACK(base_model_items), param);
+
+	if (g_menu_model_get_n_items(G_MENU_MODEL(param->priv->base_model)) == 0) {
+		param->priv->base_model_changes = g_signal_connect(G_OBJECT(param->priv->base_model), "items-changed", G_CALLBACK(base_model_items), param);
+	} else {
+		base_model_items(G_MENU_MODEL(param->priv->base_model), 0, 0, 1, param);
+	}
 
 	GDBusActionGroup * dbus_ag = g_dbus_action_group_get(param->priv->session, param->priv->dbus_address, param->priv->action_path);
 	param->priv->actions = G_ACTION_GROUP(dbus_ag);
