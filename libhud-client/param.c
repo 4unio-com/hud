@@ -55,6 +55,11 @@ static void hud_client_param_dispose    (GObject *object);
 static void hud_client_param_finalize   (GObject *object);
 static void action_write_state          (HudClientParam *  param,
                                          const gchar *     action);
+static void base_model_items            (GMenuModel *      model,
+                                         gint              position,
+                                         gint              removed,
+                                         gint              added,
+                                         gpointer          user_data);
 
 /* Boiler plate */
 #define HUD_CLIENT_PARAM_GET_PRIVATE(o) \
@@ -171,6 +176,20 @@ action_write_state (HudClientParam * param, const gchar * action)
 	return;
 }
 
+/* Look at the items changed and make sure we're getting the
+   item that we expect.  Then signal. */
+static void
+base_model_items (GMenuModel * model, gint position, gint removed, gint added, gpointer user_data)
+{
+	g_return_if_fail(position == 0);
+	g_return_if_fail(removed == 0);
+	g_return_if_fail(added == 1);
+	g_return_if_fail(HUD_CLIENT_IS_PARAM(user_data));
+
+
+	return;
+}
+
 /**
  * hud_client_param_new:
  * @dbus_address: The address on dbus to find the actions
@@ -200,6 +219,7 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 
 	g_warn_if_fail(model_section == 1);
 	param->priv->base_model = g_dbus_menu_model_get(param->priv->session, param->priv->dbus_address, param->priv->model_path);
+	g_signal_connect(G_OBJECT(param->priv->base_model), "items-changed", G_CALLBACK(base_model_items), param);
 	param->priv->model = g_menu_model_get_item_link(G_MENU_MODEL(param->priv->base_model), 0, G_MENU_LINK_SUBMENU);
 
 	GDBusActionGroup * dbus_ag = g_dbus_action_group_get(param->priv->session, param->priv->dbus_address, param->priv->action_path);
