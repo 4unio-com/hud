@@ -105,7 +105,7 @@ action_write_state (HudClientParam * param, const gchar * action)
 {
 	/* This shows that they're not interested in these events,
 	   which is fine, perhaps a bit lonely, but fine. */
-	if (param->priv->base_action == NULL || param->priv->base_action[0] == '\0') {
+	if (param->priv->base_action == NULL) {
 		return;
 	}
 
