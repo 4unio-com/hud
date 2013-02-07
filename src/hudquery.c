@@ -450,9 +450,9 @@ handle_parameterized (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoc
 
 	GVariantBuilder tuple;
 	g_variant_builder_init(&tuple, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value(&tuple, g_variant_new_string(base_action));
-	g_variant_builder_add_value(&tuple, g_variant_new_object_path(action_path));
-	g_variant_builder_add_value(&tuple, g_variant_new_object_path(model_path));
+	g_variant_builder_add_value(&tuple, g_variant_new_string(base_action ? base_action : ""));
+	g_variant_builder_add_value(&tuple, g_variant_new_object_path(action_path ? action_path : "/"));
+	g_variant_builder_add_value(&tuple, g_variant_new_object_path(model_path ? model_path : "/"));
 	g_variant_builder_add_value(&tuple, g_variant_new_int32(model_section));
 
 	g_dbus_method_invocation_return_value(invocation, g_variant_builder_end(&tuple));
