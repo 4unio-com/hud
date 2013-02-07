@@ -246,6 +246,16 @@ action_added (GActionGroup * group, const gchar * action_name, gpointer user_dat
 		param->priv->action_added = 0;
 	}
 
+	/* Now process the queue */
+	GList * command;
+	for (command = param->priv->queued_commands; command != NULL; command = g_list_next(command)) {
+		action_write_state(param, (gchar *)command->data);
+	}
+
+	/* And clear it */
+	g_list_free_full(param->priv->queued_commands, g_free);
+	param->priv->queued_commands = NULL;
+
 	return;
 }
 
