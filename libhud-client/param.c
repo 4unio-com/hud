@@ -272,7 +272,11 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 
 	GDBusActionGroup * dbus_ag = g_dbus_action_group_get(param->priv->session, param->priv->dbus_address, param->priv->action_path);
 	param->priv->actions = G_ACTION_GROUP(dbus_ag);
-	param->priv->action_added = g_signal_connect(G_OBJECT(param->priv->actions), "action-added", G_CALLBACK(action_added), param);
+	
+	/* Looking for a base action here */
+	if (param->priv->base_action != NULL && !g_action_group_has_action(param->priv->actions, param->priv->base_action)) {
+		param->priv->action_added = g_signal_connect(G_OBJECT(param->priv->actions), "action-added", G_CALLBACK(action_added), param);
+	}
 
 	action_write_state(param, "start");
 
