@@ -59,6 +59,10 @@ libhud_service_la_SOURCES = \
 	hudquery.c		\
 	hudstringlist.h		\
 	hudstringlist.c		\
+	hudsphinx.h		\
+	hudsphinx.c		\
+	hudjulius.h		\
+	hudjulius.c		\
 	huditem.h		\
 	huditem.c		\
 	hudkeywordmapping.h		\
@@ -74,15 +78,20 @@ libhud_service_la_SOURCES = \
 
 libhud_service_la_LDFLAGS = \
 	$(COVERAGE_LDFLAGS) \
+	$(LIBJULIUS_LIBS) \
+	$(LIBSENT_LIBS) \
 	libhud-service-generated.la
 
 libhud_service_la_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(BAMF_CFLAGS) \
+	$(LIBJULIUS_CFLAGS) \
+	$(LIBSENT_CFLAGS) \
 	$(HYBRIS_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-DDICT_PATH=\""/usr/share/pocketsphinx/model/lm/en_US/cmu07a.dic"\" \
+	-DJULIUS_DICT_PATH=\""/usr/share/julius-voxforge/acoustic/"\" \
 	-Wall -Werror
 
 #######################
@@ -213,4 +222,3 @@ app-iface.h: app-iface.c
 
 
 CLEANFILES += $(BUILT_SOURCES)
-

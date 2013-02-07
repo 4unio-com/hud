@@ -89,6 +89,24 @@ PKG_CHECK_MODULES([HUD],[
 		pocketsphinx
 ])
 
+AC_CHECK_HEADER("julius/julius.h",
+	[has_julius_h="yes"])
+
+AM_CONDITIONAL([HUD], [test "x$has_julius_h" == "xyes"])
+
+AC_PATH_PROG([LIBJULIUS_CONFIG], [libjulius-config])
+AC_PATH_PROG([LIBSENT_CONFIG], [libsent-config])
+
+LIBJULIUS_CFLAGS=`$LIBJULIUS_CONFIG --cflags`
+LIBJULIUS_LIBS=`$LIBJULIUS_CONFIG --libs`
+AC_SUBST([LIBJULIUS_CFLAGS])
+AC_SUBST([LIBJULIUS_LIBS])
+
+LIBSENT_CFLAGS=`$LIBSENT_CONFIG --cflags`
+LIBSENT_LIBS=`$LIBSENT_CONFIG --libs`
+AC_SUBST([LIBSENT_CFLAGS])
+AC_SUBST([LIBSENT_LIBS])
+
 GTK_REQUIRED_VERSION=3.0
 PKG_CHECK_MODULES(gtk,[
 		gtk+-3.0 >= $GTK_REQUIRED_VERSION
@@ -148,7 +166,7 @@ AC_CHECK_HEADER("readline/history.h",
 AC_CHECK_HEADER("curses.h",
 	[has_curses_h="yes"])
 
-AM_CONDITIONAL([BUILD_CLI], [test "x$has_readline_h" == "xyes" && test "x$has_history_h" == "xyes" && test "x$has_curses_h" == "xyes"]),
+AM_CONDITIONAL([BUILD_CLI], [test "x$has_readline_h" == "xyes" && test "x$has_history_h" == "xyes" && test "x$has_curses_h" == "xyes"])
 
 ###########################
 # Test Dependencies

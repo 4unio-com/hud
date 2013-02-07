@@ -106,13 +106,35 @@ load_dict (PronounceDict * dict, const gchar *dict_path)
 			continue;
 		}
 
-		/* Break it on the tab so that we have the name and the phonetics
-		   broken apart */
-		gchar ** split = g_strsplit_set(line, " \t", 2);
-		if (split[0] == NULL) {
-			g_strfreev(split);
-			continue;
+		gchar ** split = NULL;
+
+		gchar *htk_start = g_strrstr(line, "[");
+		gchar *htk_end = g_strrstr(line, "]");
+
+		/* If we have the HTK style dict */
+		if (htk_start != NULL && htk_end != NULL)
+		{
+		  GArray *split_array = g_array_sized_new(TRUE, FALSE, sizeof(gchar *), 2);
+
+		  gchar *first = g_strndup(line, htk_start - line);
+		  first = g_strchomp(first);
+		  g_array_append_val(split_array, first);
+
+		  gchar *second = g_strdup(htk_end + 1);
+      g_array_append_val(split_array, second);
+
+      split = (gchar **) g_array_free(split_array, FALSE);
 		}
+		else
+		{
+      /* Break it on the tab so that we have the name and the phonetics
+         broken apart */
+      split = g_strsplit_set(line, " \t", 2);
+      if (split[0] == NULL) {
+        g_strfreev(split);
+        continue;
+      }
+	  }
 
 		gchar * word = g_utf8_strup(split[0], -1);
 		gchar * phonetics = g_strstrip(split[1]);
@@ -194,58 +216,7 @@ pronounce_dict_lookup_word_internal (PronounceDict * dict, gchar * word, GArray 
 			g_array_append_val(results, appval);
 			retval = retval->next;
 		}
-		return;
 	}
-
-	glong fullstring = g_utf8_strlen(word, -1);
-	gchar * frontstring = g_utf8_substring(word, 0, fullstring - 1);
-	GArray * front_array = g_array_new(TRUE, FALSE, sizeof(gchar *));
-	pronounce_dict_lookup_word_internal(dict, frontstring, front_array);
-
-	g_free(frontstring);
-
-	if (front_array->len == 0) { /* It is nowhere... which seems odd */
-		g_array_free(front_array, TRUE);
-		return;
-	}
-
-	gchar * laststring = g_utf8_substring(word, fullstring - 1, fullstring);
-	GArray * last_array = g_array_new(TRUE, FALSE, sizeof(gchar *));
-	pronounce_dict_lookup_word_internal(dict, laststring, last_array);
-
-	g_free(laststring);
-
-	if (last_array->len == 0) {
-		g_array_free(front_array, TRUE);
-		g_array_free(last_array, TRUE);
-		return;
-	}
-
-	int i, j;
-	for (i = 0; i < front_array->len; i++) {
-	for (j = 0; j < last_array->len; j++) {
-		gchar * a = g_array_index(front_array, gchar *, i);
-		gchar * b = g_array_index(last_array, gchar *, j);
-
-		gchar * output = NULL;
-		if (a[0] != '\0' && b[0] != '\0') {
-			output = g_strdup_printf("%s %s", g_array_index(front_array, gchar *, i), g_array_index(last_array, gchar *, j));
-		} else {
-			if (a[0] != '\0') {
-				output = g_strdup(a);
-			} else {
-				output = g_strdup(b);
-			}
-		}
-
-		g_array_append_val(results, output);
-	} // j
-	} // i
-
-	g_array_free(front_array, TRUE);
-	g_array_free(last_array, TRUE);
-
-	return;
 }
 
 /* Lookup a word and return results */
@@ -273,7 +244,7 @@ pronounce_dict_new (const gchar *dict_path)
 }
 
 PronounceDict *
-pronounce_dict_get (void)
+pronounce_dict_get_sphinx (void)
 {
 	static PronounceDict * global = NULL;
 
@@ -282,4 +253,18 @@ pronounce_dict_get (void)
 	}
 
 	return global;
+}
+
+PronounceDict *
+pronounce_dict_get_julius (void)
+{
+  static PronounceDict * global = NULL;
+
+  if (global == NULL) {
+    gchar *dict_path = g_build_filename(JULIUS_DICT_PATH, "dict", NULL);
+    global = pronounce_dict_new(dict_path);
+    g_free(dict_path);
+  }
+
+  return global;
 }
