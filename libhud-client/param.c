@@ -38,6 +38,7 @@ struct _HudClientParamPrivate {
 
 	/* This is what we need to get those */
 	GDBusMenuModel * base_model;
+	gulong base_model_changes;
 };
 
 /* Signals */
@@ -113,6 +114,11 @@ hud_client_param_dispose (GObject *object)
 
 	action_write_state(param, "end");
 
+	if (param->priv->base_model_changes != 0) {
+		g_signal_handler_disconnect(param->priv->base_model, param->priv->base_model_changes);
+		param->priv->base_model_changes = 0;
+	}
+
 	g_clear_object(&param->priv->base_model);
 	g_clear_object(&param->priv->model);
 	g_clear_object(&param->priv->actions);
@@ -186,6 +192,13 @@ base_model_items (GMenuModel * model, gint position, gint removed, gint added, g
 	g_return_if_fail(added == 1);
 	g_return_if_fail(HUD_CLIENT_IS_PARAM(user_data));
 
+	HudClientParam * param = HUD_CLIENT_PARAM(user_data);
+
+
+	if (param->priv->base_model_changes != 0) {
+		g_signal_handler_disconnect(param->priv->base_model, param->priv->base_model_changes);
+		param->priv->base_model_changes = 0;
+	}
 
 	return;
 }
@@ -219,7 +232,7 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 
 	g_warn_if_fail(model_section == 1);
 	param->priv->base_model = g_dbus_menu_model_get(param->priv->session, param->priv->dbus_address, param->priv->model_path);
-	g_signal_connect(G_OBJECT(param->priv->base_model), "items-changed", G_CALLBACK(base_model_items), param);
+	param->priv->base_model_changes = g_signal_connect(G_OBJECT(param->priv->base_model), "items-changed", G_CALLBACK(base_model_items), param);
 	param->priv->model = g_menu_model_get_item_link(G_MENU_MODEL(param->priv->base_model), 0, G_MENU_LINK_SUBMENU);
 
 	GDBusActionGroup * dbus_ag = g_dbus_action_group_get(param->priv->session, param->priv->dbus_address, param->priv->action_path);
