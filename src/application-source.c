@@ -222,7 +222,7 @@ source_use (HudSource *hud_source)
 	}
 
 	if (app->priv->used_source == NULL) {
-		g_warning("Application has no focused window.");
+		g_warning("Application '%s' has no focused window.", app->priv->app_id);
 		return;
 	}
 
