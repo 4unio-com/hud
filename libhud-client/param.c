@@ -38,7 +38,6 @@ struct _HudClientParamPrivate {
 
 	/* This is what we need to get those */
 	GDBusMenuModel * base_model;
-	GDBusMenuModel * dummy_model;
 	gulong base_model_changes;
 
 	gulong action_added;
@@ -129,7 +128,6 @@ hud_client_param_dispose (GObject *object)
 	}
 
 	g_clear_object(&param->priv->base_model);
-	g_clear_object(&param->priv->dummy_model);
 	g_clear_object(&param->priv->model);
 	g_clear_object(&param->priv->actions);
 	g_clear_object(&param->priv->session);
@@ -289,7 +287,6 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 	param->priv->model_section = model_section;
 
 	g_warn_if_fail(model_section == 1);
-	param->priv->dummy_model = g_dbus_menu_model_get(param->priv->session, param->priv->dbus_address, param->priv->model_path);
 	param->priv->base_model = g_dbus_menu_model_get(param->priv->session, param->priv->dbus_address, param->priv->model_path);
 
 	if (g_menu_model_get_n_items(G_MENU_MODEL(param->priv->base_model)) == 0) {
