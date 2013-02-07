@@ -221,6 +221,11 @@ source_use (HudSource *hud_source)
 		app->priv->how_used = 0;
 	}
 
+	if (app->priv->used_source == NULL) {
+		g_warning("Application has no focused window.");
+		return;
+	}
+
 	if (app->priv->how_used == 0) {
 		hud_source_use(app->priv->used_source);
 	}
