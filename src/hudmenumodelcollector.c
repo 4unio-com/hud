@@ -113,6 +113,8 @@ struct _HudMenuModelCollector
   guint muxer_export;
 };
 
+/* Structure for when we're tracking a model, all the info
+   that we need to keep on it. */
 typedef struct _model_data_t model_data_t;
 struct _model_data_t {
 	GDBusConnection *session;
@@ -123,6 +125,13 @@ struct _model_data_t {
 	gchar * path;
 	gchar * label;
 	guint recurse;
+};
+
+/* Structure to pass two values in a single pointer, amazing! */
+typedef struct _exported_menu_id_t exported_menu_id_t;
+struct _exported_menu_id_t {
+	guint id;
+	GDBusConnection * bus;
 };
 
 struct _HudModelItem {
@@ -607,13 +616,6 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
   if (changed)
     hud_source_changed (HUD_SOURCE (collector));
 }
-
-/* Structure to pass two values in a single pointer, amazing! */
-typedef struct _exported_menu_id_t exported_menu_id_t;
-struct _exported_menu_id_t {
-	guint id;
-	GDBusConnection * bus;
-};
 
 /* Unexport a menu and unref the bus we kept */
 static void
