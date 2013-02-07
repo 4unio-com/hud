@@ -359,7 +359,7 @@ hud_model_item_is_parameterized (HudModelItem * item)
 {
 	g_return_val_if_fail(HUD_IS_MODEL_ITEM(item), FALSE);
 
-	return FALSE;
+	return item->submodel != NULL;
 }
 
 /**
