@@ -91,6 +91,8 @@ void                    hud_action_description_set_attribute            (HudActi
                                                                          const gchar           *attribute_name,
                                                                          const gchar           *format_string,
                                                                          ...);
+void                    hud_action_description_set_parameterized        (HudActionDescription  *parent,
+                                                                         GMenuModel            *child);
 
 G_END_DECLS
 

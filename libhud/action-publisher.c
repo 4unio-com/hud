@@ -85,6 +85,7 @@ struct _HudActionDescription
   gchar *action;
   GVariant *target;
   GHashTable *attrs;
+  GHashTable *links;
 };
 
 guint hud_action_description_changed_signal;
@@ -126,7 +127,17 @@ hud_aux_get_item_links (GMenuModel  *model,
                         gint         item_index,
                         GHashTable **links)
 {
-  *links = g_hash_table_new (NULL, NULL);
+  HudAux *aux = (HudAux *) model;
+  GSequenceIter *iter;
+  HudActionDescription *description;
+
+  iter = g_sequence_get_iter_at_pos (aux->publisher->descriptions, item_index);
+  description = g_sequence_get (iter);
+
+  if (description->links != NULL)
+    *links = g_hash_table_ref(description->links);
+  else
+    *links = g_hash_table_new (NULL, NULL);
 }
 
 static void
@@ -1141,6 +1152,7 @@ hud_action_description_finalize (GObject *object)
   if (description->target)
     g_variant_unref (description->target);
   g_hash_table_unref (description->attrs);
+  g_clear_pointer(&description->links, g_hash_table_unref);
 
   G_OBJECT_CLASS (hud_action_description_parent_class)
     ->finalize (object);
@@ -1195,7 +1207,7 @@ hud_action_description_new (const gchar *action_name,
                        g_variant_ref_sink (g_variant_new_string (action_name)));
 
   if (action_target)
-    g_hash_table_insert (description->attrs, g_strdup ("target"), g_variant_ref (action_target));
+    g_hash_table_insert (description->attrs, g_strdup ("target"), g_variant_ref_sink (action_target));
 
   return description;
 }
@@ -1309,4 +1321,35 @@ GVariant *
 hud_action_description_get_action_target (HudActionDescription *description)
 {
   return description->target;
+}
+
+/**
+ * hud_action_description_add_description:
+ * @parent: a #HudActionDescription
+ * @child: The child #GMenuModel to add
+ *
+ * A function to put one action description as a child for the first
+ * one.  This is used for parameterized actions where one can set up
+ * children that are displayed on the 'dialog' mode of the HUD.
+ */
+void
+hud_action_description_set_parameterized (HudActionDescription * parent, GMenuModel * child)
+{
+	g_return_if_fail(HUD_IS_ACTION_DESCRIPTION(parent));
+	g_return_if_fail(child == NULL || G_IS_MENU_MODEL(child)); /* NULL is allowed to clear it */
+
+	if (parent->links == NULL) {
+		parent->links = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
+	}
+
+	if (child != NULL) {
+		g_hash_table_insert(parent->links, g_strdup(G_MENU_LINK_SUBMENU), g_object_ref(child));
+	} else {
+		g_hash_table_remove(parent->links, G_MENU_LINK_SUBMENU);
+	}
+
+	g_signal_emit (parent, hud_action_description_changed_signal,
+	               g_quark_try_string (G_MENU_LINK_SUBMENU), G_MENU_LINK_SUBMENU);
+
+	return;
 }

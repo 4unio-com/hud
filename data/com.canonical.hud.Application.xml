@@ -4,6 +4,8 @@
 <!-- Properties -->
 		<property name="ActionGroups" type="a(vso)" access="read" />
 		<property name="MenuModels" type="a(vo)" access="read" />
+		<property name="DesktopPath" type="s" access="read" />
+		<property name="Icon" type="s" access="read" />
 
 <!-- Functions -->
 		<method name="AddSources">
