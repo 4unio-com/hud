@@ -36,6 +36,8 @@ G_BEGIN_DECLS
 #define HUD_CLIENT_IS_PARAM_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HUD_CLIENT_TYPE_PARAM))
 #define HUD_CLIENT_PARAM_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_CLIENT_TYPE_PARAM, HudClientParamClass))
 
+#define HUD_CLIENT_PARAM_SIGNAL_MODEL_READY  "model-ready"
+
 typedef struct _HudClientParam          HudClientParam;
 typedef struct _HudClientParamClass     HudClientParamClass;
 typedef struct _HudClientParamPrivate   HudClientParamPrivate;
@@ -48,6 +50,8 @@ typedef struct _HudClientParamPrivate   HudClientParamPrivate;
  */
 struct _HudClientParamClass {
 	GObjectClass parent_class;
+
+	void (*model_ready) (HudClientParamClass * param, gpointer user_data);
 };
 
 /**

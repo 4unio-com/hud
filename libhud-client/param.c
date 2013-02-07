@@ -36,9 +36,15 @@ struct _HudClientParamPrivate {
 	GActionGroup * actions;
 };
 
-#define HUD_CLIENT_PARAM_GET_PRIVATE(o) \
-(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_CLIENT_TYPE_PARAM, HudClientParamPrivate))
+/* Signals */
+enum {
+	MODEL_READY,
+	LAST_SIGNAL
+};
 
+static guint signals[LAST_SIGNAL] = { 0 };
+
+/* Prototypes */
 static void hud_client_param_class_init (HudClientParamClass *klass);
 static void hud_client_param_init       (HudClientParam *self);
 static void hud_client_param_dispose    (GObject *object);
@@ -46,8 +52,13 @@ static void hud_client_param_finalize   (GObject *object);
 static void action_write_state          (HudClientParam *  param,
                                          const gchar *     action);
 
+/* Boiler plate */
+#define HUD_CLIENT_PARAM_GET_PRIVATE(o) \
+(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_CLIENT_TYPE_PARAM, HudClientParamPrivate))
+
 G_DEFINE_TYPE (HudClientParam, hud_client_param, G_TYPE_OBJECT);
 
+/* Code */
 static void
 hud_client_param_class_init (HudClientParamClass *klass)
 {
@@ -57,6 +68,21 @@ hud_client_param_class_init (HudClientParamClass *klass)
 
 	object_class->dispose = hud_client_param_dispose;
 	object_class->finalize = hud_client_param_finalize;
+
+	/**
+	 * HudClientParam::model-ready:
+	 * @arg0: The #HudClientParam object.
+	 * 
+	 * Emitted when the model can be used.  It may also be updating, but
+	 * the base item is there.
+	 */
+	signals[MODEL_READY] =  g_signal_new(HUD_CLIENT_PARAM_SIGNAL_MODEL_READY,
+	                                     G_TYPE_FROM_CLASS(klass),
+	                                     G_SIGNAL_RUN_LAST,
+	                                     G_STRUCT_OFFSET(HudClientParamClass, model_ready),
+	                                     NULL, NULL,
+	                                     g_cclosure_marshal_VOID__VOID,
+	                                     G_TYPE_NONE, 0, G_TYPE_NONE);
 
 	return;
 }
