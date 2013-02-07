@@ -202,11 +202,11 @@ get_used_source (HudApplicationSource *app)
       return HUD_SOURCE(list) ;
     }
 
-    g_warning("A list with a single window but no source list... ");
+    g_warning("An app '%s' single window but no source list.", app->priv->app_id);
     return NULL ;
   }
 
-  g_warning("A list without a use or a single window... ");
+  g_warning("An app '%s' without a single window.", app->priv->app_id);
   return NULL ;
 }
 
