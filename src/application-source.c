@@ -317,12 +317,17 @@ hud_application_source_new_for_app (AbstractApplication * bapp)
 	HudApplicationSource * source = hud_application_source_new_for_id(id);
 	g_free(id);
 
+	const gchar * desktop_file = NULL;
 #ifdef HAVE_BAMF
 	source->priv->bamf_app = g_object_ref(bapp);
+	desktop_file = bamf_application_get_desktop_file(bapp);
 #endif
 #ifdef HAVE_HYBRIS
 	source->priv->desktop_file = g_strdup(ubuntu_ui_session_properties_get_desktop_file_hint(*bapp));
+	desktop_file = source->priv->desktop_file;
 #endif
+
+	app_iface_com_canonical_hud_application_set_desktop_path(source->priv->skel, desktop_file);
 
 	return source;
 }
@@ -617,6 +622,7 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 #ifdef HAVE_HYBRIS
 	if (app->priv->desktop_file == NULL) {
 		app->priv->desktop_file = g_strdup(ubuntu_ui_session_properties_get_desktop_file_hint(*bapp));
+		app_iface_com_canonical_hud_application_set_desktop_path(app->priv->skel, app->priv->desktop_file);
 	}
 #endif
 
@@ -805,6 +811,10 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 			icon = g_key_file_get_value(kfile, G_KEY_FILE_DESKTOP_GROUP, G_KEY_FILE_DESKTOP_KEY_ICON, NULL);
 			g_key_file_free(kfile);
 		}
+	}
+
+	if (icon != NULL) {
+		app_iface_com_canonical_hud_application_set_icon(app->priv->skel, icon);
 	}
 
 	if (mm_collector == NULL) {
