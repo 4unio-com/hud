@@ -644,6 +644,10 @@ hud_application_list_get_source (HudApplicationList * list, const gchar * id)
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 	g_return_val_if_fail(id != NULL, NULL);
 
+	if (g_strcmp0(id, "gallery") == 0) {
+		id = "goodhope";
+	}
+
 	HudApplicationSource * source = HUD_APPLICATION_SOURCE(source_get(HUD_SOURCE(list), id));
 	if (source == NULL) {
 		source = hud_application_source_new_for_id(id);
