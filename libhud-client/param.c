@@ -32,22 +32,46 @@ struct _HudClientParamPrivate {
 	gchar * model_path;
 	gint model_section;
 
+	/* These are the ones we care about */
 	GMenuModel * model;
 	GActionGroup * actions;
+
+	/* This is what we need to get those */
+	GDBusMenuModel * base_model;
+	gulong base_model_changes;
+
+	gulong action_added;
+	GList * queued_commands;
 };
 
-#define HUD_CLIENT_PARAM_GET_PRIVATE(o) \
-(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_CLIENT_TYPE_PARAM, HudClientParamPrivate))
+/* Signals */
+enum {
+	MODEL_READY,
+	LAST_SIGNAL
+};
 
+static guint signals[LAST_SIGNAL] = { 0 };
+
+/* Prototypes */
 static void hud_client_param_class_init (HudClientParamClass *klass);
 static void hud_client_param_init       (HudClientParam *self);
 static void hud_client_param_dispose    (GObject *object);
 static void hud_client_param_finalize   (GObject *object);
 static void action_write_state          (HudClientParam *  param,
                                          const gchar *     action);
+static void base_model_items            (GMenuModel *      model,
+                                         gint              position,
+                                         gint              removed,
+                                         gint              added,
+                                         gpointer          user_data);
+
+/* Boiler plate */
+#define HUD_CLIENT_PARAM_GET_PRIVATE(o) \
+(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_CLIENT_TYPE_PARAM, HudClientParamPrivate))
 
 G_DEFINE_TYPE (HudClientParam, hud_client_param, G_TYPE_OBJECT);
 
+/* Code */
 static void
 hud_client_param_class_init (HudClientParamClass *klass)
 {
@@ -57,6 +81,21 @@ hud_client_param_class_init (HudClientParamClass *klass)
 
 	object_class->dispose = hud_client_param_dispose;
 	object_class->finalize = hud_client_param_finalize;
+
+	/**
+	 * HudClientParam::model-ready:
+	 * @arg0: The #HudClientParam object.
+	 * 
+	 * Emitted when the model can be used.  It may also be updating, but
+	 * the base item is there.
+	 */
+	signals[MODEL_READY] =  g_signal_new(HUD_CLIENT_PARAM_SIGNAL_MODEL_READY,
+	                                     G_TYPE_FROM_CLASS(klass),
+	                                     G_SIGNAL_RUN_LAST,
+	                                     G_STRUCT_OFFSET(HudClientParamClass, model_ready),
+	                                     NULL, NULL,
+	                                     g_cclosure_marshal_VOID__VOID,
+	                                     G_TYPE_NONE, 0, G_TYPE_NONE);
 
 	return;
 }
@@ -78,6 +117,17 @@ hud_client_param_dispose (GObject *object)
 
 	action_write_state(param, "end");
 
+	if (param->priv->base_model_changes != 0) {
+		g_signal_handler_disconnect(param->priv->base_model, param->priv->base_model_changes);
+		param->priv->base_model_changes = 0;
+	}
+
+	if (param->priv->action_added != 0) {
+		g_signal_handler_disconnect(param->priv->actions, param->priv->action_added);
+		param->priv->action_added = 0;
+	}
+
+	g_clear_object(&param->priv->base_model);
 	g_clear_object(&param->priv->model);
 	g_clear_object(&param->priv->actions);
 	g_clear_object(&param->priv->session);
@@ -90,6 +140,9 @@ static void
 hud_client_param_finalize (GObject *object)
 {
 	HudClientParam * param = HUD_CLIENT_PARAM(object);
+
+	g_list_free_full(param->priv->queued_commands, g_free);
+	param->priv->queued_commands = NULL;
 
 	g_clear_pointer(&param->priv->base_action, g_free);
 	g_clear_pointer(&param->priv->action_path, g_free);
@@ -109,7 +162,17 @@ action_write_state (HudClientParam * param, const gchar * action)
 		return;
 	}
 
-	g_return_if_fail(g_action_group_has_action(param->priv->actions, param->priv->base_action));
+	if (!g_action_group_has_action(param->priv->actions, param->priv->base_action)) {
+		if (param->priv->action_added != 0) {
+			/* We're looking for the action, queue the command */
+			param->priv->queued_commands = g_list_append(param->priv->queued_commands, g_strdup(action));
+			return;
+		} else {
+			/* Uhm, oh, my!  We shouldn't be here */
+			g_warning("We've got an action name, but it doesn't exist, and we've given up looking.  Why would we give up?");
+			return;
+		}
+	}
 
 	const GVariantType * type = g_action_group_get_action_parameter_type(param->priv->actions, param->priv->base_action);
 
@@ -136,6 +199,62 @@ action_write_state (HudClientParam * param, const gchar * action)
 	}
 
 	g_action_group_activate_action(param->priv->actions, param->priv->base_action, action_param);
+
+	return;
+}
+
+/* Look at the items changed and make sure we're getting the
+   item that we expect.  Then signal. */
+static void
+base_model_items (GMenuModel * model, gint position, gint removed, gint added, gpointer user_data)
+{
+	g_return_if_fail(position == 0);
+	g_return_if_fail(removed == 0);
+	g_return_if_fail(added == 1);
+	g_return_if_fail(HUD_CLIENT_IS_PARAM(user_data));
+
+	HudClientParam * param = HUD_CLIENT_PARAM(user_data);
+	param->priv->model = g_menu_model_get_item_link(G_MENU_MODEL(param->priv->base_model), 0, G_MENU_LINK_SUBMENU);
+
+	g_signal_emit(param, signals[MODEL_READY], 0);
+
+	if (param->priv->base_model_changes != 0) {
+		g_signal_handler_disconnect(param->priv->base_model, param->priv->base_model_changes);
+		param->priv->base_model_changes = 0;
+	}
+
+	return;
+}
+
+/* Look to see if our base item gets added to the actions
+   list on the service side */
+static void
+action_added (GActionGroup * group, const gchar * action_name, gpointer user_data)
+{
+	g_return_if_fail(HUD_CLIENT_IS_PARAM(user_data));
+
+	HudClientParam * param = HUD_CLIENT_PARAM(user_data);
+
+	if (g_strcmp0(param->priv->base_action, action_name) != 0) {
+		/* This is not the action we're looking for */
+		return;
+	}
+
+	/* We don't need to know again */
+	if (param->priv->action_added != 0) {
+		g_signal_handler_disconnect(param->priv->actions, param->priv->action_added);
+		param->priv->action_added = 0;
+	}
+
+	/* Now process the queue */
+	GList * command;
+	for (command = param->priv->queued_commands; command != NULL; command = g_list_next(command)) {
+		action_write_state(param, (gchar *)command->data);
+	}
+
+	/* And clear it */
+	g_list_free_full(param->priv->queued_commands, g_free);
+	param->priv->queued_commands = NULL;
 
 	return;
 }
@@ -174,12 +293,21 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 	}
 
 	g_warn_if_fail(model_section == 1);
-	GDBusMenuModel * base_model = g_dbus_menu_model_get(param->priv->session, param->priv->dbus_address, param->priv->model_path);
-	param->priv->model = g_menu_model_get_item_link(G_MENU_MODEL(base_model), 0, G_MENU_LINK_SUBMENU);
-	g_object_unref(base_model);
+	param->priv->base_model = g_dbus_menu_model_get(param->priv->session, param->priv->dbus_address, param->priv->model_path);
+
+	if (g_menu_model_get_n_items(G_MENU_MODEL(param->priv->base_model)) == 0) {
+		param->priv->base_model_changes = g_signal_connect(G_OBJECT(param->priv->base_model), "items-changed", G_CALLBACK(base_model_items), param);
+	} else {
+		base_model_items(G_MENU_MODEL(param->priv->base_model), 0, 0, 1, param);
+	}
 
 	GDBusActionGroup * dbus_ag = g_dbus_action_group_get(param->priv->session, param->priv->dbus_address, param->priv->action_path);
 	param->priv->actions = G_ACTION_GROUP(dbus_ag);
+	
+	/* Looking for a base action here */
+	if (param->priv->base_action != NULL && !g_action_group_has_action(param->priv->actions, param->priv->base_action)) {
+		param->priv->action_added = g_signal_connect(G_OBJECT(param->priv->actions), "action-added", G_CALLBACK(action_added), param);
+	}
 
 	action_write_state(param, "start");
 

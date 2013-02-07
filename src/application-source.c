@@ -202,11 +202,11 @@ get_used_source (HudApplicationSource *app)
       return HUD_SOURCE(list) ;
     }
 
-    g_warning("A list with a single window but no source list... ");
+    g_warning("An app '%s' single window but no source list.", app->priv->app_id);
     return NULL ;
   }
 
-  g_warning("A list without a use or a single window... ");
+  g_warning("An app '%s' without a single window.", app->priv->app_id);
   return NULL ;
 }
 
@@ -219,6 +219,11 @@ source_use (HudSource *hud_source)
 	if (app->priv->used_source == NULL) {
 		app->priv->used_source = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(app->priv->focused_window));
 		app->priv->how_used = 0;
+	}
+
+	if (app->priv->used_source == NULL) {
+		g_warning("Application '%s' has no focused window.", app->priv->app_id);
+		return;
 	}
 
 	if (app->priv->how_used == 0) {
@@ -741,7 +746,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	xid = bamf_window_get_xid(window);
 #endif
 #ifdef HAVE_HYBRIS
-	app->priv->focused_window = _ubuntu_ui_session_properties_get_window_id(window);
+	xid = _ubuntu_ui_session_properties_get_window_id(window);
 #endif
 
 #ifdef HAVE_BAMF

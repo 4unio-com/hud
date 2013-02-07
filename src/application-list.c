@@ -397,7 +397,7 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 	   also adjusts focus, which is how we're passing it down.  So
 	   what'll happen is that this'll trigger the dummy function since
 	   we can't get window IDs anyway. */
-	hud_application_source_add_window(source, &props);
+	hud_application_source_focus(source, &props, &props);
 
 	/* Used to track focus for use... unclear about race conditions */
 	g_warn_if_fail(list->priv->last_focused_source == NULL);

@@ -71,6 +71,73 @@ EXTRA_DIST += \
 	$(hud_cli_SOURCES)
 endif
 
+####################
+# HUD CLI Param
+####################
+
+hud_cli_param_SOURCES = \
+	hud-cli-param.c
+
+hud_cli_param_CFLAGS = \
+	$(gtk_CFLAGS) \
+	$(HUD_CFLAGS) \
+	$(COVERAGE_CFLAGS) \
+	$(gtk_CFLAGS) \
+	-I $(top_srcdir) \
+	-I $(top_srcdir)/libhud-client \
+	-Wall -Werror
+
+hud_cli_param_LDFLAGS = \
+	$(HUD_LIBS) \
+	$(COVERAGE_LDFLAGS) \
+	$(gtk_LIBS)
+
+hud_cli_param_LDADD = \
+	$(gtk_LIBS) \
+	$(top_builddir)/libhud-client/libhud-client.la
+
+if BUILD_CLI
+bin_PROGRAMS += \
+	hud-cli-param
+else
+EXTRA_DIST += \
+	$(hud_cli_param_SOURCES)
+endif
+
+####################
+# HUD CLI Appstack
+####################
+
+hud_cli_appstack_SOURCES = \
+	hud-cli-appstack.c
+
+hud_cli_appstack_CFLAGS = \
+	$(gtk_CFLAGS) \
+	$(HUD_CFLAGS) \
+	$(COVERAGE_CFLAGS) \
+	$(gtk_CFLAGS) \
+	-I $(top_srcdir) \
+	-I $(top_srcdir)/libhud-client \
+	-Wall -Werror
+
+hud_cli_appstack_LDFLAGS = \
+	$(HUD_LIBS) \
+	$(COVERAGE_LDFLAGS) \
+	$(gtk_LIBS)
+
+hud_cli_appstack_LDADD = \
+	$(gtk_LIBS) \
+	$(top_builddir)/libhud-client/libhud-client.la
+
+if BUILD_CLI
+bin_PROGRAMS += \
+	hud-cli-appstack
+else
+EXTRA_DIST += \
+	$(hud_cli_appstack_SOURCES)
+endif
+
+
 
 ####################
 # Extra stuff
