@@ -364,6 +364,49 @@ register_app_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	return;
 }
 
+/* Watch the name change to make sure we're robust to it */
+static void
+notify_name_owner (GObject * gobject, GParamSpec * pspec, gpointer user_data)
+{
+	HudManager * manager = HUD_MANAGER(user_data);
+	gchar * name_owner = g_dbus_proxy_get_name_owner(G_DBUS_PROXY(gobject));
+
+	if (name_owner == NULL) {
+		/* We've lost it */
+
+		/* Remove the stale proxy */
+		g_clear_object(&manager->priv->app_proxy);
+
+		/* Make sure we're set upto do the async dance again */
+		if (manager->priv->connection_cancel == NULL) {
+			manager->priv->connection_cancel = g_cancellable_new();
+		}
+
+		/* Put the current publishers on the todo list */
+		GList * old_publishers = manager->priv->publishers;
+		manager->priv->publishers = NULL;
+		GList * pub;
+
+		for (pub = old_publishers; pub != NULL; pub = g_list_next(pub)) {
+			hud_manager_add_actions(manager, HUD_ACTION_PUBLISHER(pub->data));
+		}
+
+		g_list_free_full(old_publishers, g_object_unref);
+		return;
+	}
+
+	g_free(name_owner);
+
+	/* We've got a new name owner, so we need to register */
+	_hud_service_iface_com_canonical_hud_call_register_application(manager->priv->service_proxy,
+		manager->priv->application_id,
+		manager->priv->connection_cancel,
+		register_app_cb,
+		manager);
+
+	return;
+}
+
 /* Callback from getting the HUD service proxy */
 static void
 service_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
@@ -380,11 +423,8 @@ service_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	HudManager * manager = HUD_MANAGER(user_data);
 	manager->priv->service_proxy = proxy;
 
-	_hud_service_iface_com_canonical_hud_call_register_application(proxy,
-		manager->priv->application_id,
-		manager->priv->connection_cancel,
-		register_app_cb,
-		manager);
+	g_signal_connect(G_OBJECT(proxy), "notify::g-name-owner", G_CALLBACK(notify_name_owner), manager);
+	notify_name_owner(G_OBJECT(proxy), NULL, manager);
 
 	return;
 }
