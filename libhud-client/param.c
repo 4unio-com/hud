@@ -39,6 +39,9 @@ struct _HudClientParamPrivate {
 	/* This is what we need to get those */
 	GDBusMenuModel * base_model;
 	gulong base_model_changes;
+
+	gulong action_added;
+	GList * queued_commands;
 };
 
 /* Signals */
@@ -119,6 +122,11 @@ hud_client_param_dispose (GObject *object)
 		param->priv->base_model_changes = 0;
 	}
 
+	if (param->priv->action_added != 0) {
+		g_signal_handler_disconnect(param->priv->actions, param->priv->action_added);
+		param->priv->action_added = 0;
+	}
+
 	g_clear_object(&param->priv->base_model);
 	g_clear_object(&param->priv->model);
 	g_clear_object(&param->priv->actions);
@@ -132,6 +140,9 @@ static void
 hud_client_param_finalize (GObject *object)
 {
 	HudClientParam * param = HUD_CLIENT_PARAM(object);
+
+	g_list_free_full(param->priv->queued_commands, g_free);
+	param->priv->queued_commands = NULL;
 
 	g_clear_pointer(&param->priv->base_action, g_free);
 	g_clear_pointer(&param->priv->action_path, g_free);
