@@ -156,7 +156,6 @@ action_write_state (HudClientParam * param, const gchar * action)
 HudClientParam *
 hud_client_param_new (const gchar * dbus_address, const gchar * base_action, const gchar * action_path, const gchar * model_path, gint model_section)
 {
-	g_return_val_if_fail(base_action != NULL, NULL);
 	g_return_val_if_fail(g_variant_is_object_path(action_path), NULL);
 	g_return_val_if_fail(g_variant_is_object_path(model_path), NULL);
 
