@@ -45,12 +45,14 @@ typedef struct _HudClientParamPrivate   HudClientParamPrivate;
 /**
  * HudClientParamClass:
  * @parent_class: #GObjectClass
+ * @model_ready: Slot for the model-ready signal
  *
  * Class information for #HudClientParam
  */
 struct _HudClientParamClass {
 	GObjectClass parent_class;
 
+	/*< Private >*/
 	void (*model_ready) (HudClientParamClass * param, gpointer user_data);
 };
 
