@@ -139,6 +139,7 @@ struct _HudModelItem {
 
   GRemoteActionGroup *group;
   gchar *action_name;
+  gchar *action_name_full;
   gchar *action_path;
   GVariant *target;
 
@@ -271,6 +272,7 @@ hud_model_item_finalize (GObject *object)
   g_clear_object(&item->submodel);
   g_object_unref (item->group);
   g_free (item->action_name);
+  g_free (item->action_name_full);
   g_free (item->action_path);
 
   if (item->target)
@@ -332,6 +334,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
   item = hud_item_construct (hud_model_item_get_type (), full_label, keywords, accel, collector->app_id, collector->icon, TRUE);
   item->group = g_object_ref (group);
   item->action_name = g_strdup (stripped_action_name);
+  item->action_name_full = g_strdup (action_name);
   item->target = target ? g_variant_ref_sink (target) : NULL;
 
   hud_string_list_unref (full_label);
@@ -395,7 +398,7 @@ hud_model_item_activate_parameterized (HudModelItem * item, guint32 timestamp, c
 	g_return_if_fail(section != NULL);
 	g_return_if_fail(hud_model_item_is_parameterized(item));
 
-	*base_action = item->action_name;
+	*base_action = item->action_name_full;
 	*model_path = (const gchar *)g_object_get_data(G_OBJECT(item->submodel), EXPORT_PATH);
 	*action_path = item->action_path;
 	*section = 1;
