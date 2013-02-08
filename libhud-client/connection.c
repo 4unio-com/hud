@@ -270,3 +270,18 @@ hud_client_connection_get_address (HudClientConnection * connection)
 
 	return connection->priv->address;
 }
+
+/**
+ * hud_client_connection_connected:
+ * @connection: A #HudClientConnection
+ *
+ * Accessor to get the connected status of the connection
+ *
+ * Return value: If we're connected or not
+ */
+gboolean
+hud_client_connection_connected (HudClientConnection * connection)
+{
+
+	return TRUE;
+}

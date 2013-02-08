@@ -70,6 +70,7 @@ gboolean                hud_client_connection_new_query  (HudClientConnection * 
                                                           gchar ** results_name,
                                                           gchar ** appstack_name);
 const gchar *           hud_client_connection_get_address (HudClientConnection * connection);
+gboolean                hud_client_connection_connected  (HudClientConnection * connection);
 
 /**
 	SECTION:connection
