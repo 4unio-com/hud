@@ -30,6 +30,7 @@ struct _HudClientConnectionPrivate {
 	gchar * address;
 	gchar * path;
 	gboolean connected;
+	gulong name_owner_sig;
 };
 
 #define HUD_CLIENT_CONNECTION_GET_PRIVATE(o) \
@@ -51,6 +52,7 @@ static void hud_client_connection_dispose    (GObject *object);
 static void hud_client_connection_finalize   (GObject *object);
 static void set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec);
 static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec);
+static void name_owner_changed (GObject * object, GParamSpec * pspec, gpointer user_data);
 
 G_DEFINE_TYPE (HudClientConnection, hud_client_connection, G_TYPE_OBJECT);
 
@@ -173,6 +175,8 @@ hud_client_connection_constructed (GObject * object)
 		g_error_free(error); error = NULL;
 	}
 
+	self->priv->name_owner_sig = g_signal_connect(G_OBJECT(self->priv->proxy), "notify::g-name-owner", G_CALLBACK(name_owner_changed), self);
+
 	gchar * owner = g_dbus_proxy_get_name_owner(G_DBUS_PROXY(self->priv->proxy));
 	if (owner != NULL) {
 		self->priv->connected = TRUE;
@@ -186,6 +190,11 @@ static void
 hud_client_connection_dispose (GObject *object)
 {
 	HudClientConnection * self = HUD_CLIENT_CONNECTION(object);
+
+	if (self->priv->name_owner_sig != 0) {
+		g_signal_handler_disconnect(self->priv->proxy, self->priv->name_owner_sig);
+		self->priv->name_owner_sig = 0;
+	}
 
 	g_clear_object(&self->priv->proxy);
 
@@ -202,6 +211,14 @@ hud_client_connection_finalize (GObject *object)
 	g_clear_pointer(&self->priv->path, g_free);
 
 	G_OBJECT_CLASS (hud_client_connection_parent_class)->finalize (object);
+	return;
+}
+
+/* Called when the HUD service comes on or off the bus */
+static void
+name_owner_changed (GObject * object, GParamSpec * pspec, gpointer user_data)
+{
+
 	return;
 }
 
