@@ -33,8 +33,19 @@ struct _HudJulius
 
   GRegex * alphanumeric_regex;
 
-  gchar *query;
+  gchar **query;
+
+  GError **error;
 };
+
+static GQuark
+hud_julius_error_quark(void)
+{
+  static GQuark quark = 0;
+  if (quark == 0)
+    quark = g_quark_from_static_string ("hud-julius-error-quark");
+  return quark;
+}
 
 static GRegex *
 hud_julius_alphanumeric_regex_new (void)
@@ -76,7 +87,6 @@ hud_julius_finalize (GObject *object)
 
   g_clear_object(&self->skel);
   g_clear_pointer(&self->alphanumeric_regex, g_regex_unref);
-  g_clear_pointer(&self->query, g_free);
 
   G_OBJECT_CLASS (hud_julius_parent_class)
     ->finalize (object);
@@ -161,12 +171,12 @@ output_result(Recog *recog, void *dummy)
 
       if (message)
       {
-        hud_query_iface_com_canonical_hud_query_emit_voice_query_failed (
-                HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel),
-                message);
+        *self->query = NULL;
+        *self->error = g_error_new_literal(hud_julius_error_quark(), 0, message);
+        j_close_stream(recog);
+        break;
       }
 
-      /* continue to next process instance */
       continue;
     }
 
@@ -195,7 +205,8 @@ output_result(Recog *recog, void *dummy)
         }
       }
 
-      self->query = g_string_free(result, FALSE);
+      *(self->query) = g_string_free(result, FALSE);
+      *(self->error) = NULL;
 
       j_close_stream(recog);
       break;
@@ -220,6 +231,8 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
   if (jconf == NULL )
   {
     g_warning ("Failed to build Julius configuration");
+    *self->query = NULL;
+    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "Failed to build Julius configuration");
     return FALSE;
   }
 
@@ -230,6 +243,8 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
   if (recog == NULL )
   {
     g_warning ("Error in Julius startup");
+    *self->query = NULL;
+    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "Error in Julius startup");
     return FALSE;
   }
 
@@ -243,11 +258,10 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
   if (j_adin_init (recog) == FALSE)
   {
     g_warning ("Failed to initialize audio engine");
+    *self->query = NULL;
+    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "Failed to initialize audio engine");
     return FALSE;
   }
-
-  /* output system information to log */
-  j_recog_info (recog);
 
   /* inupt from microphone */
   switch (j_open_stream (recog, NULL ))
@@ -256,18 +270,25 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
     break;
   case -1: /* error */
     g_warning ("error in input stream");
+    *self->query = NULL;
+    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "error in input stream");
     return FALSE;
   case -2: /* end of recognition process */
     g_warning ("failed to begin input stream");
+    *self->query = NULL;
+    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "failed to begin input stream");
     return FALSE;
   }
 
-  g_clear_pointer(&self->query, g_free);
   /* enter main loop to recognize the input stream */
   /* finish after whole input has been processed and input reaches end */
   if (j_recognize_stream (recog) == -1)
   {
     g_warning("stream recognition failed");
+    if (*self->error == NULL)
+    {
+      *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "stream recognition failed");
+    }
     return FALSE;
   }
 
@@ -275,6 +296,11 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
    recognition and exit j_recognize_stream() */
   j_close_stream (recog);
   j_recog_free (recog);
+
+  if (*self->error != NULL)
+  {
+    return FALSE;
+  }
 
   /* exit program */
   return TRUE;
@@ -293,15 +319,14 @@ static const gchar *VOCA_HEADER = "% NS_B\n"
 "</s>            sil\n"
 "\n";
 
-static gchar *
-hud_julius_build_grammar (HudJulius *self, GList *items)
+static gboolean
+hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GError **error)
 {
-  GError *error = NULL;
-  gchar *temp_dir = g_dir_make_tmp ("hud-julius-XXXXXX", &error);
-  if (temp_dir == NULL )
+  *temp_dir = g_dir_make_tmp ("hud-julius-XXXXXX", error);
+  if (*temp_dir == NULL )
   {
-    g_warning("Failed to create temp dir [%s]", error->message);
-    g_error_free (error);
+    g_warning("Failed to create temp dir [%s]", (*error)->message);
+    return FALSE;
   }
 
   /* Get the pronounciations for the items */
@@ -318,30 +343,45 @@ hud_julius_build_grammar (HudJulius *self, GList *items)
   GHashTable *voca = g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
       NULL );
 
-  gchar *voca_path = g_build_filename (temp_dir, "hud.voca", NULL );
+  gchar *voca_path = g_build_filename (*temp_dir, "hud.voca", NULL );
   GFile *voca_file = g_file_new_for_path (voca_path);
   error = NULL;
   GOutputStream* voca_output = G_OUTPUT_STREAM(g_file_create (voca_file,
-          G_FILE_CREATE_PRIVATE, NULL, &error ));
+          G_FILE_CREATE_PRIVATE, NULL, error ));
   if (voca_output == NULL )
   {
-    // FIXME: LEAKS
-    g_warning("Failed to open voca file [%s]", error->message);
-    g_error_free (error);
-    return NULL ;
+    g_warning("Failed to open voca file [%s]", (*error)->message);
+
+    g_hash_table_destroy(voca);
+    g_hash_table_destroy(pronounciations);
+    g_ptr_array_free (command_list, TRUE);
+
+    g_object_unref (voca_output);
+    g_object_unref (voca_file);
+
+    return FALSE;
   }
 
-  gchar *grammar_path = g_build_filename (temp_dir, "hud.grammar", NULL );
+  gchar *grammar_path = g_build_filename (*temp_dir, "hud.grammar", NULL );
   GFile *grammar_file = g_file_new_for_path (grammar_path);
   error = NULL;
   GOutputStream* grammar_output = G_OUTPUT_STREAM(g_file_create (grammar_file,
-          G_FILE_CREATE_PRIVATE, NULL, NULL ));
+          G_FILE_CREATE_PRIVATE, NULL, error ));
   if (grammar_output == NULL )
   {
-    // FIXME: LEAKS
-    g_warning("Failed to open grammar file [%s]", error->message);
-    g_error_free (error);
-    return NULL ;
+    g_warning("Failed to open grammar file [%s]", (*error)->message);
+
+    g_hash_table_destroy(voca);
+    g_hash_table_destroy(pronounciations);
+    g_ptr_array_free (command_list, TRUE);
+
+    g_object_unref (voca_output);
+    g_object_unref (voca_file);
+
+    g_object_unref (grammar_output);
+    g_object_unref (grammar_file);
+
+    return FALSE;
   }
 
   g_output_stream_write (voca_output, VOCA_HEADER,
@@ -440,12 +480,15 @@ hud_julius_build_grammar (HudJulius *self, GList *items)
   int exit_status = 0;
   char *standard_output = NULL;
   char *standard_error = NULL;
-  if (!g_spawn_sync (temp_dir, (gchar **)argv, NULL, 0, NULL, NULL, &standard_output,
-      &standard_error, &exit_status, &error))
+  if (!g_spawn_sync (*temp_dir, (gchar **)argv, NULL, 0, NULL, NULL, &standard_output,
+      &standard_error, &exit_status, error))
   {
-    g_warning("Compiling grammar failed: [%s]", error->message);
+    g_warning("Compiling grammar failed: [%s]", (*error)->message);
     g_debug("Compilation errors:\n%s", standard_error);
-    g_error_free(error);
+
+    g_free(standard_output);
+    g_free(standard_error);
+    return FALSE;
   }
 
   g_debug("Compilation output:\n%s", standard_output);
@@ -453,7 +496,7 @@ hud_julius_build_grammar (HudJulius *self, GList *items)
   g_free(standard_output);
   g_free(standard_error);
 
-  return temp_dir;
+  return TRUE;
 }
 
 static void rm_rf(const gchar *path)
@@ -479,27 +522,37 @@ static void rm_rf(const gchar *path)
   g_rmdir(path);
 }
 
-gchar *
-hud_julius_voice_query (HudJulius *self, HudSource *source)
+gboolean
+hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GError **error)
 {
   if (source == NULL) {
     /* No active window, that's fine, but we'll just move on */
-    return NULL;
+    *result = NULL;
+    *error = g_error_new_literal(hud_julius_error_quark(), 0, "Active source is null");
+    return FALSE;
   }
 
   GList *items = hud_source_get_items(source);
   if (items == NULL) {
     /* The active window doesn't have items, that's cool.  We'll move on. */
-    return NULL;
+    return TRUE;
   }
 
-  gchar *temp_dir = hud_julius_build_grammar(self, items);
+  gchar *temp_dir = NULL;
+  if (!hud_julius_build_grammar(self, items, &temp_dir, error))
+  {
+    return FALSE;
+  }
+
   gchar *gram = g_build_filename(temp_dir, "hud", NULL);
   gchar *hmm = g_build_filename(JULIUS_DICT_PATH, "hmmdefs", NULL);
   gchar *hlist = g_build_filename(JULIUS_DICT_PATH, "tiedlist", NULL);
 
-  /* This sets self->query as its result */
-  hud_julius_listen (self, gram, hmm, hlist);
+  /* These are used inside the callbacks */
+  self->error = error;
+  self->query = result;
+  /* This sets *self->query as its result */
+  gboolean success = hud_julius_listen (self, gram, hmm, hlist);
 
   rm_rf(temp_dir);
 
@@ -508,7 +561,7 @@ hud_julius_voice_query (HudJulius *self, HudSource *source)
   g_free(hlist);
   g_free(temp_dir);
 
-  return g_strdup(self->query);
+  return success;
 }
 
 HudJulius *

@@ -43,6 +43,6 @@ GType hud_julius_get_type (void);
 
 HudJulius * hud_julius_new(HudQueryIfaceComCanonicalHudQuery * skel);
 
-gchar * hud_julius_voice_query (HudJulius *self, HudSource *source);
+gboolean hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GError **error);
 
 #endif /* HUDJULIUS_H_ */

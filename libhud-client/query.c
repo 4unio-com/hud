@@ -191,13 +191,6 @@ hud_client_query_voice_query_loading (_HudQueryComCanonicalHudQuery *object, gpo
 }
 
 static void
-hud_client_query_voice_query_failed (_HudQueryComCanonicalHudQuery *object, const gchar *arg_cause, gpointer user_data)
-{
-  g_signal_emit (user_data, hud_client_query_signal_voice_query_failed,
-      g_quark_try_string (arg_cause), arg_cause);
-}
-
-static void
 hud_client_query_voice_query_listening (_HudQueryComCanonicalHudQuery *object, gpointer user_data)
 {
 	g_signal_emit(user_data, hud_client_query_signal_voice_query_listening, 0);
@@ -207,13 +200,6 @@ static void
 hud_client_query_voice_query_heard_something (_HudQueryComCanonicalHudQuery *object, gpointer user_data)
 {
   g_signal_emit(user_data, hud_client_query_signal_voice_query_heard_something, 0);
-}
-
-static void
-hud_client_query_voice_query_finished (_HudQueryComCanonicalHudQuery *object, const gchar *arg_query, gpointer user_data)
-{
-	g_signal_emit (user_data, hud_client_query_signal_voice_query_finished,
-	g_quark_try_string (arg_query), arg_query);
 }
 
 static void
@@ -260,14 +246,10 @@ hud_client_query_constructed (GObject *object)
 
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-loading",
 		G_CALLBACK (hud_client_query_voice_query_loading), object, 0);
-	g_signal_connect_object (cquery->priv->proxy, "voice-query-failed",
-	    G_CALLBACK (hud_client_query_voice_query_failed), object, 0);
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-listening",
 		G_CALLBACK (hud_client_query_voice_query_listening), object, 0);
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-heard-something",
 	    G_CALLBACK (hud_client_query_voice_query_heard_something), object, 0);
-	g_signal_connect_object (cquery->priv->proxy, "voice-query-finished",
-		G_CALLBACK (hud_client_query_voice_query_finished), object, 0);
 }
 
 static void
@@ -389,6 +371,8 @@ hud_client_query_voice_query_callback (GObject *source, GAsyncResult *result, gp
 	if (!_hud_query_com_canonical_hud_query_call_voice_query_finish (cquery->priv->proxy, &revision, &query, result, &error))
 	{
 		g_warning("Voice query failed to finish: [%s]", error->message);
+		g_signal_emit (user_data, hud_client_query_signal_voice_query_failed,
+		      g_quark_try_string (error->message), error->message);
 		g_error_free(error);
 		return;
 	}
@@ -396,6 +380,9 @@ hud_client_query_voice_query_callback (GObject *source, GAsyncResult *result, gp
 	g_clear_pointer(&cquery->priv->query, g_free);
 	cquery->priv->query = query;
 	g_object_notify (G_OBJECT(cquery), PROP_QUERY_S);
+
+	g_signal_emit (user_data, hud_client_query_signal_voice_query_finished,
+      g_quark_try_string (query), query);
 }
 
 /**
