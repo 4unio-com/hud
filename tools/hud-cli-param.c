@@ -98,12 +98,40 @@ print_model (GMenuModel * model)
 	return;
 }
 
+/* Quit the mainloop if we get anything */
+static void
+population_update (GMenuModel * model, gint position, gint removed, gint added, GMainLoop * loop)
+{
+	g_main_loop_quit(loop);
+	return;
+}
+
+/* Waiting here for the model to get populated with something
+   before printing.  In a real world scenario you'd probably
+   be responsive to the items being added.  We're a CLI tool. */
+static void
+populated_model (GMenuModel * model)
+{
+	if (g_menu_model_get_n_items(model) == 0) {
+		GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+
+		gulong sig = g_signal_connect(model, "items-changed", G_CALLBACK(population_update), loop);
+
+		g_main_loop_run(loop);
+		g_main_loop_unref(loop);
+
+		g_signal_handler_disconnect(model, sig);
+	}
+
+	return print_model(model);
+}
+
 static void
 model_ready (HudClientParam * param, GMainLoop * loop)
 {
 	GMenuModel * model = hud_client_param_get_model(param);
 	if (model != NULL) {
-		print_model(model);
+		populated_model(model);
 	} else {
 		g_warning("Unable to get model even after it was 'ready'");
 	}
@@ -152,7 +180,7 @@ print_suggestions (const char *query)
 
 			g_signal_handler_disconnect(param, sig);
 		} else {
-			print_model(model);
+			populated_model(model);
 		}
 
 		g_object_unref(param);
