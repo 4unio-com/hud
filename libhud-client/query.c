@@ -234,6 +234,12 @@ hud_client_query_constructed (GObject *object)
 		NULL  /* GError */
 	);
 
+	gchar * owner = g_dbus_proxy_get_name_owner(G_DBUS_PROXY(cquery->priv->proxy));
+	if (G_UNLIKELY(owner == NULL)) {
+		g_warning("Unable to find a HUD service");
+	}
+	g_free(owner);
+
 	g_clear_object(&cquery->priv->results);
 	cquery->priv->results = dee_shared_model_new(results);
 
