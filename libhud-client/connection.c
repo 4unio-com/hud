@@ -29,6 +29,7 @@ struct _HudClientConnectionPrivate {
 	_HudServiceComCanonicalHud * proxy;
 	gchar * address;
 	gchar * path;
+	gboolean connected;
 };
 
 #define HUD_CLIENT_CONNECTION_GET_PRIVATE(o) \
@@ -101,6 +102,7 @@ static void
 hud_client_connection_init (HudClientConnection *self)
 {
 	self->priv = HUD_CLIENT_CONNECTION_GET_PRIVATE(self);
+	self->priv->connected = FALSE;
 
 	return;
 }
@@ -169,6 +171,12 @@ hud_client_connection_constructed (GObject * object)
 		g_warning("Unable to get a HUD proxy: %s", error->message);
 		self->priv->proxy = NULL;
 		g_error_free(error); error = NULL;
+	}
+
+	gchar * owner = g_dbus_proxy_get_name_owner(G_DBUS_PROXY(self->priv->proxy));
+	if (owner != NULL) {
+		self->priv->connected = TRUE;
+		g_free(owner);
 	}
 
 	return;
@@ -298,6 +306,6 @@ hud_client_connection_get_address (HudClientConnection * connection)
 gboolean
 hud_client_connection_connected (HudClientConnection * connection)
 {
-
-	return TRUE;
+	g_return_val_if_fail(HUD_CLIENT_IS_CONNECTION(connection), FALSE);
+	return connection->priv->connected;
 }
