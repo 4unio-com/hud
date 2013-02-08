@@ -53,6 +53,7 @@ main (int argc, char *argv[])
 	return 0;
 }
 
+/* Notification from Dee that we can stop waiting */
 static void
 wait_for_sync_notify (GObject * object, GParamSpec * pspec, gpointer user_data)
 {
@@ -61,6 +62,8 @@ wait_for_sync_notify (GObject * object, GParamSpec * pspec, gpointer user_data)
 	return;
 }
 
+/* Waits for the DeeModel of results to get synchoronized from the
+   HUD service */
 static gboolean
 wait_for_sync (DeeModel * model)
 {
@@ -80,6 +83,74 @@ wait_for_sync (DeeModel * model)
 	return dee_shared_model_is_synchronized(DEE_SHARED_MODEL(model));
 }
 
+/* Prints out the label for each item in the model.  Makes it easier
+   to see what we've got */
+static void
+print_model (GMenuModel * model)
+{
+	int i;
+	for (i = 0; i < g_menu_model_get_n_items(model); i++) {
+		GVariant * vlabel = g_menu_model_get_item_attribute_value(model, i, G_MENU_ATTRIBUTE_LABEL, G_VARIANT_TYPE_STRING);
+
+		if (vlabel == NULL) {
+			g_print("\t\t(null)\n");
+			continue;
+		}
+
+		g_print("\t\t%s\n", g_variant_get_string(vlabel, NULL));
+		g_variant_unref(vlabel);
+	}
+	return;
+}
+
+/* Quit the mainloop if we get anything */
+static void
+population_update (GMenuModel * model, gint position, gint removed, gint added, GMainLoop * loop)
+{
+	g_main_loop_quit(loop);
+	return;
+}
+
+/* Waiting here for the model to get populated with something
+   before printing.  In a real world scenario you'd probably
+   be responsive to the items being added.  We're a CLI tool. */
+static void
+populated_model (GMenuModel * model)
+{
+	if (g_menu_model_get_n_items(model) == 0) {
+		GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+
+		gulong sig = g_signal_connect(model, "items-changed", G_CALLBACK(population_update), loop);
+
+		g_main_loop_run(loop);
+		g_main_loop_unref(loop);
+
+		g_signal_handler_disconnect(model, sig);
+	}
+
+	return print_model(model);
+}
+
+/* Signal from the Client Param that it now has a model ready
+   for us to look at.  This doesn't mean that the model has
+   any data in it, but that the object is available. */
+static void
+model_ready (HudClientParam * param, GMainLoop * loop)
+{
+	GMenuModel * model = hud_client_param_get_model(param);
+	if (model != NULL) {
+		populated_model(model);
+	} else {
+		g_warning("Unable to get model even after it was 'ready'");
+	}
+
+	g_main_loop_quit(loop);
+	return;
+}
+
+/* Prints out the entries from the search, but only the parameterized
+   ones.  Then it looks at each parameterized one prints out the items
+   that are available as parameters */
 static void 
 print_suggestions (const char *query)
 {
@@ -99,12 +170,32 @@ print_suggestions (const char *query)
 			/* Only want parameterized */
 			continue;
 		}
+
 		const gchar * suggestion = dee_model_get_string(model, iter, 1);
 		gchar * clean_line = NULL;
 		pango_parse_markup(suggestion, -1, 0, NULL, &clean_line, NULL, NULL);
 		printf("\t%s\n", clean_line);
 		free(clean_line);
 
+		HudClientParam * param = hud_client_query_execute_param_command(client_query, dee_model_get_value(model, iter, 0), 0);
+		g_return_if_fail(param != NULL);
+
+		GMenuModel * model = hud_client_param_get_model(param);
+		if (model == NULL) {
+			GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+
+			gulong sig = g_signal_connect(param, "model-ready", G_CALLBACK(model_ready), loop);
+
+			g_main_loop_run(loop);
+			g_main_loop_unref(loop);
+
+			g_signal_handler_disconnect(param, sig);
+		} else {
+			populated_model(model);
+		}
+
+		hud_client_param_send_cancel(param);
+		g_object_unref(param);
 	}
 
 	return;

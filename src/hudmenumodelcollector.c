@@ -645,7 +645,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   if (recurse == 0 && collector->base_export_path != NULL) {
     /* Create the exported model */
     GMenu * export = g_menu_new();
-    GMenuItem * item = g_menu_item_new_section(NULL, model);
+    GMenuItem * item = g_menu_item_new_submenu("Root Export", model);
     g_menu_append_item(export, item);
     g_object_unref(item);
 
