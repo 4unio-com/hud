@@ -53,6 +53,7 @@ main (int argc, char *argv[])
 	return 0;
 }
 
+/* Notification from Dee that we can stop waiting */
 static void
 wait_for_sync_notify (GObject * object, GParamSpec * pspec, gpointer user_data)
 {
@@ -61,6 +62,8 @@ wait_for_sync_notify (GObject * object, GParamSpec * pspec, gpointer user_data)
 	return;
 }
 
+/* Waits for the DeeModel of results to get synchoronized from the
+   HUD service */
 static gboolean
 wait_for_sync (DeeModel * model)
 {
@@ -80,6 +83,8 @@ wait_for_sync (DeeModel * model)
 	return dee_shared_model_is_synchronized(DEE_SHARED_MODEL(model));
 }
 
+/* Prints out the label for each item in the model.  Makes it easier
+   to see what we've got */
 static void
 print_model (GMenuModel * model)
 {
@@ -126,6 +131,9 @@ populated_model (GMenuModel * model)
 	return print_model(model);
 }
 
+/* Signal from the Client Param that it now has a model ready
+   for us to look at.  This doesn't mean that the model has
+   any data in it, but that the object is available. */
 static void
 model_ready (HudClientParam * param, GMainLoop * loop)
 {
@@ -140,6 +148,9 @@ model_ready (HudClientParam * param, GMainLoop * loop)
 	return;
 }
 
+/* Prints out the entries from the search, but only the parameterized
+   ones.  Then it looks at each parameterized one prints out the items
+   that are available as parameters */
 static void 
 print_suggestions (const char *query)
 {
