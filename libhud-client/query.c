@@ -378,7 +378,7 @@ hud_client_query_voice_query_callback (GObject *source, GAsyncResult *result, gp
 	{
 		g_warning("Voice query failed to finish: [%s]", error->message);
 		g_signal_emit (user_data, hud_client_query_signal_voice_query_failed,
-		      g_quark_try_string (error->message), error->message);
+		      0 /* details */, error->message);
 		g_error_free(error);
 		return;
 	}
@@ -388,7 +388,7 @@ hud_client_query_voice_query_callback (GObject *source, GAsyncResult *result, gp
 	g_object_notify (G_OBJECT(cquery), PROP_QUERY_S);
 
 	g_signal_emit (user_data, hud_client_query_signal_voice_query_finished,
-      g_quark_try_string (query), query);
+      0 /* details */, query);
 }
 
 /**
