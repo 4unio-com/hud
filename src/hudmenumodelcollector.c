@@ -398,7 +398,7 @@ hud_model_item_activate_parameterized (HudModelItem * item, guint32 timestamp, c
 	g_return_if_fail(section != NULL);
 	g_return_if_fail(hud_model_item_is_parameterized(item));
 
-	*base_action = item->action_name;
+	*base_action = item->action_name_full;
 	*model_path = (const gchar *)g_object_get_data(G_OBJECT(item->submodel), EXPORT_PATH);
 	*action_path = item->action_path;
 	*section = 1;
