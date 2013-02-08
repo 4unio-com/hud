@@ -50,6 +50,7 @@ hud_client_param_get_actions
 hud_client_param_get_model
 hud_client_param_new
 hud_client_param_send_cancel
+hud_client_param_send_commit
 hud_client_param_send_reset
 <SUBSECTION Standard>
 HUD_CLIENT_IS_PARAM
