@@ -55,6 +55,7 @@ static void hud_client_query_dispose     (GObject *object);
 static void hud_client_query_finalize    (GObject *object);
 static void set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec);
 static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec);
+static void connection_status (HudClientConnection * connection, gboolean connected, HudClientQuery * query);
 
 G_DEFINE_TYPE (HudClientQuery, hud_client_query, G_TYPE_OBJECT);
 
@@ -215,8 +216,28 @@ hud_client_query_constructed (GObject *object)
 		cquery->priv->connection = hud_client_connection_get_ref();
 	}
 
+	g_signal_connect(cquery->priv->connection, "connection-status", G_CALLBACK(connection_status), cquery);
+
 	if(cquery->priv->query == NULL) {
 		cquery->priv->query = g_strdup("");
+	}
+
+	connection_status(cquery->priv->connection, hud_client_connection_connected(cquery->priv->connection), cquery);
+	
+	return;
+}
+
+/* Handles the connection status of the HUD service, once
+   we're connected we can do all kinds of fun stuff */
+static void
+connection_status (HudClientConnection * connection, gboolean connected, HudClientQuery * cquery)
+{
+	g_clear_object(&cquery->priv->results);
+	g_clear_object(&cquery->priv->appstack);
+	g_clear_object(&cquery->priv->proxy);
+
+	if (!connected) {
+		return;
 	}
 
 	gchar * path = NULL;
@@ -245,22 +266,22 @@ hud_client_query_constructed (GObject *object)
 	}
 	g_free(owner);
 
-	g_clear_object(&cquery->priv->results);
+	/* Set up our models */
 	cquery->priv->results = dee_shared_model_new(results);
-
-	g_clear_object(&cquery->priv->appstack);
 	cquery->priv->appstack = dee_shared_model_new(appstack);
 
+	/* Free those strings */
 	g_free(path);
 	g_free(results);
 	g_free(appstack);
 
+	/* Watch for voice signals */
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-loading",
-		G_CALLBACK (hud_client_query_voice_query_loading), object, 0);
+		G_CALLBACK (hud_client_query_voice_query_loading), G_OBJECT(cquery), 0);
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-listening",
-		G_CALLBACK (hud_client_query_voice_query_listening), object, 0);
+		G_CALLBACK (hud_client_query_voice_query_listening), G_OBJECT(cquery), 0);
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-heard-something",
-	    G_CALLBACK (hud_client_query_voice_query_heard_something), object, 0);
+	    G_CALLBACK (hud_client_query_voice_query_heard_something), G_OBJECT(cquery), 0);
 }
 
 static void
