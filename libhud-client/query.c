@@ -32,6 +32,8 @@ struct _HudClientQueryPrivate {
 	gchar * query;
 	DeeModel * results;
 	DeeModel * appstack;
+
+	gboolean has_name_owner;
 };
 
 #define HUD_CLIENT_QUERY_GET_PRIVATE(o) \
@@ -234,9 +236,12 @@ hud_client_query_constructed (GObject *object)
 		NULL  /* GError */
 	);
 
+	cquery->priv->has_name_owner = FALSE;
 	gchar * owner = g_dbus_proxy_get_name_owner(G_DBUS_PROXY(cquery->priv->proxy));
 	if (G_UNLIKELY(owner == NULL)) {
 		g_warning("Unable to find a HUD service");
+	} else {
+		cquery->priv->has_name_owner = TRUE;
 	}
 	g_free(owner);
 
