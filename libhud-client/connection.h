@@ -34,6 +34,8 @@ G_BEGIN_DECLS
 #define HUD_CLIENT_IS_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HUD_CLIENT_TYPE_CONNECTION))
 #define HUD_CLIENT_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_CLIENT_TYPE_CONNECTION, HudClientConnectionClass))
 
+#define HUD_CLIENT_CONNECTION_SIGNAL_CONNECTION_STATUS   "connection-status"
+
 typedef struct _HudClientConnection         HudClientConnection;
 typedef struct _HudClientConnectionClass    HudClientConnectionClass;
 typedef struct _HudClientConnectionPrivate  HudClientConnectionPrivate ;

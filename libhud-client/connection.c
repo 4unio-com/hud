@@ -53,6 +53,8 @@ static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * 
 
 G_DEFINE_TYPE (HudClientConnection, hud_client_connection, G_TYPE_OBJECT);
 
+static guint signal_connection_status = 0;
+
 static void
 hud_client_connection_class_init (HudClientConnectionClass *klass)
 {
@@ -77,6 +79,20 @@ hud_client_connection_class_init (HudClientConnectionClass *klass)
 	                                              "The DBus path of the HUD service we should connect to.",
 	                                              DBUS_PATH,
 	                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * HudClientConnection::connection-status:
+	 *
+	 * Called when the connection status changes in some way.
+	 */
+	signal_connection_status = g_signal_new (HUD_CLIENT_CONNECTION_SIGNAL_CONNECTION_STATUS,
+	                                         HUD_CLIENT_TYPE_CONNECTION,
+	                                         G_SIGNAL_RUN_LAST,
+	                                         0, /* offset */
+	                                         NULL, NULL, /* Collectors */
+	                                         g_cclosure_marshal_VOID__BOOLEAN,
+	                                         G_TYPE_NONE, 1, G_TYPE_BOOLEAN);
+
 
 	return;
 }

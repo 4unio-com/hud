@@ -216,7 +216,7 @@ hud_client_query_constructed (GObject *object)
 		cquery->priv->connection = hud_client_connection_get_ref();
 	}
 
-	g_signal_connect(cquery->priv->connection, "connection-status", G_CALLBACK(connection_status), cquery);
+	g_signal_connect(cquery->priv->connection, HUD_CLIENT_CONNECTION_SIGNAL_CONNECTION_STATUS, G_CALLBACK(connection_status), cquery);
 
 	if(cquery->priv->query == NULL) {
 		cquery->priv->query = g_strdup("");
