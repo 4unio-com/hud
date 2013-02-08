@@ -80,6 +80,27 @@ wait_for_sync (DeeModel * model)
 	return dee_shared_model_is_synchronized(DEE_SHARED_MODEL(model));
 }
 
+static void
+print_model (GMenuModel * model)
+{
+	g_print("Model\n");
+	return;
+}
+
+static void
+model_ready (HudClientParam * param, GMainLoop * loop)
+{
+	GMenuModel * model = hud_client_param_get_model(param);
+	if (model != NULL) {
+		print_model(model);
+	} else {
+		g_warning("Unable to get model even after it was 'ready'");
+	}
+
+	g_main_loop_quit(loop);
+	return;
+}
+
 static void 
 print_suggestions (const char *query)
 {
@@ -99,12 +120,31 @@ print_suggestions (const char *query)
 			/* Only want parameterized */
 			continue;
 		}
+
 		const gchar * suggestion = dee_model_get_string(model, iter, 1);
 		gchar * clean_line = NULL;
 		pango_parse_markup(suggestion, -1, 0, NULL, &clean_line, NULL, NULL);
 		printf("\t%s\n", clean_line);
 		free(clean_line);
 
+		HudClientParam * param = hud_client_query_execute_param_command(client_query, dee_model_get_value(model, iter, 0), 0);
+		g_return_if_fail(param != NULL);
+
+		GMenuModel * model = hud_client_param_get_model(param);
+		if (model == NULL) {
+			GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+
+			gulong sig = g_signal_connect(param, "model-ready", G_CALLBACK(model_ready), loop);
+
+			g_main_loop_run(loop);
+			g_main_loop_unref(loop);
+
+			g_signal_handler_disconnect(param, sig);
+		} else {
+			print_model(model);
+		}
+
+		g_object_unref(param);
 	}
 
 	return;
