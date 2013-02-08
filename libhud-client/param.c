@@ -377,3 +377,20 @@ hud_client_param_send_cancel (HudClientParam * param)
 	action_write_state(param, "cancel");
 	return;
 }
+
+/**
+ * hud_client_param_send_commit:
+ * @param: The #HudClientParam to query
+ *
+ * Tell the application that the user has requested the values
+ * be applied.  This doesn't mean that there isn't a dialog
+ * still open, when it closes "end" will be sent.
+ */
+void
+hud_client_param_send_commit (HudClientParam * param)
+{
+	g_return_if_fail(HUD_CLIENT_IS_PARAM(param));
+
+	action_write_state(param, "commit");
+	return;
+}
