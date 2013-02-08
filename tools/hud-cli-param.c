@@ -83,7 +83,18 @@ wait_for_sync (DeeModel * model)
 static void
 print_model (GMenuModel * model)
 {
-	g_print("Model\n");
+	int i;
+	for (i = 0; i < g_menu_model_get_n_items(model); i++) {
+		GVariant * vlabel = g_menu_model_get_item_attribute_value(model, i, G_MENU_ATTRIBUTE_LABEL, G_VARIANT_TYPE_STRING);
+
+		if (vlabel == NULL) {
+			g_print("\t\t(null)\n");
+			continue;
+		}
+
+		g_print("\t\t%s\n", g_variant_get_string(vlabel, NULL));
+		g_variant_unref(vlabel);
+	}
 	return;
 }
 
