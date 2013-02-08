@@ -29,6 +29,15 @@
 #include <gio/gunixoutputstream.h>
 #include <glib/gstdio.h>
 
+static GQuark
+hud_sphinx_error_quark(void)
+{
+  static GQuark quark = 0;
+  if (quark == 0)
+    quark = g_quark_from_static_string ("hud-sphinx-error-quark");
+  return quark;
+}
+
 static GRegex *
 hud_sphinx_alphanumeric_regex_new (void)
 {
@@ -111,8 +120,8 @@ sleep_msec(int32 ms)
 #endif
 }
 
-static gchar *
-hud_sphinx_utterance_loop(HudSphinx *self, cmd_ln_t *config, ps_decoder_t *ps)
+static gboolean
+hud_sphinx_utterance_loop(HudSphinx *self, cmd_ln_t *config, ps_decoder_t *ps, gchar **result, GError **error)
 {
   ad_rec_t *ad;
   int16 adbuf[4096];
@@ -125,36 +134,36 @@ hud_sphinx_utterance_loop(HudSphinx *self, cmd_ln_t *config, ps_decoder_t *ps)
       (int) cmd_ln_float32_r(config, "-samprate"))) == NULL )
   {
     g_warning("Failed to open audio device");
-    hud_query_iface_com_canonical_hud_query_emit_voice_query_failed (
-        HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel),
+    *result = NULL;
+    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
         "Failed to open audio device");
-    return NULL;
+    return FALSE;
   }
 
   /* Initialize continuous listening module */
   if ((cont = cont_ad_init (ad, ad_read)) == NULL )
   {
-    hud_query_iface_com_canonical_hud_query_emit_voice_query_failed (
-        HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel),
-        "Failed to initialize voice activity detection");
     g_warning("Failed to initialize voice activity detection");
-    return NULL;
+    *result = NULL;
+    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
+        "Failed to initialize voice activity detection");
+    return FALSE;
   }
   if (ad_start_rec (ad) < 0)
   {
-    hud_query_iface_com_canonical_hud_query_emit_voice_query_failed (
-            HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel),
-            "Failed to start recording");
     g_warning("Failed to start recording");
-    return NULL;
+    *result = NULL;
+    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
+        "Failed to start recording");
+    return FALSE;
   }
   if (cont_ad_calib (cont) < 0)
   {
-    hud_query_iface_com_canonical_hud_query_emit_voice_query_failed (
-                HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel),
-                "Failed to calibrate voice activity detection");
     g_warning("Failed to calibrate voice activity detection");
-    return NULL;
+    *result = NULL;
+    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
+        "Failed to calibrate voice activity detection");
+    return FALSE;
   }
 
   /* Indicate listening for next utterance */
@@ -171,10 +180,10 @@ hud_sphinx_utterance_loop(HudSphinx *self, cmd_ln_t *config, ps_decoder_t *ps)
   if (k < 0)
   {
     g_warning("Failed to read audio");
-    hud_query_iface_com_canonical_hud_query_emit_voice_query_failed (
-        HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel),
+    *result = NULL;
+    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
         "Failed to read audio");
-    return NULL;
+    return FALSE;
   }
 
   /*
@@ -243,12 +252,14 @@ hud_sphinx_utterance_loop(HudSphinx *self, cmd_ln_t *config, ps_decoder_t *ps)
 
   if (hyp)
   {
-    return g_strdup (hyp);
+    *result = g_strdup (hyp);
   }
   else
   {
-    return NULL ;
+    *result = NULL;
   }
+
+  return TRUE;
 
 }
 /* End code taken from PocketSphinx */
@@ -259,8 +270,8 @@ static arg_t sphinx_cmd_ln[] = {
 };
 
 /* Actually recognizing the Audio */
-static gchar *
-hud_sphinx_recognize_audio(HudSphinx *self, const gchar * lm_filename, const gchar * pron_filename)
+static gboolean
+hud_sphinx_recognize_audio(HudSphinx *self, const gchar * lm_filename, const gchar * pron_filename, gchar **result, GError **error)
 {
   cmd_ln_t *config = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
                                    "-hmm", "/usr/share/pocketsphinx/model/hmm/en_US/hub4wsj_sc_8k",
@@ -270,25 +281,32 @@ hud_sphinx_recognize_audio(HudSphinx *self, const gchar * lm_filename, const gch
                                    NULL);
   if (config == NULL) {
     g_warning("Sphinx command line arguments failed to initialize");
-    return NULL;
+    *result = NULL;
+    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
+        "Sphinx command line arguments failed to initialize");
+    return FALSE;
   }
 
   ps_decoder_t *ps = ps_init(config);
   if (ps == NULL) {
     g_warning("Unable to initialize Sphinx decoder");
-    return NULL;
+    *result = NULL;
+    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
+        "Unable to initialize Sphinx decoder");
+    return FALSE;
   }
 
-  char *hyp = hud_sphinx_utterance_loop(self, config, ps);
-  if (hyp == NULL) {
-    g_warning("Utterance loop failed");
+  gboolean success = hud_sphinx_utterance_loop (self, config, ps, result,
+      error);
+
+  if (success) {
+    g_debug("Recognized: %s", *result);
   } else {
-    g_debug("Recognized: %s\n", hyp);
+    g_warning("Utterance loop failed");
   }
 
   ps_free(ps);
-
-  return hyp;
+  return success;
 }
 
 static void
@@ -298,18 +316,21 @@ free_func (gpointer data)
 }
 
 /* Function to try and get a query from voice */
-gchar *
-hud_sphinx_voice_query (HudSphinx *self, HudSource *source)
+gboolean
+hud_sphinx_voice_query (HudSphinx *self, HudSource *source, gchar **result, GError **error)
 {
   if (source == NULL) {
     /* No active window, that's fine, but we'll just move on */
-    return NULL;
+    *result = NULL;
+    *error = g_error_new_literal(hud_sphinx_error_quark(), 0, "Active source is null");
+    return FALSE;
   }
 
   GList * items = hud_source_get_items(source);
   if (items == NULL) {
     /* The active window doesn't have items, that's cool.  We'll move on. */
-    return NULL;
+    *result = NULL;
+    return TRUE;
   }
 
   /* Get the pronounciations for the items */
@@ -328,12 +349,11 @@ hud_sphinx_voice_query (HudSphinx *self, HudSource *source)
   gint pron_file = 0;
   gint lm_file = 0;
 
-  GError * error = NULL;
-
-  if ((string_file = g_file_open_tmp("hud-strings-XXXXXX.txt", &string_filename, &error)) == 0 ||
-      (pron_file = g_file_open_tmp("hud-pronounciations-XXXXXX.txt", &pron_filename, &error)) == 0 ||
-      (lm_file = g_file_open_tmp("hud-lang-XXXXXX.lm", &lm_filename, &error)) == 0) {
-    g_warning("Unable to open temporary filee: %s", error->message);
+  *error = NULL;
+  if ((string_file = g_file_open_tmp("hud-strings-XXXXXX.txt", &string_filename, error)) == 0 ||
+      (pron_file = g_file_open_tmp("hud-pronounciations-XXXXXX.txt", &pron_filename, error)) == 0 ||
+      (lm_file = g_file_open_tmp("hud-lang-XXXXXX.lm", &lm_filename, error)) == 0) {
+    g_warning("Unable to open temporary filee: %s", (*error)->message);
 
     if (string_file != 0) {
       close(string_file);
@@ -353,9 +373,9 @@ hud_sphinx_voice_query (HudSphinx *self, HudSource *source)
       g_free(lm_filename);
     }
 
-    g_error_free(error);
     g_hash_table_unref(pronounciations);
-    return NULL;
+    *result = NULL;
+    return FALSE;
   }
 
   /* Now we have files -- now streams */
@@ -398,11 +418,15 @@ hud_sphinx_voice_query (HudSphinx *self, HudSource *source)
     }
 
     gchar *upper = g_utf8_strup(command, g_utf8_strlen(command, -1));
+    *error = NULL;
     gchar *filtered = g_regex_replace (self->alphanumeric_regex, upper,
-              -1, 0, "", 0, &error);
+              -1, 0, "", 0, error);
     if (filtered == NULL) {
-      g_error("Regex replace failed: [%s]", error->message);
-      g_error_free(error);
+      g_error("Regex replace failed: [%s]", (*error)->message);
+      g_free(filtered);
+      g_free(upper);
+      *result = NULL;
+      return FALSE;
     }
 
     g_output_stream_write(string_output, "<s> ", g_utf8_strlen("<s> ", -1), NULL, NULL);
@@ -437,24 +461,26 @@ hud_sphinx_voice_query (HudSphinx *self, HudSource *source)
   g_setenv("IRSTLM", "/usr", TRUE);
 
   gchar * buildlm = g_strdup_printf("/usr/bin/build-lm.sh -i %s -o %s.gz", string_filename, lm_filename);
-  if (!g_spawn_command_line_sync(buildlm, NULL, NULL, NULL, NULL))
+  if (!g_spawn_command_line_sync(buildlm, NULL, NULL, NULL, error))
   {
-    g_error("Command [%s] failed", buildlm);
+    g_warning("Command [%s] failed", buildlm);
     g_free(buildlm);
-    return NULL;
+    *result = NULL;
+    return FALSE;
   }
   g_free(buildlm);
 
   gchar * unzipit = g_strdup_printf("gzip -f -d %s.gz", lm_filename);
-  if (!g_spawn_command_line_sync(unzipit, NULL, NULL, NULL, NULL))
+  if (!g_spawn_command_line_sync(unzipit, NULL, NULL, NULL, error))
   {
     g_error("Command [%s] failed", unzipit);
     g_free(unzipit);
-    return NULL;
+    *result = NULL;
+    return FALSE;
   }
   g_free(unzipit);
 
-  gchar * retval = hud_sphinx_recognize_audio(self, lm_filename, pron_filename);
+  gboolean success = hud_sphinx_recognize_audio(self, lm_filename, pron_filename, result, error);
 
   if (string_file != 0) {
     g_unlink(string_filename);
@@ -472,5 +498,5 @@ hud_sphinx_voice_query (HudSphinx *self, HudSource *source)
   g_free(pron_filename);
   g_free(lm_filename);
 
-  return retval;
+  return success;
 }

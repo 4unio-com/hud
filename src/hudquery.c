@@ -280,17 +280,19 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   g_debug("Voice query is loading");
   hud_query_iface_com_canonical_hud_query_emit_voice_query_loading (
       HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (skel));
-//  HudSphinx *sphinx = hud_sphinx_new (skel);
-//  gchar * search_string = hud_sphinx_voice_query (sphinx,
-//      query->current_source);
-//  g_object_unref(sphinx);
+  gchar *search_string;
+  GError *error = NULL;
   HudJulius *julius = hud_julius_new (skel);
-  gchar * search_string = hud_julius_voice_query (julius,
-      query->current_source);
+  if (!hud_julius_voice_query (julius,
+          query->current_source, &search_string, &error))
+  {
+    g_dbus_method_invocation_return_dbus_error(invocation, "voice-query", error->message);
+    g_error_free(error);
+    g_object_unref(julius);
+    return FALSE;
+  }
   g_object_unref(julius);
   g_debug("Voice query is finished");
-  hud_query_iface_com_canonical_hud_query_emit_voice_query_finished(
-      HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (skel), search_string);
 
   if (search_string == NULL)
     search_string = g_strdup("");
