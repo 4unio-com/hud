@@ -194,6 +194,7 @@ print_suggestions (const char *query)
 			populated_model(model);
 		}
 
+		hud_client_param_send_cancel(param);
 		g_object_unref(param);
 	}
 
