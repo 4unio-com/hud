@@ -263,9 +263,6 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
     return FALSE;
   }
 
-  /* output system information to log */
-//  j_recog_info (recog);
-
   /* inupt from microphone */
   switch (j_open_stream (recog, NULL ))
   {
