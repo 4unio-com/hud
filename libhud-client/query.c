@@ -95,7 +95,7 @@ hud_client_query_class_init (HudClientQueryClass *klass)
 	 */
 	hud_client_query_signal_voice_query_loading = g_signal_new (
 		"voice-query-loading", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST, 0, NULL,
-		NULL, g_cclosure_marshal_generic, G_TYPE_NONE, 0);
+		NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
 
 	/**
    * HudClientQuery::voice-query-failed:
@@ -105,7 +105,7 @@ hud_client_query_class_init (HudClientQueryClass *klass)
    */
   hud_client_query_signal_voice_query_failed = g_signal_new (
     "voice-query-failed", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST, 0, NULL,
-    NULL, g_cclosure_marshal_generic, G_TYPE_NONE, 1, G_TYPE_STRING );
+    NULL, g_cclosure_marshal_VOID__STRING, G_TYPE_NONE, 1, G_TYPE_STRING );
 
 	/**
    * HudClientQuery::voice-query-listening:
@@ -114,7 +114,7 @@ hud_client_query_class_init (HudClientQueryClass *klass)
    */
 	hud_client_query_signal_voice_query_listening = g_signal_new (
 		"voice-query-listening", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST, 0,
-		NULL, NULL, g_cclosure_marshal_generic, G_TYPE_NONE, 0);
+		NULL, NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
 
 	/**
    * HudClientQuery::voice-query-heard-something:
@@ -123,7 +123,7 @@ hud_client_query_class_init (HudClientQueryClass *klass)
    */
   hud_client_query_signal_voice_query_heard_something = g_signal_new (
     "voice-query-heard-something", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST,
-    0, NULL, NULL, g_cclosure_marshal_generic, G_TYPE_NONE, 0);
+    0, NULL, NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
 
 	/**
    * HudClientQuery::voice-query-finished:
@@ -132,7 +132,7 @@ hud_client_query_class_init (HudClientQueryClass *klass)
    */
 	hud_client_query_signal_voice_query_finished = g_signal_new (
 		"voice-query-finished", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST, 0, NULL,
-		NULL, g_cclosure_marshal_generic, G_TYPE_NONE, 1, G_TYPE_STRING );
+		NULL, g_cclosure_marshal_VOID__STRING, G_TYPE_NONE, 1, G_TYPE_STRING );
 
 	return;
 }
