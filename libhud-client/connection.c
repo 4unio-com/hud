@@ -176,12 +176,7 @@ hud_client_connection_constructed (GObject * object)
 	}
 
 	self->priv->name_owner_sig = g_signal_connect(G_OBJECT(self->priv->proxy), "notify::g-name-owner", G_CALLBACK(name_owner_changed), self);
-
-	gchar * owner = g_dbus_proxy_get_name_owner(G_DBUS_PROXY(self->priv->proxy));
-	if (owner != NULL) {
-		self->priv->connected = TRUE;
-		g_free(owner);
-	}
+	name_owner_changed(G_OBJECT(self->priv->proxy), NULL, self);
 
 	return;
 }
@@ -218,6 +213,22 @@ hud_client_connection_finalize (GObject *object)
 static void
 name_owner_changed (GObject * object, GParamSpec * pspec, gpointer user_data)
 {
+	HudClientConnection * self = HUD_CLIENT_CONNECTION(user_data);
+	gboolean connected = FALSE;
+
+	gchar * owner = g_dbus_proxy_get_name_owner(G_DBUS_PROXY(self->priv->proxy));
+	if (owner != NULL) {
+		connected = TRUE;
+		g_free(owner);
+	}
+
+	/* Make sure we set the internal variable before signaling */
+	gboolean change = (connected == self->priv->connected);
+	self->priv->connected = connected;
+
+	if (change) {
+		g_signal_emit(self, signal_connection_status, 0, connected);
+	}
 
 	return;
 }
