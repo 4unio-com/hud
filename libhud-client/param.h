@@ -80,6 +80,7 @@ GMenuModel *           hud_client_param_get_model     (HudClientParam * param);
 
 void                   hud_client_param_send_reset    (HudClientParam * param);
 void                   hud_client_param_send_cancel   (HudClientParam * param);
+void                   hud_client_param_send_commit   (HudClientParam * param);
 
 /**
 	SECTION:param
