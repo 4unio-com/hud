@@ -30,6 +30,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 static void print_suggestions(const char * query);
+static void models_ready (HudClientQuery * client_query, gpointer user_data);
 static HudClientQuery * client_query = NULL;
 
 int
@@ -156,10 +157,26 @@ print_suggestions (const char *query)
 {
 	if (client_query == NULL) {
 		client_query = hud_client_query_new(query);
+		
+		GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+
+		guint sig = g_signal_connect(G_OBJECT(client_query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(models_ready), loop);
+
+		g_main_loop_run(loop);
+		g_main_loop_unref(loop);
+
+		g_signal_handler_disconnect(G_OBJECT(client_query), sig);
 	} else {
 		hud_client_query_set_query(client_query, query);
+		models_ready(client_query, NULL);
 	}
 
+	return;
+}
+
+static void
+models_ready (HudClientQuery * client_query, gpointer user_data)
+{
 	DeeModel * model = hud_client_query_get_results_model(client_query);
 	g_return_if_fail(wait_for_sync(model));
 
@@ -196,6 +213,11 @@ print_suggestions (const char *query)
 
 		hud_client_param_send_cancel(param);
 		g_object_unref(param);
+	}
+
+	if (user_data != NULL) {
+		GMainLoop * loop = (GMainLoop *)user_data;
+		g_main_loop_quit(loop);
 	}
 
 	return;
