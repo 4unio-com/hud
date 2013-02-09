@@ -246,6 +246,8 @@ connection_status (HudClientConnection * connection, gboolean connected, HudClie
 	g_clear_object(&cquery->priv->appstack);
 	g_clear_object(&cquery->priv->proxy);
 
+	g_signal_emit(G_OBJECT(cquery), hud_client_query_signal_models_changed, 0);
+
 	if (!connected) {
 		return;
 	}
@@ -286,6 +288,8 @@ new_query_cb (HudClientConnection * connection, const gchar * path, const gchar 
 		G_CALLBACK (hud_client_query_voice_query_listening), G_OBJECT(cquery), 0);
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-heard-something",
 	    G_CALLBACK (hud_client_query_voice_query_heard_something), G_OBJECT(cquery), 0);
+
+	g_signal_emit(G_OBJECT(cquery), hud_client_query_signal_models_changed, 0);
 
 	return;
 }
