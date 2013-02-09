@@ -68,6 +68,25 @@ no_dee_add_match (const gchar * log_domain, GLogLevelFlags level, const gchar * 
 	return TRUE;
 }
 
+typedef struct _test_connection_create_t test_connection_create_t;
+struct _test_connection_create_t {
+	gchar * query_path;
+	gchar * results_name;
+	gchar * appstack_name;
+	GMainLoop * loop;
+};
+
+static void
+test_connection_create_query (HudClientConnection * con, const gchar * query_path, const gchar * results_name, const gchar * appstack_name, gpointer user_data)
+{
+	test_connection_create_t * data = (test_connection_create_t *)user_data;
+	data->query_path = g_strdup(query_path);
+	data->results_name = g_strdup(results_name);
+	data->appstack_name = g_strdup(appstack_name);
+	g_main_loop_quit(data->loop);
+	return;
+}
+
 static void
 test_connection_create (void)
 {
@@ -81,18 +100,28 @@ test_connection_create (void)
 
 	g_assert(HUD_CLIENT_IS_CONNECTION(con));
 
-	gchar * query_path = NULL;
-	gchar * results_name = NULL;
-	gchar * appstack_name = NULL;
+	test_connection_create_t data;
+	data.query_path = NULL;
+	data.results_name = NULL;
+	data.appstack_name = NULL;
+	data.loop = g_main_loop_new(NULL, FALSE);
 
-	g_assert(hud_client_connection_new_query(con, "test", &query_path, &results_name, &appstack_name));
-	g_assert(query_path != NULL);
-	g_assert(results_name != NULL);
-	g_assert(appstack_name != NULL);
+	hud_client_connection_new_query(con, "test", test_connection_create_query, &data);
 
-	g_free(query_path);
-	g_free(results_name);
-	g_free(appstack_name);
+	gulong sig = g_timeout_add_seconds(5, g_main_loop_quit, data.loop);
+
+	g_main_loop_run(data.loop);
+	g_main_loop_unref(data.loop);
+
+	g_source_remove(sig);
+
+	g_assert(data.query_path != NULL);
+	g_assert(data.results_name != NULL);
+	g_assert(data.appstack_name != NULL);
+
+	g_free(data.query_path);
+	g_free(data.results_name);
+	g_free(data.appstack_name);
 
 	g_assert(g_strcmp0("com.canonical.hud", hud_client_connection_get_address(con)) == 0);
 
