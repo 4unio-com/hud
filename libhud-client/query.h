@@ -37,6 +37,8 @@ G_BEGIN_DECLS
 #define HUD_CLIENT_IS_QUERY_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HUD_CLIENT_TYPE_QUERY))
 #define HUD_CLIENT_QUERY_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_CLIENT_TYPE_QUERY, HudClientQueryClass))
 
+#define HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED   "models-changed"
+
 typedef struct _HudClientQuery         HudClientQuery;
 typedef struct _HudClientQueryClass    HudClientQueryClass;
 typedef struct _HudClientQueryPrivate  HudClientQueryPrivate;

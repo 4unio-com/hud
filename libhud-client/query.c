@@ -63,6 +63,7 @@ static guint hud_client_query_signal_voice_query_failed;
 static guint hud_client_query_signal_voice_query_listening;
 static guint hud_client_query_signal_voice_query_heard_something;
 static guint hud_client_query_signal_voice_query_finished;
+static guint hud_client_query_signal_models_changed = 0;
 
 static void
 hud_client_query_class_init (HudClientQueryClass *klass)
@@ -133,6 +134,16 @@ hud_client_query_class_init (HudClientQueryClass *klass)
 	hud_client_query_signal_voice_query_finished = g_signal_new (
 		"voice-query-finished", HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST, 0, NULL,
 		NULL, g_cclosure_marshal_VOID__STRING, G_TYPE_NONE, 1, G_TYPE_STRING );
+
+	/**
+	 * HudClientQuery::models-changed:
+   	 *
+	 * Something has caused the models to be changed, you should probably
+	 * figure out their state again.
+	 */
+	hud_client_query_signal_models_changed = g_signal_new (
+		HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, HUD_CLIENT_TYPE_QUERY, G_SIGNAL_RUN_LAST, 0, NULL,
+		NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0, G_TYPE_NONE );
 
 	return;
 }
