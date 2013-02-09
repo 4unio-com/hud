@@ -54,6 +54,7 @@ static void hud_client_query_finalize    (GObject *object);
 static void set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec);
 static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec);
 static void connection_status (HudClientConnection * connection, gboolean connected, HudClientQuery * query);
+static void new_query_cb (HudClientConnection * connection, const gchar * path, const gchar * results, const gchar * appstack, gpointer user_data);
 
 G_DEFINE_TYPE (HudClientQuery, hud_client_query, G_TYPE_OBJECT);
 
@@ -238,31 +239,34 @@ connection_status (HudClientConnection * connection, gboolean connected, HudClie
 		return;
 	}
 
-	gchar * path = NULL;
-	gchar * results = NULL;
-	gchar * appstack = NULL;
+	hud_client_connection_new_query(cquery->priv->connection, cquery->priv->query, new_query_cb, cquery);
+	return;
+}
 
-	/* This is perhaps a little extreme, but really, if this is failing
-	 there's a whole world of hurt for us. */
-	g_return_if_fail(hud_client_connection_new_query(cquery->priv->connection, cquery->priv->query, &path, &results, &appstack));
+static void
+new_query_cb (HudClientConnection * connection, const gchar * path, const gchar * results, const gchar * appstack, gpointer user_data)
+{
+	HudClientQuery * cquery = HUD_CLIENT_QUERY(user_data);
+	GError * error = NULL;
 
 	cquery->priv->proxy = _hud_query_com_canonical_hud_query_proxy_new_for_bus_sync(
 		G_BUS_TYPE_SESSION,
-		G_DBUS_PROXY_FLAGS_NONE,
+		G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
 		hud_client_connection_get_address(cquery->priv->connection),
 		path,
 		NULL, /* GCancellable */
-		NULL  /* GError */
+		&error  /* GError */
 	);
+
+	if (cquery->priv->proxy == NULL) {
+		g_warning("Unable to get proxy after getting query path: %s", error->message);
+		g_error_free(error);
+		return;
+	}
 
 	/* Set up our models */
 	cquery->priv->results = dee_shared_model_new(results);
 	cquery->priv->appstack = dee_shared_model_new(appstack);
-
-	/* Free those strings */
-	g_free(path);
-	g_free(results);
-	g_free(appstack);
 
 	/* Watch for voice signals */
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-loading",
@@ -271,6 +275,8 @@ connection_status (HudClientConnection * connection, gboolean connected, HudClie
 		G_CALLBACK (hud_client_query_voice_query_listening), G_OBJECT(cquery), 0);
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-heard-something",
 	    G_CALLBACK (hud_client_query_voice_query_heard_something), G_OBJECT(cquery), 0);
+
+	return;
 }
 
 static void
