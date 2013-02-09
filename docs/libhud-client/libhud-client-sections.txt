@@ -17,6 +17,7 @@ HudClientQueryPrivate
 HUD_CLIENT_QUERY
 HUD_CLIENT_QUERY_CLASS
 HUD_CLIENT_QUERY_GET_CLASS
+HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED
 HUD_CLIENT_TYPE_QUERY
 HUD_CLIENT_IS_QUERY
 HUD_CLIENT_IS_QUERY_CLASS
@@ -27,6 +28,7 @@ hud_client_query_get_type
 <FILE>connection</FILE>
 HudClientConnection
 HudClientConnectionClass
+hud_client_connection_connected
 hud_client_connection_get_address
 hud_client_connection_get_ref
 hud_client_connection_new
@@ -36,10 +38,12 @@ HudClientConnectionPrivate
 HUD_CLIENT_CONNECTION
 HUD_CLIENT_CONNECTION_CLASS
 HUD_CLIENT_CONNECTION_GET_CLASS
+HUD_CLIENT_CONNECTION_SIGNAL_CONNECTION_STATUS
 HUD_CLIENT_IS_CONNECTION
 HUD_CLIENT_IS_CONNECTION_CLASS
 HUD_CLIENT_TYPE_CONNECTION
 hud_client_connection_get_type
+HudClientConnectionNewQueryCallback
 </SECTION>
 
 <SECTION>
