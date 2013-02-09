@@ -1,8 +1,8 @@
 
 lib_LTLIBRARIES = libhud-client.la
 
-ABI_VERSION = 1
-API_VERSION = 1
+ABI_VERSION = 2
+API_VERSION = 2
 
 libhud_client_include_basedir = $(includedir)/libhud-client-$(API_VERSION)/
 libhud_client_include_base_HEADERS = \
@@ -112,20 +112,20 @@ INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir) --includedir=$(srcdir)
 
 if HAVE_INTROSPECTION
 
-# NOTE: 1 here is $API_VERSION
+# NOTE: 2 here is $API_VERSION
 
-HudClient-1.gir: libhud-client.la
+HudClient-2.gir: libhud-client.la
 
-HudClient_1_gir_INCLUDES = Dee-1.0
-HudClient_1_gir_CFLAGS = \
+HudClient_2_gir_INCLUDES = Dee-1.0
+HudClient_2_gir_CFLAGS = \
 	-D HUD_CLIENT_COMPILATION \
 	$(HUD_CFLAGS)
-HudClient_1_gir_LIBS = $(builddir)/libhud-client.la
-HudClient_1_gir_EXPORT_PACKAGES = hud-client-$(API_VERSION)
-HudClient_1_gir_SCANNERFLAGS = --c-include "hud-client.h"
-HudClient_1_gir_FILES = $(libhud_client_la_SOURCES)
+HudClient_2_gir_LIBS = $(builddir)/libhud-client.la
+HudClient_2_gir_EXPORT_PACKAGES = hud-client-$(API_VERSION)
+HudClient_2_gir_SCANNERFLAGS = --c-include "hud-client.h"
+HudClient_2_gir_FILES = $(libhud_client_la_SOURCES)
 
-INTROSPECTION_GIRS += HudClient-1.gir
+INTROSPECTION_GIRS += HudClient-2.gir
 
 endif
 
@@ -145,10 +145,10 @@ if HAVE_VALA
 if HAVE_INTROSPECTION
 
 vapidir = $(datadir)/vala/vapi
-vapi_DATA = HudClient-1.vapi
+vapi_DATA = HudClient-2.vapi
 
-HudClient-1.vapi: HudClient-1.gir
-	$(VALA_API_GEN) --pkg gio-2.0 --library=HudClient-1 $<
+HudClient-2.vapi: HudClient-2.gir
+	$(VALA_API_GEN) --pkg gio-2.0 --library=HudClient-2 $<
 
 CLEANFILES += $(vapi_DATA)
 
