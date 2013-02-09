@@ -129,7 +129,7 @@ Description: GTK helpers for exporting items to the Unity HUD
  .
  This package contains files that are needed to build applications.
 
-Package: libhud-client1
+Package: libhud-client2
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -142,41 +142,41 @@ Description: private library for implementing a HUD frontend
  .
  This package contains shared libraries to be used by applications.
 
-Package: libhud-client1-dev
+Package: libhud-client2-dev
 Section: libdevel
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         libhud-client1 (= ${binary:Version}),
+         libhud-client2 (= ${binary:Version}),
          libglib2.0-dev
-Recommends: libhud-client1-doc
+Recommends: libhud-client2-doc
 Multi-Arch: same
 Description: private library for implementing a HUD frontend
  Interface for querying the HUD and getting results.
  .
  This package contains files that are needed to build applications.
 
-Package: libhud-client1-doc
+Package: libhud-client2-doc
 Section: doc
 Architecture: all
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         libhud-client1-dev (>= ${source:Version})
+         libhud-client2-dev (>= ${source:Version})
 Description: private library for implementing a HUD frontend
  Interface for querying the HUD and getting results.
  .
  This package contains developer documentation.
 
-Package: gir1.2-hud-client-1
+Package: gir1.2-hud-client-2
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         libhud-client1 (= ${binary:Version}),
+         libhud-client2 (= ${binary:Version}),
          ${gir:Depends},
 Pre-Depends: ${misc:Pre-Depends}
 Recommends: hud (= ${binary:Version})
-Description: typelib file for libhud-client-1
+Description: typelib file for libhud-client-2
  Interface for querying the HUD and getting results.
  .
  This package can be used by other packages using the GIRepository format to
