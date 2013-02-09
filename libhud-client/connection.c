@@ -289,6 +289,30 @@ struct _new_query_data_t {
 static void
 new_query_complete (GObject * object, GAsyncResult * res, gpointer user_data)
 {
+	new_query_data_t * data = (new_query_data_t *)user_data;
+
+	gchar * query_object = NULL;
+	gchar * results_name = NULL;
+	gchar * appstack_name = NULL;
+	gint revision = 0;
+	GError * error = NULL;
+
+	_hud_service_com_canonical_hud_call_start_query_finish((_HudServiceComCanonicalHud *)object,
+	                                                       &query_object,
+	                                                       &results_name,
+	                                                       &appstack_name,
+	                                                       &revision,
+	                                                       res,
+	                                                       &error);
+
+	if (error != NULL) {
+		g_warning("Unable to allocate query: %s", error->message);
+		g_error_free(error);
+	}
+
+	data->cb(data->con, query_object, results_name, appstack_name, data->user_data);
+
+	g_free(data);
 
 	return;
 }
