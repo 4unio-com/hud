@@ -210,6 +210,13 @@ test_query_update (void)
 }
 
 static void
+test_query_custom_models_ready (HudClientQuery * query, gpointer user_data)
+{
+	g_main_loop_quit((GMainLoop *)user_data);
+	return;
+}
+
+static void
 test_query_custom (void)
 {
 	g_test_log_set_fatal_handler(no_dee_add_match, NULL);
@@ -226,6 +233,15 @@ test_query_custom (void)
 	/* Create a query */
 	HudClientQuery * query = hud_client_query_new_for_connection("test", con);
 	g_assert(HUD_CLIENT_IS_QUERY(query));
+
+	/* Wait for the models to be ready */
+	GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+	gulong sig = g_timeout_add_seconds(5, g_main_loop_quit, loop);
+
+	g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_custom_models_ready), loop);
+
+	g_main_loop_run(loop);
+	g_main_loop_unref(loop);
 
 	/* Make sure it has models */
 	g_assert(DEE_IS_MODEL(hud_client_query_get_results_model(query)));
