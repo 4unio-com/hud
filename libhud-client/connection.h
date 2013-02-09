@@ -39,6 +39,11 @@ G_BEGIN_DECLS
 typedef struct _HudClientConnection         HudClientConnection;
 typedef struct _HudClientConnectionClass    HudClientConnectionClass;
 typedef struct _HudClientConnectionPrivate  HudClientConnectionPrivate ;
+typedef void  (*HudClientConnectionNewQueryCallback) (HudClientConnection *   connection,
+                                                      const gchar *           query_path,
+                                                      const gchar *           results_name,
+                                                      const gchar *           appstack_name,
+                                                      gpointer                user_data);
 
 /**
  * HudClientConnectionClass:
@@ -66,11 +71,10 @@ GType                   hud_client_connection_get_type   (void);
 HudClientConnection *   hud_client_connection_get_ref    (void);
 HudClientConnection *   hud_client_connection_new        (gchar * dbus_address,
                                                           gchar * dbus_path);
-gboolean                hud_client_connection_new_query  (HudClientConnection * connection,
+void                    hud_client_connection_new_query  (HudClientConnection * connection,
                                                           const gchar * query,
-                                                          gchar ** query_path,
-                                                          gchar ** results_name,
-                                                          gchar ** appstack_name);
+                                                          HudClientConnectionNewQueryCallback cb,
+                                                          gpointer user_data);
 const gchar *           hud_client_connection_get_address (HudClientConnection * connection);
 gboolean                hud_client_connection_connected  (HudClientConnection * connection);
 

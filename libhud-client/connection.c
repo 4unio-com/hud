@@ -277,34 +277,47 @@ hud_client_connection_new (gchar * dbus_address, gchar * dbus_path)
 			NULL));
 }
 
+/* Data to handle the callback */
+typedef struct _new_query_data_t new_query_data_t;
+struct _new_query_data_t {
+	HudClientConnection * con;
+	HudClientConnectionNewQueryCallback cb;
+	gpointer user_data;
+};
+
+/* Called when the new query call comes back */
+static void
+new_query_complete (GObject * object, GAsyncResult * res, gpointer user_data)
+{
+
+	return;
+}
+
 /**
  * hud_client_connection_new_query:
  * @connection: A #HudClientConnection
  * @query: The initial query string
- * @query_path: (transfer full): Place to put the path for the new query
- * @results_name: (transfer full): Place to put the #DeeModel name for the results
- * @appstack_name: (transfer full): Place to put the #DeeModel name for the appstack
+ * @cb: Callback when we've got the query
+ * @user_data: Data to pass to the callback
  *
  * Function to create a new query in the HUD service and pass back
  * the information needed to create a #HudClientQuery object.
- *
- * Return value: Whether we were able to create the query
  */
-gboolean
-hud_client_connection_new_query (HudClientConnection * connection, const gchar * query, gchar ** query_path, gchar ** results_name, gchar ** appstack_name)
+void
+hud_client_connection_new_query (HudClientConnection * connection, const gchar * query, HudClientConnectionNewQueryCallback cb, gpointer user_data)
 {
-	g_return_val_if_fail(HUD_CLIENT_IS_CONNECTION(connection), FALSE);
+	g_return_if_fail(HUD_CLIENT_IS_CONNECTION(connection));
 
-	gint modelrev = 0;
+	new_query_data_t * data = g_new0(new_query_data_t, 1);
+	data->con = connection;
+	data->cb = cb;
+	data->user_data = user_data;
 
-	return _hud_service_com_canonical_hud_call_start_query_sync(connection->priv->proxy,
+	return _hud_service_com_canonical_hud_call_start_query(connection->priv->proxy,
 		query,
-		query_path,
-		results_name,
-		appstack_name,
-		&modelrev,
 		NULL,  /* GCancellable */
-		NULL); /* GError */
+		new_query_complete,
+		data); /* GError */
 }
 
 /**
