@@ -233,6 +233,12 @@ name_owner_changed (GObject * object, GParamSpec * pspec, gpointer user_data)
 	gboolean change = (connected == self->priv->connected);
 	self->priv->connected = connected;
 
+	/* Cancel anything we had running */
+	if (!self->priv->connected && self->priv->cancellable != NULL) {
+		g_cancellable_cancel(self->priv->cancellable);
+	}
+
+	/* If there was a change, make sure others know about it */
 	if (change) {
 		g_signal_emit(self, signal_connection_status, 0, connected);
 	}
