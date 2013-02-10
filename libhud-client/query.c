@@ -29,6 +29,7 @@
 struct _HudClientQueryPrivate {
 	_HudQueryComCanonicalHudQuery * proxy;
 	HudClientConnection * connection;
+	guint connection_changed_sig;
 	gchar * query;
 	DeeModel * results;
 	DeeModel * appstack;
@@ -226,7 +227,7 @@ hud_client_query_constructed (GObject *object)
 		cquery->priv->connection = hud_client_connection_get_ref();
 	}
 
-	g_signal_connect(cquery->priv->connection, HUD_CLIENT_CONNECTION_SIGNAL_CONNECTION_STATUS, G_CALLBACK(connection_status), cquery);
+	cquery->priv->connection_changed_sig = g_signal_connect(cquery->priv->connection, HUD_CLIENT_CONNECTION_SIGNAL_CONNECTION_STATUS, G_CALLBACK(connection_status), cquery);
 
 	if(cquery->priv->query == NULL) {
 		cquery->priv->query = g_strdup("");
@@ -298,6 +299,12 @@ static void
 hud_client_query_dispose (GObject *object)
 {
 	HudClientQuery * self = HUD_CLIENT_QUERY(object);
+
+	/* We don't care anymore, we're dying! */
+	if (self->priv->connection_changed_sig != 0) {
+		g_signal_handler_disconnect(self->priv->connection, self->priv->connection_changed_sig);
+		self->priv->connection_changed_sig = 0;
+	}
 
 	if (self->priv->proxy != NULL) {
 		_hud_query_com_canonical_hud_query_call_close_query_sync(self->priv->proxy, NULL, NULL);
