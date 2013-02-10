@@ -31,6 +31,7 @@ struct _HudClientConnectionPrivate {
 	gchar * path;
 	gboolean connected;
 	gulong name_owner_sig;
+	GCancellable * cancellable;
 };
 
 #define HUD_CLIENT_CONNECTION_GET_PRIVATE(o) \
@@ -105,6 +106,7 @@ hud_client_connection_init (HudClientConnection *self)
 {
 	self->priv = HUD_CLIENT_CONNECTION_GET_PRIVATE(self);
 	self->priv->connected = FALSE;
+	self->priv->cancellable = g_cancellable_new();
 
 	return;
 }
@@ -185,6 +187,11 @@ static void
 hud_client_connection_dispose (GObject *object)
 {
 	HudClientConnection * self = HUD_CLIENT_CONNECTION(object);
+
+	if (self->priv->cancellable != NULL) {
+		g_cancellable_cancel(self->priv->cancellable);
+		g_clear_object(&self->priv->cancellable);
+	}
 
 	if (self->priv->name_owner_sig != 0) {
 		g_signal_handler_disconnect(self->priv->proxy, self->priv->name_owner_sig);
