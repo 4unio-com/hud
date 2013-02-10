@@ -216,8 +216,8 @@ test_query_update (void)
 	g_assert(g_strcmp0("test2", hud_client_query_get_query(query)) == 0);
 
 	g_print("Setting a long Query\n");
-	hud_client_query_set_query(query, "test a really really long query string that is probably too long to be resonable");
-	g_assert(g_strcmp0("test a really really long query string that is probably too long to be resonable", hud_client_query_get_query(query)) == 0);
+	hud_client_query_set_query(query, "test a really really long query string that is probably too long to be reasonable");
+	g_assert(g_strcmp0("test a really really long query string that is probably too long to be reasonable", hud_client_query_get_query(query)) == 0);
 
 	g_object_unref(query);
 	g_object_unref(service);
