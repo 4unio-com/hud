@@ -329,7 +329,8 @@ new_query_complete (GObject * object, GAsyncResult * res, gpointer user_data)
 	                                                       &error);
 
 	if (error != NULL) {
-		if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED)) {
+		if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) && 
+				!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CLOSED)) {
 			g_warning("Unable to allocate query: %s", error->message);
 		}
 		g_error_free(error);
