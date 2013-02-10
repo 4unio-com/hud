@@ -31,7 +31,7 @@ start_hud_service (DbusTestService ** service, GDBusConnection ** session)
 	g_object_unref(dummy);
 
 	/* Add a timeout */
-	gulong timeout = g_timeout_add_seconds(5, unable_to_start_hud, NULL);
+	gulong timeout = g_timeout_add_seconds(5, (GSourceFunc)unable_to_start_hud, NULL);
 
 	/* Get HUD up and running and us on that bus */
 	g_debug("Starting up HUD service");
@@ -108,7 +108,7 @@ test_connection_create (void)
 
 	hud_client_connection_new_query(con, "test", test_connection_create_query, &data);
 
-	gulong sig = g_timeout_add_seconds(5, g_main_loop_quit, data.loop);
+	gulong sig = g_timeout_add_seconds(5, (GSourceFunc)g_main_loop_quit, data.loop);
 
 	g_main_loop_run(data.loop);
 	g_main_loop_unref(data.loop);
@@ -144,6 +144,13 @@ test_connection_create (void)
 }
 
 static void
+test_query_create_models_ready (HudClientQuery * query, gpointer user_data)
+{
+	g_main_loop_quit((GMainLoop *)user_data);
+	return;
+}
+
+static void
 test_query_create (void)
 {
 	g_test_log_set_fatal_handler(no_dee_add_match, NULL);
@@ -156,6 +163,16 @@ test_query_create (void)
 	/* Create a query */
 	HudClientQuery * query = hud_client_query_new("test");
 
+	/* Wait for the models to be ready */
+	GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+	gulong sig = g_timeout_add_seconds(5, (GSourceFunc)g_main_loop_quit, loop);
+
+	g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
+
+	g_main_loop_run(loop);
+	g_main_loop_unref(loop);
+
+	/* Check the models */
 	g_assert(DEE_IS_MODEL(hud_client_query_get_results_model(query)));
 	g_assert(DEE_IS_MODEL(hud_client_query_get_appstack_model(query)));
 
@@ -236,7 +253,7 @@ test_query_custom (void)
 
 	/* Wait for the models to be ready */
 	GMainLoop * loop = g_main_loop_new(NULL, FALSE);
-	gulong sig = g_timeout_add_seconds(5, g_main_loop_quit, loop);
+	gulong sig = g_timeout_add_seconds(5, (GSourceFunc)g_main_loop_quit, loop);
 
 	g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_custom_models_ready), loop);
 
