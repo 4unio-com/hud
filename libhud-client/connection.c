@@ -167,7 +167,7 @@ hud_client_connection_constructed (GObject * object)
 		G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
 		self->priv->address,
 		self->priv->path,
-		NULL, /* GCancellable */
+		self->priv->cancellable,
 		&error
 	);
 
@@ -313,7 +313,9 @@ new_query_complete (GObject * object, GAsyncResult * res, gpointer user_data)
 	                                                       &error);
 
 	if (error != NULL) {
-		g_warning("Unable to allocate query: %s", error->message);
+		if (!g_cancellable_is_cancelled(data->con->priv->cancellable)) {
+			g_warning("Unable to allocate query: %s", error->message);
+		}
 		g_error_free(error);
 	}
 
@@ -346,9 +348,9 @@ hud_client_connection_new_query (HudClientConnection * connection, const gchar *
 
 	return _hud_service_com_canonical_hud_call_start_query(connection->priv->proxy,
 		query,
-		NULL,  /* GCancellable */
+		connection->priv->cancellable,
 		new_query_complete,
-		data); /* GError */
+		data);
 }
 
 /**
