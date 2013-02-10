@@ -27,6 +27,7 @@
 
 struct _HudClientConnectionPrivate {
 	_HudServiceComCanonicalHud * proxy;
+	GDBusConnection * bus;
 	gchar * address;
 	gchar * path;
 	gboolean connected;
@@ -107,6 +108,14 @@ hud_client_connection_init (HudClientConnection *self)
 	self->priv = HUD_CLIENT_CONNECTION_GET_PRIVATE(self);
 	self->priv->connected = FALSE;
 	self->priv->cancellable = g_cancellable_new();
+
+	GError * error = NULL;
+	self->priv->bus = g_bus_get_sync(G_BUS_TYPE_SESSION, self->priv->cancellable, &error);
+
+	if (G_UNLIKELY(error != NULL)) { /* really should never happen */
+		g_warning("Unable to get session bus: %s", error->message);
+		g_error_free(error);
+	}
 
 	return;
 }
@@ -199,6 +208,7 @@ hud_client_connection_dispose (GObject *object)
 	}
 
 	g_clear_object(&self->priv->proxy);
+	g_clear_object(&self->priv->bus);
 
 	G_OBJECT_CLASS (hud_client_connection_parent_class)->dispose (object);
 	return;
