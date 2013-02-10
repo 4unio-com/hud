@@ -253,13 +253,18 @@ connection_status (HudClientConnection * connection, gboolean connected, HudClie
 		return;
 	}
 
-	hud_client_connection_new_query(cquery->priv->connection, cquery->priv->query, new_query_cb, cquery);
+	hud_client_connection_new_query(cquery->priv->connection, cquery->priv->query, new_query_cb, g_object_ref(cquery));
 	return;
 }
 
 static void
 new_query_cb (HudClientConnection * connection, const gchar * path, const gchar * results, const gchar * appstack, gpointer user_data)
 {
+	if (path == NULL || results == NULL || appstack == NULL) {
+		g_object_unref(user_data);
+		return;
+	}
+
 	HudClientQuery * cquery = HUD_CLIENT_QUERY(user_data);
 	GError * error = NULL;
 
@@ -275,6 +280,7 @@ new_query_cb (HudClientConnection * connection, const gchar * path, const gchar 
 	if (cquery->priv->proxy == NULL) {
 		g_warning("Unable to get proxy after getting query path: %s", error->message);
 		g_error_free(error);
+		g_object_unref(cquery);
 		return;
 	}
 
@@ -291,6 +297,8 @@ new_query_cb (HudClientConnection * connection, const gchar * path, const gchar 
 	    G_CALLBACK (hud_client_query_voice_query_heard_something), G_OBJECT(cquery), 0);
 
 	g_signal_emit(G_OBJECT(cquery), hud_client_query_signal_models_changed, 0);
+
+	g_object_unref(cquery);
 
 	return;
 }
