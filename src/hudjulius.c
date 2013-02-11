@@ -237,7 +237,7 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
     const gchar *hlist)
 {
   const gchar *argv[] =
-  { "julius", "-input", "alsa", "-gram", gram, "-h", hmm, "-hlist", hlist };
+  { "julius", "-input", "pulseaudio", "-gram", gram, "-h", hmm, "-hlist", hlist };
   const gint argc = 9;
 
   Jconf *jconf = j_config_load_args_new (argc, (char **)argv);
