@@ -286,7 +286,7 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   if (!hud_julius_voice_query (julius,
           query->current_source, &search_string, &error))
   {
-    g_dbus_method_invocation_return_dbus_error(invocation, "voice-query", error->message);
+    g_dbus_method_invocation_return_error_literal(invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, error->message);
     g_error_free(error);
     g_object_unref(julius);
     return FALSE;
