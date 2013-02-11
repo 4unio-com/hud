@@ -56,6 +56,7 @@ static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * 
 
 G_DEFINE_TYPE (HudClientQuery, hud_client_query, G_TYPE_OBJECT);
 
+static guint signal_toolbar_updated = 0;
 static guint hud_client_query_signal_voice_query_loading;
 static guint hud_client_query_signal_voice_query_failed;
 static guint hud_client_query_signal_voice_query_listening;
@@ -85,6 +86,19 @@ hud_client_query_class_init (HudClientQueryClass *klass)
 	                                              "HUD query",
 	                                              NULL,
 	                                              G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * HudClientQuery::toolbar-updated:
+	 *
+	 * The active items in the toolbar changed.  Please requery.
+	 */
+	signal_toolbar_updated = g_signal_new (HUD_CLIENT_QUERY_SIGNAL_TOOLBAR_UPDATED,
+	                                       HUD_CLIENT_TYPE_QUERY,
+	                                       G_SIGNAL_RUN_LAST,
+	                                       0, /* offset */
+	                                       NULL, NULL, /* Accumulator */
+	                                       g_cclosure_marshal_VOID__VOID,
+	                                       G_TYPE_NONE, 0, G_TYPE_NONE);
 
 	/**
 	 * HudClientQuery::voice-query-loading:
