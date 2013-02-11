@@ -105,7 +105,8 @@ HudClientParam *   hud_client_query_execute_param_command (HudClientQuery *     
                                                            GVariant *              command_key,
                                                            guint                   timestamp);
 void               hud_client_query_execute_toolbar_item  (HudClientQuery *        cquery,
-                                                           HudClientQueryToolbarItems  item);
+                                                           HudClientQueryToolbarItems  item,
+                                                           guint                   timestamp);
 
 /**
 	SECTION:query

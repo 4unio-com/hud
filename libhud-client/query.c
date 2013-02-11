@@ -456,6 +456,44 @@ hud_client_query_get_appstack_model (HudClientQuery * cquery)
 }
 
 /**
+ * hud_client_query_toolbar_item_active:
+ * @cquery: A #HudClientQuery
+ * @item: Item to check for
+ *
+ * Checks to see if a particular toolbar item is implemented by the
+ * application and should be shown to the user as available for use.
+ *
+ * Return value: Whether this @item is active.
+ */
+gboolean
+hud_client_query_toolbar_item_active (HudClientQuery * cquery, HudClientQueryToolbarItems item)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), FALSE);
+
+
+	return FALSE;
+}
+
+/**
+ * hud_client_query_get_active_toolbar:
+ * @cquery: A #HudClientQuery
+ *
+ * Gets a list of all the active toolbar items as an array.  Array should be
+ * free'd after use.
+ *
+ * Return value: (transfer full) (element-type HudClientQueryToolbarItems): A
+ * list of the active toolbar items.
+ */
+GArray *
+hud_client_query_get_active_toolbar (HudClientQuery * cquery)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+
+
+	return NULL;
+}
+
+/**
  * hud_client_query_set_appstack_app:
  * @cquery: A #HudClientQuery
  * @application_id: New application to get results from
@@ -539,4 +577,22 @@ hud_client_query_execute_param_command (HudClientQuery * cquery, GVariant * comm
 	g_free(model_path);
 
 	return param;
+}
+
+/**
+ * hud_client_query_execute_toolbar_item:
+ * @cquery: A #HudClientQuery
+ * @item: Which toolbar item is being activated
+ * @timestamp: Timestamp for the user event
+ *
+ * Executes a particular item in the tool bar.  The item should
+ * be active before passing this.
+ */
+void
+hud_client_query_execute_toolbar_item (HudClientQuery * cquery, HudClientQueryToolbarItems item, guint timestamp)
+{
+	g_return_if_fail(HUD_CLIENT_IS_QUERY(cquery));
+
+
+	return;
 }
