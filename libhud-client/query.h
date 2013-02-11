@@ -63,20 +63,37 @@ struct _HudClientQuery {
 	HudClientQueryPrivate * priv;
 };
 
+typedef enum   _HudClientQueryToolbarItems HudClientQueryToolbarItems;
+enum _HudClientQueryToolbarItems {
+	HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN,
+	HUD_CLIENT_QUERY_TOOLBAR_HELP,
+	HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES,
+	HUD_CLIENT_QUERY_TOOLBAR_QUIT,
+	HUD_CLIENT_QUERY_TOOLBAR_UNDO,
+};
+
 GType              hud_client_query_get_type              (void);
 
 HudClientQuery *   hud_client_query_new                   (const gchar *           query);
 HudClientQuery *   hud_client_query_new_for_connection    (const gchar *           query,
                                                            HudClientConnection *   connection);
 
+/* Query Tools */
 void               hud_client_query_set_query             (HudClientQuery *        cquery,
                                                            const gchar *           query);
 const gchar *      hud_client_query_get_query             (HudClientQuery *        cquery);
 
 void               hud_client_query_voice_query           (HudClientQuery *        cquery);
 
+/* Accessors */
 DeeModel *         hud_client_query_get_results_model     (HudClientQuery *        cquery);
 DeeModel *         hud_client_query_get_appstack_model    (HudClientQuery *        cquery);
+
+gboolean           hud_client_query_toolbar_item_active   (HudClientQuery *        cquery,
+                                                           HudClientQueryToolbarItems  item);
+GArray *           hud_client_query_get_active_toolbar    (HudClientQuery *        cquery);
+
+/* Execute and Control */
 void               hud_client_query_set_appstack_app      (HudClientQuery *        cquery,
                                                            const gchar *           application_id);
 void               hud_client_query_execute_command       (HudClientQuery *        cquery,
@@ -85,6 +102,8 @@ void               hud_client_query_execute_command       (HudClientQuery *     
 HudClientParam *   hud_client_query_execute_param_command (HudClientQuery *        cquery,
                                                            GVariant *              command_key,
                                                            guint                   timestamp);
+void               hud_client_query_execute_toolbar_item  (HudClientQuery *        cquery,
+                                                           HudClientQueryToolbarItems  item);
 
 /**
 	SECTION:query
