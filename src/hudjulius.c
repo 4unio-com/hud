@@ -35,6 +35,10 @@ struct _HudJulius
 
   gchar **query;
 
+  gboolean listen_emitted;
+
+  gboolean heard_something_emitted;
+
   GError **error;
 };
 
@@ -102,9 +106,13 @@ static void
 status_recready(Recog *recog, void *dummy)
 {
   HudJulius *self = HUD_JULIUS(dummy);
-  hud_query_iface_com_canonical_hud_query_emit_voice_query_listening (
+  if (!self->listen_emitted)
+  {
+    self->listen_emitted = TRUE;
+    hud_query_iface_com_canonical_hud_query_emit_voice_query_listening (
           HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
-  g_debug ("<<< please speak >>>");
+    g_debug ("<<< please speak >>>");
+  }
 }
 
 /**
@@ -115,9 +123,13 @@ static void
 status_recstart(Recog *recog, void *dummy)
 {
   HudJulius *self = HUD_JULIUS(dummy);
-  hud_query_iface_com_canonical_hud_query_emit_voice_query_heard_something (
-            HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
-  g_debug ("<<< speech input >>>");
+  if (!self->heard_something_emitted)
+  {
+    self->heard_something_emitted = TRUE;
+    hud_query_iface_com_canonical_hud_query_emit_voice_query_heard_something (
+              HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
+    g_debug ("<<< speech input >>>");
+  }
 }
 
 /**
@@ -578,6 +590,8 @@ hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GErr
   /* These are used inside the callbacks */
   self->error = error;
   self->query = result;
+  self->listen_emitted = FALSE;
+  self->heard_something_emitted = FALSE;
   /* This sets *self->query as its result */
   gboolean success = hud_julius_listen (self, gram, hmm, hlist);
 
