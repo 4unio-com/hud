@@ -62,6 +62,8 @@ hud_julius_alphanumeric_regex_new (void)
   return alphanumeric_regex;
 }
 
+static void rm_rf(const gchar *path);
+
 typedef GObjectClass HudJuliusClass;
 
 static void hud_julius_finalize (GObject *object);
@@ -329,15 +331,30 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
     return FALSE;
   }
 
+  PronounceDict *dict = pronounce_dict_get_julius(error);
+  if (dict == NULL)
+  {
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
+    return FALSE;
+  }
+
   /* Get the pronounciations for the items */
   GHashTable *pronounciations = g_hash_table_new_full (g_str_hash, g_str_equal,
       g_free, (GDestroyNotify) g_strfreev);
   GPtrArray *command_list = g_ptr_array_new_with_free_func (free_func);
   HudItemPronunciationData pronounciation_data =
-  { pronounciations, self->alphanumeric_regex, command_list,
-      pronounce_dict_get_julius () };
+  { pronounciations, self->alphanumeric_regex, command_list, dict };
   g_list_foreach (items, (GFunc) hud_item_insert_pronounciation,
       &pronounciation_data);
+
+  if (command_list->len == 0)
+  {
+    *error = g_error_new_literal(hud_julius_error_quark(), 0, "Could not build Julius grammar. Is julius-voxforge installed?");
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
+    return FALSE;
+  }
 
   gint voca_id_counter = 0;
   GHashTable *voca = g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
@@ -358,6 +375,9 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
 
     g_object_unref (voca_output);
     g_object_unref (voca_file);
+
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
 
     return FALSE;
   }
@@ -380,6 +400,9 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
 
     g_object_unref (grammar_output);
     g_object_unref (grammar_file);
+
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
 
     return FALSE;
   }
@@ -488,6 +511,10 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
 
     g_free(standard_output);
     g_free(standard_error);
+
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
+
     return FALSE;
   }
 
