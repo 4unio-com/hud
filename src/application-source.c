@@ -190,6 +190,11 @@ hud_application_source_finalize (GObject *object)
 static void
 window_source_changed (HudSource * source, gpointer user_data)
 {
+	HudApplicationSource * self = HUD_APPLICATION_SOURCE(user_data);
+
+	if (self->priv->used_source == source) {
+		hud_source_changed(HUD_SOURCE(self));
+	}
 
 	return;
 }
