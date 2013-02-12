@@ -483,7 +483,19 @@ handle_execute_toolbar (HudQueryIfaceComCanonicalHudQuery *object, GDBusMethodIn
 		return TRUE;
 	}
 
-	hud_source_activate_toolbar(query->current_source, item);
+	GVariantBuilder platform;
+	g_variant_builder_init(&platform, G_VARIANT_TYPE_DICTIONARY);
+
+	GVariantBuilder entry;
+	g_variant_builder_init(&entry, G_VARIANT_TYPE_DICT_ENTRY);
+	g_variant_builder_add_value(&entry, g_variant_new_string("desktop-startup-id"));
+	gchar * timestr = g_strdup_printf("_TIME%d", arg_timestamp);
+	g_variant_builder_add_value(&entry, g_variant_new_variant(g_variant_new_string(timestr)));
+	g_free(timestr);
+
+	g_variant_builder_add_value(&platform, g_variant_builder_end(&entry));
+
+	hud_source_activate_toolbar(query->current_source, item, g_variant_builder_end(&platform));
 	g_dbus_method_invocation_return_value(invocation, NULL);
 	return TRUE;
 }

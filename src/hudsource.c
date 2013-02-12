@@ -1,4 +1,4 @@
-/*
+	/*
  * Copyright © 2012 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
@@ -194,7 +194,7 @@ hud_source_get (HudSource   *source,
  * Activate a toolbar item on a source
  **/
 void
-hud_source_activate_toolbar (HudSource * source, HudClientQueryToolbarItems item)
+hud_source_activate_toolbar (HudSource * source, HudClientQueryToolbarItems item, GVariant *platform_data)
 {
   g_return_if_fail (HUD_IS_SOURCE (source));
 
@@ -202,7 +202,7 @@ hud_source_activate_toolbar (HudSource * source, HudClientQueryToolbarItems item
 
   HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
   if (iface->activate_toolbar != NULL) {
-    return iface->activate_toolbar(source, item);
+    return iface->activate_toolbar(source, item, platform_data);
   }
 
   return;

@@ -156,7 +156,8 @@ static void hud_menu_model_collector_hud_awareness_cb (GObject      *source,
                                                        gpointer      user_data);
 static GList * hud_menu_model_collector_get_items (HudSource * source);
 static void hud_menu_model_collector_activate_toolbar (HudSource *   source,
-                                                       HudClientQueryToolbarItems titem);
+                                                       HudClientQueryToolbarItems titem,
+                                                       GVariant  *   platform_data);
 
 /* Functions */
 static gchar *
@@ -269,10 +270,11 @@ hud_model_item_activate (HudItem  *hud_item,
 
 static void
 hud_model_item_activate_toolbar (HudModelItem  *hud_item,
-                                 HudClientQueryToolbarItems item)
+                                 HudClientQueryToolbarItems item,
+                                 GVariant *platform_data)
 {
 	if (hud_item->toolbar_item == item) {
-		hud_model_item_activate(HUD_ITEM(hud_item), NULL);
+		hud_model_item_activate(HUD_ITEM(hud_item), platform_data);
 	}
 
 	return;
@@ -872,14 +874,16 @@ hud_menu_model_collector_get (HudSource   *source,
 }
 
 static void
-hud_menu_model_collector_activate_toolbar (HudSource * source, HudClientQueryToolbarItems titem)
+hud_menu_model_collector_activate_toolbar (HudSource * source,
+                              HudClientQueryToolbarItems titem,
+                              GVariant *platform_data)
 {
   HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
 
   gint i;
   for (i = 0; i < collector->items->len; i++) {
     HudModelItem * item = g_ptr_array_index(collector->items, i);
-    hud_model_item_activate_toolbar(item, titem);
+    hud_model_item_activate_toolbar(item, titem, platform_data);
   }
 
   return;

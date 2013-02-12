@@ -75,7 +75,8 @@ static void source_list_applications          (HudSource *                 hud_s
                                                void                      (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
                                                gpointer                    user_data);
 static void source_activate_toolbar           (HudSource *                 hud_source,
-                                               HudClientQueryToolbarItems  item);
+                                               HudClientQueryToolbarItems  item,
+                                               GVariant                   *platform_data);
 static HudSource * source_get                 (HudSource *                 hud_source,
                                                const gchar *               application_id);
 static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplication * skel,
@@ -306,7 +307,7 @@ source_get (HudSource *     hud_source,
 }
 
 static void
-source_activate_toolbar (HudSource * hud_source, HudClientQueryToolbarItems item)
+source_activate_toolbar (HudSource * hud_source, HudClientQueryToolbarItems item, GVariant *platform_data)
 {
   HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
 
@@ -314,7 +315,7 @@ source_activate_toolbar (HudSource * hud_source, HudClientQueryToolbarItems item
 
   if (source != NULL )
   {
-    hud_source_activate_toolbar (source, item);
+    hud_source_activate_toolbar (source, item, platform_data);
   }
 }
 
