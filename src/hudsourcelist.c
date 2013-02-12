@@ -126,13 +126,13 @@ hud_source_list_get (HudSource   *source,
 }
 
 static void
-hud_source_list_activate_toolbar (HudSource *source, HudClientQueryToolbarItems item)
+hud_source_list_activate_toolbar (HudSource *source, HudClientQueryToolbarItems item, GVariant *platform_data)
 {
   HudSourceList *list = HUD_SOURCE_LIST (source);
   GSList *node;
 
   for (node = list->list; node; node = node->next)
-    hud_source_activate_toolbar (node->data, item);
+    hud_source_activate_toolbar (node->data, item, platform_data);
 }
 
 /**
