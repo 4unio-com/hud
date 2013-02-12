@@ -517,6 +517,10 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	gchar * prefix = NULL;
 	gchar * object = NULL;
 
+	/* NOTE: We are doing actions first as there are cases where
+	   the models need the actions, but it'd be hard to update them
+	   if we add the actions second.  This order is the best.  Don't
+	   change it. */
 	while (g_variant_iter_loop(&action_iter, "(vso)", &id, &prefix, &object)) {
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
 
