@@ -142,6 +142,7 @@ struct _HudModelItem {
   gchar *action_name_full;
   gchar *action_path;
   GVariant *target;
+  HudClientQueryToolbarItems toolbar_item;
 
   GMenuModel * submodel;
 };
@@ -270,6 +271,9 @@ static void
 hud_model_item_activate_toolbar (HudModelItem  *hud_item,
                                  HudClientQueryToolbarItems item)
 {
+	if (hud_item->toolbar_item == item) {
+		hud_model_item_activate(HUD_ITEM(hud_item), NULL);
+	}
 
 	return;
 }
@@ -295,6 +299,7 @@ hud_model_item_finalize (GObject *object)
 static void
 hud_model_item_init (HudModelItem *item)
 {
+  item->toolbar_item = -1;
 }
 
 static void
