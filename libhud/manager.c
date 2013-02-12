@@ -345,7 +345,7 @@ register_app_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 		&error);
 
 	if (error != NULL) {
-		g_error("Unable to register app: %s", error->message);
+		g_warning("Unable to register app: %s", error->message);
 		g_error_free(error);
 		return;
 	}
