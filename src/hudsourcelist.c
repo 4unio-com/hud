@@ -125,6 +125,16 @@ hud_source_list_get (HudSource   *source,
   return NULL;
 }
 
+static void
+hud_source_list_activate_toolbar (HudSource *source, HudClientQueryToolbarItems item)
+{
+  HudSourceList *list = HUD_SOURCE_LIST (source);
+  GSList *node;
+
+  for (node = list->list; node; node = node->next)
+    hud_source_activate_toolbar (node->data, item);
+}
+
 /**
  * hud_source_list_get_items:
  * @list: a #HudSourceList
@@ -180,6 +190,7 @@ hud_source_list_iface_init (HudSourceInterface *iface)
   iface->list_applications = hud_source_list_list_applications;
   iface->get = hud_source_list_get;
   iface->get_items = hud_source_list_get_items;
+  iface->activate_toolbar = hud_source_list_activate_toolbar;
 }
 
 static void
