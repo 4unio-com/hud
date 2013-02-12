@@ -25,6 +25,7 @@
 #include "query.h"
 #include "connection.h"
 #include "query-iface.h"
+#include "enum-types.h"
 
 struct _HudClientQueryPrivate {
 	_HudQueryComCanonicalHudQuery * proxy;
@@ -579,15 +580,6 @@ hud_client_query_execute_param_command (HudClientQuery * cquery, GVariant * comm
 	return param;
 }
 
-/* Strings to send over DBus for the toolbar items */
-static const gchar * item_strings[] = {
-	/* HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN */    "fullscreen",
-	/* HUD_CLIENT_QUERY_TOOLBAR_HELP */          "help",
-	/* HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES */   "preferences",
-	/* HUD_CLIENT_QUERY_TOOLBAR_QUIT */          "quit",
-	/* HUD_CLIENT_QUERY_TOOLBAR_UNDO */          "undo",
-};
-
 /**
  * hud_client_query_execute_toolbar_item:
  * @cquery: A #HudClientQuery
@@ -602,7 +594,7 @@ hud_client_query_execute_toolbar_item (HudClientQuery * cquery, HudClientQueryTo
 {
 	g_return_if_fail(HUD_CLIENT_IS_QUERY(cquery));
 
-	_hud_query_com_canonical_hud_query_call_execute_toolbar_sync(cquery->priv->proxy, item_strings[item], timestamp, NULL, NULL);
+	_hud_query_com_canonical_hud_query_call_execute_toolbar_sync(cquery->priv->proxy, hud_client_query_toolbar_items_get_nick(item), timestamp, NULL, NULL);
 
 	return;
 }
