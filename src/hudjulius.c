@@ -132,6 +132,14 @@ status_recstart(Recog *recog, void *dummy)
   }
 }
 
+static
+void hud_julius_stop (HudJulius* self, Recog* recog, gchar *result, GError *error)
+{
+  *self->query = result;
+  *self->error = error;
+  j_close_stream (recog);
+}
+
 /**
  * Callback to output final recognition result.
  * This function will be called just after recognition of an input ends
@@ -185,9 +193,7 @@ output_result(Recog *recog, void *dummy)
 
       if (message)
       {
-        *self->query = NULL;
-        *self->error = g_error_new_literal(hud_julius_error_quark(), 0, message);
-        j_close_stream(recog);
+        hud_julius_stop (self, recog, NULL, g_error_new_literal(hud_julius_error_quark(), 0, message));
         break;
       }
 
@@ -219,10 +225,7 @@ output_result(Recog *recog, void *dummy)
         }
       }
 
-      *(self->query) = g_string_free(result, FALSE);
-      *(self->error) = NULL;
-
-      j_close_stream(recog);
+      hud_julius_stop (self, recog, g_string_free (result, FALSE), NULL);
       break;
     }
   }
