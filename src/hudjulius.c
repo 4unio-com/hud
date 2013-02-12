@@ -35,9 +35,15 @@ struct _HudJulius
 
   gchar **query;
 
+  gboolean terminated;
+
   gboolean listen_emitted;
 
   gboolean heard_something_emitted;
+
+  gint64 started_time;
+
+  gint64 timeout;
 
   GError **error;
 };
@@ -67,6 +73,8 @@ hud_julius_alphanumeric_regex_new (void)
 }
 
 static void rm_rf(const gchar *path);
+
+static void hud_julius_stop (HudJulius* self, Recog* recog, gchar *result, GError *error);
 
 typedef GObjectClass HudJuliusClass;
 
@@ -98,6 +106,17 @@ hud_julius_finalize (GObject *object)
     ->finalize (object);
 }
 
+static void
+hud_julius_poll(Recog *recog, void *dummy)
+{
+  HudJulius *self = HUD_JULIUS(dummy);
+
+  /* If the timeout period has elapsed */
+  if (g_get_monotonic_time() - self->started_time > self->timeout)
+  {
+    hud_julius_stop(self, recog, g_strdup(""), NULL);
+  }
+}
 /**
  * Callback to be called when start waiting speech input.
  *
@@ -129,6 +148,18 @@ status_recstart(Recog *recog, void *dummy)
     hud_query_iface_com_canonical_hud_query_emit_voice_query_heard_something (
               HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
     g_debug ("<<< speech input >>>");
+  }
+}
+
+static
+void hud_julius_stop (HudJulius* self, Recog* recog, gchar *result, GError *error)
+{
+  if (!self->terminated)
+  {
+    self->terminated = TRUE;
+    *self->query = result;
+    *self->error = error;
+    j_close_stream (recog);
   }
 }
 
@@ -185,9 +216,7 @@ output_result(Recog *recog, void *dummy)
 
       if (message)
       {
-        *self->query = NULL;
-        *self->error = g_error_new_literal(hud_julius_error_quark(), 0, message);
-        j_close_stream(recog);
+        hud_julius_stop (self, recog, NULL, g_error_new_literal(hud_julius_error_quark(), 0, message));
         break;
       }
 
@@ -219,20 +248,13 @@ output_result(Recog *recog, void *dummy)
         }
       }
 
-      *(self->query) = g_string_free(result, FALSE);
-      *(self->error) = NULL;
-
-      j_close_stream(recog);
+      hud_julius_stop (self, recog, g_string_free (result, FALSE), NULL);
       break;
     }
   }
 }
 
-/**
- * Main function
- *
- */
-gboolean
+static gboolean
 hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
     const gchar *hlist)
 {
@@ -266,6 +288,7 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
   callback_add (recog, CALLBACK_EVENT_SPEECH_READY, status_recready, self );
   callback_add (recog, CALLBACK_EVENT_SPEECH_START, status_recstart, self );
   callback_add (recog, CALLBACK_RESULT, output_result, self );
+  callback_add (recog, CALLBACK_POLL, hud_julius_poll, self );
 
   /* initialize audio input device */
   /* ad-in thread starts at this time for microphone */
@@ -590,8 +613,11 @@ hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GErr
   /* These are used inside the callbacks */
   self->error = error;
   self->query = result;
+  self->terminated = FALSE;
   self->listen_emitted = FALSE;
   self->heard_something_emitted = FALSE;
+  self->started_time = g_get_monotonic_time();
+  self->timeout = HUD_JULIUS_DEFAULT_TIMEOUT;
   /* This sets *self->query as its result */
   gboolean success = hud_julius_listen (self, gram, hmm, hlist);
 
