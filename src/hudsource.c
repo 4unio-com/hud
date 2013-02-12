@@ -200,8 +200,12 @@ hud_source_activate_toolbar (HudSource * source, HudClientQueryToolbarItems item
 
   g_debug ("activate toolbar on %s %p", G_OBJECT_TYPE_NAME (source), source);
 
-  return HUD_SOURCE_GET_IFACE (source)
-    ->activate_toolbar (source, item);
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->activate_toolbar != NULL) {
+    return iface->activate_toolbar(source, item);
+  }
+
+  return;
 }
 
 /**
