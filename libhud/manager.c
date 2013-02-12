@@ -255,7 +255,7 @@ add_sources_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	_hud_app_iface_com_canonical_hud_application_call_add_sources_finish((_HudAppIfaceComCanonicalHudApplication *)obj, res, &error);
 
 	if (error != NULL) {
-		g_error("Unable to add sources: %s", error->message);
+		g_warning("Unable to add sources: %s", error->message);
 		g_error_free(error);
 
 		/* TODO: Handle error */
@@ -317,7 +317,7 @@ application_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	_HudAppIfaceComCanonicalHudApplication * proxy = _hud_app_iface_com_canonical_hud_application_proxy_new_finish(res, &error);
 
 	if (error != NULL) {
-		g_error("Unable to get app proxy: %s", error->message);
+		g_warning("Unable to get app proxy: %s", error->message);
 		g_error_free(error);
 		return;
 	}
