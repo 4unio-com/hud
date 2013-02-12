@@ -154,6 +154,8 @@ static void hud_menu_model_collector_hud_awareness_cb (GObject      *source,
                                                        GAsyncResult *result,
                                                        gpointer      user_data);
 static GList * hud_menu_model_collector_get_items (HudSource * source);
+static void hud_menu_model_collector_activate_toolbar (HudSource *   source,
+                                                       HudClientQueryToolbarItems titem);
 
 /* Functions */
 static gchar *
@@ -262,6 +264,14 @@ hud_model_item_activate (HudItem  *hud_item,
   HudModelItem *item = (HudModelItem *) hud_item;
 
   g_remote_action_group_activate_action_full (item->group, item->action_name, item->target, platform_data);
+}
+
+static void
+hud_model_item_activate_toolbar (HudModelItem  *hud_item,
+                                 HudClientQueryToolbarItems item)
+{
+
+	return;
 }
 
 static void
@@ -847,6 +857,20 @@ hud_menu_model_collector_get (HudSource   *source,
   return NULL;
 }
 
+static void
+hud_menu_model_collector_activate_toolbar (HudSource * source, HudClientQueryToolbarItems titem)
+{
+  HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
+
+  gint i;
+  for (i = 0; i < collector->items->len; i++) {
+    HudModelItem * item = g_ptr_array_index(collector->items, i);
+    hud_model_item_activate_toolbar(item, titem);
+  }
+
+  return;
+}
+
 /* Free's the model data structure */
 static void
 model_data_free (gpointer data)
@@ -917,6 +941,7 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->list_applications = hud_menu_model_collector_list_applications;
   iface->get = hud_menu_model_collector_get;
   iface->get_items = hud_menu_model_collector_get_items;
+  iface->activate_toolbar = hud_menu_model_collector_activate_toolbar;
 }
 
 static void
