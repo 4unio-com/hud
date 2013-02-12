@@ -474,10 +474,25 @@ handle_parameterized (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoc
 }
 
 static gboolean
-handle_execute_toolbar (HudQueryIfaceComCanonicalHudQuery *object, GDBusMethodInvocation *invocation, const gchar *arg_item, guint arg_timestamp)
+handle_execute_toolbar (HudQueryIfaceComCanonicalHudQuery *object, GDBusMethodInvocation *invocation, const gchar *arg_item, guint arg_timestamp, gpointer user_data)
 {
+	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
+	HudQuery * query = HUD_QUERY(user_data);
 
-	g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, "TODO");
+	HudClientQueryToolbarItems item = hud_client_query_toolbar_items_get_value_from_nick(arg_item);
+
+	if (item != HUD_CLIENT_QUERY_TOOLBAR_QUIT) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, "TODO");
+		return TRUE;
+	}
+
+	if (query->current_source == NULL) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, "No source currently in use");
+		return TRUE;
+	}
+
+	hud_source_activate_toolbar(query->current_source, item);
+	g_dbus_method_invocation_return_value(invocation, NULL);
 	return TRUE;
 }
 
