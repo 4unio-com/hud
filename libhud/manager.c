@@ -274,6 +274,11 @@ process_todo_queues (HudManager * manager)
 		return;
 	}
 
+	if (manager->priv->app_proxy == NULL) {
+		g_warning("Can't process TODO queues without an application proxy");
+		return;
+	}
+
 	GVariant * actions = NULL;
 	GVariant * descriptions = NULL;
 
