@@ -625,6 +625,11 @@ source_get (HudSource *     hud_source,
 static void
 application_source_changed (HudSource * source, gpointer user_data)
 {
+	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
+
+	if (list->priv->used_source == source) {
+		hud_source_changed(HUD_SOURCE(list));
+	}
 
 	return;
 }
