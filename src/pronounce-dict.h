@@ -29,9 +29,9 @@ struct _PronounceDict {
 
 GType pronounce_dict_get_type (void);
 gchar ** pronounce_dict_lookup_word(PronounceDict * dict, gchar * word);
-PronounceDict * pronounce_dict_new (const gchar *dict_path);
-PronounceDict * pronounce_dict_get_sphinx (void);
-PronounceDict * pronounce_dict_get_julius (void);
+PronounceDict * pronounce_dict_new (const gchar *dict_path, GError **error);
+PronounceDict * pronounce_dict_get_sphinx (GError **error);
+PronounceDict * pronounce_dict_get_julius (GError **error);
 
 G_END_DECLS
 

@@ -333,10 +333,17 @@ hud_sphinx_voice_query (HudSphinx *self, HudSource *source, gchar **result, GErr
     return TRUE;
   }
 
+  PronounceDict *dict = pronounce_dict_get_sphinx(error);
+  if (dict == NULL)
+  {
+    *result = NULL;
+    return FALSE;
+  }
+
   /* Get the pronounciations for the items */
   GHashTable * pronounciations = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify)g_strfreev);
   GPtrArray *command_list = g_ptr_array_new_with_free_func(free_func);
-  HudItemPronunciationData pronounciation_data = {pronounciations, self->alphanumeric_regex, command_list, pronounce_dict_get_sphinx()};
+  HudItemPronunciationData pronounciation_data = {pronounciations, self->alphanumeric_regex, command_list, dict};
   g_list_foreach(items, (GFunc)hud_item_insert_pronounciation, &pronounciation_data);
   g_ptr_array_free(command_list, TRUE);
 

@@ -35,6 +35,10 @@ struct _HudJulius
 
   gchar **query;
 
+  gboolean listen_emitted;
+
+  gboolean heard_something_emitted;
+
   GError **error;
 };
 
@@ -61,6 +65,8 @@ hud_julius_alphanumeric_regex_new (void)
 
   return alphanumeric_regex;
 }
+
+static void rm_rf(const gchar *path);
 
 typedef GObjectClass HudJuliusClass;
 
@@ -100,9 +106,13 @@ static void
 status_recready(Recog *recog, void *dummy)
 {
   HudJulius *self = HUD_JULIUS(dummy);
-  hud_query_iface_com_canonical_hud_query_emit_voice_query_listening (
+  if (!self->listen_emitted)
+  {
+    self->listen_emitted = TRUE;
+    hud_query_iface_com_canonical_hud_query_emit_voice_query_listening (
           HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
-  g_debug ("<<< please speak >>>");
+    g_debug ("<<< please speak >>>");
+  }
 }
 
 /**
@@ -113,9 +123,13 @@ static void
 status_recstart(Recog *recog, void *dummy)
 {
   HudJulius *self = HUD_JULIUS(dummy);
-  hud_query_iface_com_canonical_hud_query_emit_voice_query_heard_something (
-            HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
-  g_debug ("<<< speech input >>>");
+  if (!self->heard_something_emitted)
+  {
+    self->heard_something_emitted = TRUE;
+    hud_query_iface_com_canonical_hud_query_emit_voice_query_heard_something (
+              HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
+    g_debug ("<<< speech input >>>");
+  }
 }
 
 /**
@@ -223,7 +237,7 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
     const gchar *hlist)
 {
   const gchar *argv[] =
-  { "julius", "-input", "alsa", "-gram", gram, "-h", hmm, "-hlist", hlist };
+  { "julius", "-input", "pulseaudio", "-gram", gram, "-h", hmm, "-hlist", hlist };
   const gint argc = 9;
 
   Jconf *jconf = j_config_load_args_new (argc, (char **)argv);
@@ -329,15 +343,30 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
     return FALSE;
   }
 
+  PronounceDict *dict = pronounce_dict_get_julius(error);
+  if (dict == NULL)
+  {
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
+    return FALSE;
+  }
+
   /* Get the pronounciations for the items */
   GHashTable *pronounciations = g_hash_table_new_full (g_str_hash, g_str_equal,
       g_free, (GDestroyNotify) g_strfreev);
   GPtrArray *command_list = g_ptr_array_new_with_free_func (free_func);
   HudItemPronunciationData pronounciation_data =
-  { pronounciations, self->alphanumeric_regex, command_list,
-      pronounce_dict_get_julius () };
+  { pronounciations, self->alphanumeric_regex, command_list, dict };
   g_list_foreach (items, (GFunc) hud_item_insert_pronounciation,
       &pronounciation_data);
+
+  if (command_list->len == 0)
+  {
+    *error = g_error_new_literal(hud_julius_error_quark(), 0, "Could not build Julius grammar. Is julius-voxforge installed?");
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
+    return FALSE;
+  }
 
   gint voca_id_counter = 0;
   GHashTable *voca = g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
@@ -358,6 +387,9 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
 
     g_object_unref (voca_output);
     g_object_unref (voca_file);
+
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
 
     return FALSE;
   }
@@ -380,6 +412,9 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
 
     g_object_unref (grammar_output);
     g_object_unref (grammar_file);
+
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
 
     return FALSE;
   }
@@ -488,6 +523,10 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
 
     g_free(standard_output);
     g_free(standard_error);
+
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
+
     return FALSE;
   }
 
@@ -551,6 +590,8 @@ hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GErr
   /* These are used inside the callbacks */
   self->error = error;
   self->query = result;
+  self->listen_emitted = FALSE;
+  self->heard_something_emitted = FALSE;
   /* This sets *self->query as its result */
   gboolean success = hud_julius_listen (self, gram, hmm, hlist);
 

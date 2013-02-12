@@ -286,7 +286,7 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   if (!hud_julius_voice_query (julius,
           query->current_source, &search_string, &error))
   {
-    g_dbus_method_invocation_return_dbus_error(invocation, "voice-query", error->message);
+    g_dbus_method_invocation_return_error_literal(invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, error->message);
     g_error_free(error);
     g_object_unref(julius);
     return FALSE;
@@ -316,7 +316,7 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   hud_query_refresh (query);
 
   /* Tell DBus everything is going to be A-OK */
-  g_dbus_method_invocation_return_value(invocation, g_variant_new("(is)", 0, search_string));
+  hud_query_iface_com_canonical_hud_query_complete_voice_query(skel, invocation, 0, search_string);
 
   return TRUE;
 }
@@ -348,8 +348,7 @@ handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoca
 	hud_query_refresh (query);
 
 	/* Tell DBus everything is going to be A-OK */
-	GVariant * modelrev = g_variant_new_int32(0);
-	g_dbus_method_invocation_return_value(invocation, g_variant_new_tuple(&modelrev, 1));
+	hud_query_iface_com_canonical_hud_query_complete_update_query(skel, invocation, 0);
 
 	return TRUE;
 }
@@ -371,8 +370,7 @@ handle_update_app (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocati
 	hud_query_refresh (query);
 
 	/* Tell DBus everything is going to be A-OK */
-	GVariant * modelrev = g_variant_new_int32(0);
-	g_dbus_method_invocation_return_value(invocation, g_variant_new_tuple(&modelrev, 1));
+	hud_query_iface_com_canonical_hud_query_complete_update_app(skel, invocation, 0);
 
 	return TRUE;
 }
@@ -410,7 +408,7 @@ handle_execute (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation 
 
 	hud_item_activate(item, g_variant_builder_end(&platform));
 
-	g_dbus_method_invocation_return_value(invocation, NULL);
+	hud_query_iface_com_canonical_hud_query_complete_execute_command(skel, invocation);
 
 	return TRUE;
 }
@@ -462,14 +460,8 @@ handle_parameterized (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoc
 		return TRUE;
 	}
 
-	GVariantBuilder tuple;
-	g_variant_builder_init(&tuple, G_VARIANT_TYPE_TUPLE);
-	g_variant_builder_add_value(&tuple, g_variant_new_string(base_action));
-	g_variant_builder_add_value(&tuple, g_variant_new_object_path(action_path));
-	g_variant_builder_add_value(&tuple, g_variant_new_object_path(model_path));
-	g_variant_builder_add_value(&tuple, g_variant_new_int32(model_section));
-
-	g_dbus_method_invocation_return_value(invocation, g_variant_builder_end(&tuple));
+  hud_query_iface_com_canonical_hud_query_complete_execute_parameterized (skel,
+      invocation, base_action, action_path, model_path, model_section);
 	return TRUE;
 }
 
@@ -510,7 +502,7 @@ handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 	query = NULL;
 
 	/* Tell DBus we're dying */
-	g_dbus_method_invocation_return_value(invocation, NULL);
+	hud_query_iface_com_canonical_hud_query_complete_close_query(skel, invocation);
 
 	return TRUE;
 }
