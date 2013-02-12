@@ -11,6 +11,7 @@ hud (13.04.0-0ubuntu1~ppa1) UNRELEASED; urgency=low
   * Require raring's version of bustle for the --count argument
 
   [ Mathieu Trudel-Lapierre ]
+  * Automatic snapshot from revision 238 (bootstrap).
   * debian/control:
     - update Maintainer.
     - Further flesh out long description for the packages.
