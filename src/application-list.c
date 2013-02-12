@@ -87,7 +87,9 @@ static void source_list_applications        (HudSource *               hud_sourc
                                              gpointer                  user_data);
 static HudSource * source_get               (HudSource *               hud_source,
                                              const gchar *             application_id);
-static GList * source_get_items             (HudSource * list);
+static GList * source_get_items             (HudSource *               list);
+static void application_source_changed      (HudSource *               source,
+                                             gpointer                  user_data);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationList, hud_application_list, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -164,6 +166,7 @@ hud_application_list_init (HudApplicationList *self)
 		}
 
 		HudApplicationSource * appsource = hud_application_source_new_for_app(bapp);
+		g_signal_connect(appsource, "changed", G_CALLBACK(application_source_changed), self);
 
 		if (!hud_application_source_is_empty(appsource)) {
 			g_hash_table_insert(self->priv->applications, app_id, appsource);
@@ -257,6 +260,8 @@ bamf_app_to_source (HudApplicationList * list, AbstractApplication * bapp)
 	HudApplicationSource * source = g_hash_table_lookup(list->priv->applications, id);
 	if (source == NULL) {
 		source = hud_application_source_new_for_app(bapp);
+		g_signal_connect(source, "changed", G_CALLBACK(application_source_changed), list);
+
 		g_hash_table_insert(list->priv->applications, id, source);
 		id = NULL; /* We used the malloc in the table */
 
@@ -616,6 +621,14 @@ source_get (HudSource *     hud_source,
 	return g_hash_table_lookup(list->priv->applications, application_id);
 }
 
+/* An application has signaled that it's items have changed */
+static void
+application_source_changed (HudSource * source, gpointer user_data)
+{
+
+	return;
+}
+
 /**
  * hud_application_list_new:
  *
@@ -653,6 +666,7 @@ hud_application_list_get_source (HudApplicationList * list, const gchar * id)
 	HudApplicationSource * source = HUD_APPLICATION_SOURCE(source_get(HUD_SOURCE(list), id));
 	if (source == NULL) {
 		source = hud_application_source_new_for_id(id);
+		g_signal_connect(source, "changed", G_CALLBACK(application_source_changed), list);
 		g_hash_table_insert(list->priv->applications, g_strdup(id), source);
 	}
 
