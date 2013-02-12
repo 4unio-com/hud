@@ -189,3 +189,4 @@ simple-test
 enum-types.c
 enum-types.h
 stamp-enum-types
+hud-cli-toolbar
