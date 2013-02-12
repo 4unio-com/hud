@@ -255,7 +255,7 @@ add_sources_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	_hud_app_iface_com_canonical_hud_application_call_add_sources_finish((_HudAppIfaceComCanonicalHudApplication *)obj, res, &error);
 
 	if (error != NULL) {
-		g_error("Unable to add sources: %s", error->message);
+		g_warning("Unable to add sources: %s", error->message);
 		g_error_free(error);
 
 		/* TODO: Handle error */
@@ -271,6 +271,11 @@ process_todo_queues (HudManager * manager)
 {
 	if (manager->priv->todo_add_acts == NULL && manager->priv->todo_add_desc == NULL) {
 		/* Nothing to process */
+		return;
+	}
+
+	if (manager->priv->app_proxy == NULL) {
+		g_warning("Can't process TODO queues without an application proxy");
 		return;
 	}
 
@@ -317,7 +322,7 @@ application_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	_HudAppIfaceComCanonicalHudApplication * proxy = _hud_app_iface_com_canonical_hud_application_proxy_new_finish(res, &error);
 
 	if (error != NULL) {
-		g_error("Unable to get app proxy: %s", error->message);
+		g_warning("Unable to get app proxy: %s", error->message);
 		g_error_free(error);
 		return;
 	}
@@ -345,7 +350,7 @@ register_app_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 		&error);
 
 	if (error != NULL) {
-		g_error("Unable to register app: %s", error->message);
+		g_warning("Unable to register app: %s", error->message);
 		g_error_free(error);
 		return;
 	}
