@@ -25,6 +25,7 @@
 #include "query.h"
 #include "connection.h"
 #include "query-iface.h"
+#include "enum-types.h"
 
 struct _HudClientQueryPrivate {
 	_HudQueryComCanonicalHudQuery * proxy;
@@ -56,6 +57,7 @@ static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * 
 
 G_DEFINE_TYPE (HudClientQuery, hud_client_query, G_TYPE_OBJECT);
 
+static guint signal_toolbar_updated = 0;
 static guint hud_client_query_signal_voice_query_loading;
 static guint hud_client_query_signal_voice_query_failed;
 static guint hud_client_query_signal_voice_query_listening;
@@ -85,6 +87,19 @@ hud_client_query_class_init (HudClientQueryClass *klass)
 	                                              "HUD query",
 	                                              NULL,
 	                                              G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * HudClientQuery::toolbar-updated:
+	 *
+	 * The active items in the toolbar changed.  Please requery.
+	 */
+	signal_toolbar_updated = g_signal_new (HUD_CLIENT_QUERY_SIGNAL_TOOLBAR_UPDATED,
+	                                       HUD_CLIENT_TYPE_QUERY,
+	                                       G_SIGNAL_RUN_LAST,
+	                                       0, /* offset */
+	                                       NULL, NULL, /* Accumulator */
+	                                       g_cclosure_marshal_VOID__VOID,
+	                                       G_TYPE_NONE, 0, G_TYPE_NONE);
 
 	/**
 	 * HudClientQuery::voice-query-loading:
@@ -442,6 +457,44 @@ hud_client_query_get_appstack_model (HudClientQuery * cquery)
 }
 
 /**
+ * hud_client_query_toolbar_item_active:
+ * @cquery: A #HudClientQuery
+ * @item: Item to check for
+ *
+ * Checks to see if a particular toolbar item is implemented by the
+ * application and should be shown to the user as available for use.
+ *
+ * Return value: Whether this @item is active.
+ */
+gboolean
+hud_client_query_toolbar_item_active (HudClientQuery * cquery, HudClientQueryToolbarItems item)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), FALSE);
+
+
+	return FALSE;
+}
+
+/**
+ * hud_client_query_get_active_toolbar:
+ * @cquery: A #HudClientQuery
+ *
+ * Gets a list of all the active toolbar items as an array.  Array should be
+ * free'd after use.
+ *
+ * Return value: (transfer full) (element-type HudClientQueryToolbarItems): A
+ * list of the active toolbar items.
+ */
+GArray *
+hud_client_query_get_active_toolbar (HudClientQuery * cquery)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+
+
+	return NULL;
+}
+
+/**
  * hud_client_query_set_appstack_app:
  * @cquery: A #HudClientQuery
  * @application_id: New application to get results from
@@ -525,4 +578,23 @@ hud_client_query_execute_param_command (HudClientQuery * cquery, GVariant * comm
 	g_free(model_path);
 
 	return param;
+}
+
+/**
+ * hud_client_query_execute_toolbar_item:
+ * @cquery: A #HudClientQuery
+ * @item: Which toolbar item is being activated
+ * @timestamp: Timestamp for the user event
+ *
+ * Executes a particular item in the tool bar.  The item should
+ * be active before passing this.
+ */
+void
+hud_client_query_execute_toolbar_item (HudClientQuery * cquery, HudClientQueryToolbarItems item, guint timestamp)
+{
+	g_return_if_fail(HUD_CLIENT_IS_QUERY(cquery));
+
+	_hud_query_com_canonical_hud_query_call_execute_toolbar_sync(cquery->priv->proxy, hud_client_query_toolbar_items_get_nick(item), timestamp, NULL, NULL);
+
+	return;
 }

@@ -41,6 +41,8 @@ libhud_tests_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-D DBUSMENU_JSON_LOADER=\"$(builddir)/dbusmenu-json-loader\" \
+	-I$(top_srcdir)/libhud-client \
+	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 
 ######################
@@ -189,6 +191,8 @@ test_menu_input_CFLAGS = \
 	$(DBUSTEST_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
+	-I$(top_srcdir)/libhud-client \
+	-DHUD_CLIENT_COMPILATION \
 	-D MOCK_JSON_APP=\"$(MOCK_JSON_APP)\" \
 	-D MODEL_DEEP=\"$(builddir)/test-menu-input-model-deep\" \
 	-D MODEL_SIMPLE=\"$(builddir)/test-menu-input-model-simple\" \
@@ -408,6 +412,8 @@ test_source_CFLAGS = \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
+	-I$(top_srcdir)/libhud-client \
+	-DHUD_CLIENT_COMPILATION \
 	-D JSON_INPUT=\"$(srcdir)/test-source.json\" \
 	-Wall -Werror
 
@@ -454,6 +460,8 @@ test_app_indicator_source_CFLAGS = \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
+	-I$(top_srcdir)/libhud-client \
+	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 
 test_app_indicator_source_LDADD = \
@@ -496,6 +504,8 @@ test_indicator_source_CFLAGS = \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
+	-I$(top_srcdir)/libhud-client \
+	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 
 test_indicator_source_LDADD = \
@@ -538,6 +548,8 @@ test_application_list_CFLAGS = \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
+	-I$(top_srcdir)/libhud-client \
+	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 
 test_application_list_LDADD = \
@@ -926,6 +938,8 @@ check_PROGRAMS += \
 hud_performance_CFLAGS = \
 	-I$(top_builddir)/src		\
 	-I$(top_srcdir)/src		\
+	-I$(top_srcdir)/libhud-client \
+	-DHUD_CLIENT_COMPILATION \
 	$(HUD_CFLAGS) \
 	$(BAMF_CFLAGS)
 hud_performance_LDADD = \

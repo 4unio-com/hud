@@ -186,3 +186,7 @@ simple-test
 .project
 .pydevproject
 .cproject
+enum-types.c
+enum-types.h
+stamp-enum-types
+hud-cli-toolbar

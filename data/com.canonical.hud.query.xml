@@ -49,6 +49,12 @@
 			<arg type="i" name="modelSection" direction="out" />
 		</method>
 
+		<method name="ExecuteToolbar">
+			<!-- in -->
+			<arg type="s" name="item" direction="in" />
+			<arg type="u" name="timestamp" direction="in" />
+		</method>
+
 <!-- Signals -->
 		<!-- Most update signals come through the Dee model -->
 

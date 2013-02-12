@@ -37,6 +37,8 @@ G_BEGIN_DECLS
 #define HUD_CLIENT_IS_QUERY_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HUD_CLIENT_TYPE_QUERY))
 #define HUD_CLIENT_QUERY_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_CLIENT_TYPE_QUERY, HudClientQueryClass))
 
+#define HUD_CLIENT_QUERY_SIGNAL_TOOLBAR_UPDATED   "toolbar-updated"
+
 typedef struct _HudClientQuery         HudClientQuery;
 typedef struct _HudClientQueryClass    HudClientQueryClass;
 typedef struct _HudClientQueryPrivate  HudClientQueryPrivate;
@@ -63,20 +65,47 @@ struct _HudClientQuery {
 	HudClientQueryPrivate * priv;
 };
 
+/**
+ * HudClientQueryToolbar:
+ * @HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN: Make the application fullscreen
+ * @HUD_CLIENT_QUERY_TOOLBAR_HELP: Help the user use the application
+ * @HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES: Configure the application
+ * @HUD_CLIENT_QUERY_TOOLBAR_QUIT: Shutdown the application
+ * @HUD_CLIENT_QUERY_TOOLBAR_UNDO: Revert the last user action
+ *
+ * The toolbar has a set of preconfigured items in it for the
+ * application.  This enum represents them.
+ */
+typedef enum { /*< prefix=HUD_CLIENT_QUERY_TOOLBAR >*/
+	HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN,
+	HUD_CLIENT_QUERY_TOOLBAR_HELP,
+	HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES,
+	HUD_CLIENT_QUERY_TOOLBAR_QUIT,
+	HUD_CLIENT_QUERY_TOOLBAR_UNDO,
+} HudClientQueryToolbarItems;
+
 GType              hud_client_query_get_type              (void);
 
 HudClientQuery *   hud_client_query_new                   (const gchar *           query);
 HudClientQuery *   hud_client_query_new_for_connection    (const gchar *           query,
                                                            HudClientConnection *   connection);
 
+/* Query Tools */
 void               hud_client_query_set_query             (HudClientQuery *        cquery,
                                                            const gchar *           query);
 const gchar *      hud_client_query_get_query             (HudClientQuery *        cquery);
 
 void               hud_client_query_voice_query           (HudClientQuery *        cquery);
 
+/* Accessors */
 DeeModel *         hud_client_query_get_results_model     (HudClientQuery *        cquery);
 DeeModel *         hud_client_query_get_appstack_model    (HudClientQuery *        cquery);
+
+gboolean           hud_client_query_toolbar_item_active   (HudClientQuery *        cquery,
+                                                           HudClientQueryToolbarItems  item);
+GArray *           hud_client_query_get_active_toolbar    (HudClientQuery *        cquery);
+
+/* Execute and Control */
 void               hud_client_query_set_appstack_app      (HudClientQuery *        cquery,
                                                            const gchar *           application_id);
 void               hud_client_query_execute_command       (HudClientQuery *        cquery,
@@ -84,6 +113,9 @@ void               hud_client_query_execute_command       (HudClientQuery *     
                                                            guint                   timestamp);
 HudClientParam *   hud_client_query_execute_param_command (HudClientQuery *        cquery,
                                                            GVariant *              command_key,
+                                                           guint                   timestamp);
+void               hud_client_query_execute_toolbar_item  (HudClientQuery *        cquery,
+                                                           HudClientQueryToolbarItems  item,
                                                            guint                   timestamp);
 
 /**

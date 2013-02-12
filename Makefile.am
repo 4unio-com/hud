@@ -49,3 +49,8 @@ dist-hook:
 	fi
 
 include $(top_srcdir)/Makefile.am.coverage
+
+EXTRA_DIST = \
+	Makefile.am.coverage \
+	Makefile.am.enum \
+	Makefile.am.marshal

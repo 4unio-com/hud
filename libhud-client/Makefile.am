@@ -1,4 +1,6 @@
 
+DISTCLEANFILES =
+
 lib_LTLIBRARIES = libhud-client.la
 
 ABI_VERSION = 1
@@ -11,12 +13,15 @@ libhud_client_include_base_HEADERS = \
 libhud_client_includedir = $(includedir)/libhud-client-$(API_VERSION)/libhud-client
 libhud_client_include_HEADERS = \
 	connection.h \
+	enum-types.h \
 	param.h \
 	query.h
 
 noinst_LTLIBRARIES = libhud-client-generated.la
 
 libhud_client_generated_la_SOURCES = \
+	enum-types.h \
+	enum-types.c \
 	service-iface.h \
 	service-iface.c \
 	query-iface.h \
@@ -24,6 +29,7 @@ libhud_client_generated_la_SOURCES = \
 
 libhud_client_generated_la_CFLAGS = \
 	$(HUD_CFLAGS) \
+	-D HUD_CLIENT_COMPILATION \
 	-Wall -Werror
 
 libhud_client_generated_la_LIBADD = \
@@ -154,4 +160,14 @@ CLEANFILES += $(vapi_DATA)
 
 endif
 endif
+
+##########################
+# Enum Types
+##########################
+
+include $(top_srcdir)/Makefile.am.enum
+
+glib_enum_h = enum-types.h
+glib_enum_c = enum-types.c
+glib_enum_headers = $(srcdir)/query.h
 

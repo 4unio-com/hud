@@ -142,6 +142,7 @@ struct _HudModelItem {
   gchar *action_name_full;
   gchar *action_path;
   GVariant *target;
+  HudClientQueryToolbarItems toolbar_item;
 
   GMenuModel * submodel;
 };
@@ -154,6 +155,8 @@ static void hud_menu_model_collector_hud_awareness_cb (GObject      *source,
                                                        GAsyncResult *result,
                                                        gpointer      user_data);
 static GList * hud_menu_model_collector_get_items (HudSource * source);
+static void hud_menu_model_collector_activate_toolbar (HudSource *   source,
+                                                       HudClientQueryToolbarItems titem);
 
 /* Functions */
 static gchar *
@@ -265,6 +268,17 @@ hud_model_item_activate (HudItem  *hud_item,
 }
 
 static void
+hud_model_item_activate_toolbar (HudModelItem  *hud_item,
+                                 HudClientQueryToolbarItems item)
+{
+	if (hud_item->toolbar_item == item) {
+		hud_model_item_activate(HUD_ITEM(hud_item), NULL);
+	}
+
+	return;
+}
+
+static void
 hud_model_item_finalize (GObject *object)
 {
   HudModelItem *item = (HudModelItem *) object;
@@ -285,6 +299,7 @@ hud_model_item_finalize (GObject *object)
 static void
 hud_model_item_init (HudModelItem *item)
 {
+  item->toolbar_item = -1;
 }
 
 static void
@@ -303,7 +318,8 @@ hud_model_item_new (HudMenuModelCollector *collector,
                     const gchar           *label,
                     const gchar           *action_name,
                     const gchar           *accel,
-                    GVariant              *target)
+                    GVariant              *target,
+                    const gchar           *toolbar)
 {
   HudModelItem *item;
   const gchar *stripped_action_name;
@@ -336,6 +352,11 @@ hud_model_item_new (HudMenuModelCollector *collector,
   item->action_name = g_strdup (stripped_action_name);
   item->action_name_full = g_strdup (action_name);
   item->target = target ? g_variant_ref_sink (target) : NULL;
+
+  if (toolbar != NULL)
+    {
+      item->toolbar_item = hud_client_query_toolbar_items_get_value_from_nick(toolbar);
+    }
 
   hud_string_list_unref (full_label);
   hud_string_list_unref (keywords);
@@ -559,6 +580,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       gchar *action_namespace = NULL;
       gchar *action = NULL;
       gchar *accel = NULL;
+      gchar *toolbar = NULL;
       HudItem *item = NULL;
 
 
@@ -566,6 +588,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_ACTION, "s", &action);
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_LABEL, "s", &label);
       g_menu_model_get_item_attribute (model, i, "accel", "s", &accel);
+      g_menu_model_get_item_attribute (model, i, "hud-toolbar-item", "s", &toolbar);
 
       accel = format_accel_for_users(accel);
 
@@ -578,7 +601,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
 
           target = g_menu_model_get_item_attribute_value (model, i, G_MENU_ATTRIBUTE_TARGET, NULL);
 
-          item = hud_model_item_new (collector, context, label, action, accel, target);
+          item = hud_model_item_new (collector, context, label, action, accel, target, toolbar);
 
           if (item)
             g_ptr_array_add (collector->items, item);
@@ -613,6 +636,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_free (action);
       g_free (label);
       g_free (accel);
+      g_free (toolbar);
     }
 
   if (changed)
@@ -847,6 +871,20 @@ hud_menu_model_collector_get (HudSource   *source,
   return NULL;
 }
 
+static void
+hud_menu_model_collector_activate_toolbar (HudSource * source, HudClientQueryToolbarItems titem)
+{
+  HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
+
+  gint i;
+  for (i = 0; i < collector->items->len; i++) {
+    HudModelItem * item = g_ptr_array_index(collector->items, i);
+    hud_model_item_activate_toolbar(item, titem);
+  }
+
+  return;
+}
+
 /* Free's the model data structure */
 static void
 model_data_free (gpointer data)
@@ -917,6 +955,7 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->list_applications = hud_menu_model_collector_list_applications;
   iface->get = hud_menu_model_collector_get;
   iface->get_items = hud_menu_model_collector_get_items;
+  iface->activate_toolbar = hud_menu_model_collector_activate_toolbar;
 }
 
 static void

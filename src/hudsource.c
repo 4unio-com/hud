@@ -188,6 +188,27 @@ hud_source_get (HudSource   *source,
 }
 
 /**
+ * hud_source_activate_toolbar:
+ * @source; a #HudSource
+ *
+ * Activate a toolbar item on a source
+ **/
+void
+hud_source_activate_toolbar (HudSource * source, HudClientQueryToolbarItems item)
+{
+  g_return_if_fail (HUD_IS_SOURCE (source));
+
+  g_debug ("activate toolbar on %s %p", G_OBJECT_TYPE_NAME (source), source);
+
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->activate_toolbar != NULL) {
+    return iface->activate_toolbar(source, item);
+  }
+
+  return;
+}
+
+/**
  * hud_source_get_items:
  * @collector: a #HudDbusmenuCollector
  *
