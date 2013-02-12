@@ -21,6 +21,7 @@
 
 #include "huditem.h"
 #include "hudresult.h"
+#include "enum-types.h"
 
 #define HUD_TYPE_SOURCE                                     (hud_source_get_type ())
 #define HUD_SOURCE(inst)                                    (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
@@ -51,6 +52,8 @@ struct _HudSourceInterface
                        const gchar *application_id);
 
   GList * (* get_items) (HudSource    *source);
+  void (* activate_toolbar) (HudSource *                source,
+                             HudClientQueryToolbarItems item);
 };
 
 GType                   hud_source_get_type                             (void);
@@ -74,5 +77,8 @@ HudSource *             hud_source_get                                  (HudSour
 GList *                 hud_source_get_items                            (HudSource    *source);
 
 void                    hud_source_changed                              (HudSource    *source);
+
+void                    hud_source_activate_toolbar                     (HudSource *   source,
+                                                                         HudClientQueryToolbarItems item);
 
 #endif /* __HUD_SOURCE_H__ */

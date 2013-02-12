@@ -110,6 +110,8 @@ hud_service_CFLAGS = \
 	$(HYBRIS_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/libhud-client \
+	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 hud_service_LDADD = \
 	libhud-service.la	\
