@@ -74,6 +74,8 @@ static void source_list_applications          (HudSource *                 hud_s
                                                HudTokenList *              search_string,
                                                void                      (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
                                                gpointer                    user_data);
+static void source_activate_toolbar           (HudSource *                 hud_source,
+                                               HudClientQueryToolbarItems  item);
 static HudSource * source_get                 (HudSource *                 hud_source,
                                                const gchar *               application_id);
 static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplication * skel,
@@ -110,6 +112,7 @@ source_iface_init (HudSourceInterface *iface)
 	iface->list_applications = source_list_applications;
 	iface->get = source_get;
 	iface->get_items = source_get_items;
+	iface->activate_toolbar = source_activate_toolbar;
 
 	return;
 }
@@ -300,6 +303,19 @@ source_get (HudSource *     hud_source,
 	}
 	
 	return NULL;
+}
+
+static void
+source_activate_toolbar (HudSource * hud_source, HudClientQueryToolbarItems item)
+{
+  HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+
+  HudSource *source = get_used_source (app);
+
+  if (source != NULL )
+  {
+    hud_source_activate_toolbar (source, item);
+  }
 }
 
 /**
