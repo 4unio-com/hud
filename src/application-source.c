@@ -186,6 +186,14 @@ hud_application_source_finalize (GObject *object)
 	return;
 }
 
+/* Gets called when the items in a window's sources changes */
+static void
+window_source_changed (HudSource * source, gpointer user_data)
+{
+
+	return;
+}
+
 static HudSource *
 get_used_source (HudApplicationSource *app)
 {
@@ -405,6 +413,7 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
 	if (collector_list == NULL) {
 		collector_list = hud_source_list_new();
+		g_signal_connect(collector_list, "changed", G_CALLBACK(window_source_changed), app);
 		g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector_list);
 	}
 
@@ -786,6 +795,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
 	if (collector_list == NULL) {
 		collector_list = hud_source_list_new();
+		g_signal_connect(collector_list, "changed", G_CALLBACK(window_source_changed), app);
 		g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector_list);
 	}
 
