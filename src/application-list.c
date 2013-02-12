@@ -259,6 +259,8 @@ bamf_app_to_source (HudApplicationList * list, AbstractApplication * bapp)
 		source = hud_application_source_new_for_app(bapp);
 		g_hash_table_insert(list->priv->applications, id, source);
 		id = NULL; /* We used the malloc in the table */
+
+		hud_source_changed(HUD_SOURCE(list));
 	}
 
 	g_free(id);
