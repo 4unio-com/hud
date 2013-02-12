@@ -473,6 +473,14 @@ handle_parameterized (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoc
 	return TRUE;
 }
 
+static gboolean
+handle_execute_toolbar (HudQueryIfaceComCanonicalHudQuery *object, GDBusMethodInvocation *invocation, const gchar *arg_item, guint arg_timestamp)
+{
+
+	g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, "TODO");
+	return TRUE;
+}
+
 /* Handle the DBus function CloseQuery */
 static gboolean
 handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
@@ -508,6 +516,7 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint q
   g_signal_connect(G_OBJECT(query->skel), "handle-close-query", G_CALLBACK(handle_close_query), query);
   g_signal_connect(G_OBJECT(query->skel), "handle-execute-command", G_CALLBACK(handle_execute), query);
   g_signal_connect(G_OBJECT(query->skel), "handle-execute-parameterized", G_CALLBACK(handle_parameterized), query);
+  g_signal_connect(G_OBJECT(query->skel), "handle-execute-toolbar", G_CALLBACK(handle_execute_toolbar), query);
 
   query->object_path = g_strdup_printf("/com/canonical/hud/query%d", query->querynumber);
   if (!g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(query->skel),
