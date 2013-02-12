@@ -381,6 +381,22 @@ hud_model_item_set_submenu (HudModelItem * item, GMenuModel * submenu, const gch
 }
 
 /**
+ * hud_model_item_is_toolbar:
+ * @item: A #HudModelItem to check
+ *
+ * Check to see if an item has a toolbar representation
+ *
+ * Return value: Whether this is in the toolbar
+ */
+gboolean
+hud_model_item_is_toolbar (HudModelItem * item)
+{
+	g_return_val_if_fail(HUD_IS_MODEL_ITEM(item), FALSE);
+
+	return item->toolbar_item != -1;
+}
+
+/**
  * hud_model_item_is_parameterized:
  * @item: A #HudModelItem to check
  *
@@ -828,6 +844,11 @@ hud_menu_model_collector_search (HudSource    *source,
       HudItem *item;
 
       item = g_ptr_array_index (items, i);
+
+      if (search_string == NULL && hud_model_item_is_toolbar(HUD_MODEL_ITEM(item))) {
+        continue;
+      }
+
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
       if (result)
         append_func(result, user_data);
