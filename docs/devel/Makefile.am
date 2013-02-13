@@ -32,9 +32,11 @@ IGNORE_HFILES = \
 GTKDOC_CFLAGS = \
 	-I$(top_srcdir)/src \
 	$(HUD_CFLAGS) \
-	$(BAMF_CFLAGS)
+	$(BAMF_CFLAGS) \
+	$(HYBRIS_CFLAGS)
 
 GTKDOC_LIBS = \
 	$(top_builddir)/src/libhud-service.la \
 	$(HUD_LIBS) \
-	$(BAMF_LIBS)
+	$(BAMF_LIBS) \
+	$(HYBRIS_LIBS)
