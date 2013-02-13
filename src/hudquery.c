@@ -27,6 +27,7 @@
 #include "hudmenumodelcollector.h"
 #include "hudsphinx.h"
 #include "hudjulius.h"
+#include "application-source.h"
 
 /**
  * SECTION:hudquery
@@ -56,6 +57,7 @@ struct _HudQuery
   GObject parent_instance;
 
   HudSource *all_sources;
+  HudSource *original_source;
   HudSource *current_source;
   gchar *search_string;
   HudTokenList *token_list;
@@ -182,6 +184,25 @@ appstack_hash_to_model (GHashTable * hash, DeeModel * model)
 	return;
 }
 
+/* Add an item to the hash table */
+static void
+appstack_hash_add_source (GHashTable * table, HudSource * source, HudSourceItemType type)
+{
+	HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(source);
+
+	const gchar * id = hud_application_source_get_id(appsource);
+	const gchar * icon = NULL; /* TODO */
+
+	appstack_item_t * item = g_new0(appstack_item_t, 1);
+	item->app_id = g_strdup(id);
+	item->app_icon = g_strdup(icon);
+	item->type = type;
+
+	g_hash_table_insert(table, g_strdup(id), item);
+
+	return;
+}
+
 /* Add a HudItem to the list of app results */
 static void
 app_results_list_populate (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data)
@@ -272,6 +293,10 @@ hud_query_refresh (HudQuery *query)
   GHashTable * appstack_hash = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, appstack_item_free);
 
   hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
+
+  appstack_hash_add_source(appstack_hash, query->current_source, HUD_SOURCE_ITEM_TYPE_SELECTED_APP);
+  appstack_hash_add_source(appstack_hash, query->original_source, HUD_SOURCE_ITEM_TYPE_FOCUSED_APP);
+
   appstack_hash_to_model(appstack_hash, query->appstack_model);
 
   g_hash_table_unref(appstack_hash);
@@ -323,6 +348,7 @@ hud_query_finalize (GObject *object)
   hud_source_unuse (query->all_sources);
 
   g_object_unref (query->all_sources);
+  g_object_unref (query->original_source);
   g_object_unref (query->current_source);
   if (query->token_list != NULL) {
     hud_token_list_free (query->token_list);
@@ -688,6 +714,7 @@ hud_query_new (HudSource   *all_sources,
   query = g_object_new (HUD_TYPE_QUERY, NULL);
   hud_query_init_real(query, connection, query_count);
   query->all_sources = g_object_ref (all_sources);
+  query->original_source = g_object_ref (current_source);
   query->current_source = g_object_ref (current_source);
   query->search_string = g_strdup (search_string);
   query->token_list = NULL;
