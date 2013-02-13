@@ -120,18 +120,47 @@ results_list_populate (HudResult * result, gpointer user_data)
 	return;
 }
 
+/* A structure to track the items in the appstack */
+typedef struct _appstack_item_t appstack_item_t;
+struct _appstack_item_t {
+	gchar * app_id;
+	gchar * app_icon;
+	/* HudSourceAppSort sortval; */
+};
+
+/* Takes the hash and puts it into the Dee Model */
+static void
+appstack_hash_to_model (GHashTable * hash, DeeModel * model)
+{
+	GList * values = g_hash_table_get_values(hash);
+	GList * value;
+
+	for (value = values; value != NULL; value = g_list_next(value)) {
+		appstack_item_t * item = (appstack_item_t *)value->data;
+
+		GVariant * columns[G_N_ELEMENTS(appstack_model_schema) + 1];
+		columns[0] = g_variant_new_string(item->app_id ? item->app_id : "");
+		columns[1] = g_variant_new_string(item->app_icon ? item->app_icon : "");
+		columns[2] = NULL;
+
+		dee_model_prepend_row(model, columns);
+	}
+
+	return;
+}
+
 /* Add a HudItem to the list of app results */
 static void
 app_results_list_populate (const gchar *application_id, const gchar *application_icon, gpointer user_data)
 {
-	HudQuery * query = (HudQuery *)user_data;
+	GHashTable * table = (GHashTable *)user_data;
 
-	GVariant * columns[G_N_ELEMENTS(appstack_model_schema) + 1];
-	columns[0] = g_variant_new_string(application_id ? application_id : "");
-	columns[1] = g_variant_new_string(application_icon ? application_icon : "");
-	columns[2] = NULL;
+	appstack_item_t * item = g_new0(appstack_item_t, 1);
+	item->app_id = g_strdup(application_id);
+	item->app_icon = g_strdup(application_icon);
 
-	dee_model_prepend_row(query->appstack_model, columns);
+	g_hash_table_insert(table, g_strdup(application_id), item);
+
 	return;
 }
 
@@ -206,7 +235,12 @@ hud_query_refresh (HudQuery *query)
   query->results_list = NULL;
 
   dee_model_clear(query->appstack_model);
-  hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, query);
+  GHashTable * appstack_hash = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+
+  hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
+  appstack_hash_to_model(appstack_hash, query->appstack_model);
+
+  g_hash_table_unref(appstack_hash);
 
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
 
