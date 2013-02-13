@@ -128,6 +128,19 @@ struct _appstack_item_t {
 	/* HudSourceAppSort sortval; */
 };
 
+/* Free all of them items */
+static void
+appstack_item_free (gpointer user_data)
+{
+	appstack_item_t * item = (appstack_item_t *)user_data;
+
+	g_free(item->app_id);
+	g_free(item->app_icon);
+
+	g_free(item);
+	return;
+}
+
 /* Takes the hash and puts it into the Dee Model */
 static void
 appstack_hash_to_model (GHashTable * hash, DeeModel * model)
@@ -235,7 +248,7 @@ hud_query_refresh (HudQuery *query)
   query->results_list = NULL;
 
   dee_model_clear(query->appstack_model);
-  GHashTable * appstack_hash = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+  GHashTable * appstack_hash = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, appstack_item_free);
 
   hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
   appstack_hash_to_model(appstack_hash, query->appstack_model);
