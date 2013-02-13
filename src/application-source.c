@@ -710,6 +710,37 @@ hud_application_source_get_id (HudApplicationSource * app)
 	return app->priv->app_id;
 }
 
+/**
+ * hud_application_source_get_app_icon:
+ * @app: A #HudApplicationSource object
+ *
+ * Get the application icon
+ *
+ * Return value: The icon as a string
+ */
+const gchar *
+hud_application_source_get_app_icon (HudApplicationSource * app)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), NULL);
+
+	const gchar * icon = NULL;
+	const gchar * desktop_file = NULL;
+#ifdef HAVE_BAMF
+	desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
+#endif
+#ifdef HAVE_HYBRIS
+	desktop_file = app->priv->desktop_file;
+#endif
+	if (desktop_file != NULL) {
+		GKeyFile * kfile = g_key_file_new();
+		g_key_file_load_from_file(kfile, desktop_file, G_KEY_FILE_NONE, NULL);
+		icon = g_key_file_get_value(kfile, G_KEY_FILE_DESKTOP_GROUP, G_KEY_FILE_DESKTOP_KEY_ICON, NULL);
+		g_key_file_free(kfile);
+	}
+
+	return icon;
+}
+
 typedef struct _window_info_t window_info_t;
 struct _window_info_t {
 	HudApplicationSource * source;  /* Not a ref */
@@ -839,19 +870,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	/* Hybris can't find window icons, so we want to pull it from the desktop file */
 #endif
 	if (icon == NULL) {
-		const gchar * desktop_file = NULL;
-#ifdef HAVE_BAMF
-		desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
-#endif
-#ifdef HAVE_HYBRIS
-		desktop_file = app->priv->desktop_file;
-#endif
-		if (desktop_file != NULL) {
-			GKeyFile * kfile = g_key_file_new();
-			g_key_file_load_from_file(kfile, desktop_file, G_KEY_FILE_NONE, NULL);
-			icon = g_key_file_get_value(kfile, G_KEY_FILE_DESKTOP_GROUP, G_KEY_FILE_DESKTOP_KEY_ICON, NULL);
-			g_key_file_free(kfile);
-		}
+		icon = hud_application_source_get_app_icon(app);
 	}
 
 	if (icon != NULL) {
