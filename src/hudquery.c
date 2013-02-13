@@ -28,6 +28,7 @@
 #include "hudsphinx.h"
 #include "hudjulius.h"
 #include "application-source.h"
+#include "application-list.h"
 
 /**
  * SECTION:hudquery
@@ -57,7 +58,7 @@ struct _HudQuery
   GObject parent_instance;
 
   HudSource *all_sources;
-  HudSource *original_source;
+  HudApplicationList *app_list;
   HudSource *current_source;
   gchar *search_string;
   HudTokenList *token_list;
@@ -294,8 +295,16 @@ hud_query_refresh (HudQuery *query)
 
   hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
 
-  appstack_hash_add_source(appstack_hash, query->current_source, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
-  appstack_hash_add_source(appstack_hash, query->original_source, HUD_SOURCE_ITEM_TYPE_FOCUSED_APP);
+  /* If we've selected a source, make sure it's in the list */
+  if (query->current_source != NULL) {
+    appstack_hash_add_source(appstack_hash, query->current_source, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+  }
+
+  /* Always have the focused app in there too */
+  HudSource * focused = hud_application_list_get_focused_app(query->app_list);
+  if (focused != NULL) {
+    appstack_hash_add_source(appstack_hash, focused, HUD_SOURCE_ITEM_TYPE_FOCUSED_APP);
+  }
 
   appstack_hash_to_model(appstack_hash, query->appstack_model);
 
@@ -348,7 +357,7 @@ hud_query_finalize (GObject *object)
   hud_source_unuse (query->all_sources);
 
   g_object_unref (query->all_sources);
-  g_object_unref (query->original_source);
+  g_object_unref (query->app_list);
   g_object_unref (query->current_source);
   if (query->token_list != NULL) {
     hud_token_list_free (query->token_list);
@@ -701,7 +710,7 @@ hud_query_class_init (HudQueryClass *class)
  **/
 HudQuery *
 hud_query_new (HudSource   *all_sources,
-               HudSource   *current_source,
+               HudApplicationList *application_list,
                const gchar *search_string,
                gint         num_results,
                GDBusConnection *connection,
@@ -714,10 +723,10 @@ hud_query_new (HudSource   *all_sources,
   query = g_object_new (HUD_TYPE_QUERY, NULL);
   hud_query_init_real(query, connection, query_count);
   query->all_sources = g_object_ref (all_sources);
-  query->original_source = g_object_ref (current_source);
-  query->current_source = g_object_ref (current_source);
+  query->app_list = g_object_ref (application_list);
   query->search_string = g_strdup (search_string);
   query->token_list = NULL;
+  query->current_source = hud_application_list_get_focused_app(application_list);
   
   if (query->search_string[0] != '\0') {
     query->token_list = hud_token_list_new_from_string (query->search_string);
