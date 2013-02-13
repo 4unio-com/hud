@@ -35,15 +35,15 @@ struct _HudJulius
 
   gchar **query;
 
-  gboolean terminated;
-
   gboolean listen_emitted;
 
   gboolean heard_something_emitted;
 
-  gint64 started_time;
+  GMainLoop *mainloop;
 
-  gint64 timeout;
+  guint timeout_source;
+
+  guint watch_source;
 
   GError **error;
 };
@@ -73,8 +73,6 @@ hud_julius_alphanumeric_regex_new (void)
 }
 
 static void rm_rf(const gchar *path);
-
-static void hud_julius_stop (HudJulius* self, Recog* recog, gchar *result, GError *error);
 
 typedef GObjectClass HudJuliusClass;
 
@@ -106,241 +104,155 @@ hud_julius_finalize (GObject *object)
     ->finalize (object);
 }
 
-static void
-hud_julius_poll(Recog *recog, void *dummy)
-{
-  HudJulius *self = HUD_JULIUS(dummy);
 
-  /* If the timeout period has elapsed */
-  if (g_get_monotonic_time() - self->started_time > self->timeout)
-  {
-    hud_julius_stop(self, recog, g_strdup(""), NULL);
-  }
-}
-/**
- * Callback to be called when start waiting speech input.
- *
- */
-static void
-status_recready(Recog *recog, void *dummy)
+static gboolean
+timeout_quit_func (gpointer user_data)
 {
-  HudJulius *self = HUD_JULIUS(dummy);
-  if (!self->listen_emitted)
-  {
-    self->listen_emitted = TRUE;
-    hud_query_iface_com_canonical_hud_query_emit_voice_query_listening (
-          HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
-    g_debug ("<<< please speak >>>");
-  }
+  g_assert(HUD_IS_JULIUS(user_data));
+
+  HudJulius *self = HUD_JULIUS(user_data);
+  g_debug("Query timeout");
+  *self->query = g_strdup("");
+  g_source_remove(self->watch_source);
+  g_main_loop_quit(self->mainloop);
+  return FALSE;
 }
 
-/**
- * Callback to be called when speech input is triggered.
- *
- */
-static void
-status_recstart(Recog *recog, void *dummy)
+static gboolean
+watch_function (GIOChannel *channel, GIOCondition condition,
+    gpointer user_data)
 {
-  HudJulius *self = HUD_JULIUS(dummy);
-  if (!self->heard_something_emitted)
+  g_assert(HUD_IS_JULIUS(user_data));
+
+  HudJulius *self = HUD_JULIUS(user_data);
+
+  if ((condition & G_IO_IN) != 0)
   {
-    self->heard_something_emitted = TRUE;
-    hud_query_iface_com_canonical_hud_query_emit_voice_query_heard_something (
-              HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
-    g_debug ("<<< speech input >>>");
-  }
-}
+    GString *line = g_string_sized_new (100);
+    GIOStatus status;
 
-static
-void hud_julius_stop (HudJulius* self, Recog* recog, gchar *result, GError *error)
-{
-  if (!self->terminated)
-  {
-    self->terminated = TRUE;
-    *self->query = result;
-    *self->error = error;
-    j_close_stream (recog);
-  }
-}
-
-/**
- * Callback to output final recognition result.
- * This function will be called just after recognition of an input ends
- *
- */
-static void
-output_result(Recog *recog, void *dummy)
-{
-  HudJulius *self = HUD_JULIUS(dummy);
-
-
-  /* all recognition results are stored at each recognition process
-   instance */
-  RecogProcess *r;
-  for (r = recog->process_list; r; r = r->next)
-  {
-    /* skip the process if the process is not alive */
-    if (!r->live)
-      continue;
-
-    /* result are in r->result.  See recog.h for details */
-
-    /* check result status */
-    if (r->result.status < 0)
-    { /* no results obtained */
-      /* outout message according to the status code */
-      gchar *message = NULL;
-
-      switch (r->result.status)
-      {
-      case J_RESULT_STATUS_REJECT_POWER:
-        message = "input rejected by power";
-        break;
-      case J_RESULT_STATUS_TERMINATE:
-        message = "input teminated by request";
-        break;
-      case J_RESULT_STATUS_ONLY_SILENCE:
-        message = "input rejected by decoder (silence input result)";
-        break;
-      case J_RESULT_STATUS_REJECT_GMM:
-        message = "input rejected by GMM";
-        break;
-      case J_RESULT_STATUS_REJECT_SHORT:
-        message = "input rejected by short input";
-        break;
-      case J_RESULT_STATUS_FAIL:
-        /* We are ignoring this message, as it seems to occur erroneously */
-/*        message = "search failed"; */
-        break;
-      }
-
-      if (message)
-      {
-        hud_julius_stop (self, recog, NULL, g_error_new_literal(hud_julius_error_quark(), 0, message));
-        break;
-      }
-
-      continue;
-    }
-
-    /* output results for all the obtained sentences */
-    WORD_INFO *winfo = r->lm->winfo;
-
-    if (r->result.sentnum > 0)
+    do
     {
-      Sentence *s = &(r->result.sent[0]);
-      WORD_ID *seq = s->word;
-      int seqnum = s->word_num;
-
-      GString *result = g_string_sized_new(10);
-
-      int i;
-      /* output word sequence like Julius */
-      for (i = 0; i < seqnum; i++)
+      do
       {
-        gchar *word = winfo->woutput[seq[i]];
+        *self->error = NULL;
+        status = g_io_channel_read_line_string (channel, line, NULL,
+            self->error);
+      }
+      while (status == G_IO_STATUS_AGAIN);
 
-        /* Don't append silence */
-        if (g_strcmp0(word, "<s>") && g_strcmp0(word, "</s>"))
+      if (status != G_IO_STATUS_NORMAL)
+      {
+        if (*self->error)
         {
-          g_string_append(result, word);
-          g_string_append(result, " ");
+          g_warning("IO ERROR(): %s", (*self->error)->message);
+          return FALSE;
         }
       }
 
-      hud_julius_stop (self, recog, g_string_free (result, FALSE), NULL);
-      break;
+      if (g_str_has_prefix (line->str, "<voice-query-listening/>"))
+      {
+        if (!self->listen_emitted)
+        {
+          self->listen_emitted = TRUE;
+          hud_query_iface_com_canonical_hud_query_emit_voice_query_listening (
+              HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel) );
+          g_debug("<<< please speak >>>");
+        }
+      }
+      else if (g_str_has_prefix (line->str, "<voice-query-heard-something/>"))
+      {
+        if (!self->heard_something_emitted)
+        {
+          self->heard_something_emitted = TRUE;
+          hud_query_iface_com_canonical_hud_query_emit_voice_query_heard_something (
+              HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel) );
+          g_debug("<<< speech input >>>");
+        }
+      }
+      else if (g_str_has_prefix (line->str, "<voice-query-finished>"))
+      {
+        gchar *tmp = g_string_free (line, FALSE);
+        GRegex *regex = g_regex_new("<voice-query-finished>|</voice-query-finished>", 0, 0, NULL);
+        *self->query = g_regex_replace_literal(regex, g_strstrip(tmp), -1, 0, "", 0, NULL);
+        g_regex_unref(regex);
+        g_free(tmp);
+        g_source_remove(self->timeout_source);
+        g_main_loop_quit(self->mainloop);
+        return FALSE;
+      }
     }
+    while (g_io_channel_get_buffer_condition (channel) == G_IO_IN);
+    g_string_free (line, TRUE);
+
   }
+
+  if ((condition & G_IO_HUP) != 0)
+  {
+    g_io_channel_shutdown (channel, TRUE, NULL );
+    *self->query = g_strdup("");
+    g_source_remove(self->timeout_source);
+    g_main_loop_quit(self->mainloop);
+    return FALSE;
+  }
+
+  return TRUE;
 }
 
 static gboolean
 hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
-    const gchar *hlist)
+    const gchar *hlist, gchar **query, GError **error)
 {
+  gchar *program = g_build_filename(LIBEXECDIR, "hud-julius-listen", NULL);
+  g_debug("Julius listening program [%s]", program);
+
   const gchar *argv[] =
-  { "julius", "-input", "pulseaudio", "-gram", gram, "-h", hmm, "-hlist", hlist };
-  const gint argc = 9;
+  { program, "-input", "pulseaudio", "-gram", gram, "-h", hmm, "-hlist", hlist, NULL };
 
-  Jconf *jconf = j_config_load_args_new (argc, (char **)argv);
+  /* These are used inside the callbacks */
+  self->error = error;
+  self->query = query;
+  self->listen_emitted = FALSE;
+  self->heard_something_emitted = FALSE;
 
-  if (jconf == NULL )
+  gint standard_output;
+  gint standard_error;
+  GPid pid = 0;
+
+  if (!g_spawn_async_with_pipes (NULL, (gchar **) argv, NULL, 0, NULL, NULL,
+      &pid, NULL, &standard_output, &standard_error, error))
   {
-    g_warning ("Failed to build Julius configuration");
-    *self->query = NULL;
-    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "Failed to build Julius configuration");
+    g_warning("Failed to to load Julius daemon");
+    *query = NULL;
+    *error = g_error_new_literal (hud_julius_error_quark (), 0,
+        "Failed to load Julius daemon");
+    g_free(program);
     return FALSE;
   }
 
-  /* Create recognition instance according to the jconf */
-  /* it loads models, setup final parameters, build lexicon
-   and set up work area for recognition */
-  Recog *recog = j_create_instance_from_jconf (jconf);
-  if (recog == NULL )
-  {
-    g_warning ("Error in Julius startup");
-    *self->query = NULL;
-    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "Error in Julius startup");
-    return FALSE;
-  }
+  g_free(program);
 
-  /* register result callback functions */
-  callback_add (recog, CALLBACK_EVENT_SPEECH_READY, status_recready, self );
-  callback_add (recog, CALLBACK_EVENT_SPEECH_START, status_recstart, self );
-  callback_add (recog, CALLBACK_RESULT, output_result, self );
-  callback_add (recog, CALLBACK_POLL, hud_julius_poll, self );
+  GIOChannel *channel;
 
-  /* initialize audio input device */
-  /* ad-in thread starts at this time for microphone */
-  if (j_adin_init (recog) == FALSE)
-  {
-    g_warning ("Failed to initialize audio engine");
-    *self->query = NULL;
-    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "Failed to initialize audio engine");
-    return FALSE;
-  }
+  channel = g_io_channel_unix_new (standard_output);
+  g_io_channel_set_flags (channel,
+      g_io_channel_get_flags (channel) | G_IO_FLAG_NONBLOCK, NULL );
+  g_io_channel_set_encoding (channel, NULL, NULL );
 
-  /* inupt from microphone */
-  switch (j_open_stream (recog, NULL ))
-  {
-  case 0: /* succeeded */
-    break;
-  case -1: /* error */
-    g_warning ("error in input stream");
-    *self->query = NULL;
-    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "error in input stream");
-    return FALSE;
-  case -2: /* end of recognition process */
-    g_warning ("failed to begin input stream");
-    *self->query = NULL;
-    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "failed to begin input stream");
-    return FALSE;
-  }
+  self->watch_source = g_io_add_watch (channel,
+      G_IO_IN | G_IO_HUP | G_IO_ERR | G_IO_NVAL,
+               watch_function,
+               self);
 
-  /* enter main loop to recognize the input stream */
-  /* finish after whole input has been processed and input reaches end */
-  if (j_recognize_stream (recog) == -1)
-  {
-    g_warning("stream recognition failed");
-    if (*self->error == NULL)
-    {
-      *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "stream recognition failed");
-    }
-    return FALSE;
-  }
+  self->mainloop = g_main_loop_new (NULL, FALSE);
+  self->timeout_source = g_timeout_add (HUD_JULIUS_DEFAULT_TIMEOUT / 1000, timeout_quit_func, self);
+  g_main_loop_run (self->mainloop);
+  g_main_loop_unref (self->mainloop);
 
-  /* calling j_close_stream(recog) at any time will terminate
-   recognition and exit j_recognize_stream() */
-  j_close_stream (recog);
-  j_recog_free (recog);
+  g_io_channel_unref (channel);
+  g_spawn_close_pid(pid);
 
-  if (*self->error != NULL)
-  {
-    return FALSE;
-  }
-
-  /* exit program */
-  return TRUE;
+  return (*self->error == NULL);
 }
 
 static void
@@ -610,16 +522,7 @@ hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GErr
   gchar *hmm = g_build_filename(JULIUS_DICT_PATH, "hmmdefs", NULL);
   gchar *hlist = g_build_filename(JULIUS_DICT_PATH, "tiedlist", NULL);
 
-  /* These are used inside the callbacks */
-  self->error = error;
-  self->query = result;
-  self->terminated = FALSE;
-  self->listen_emitted = FALSE;
-  self->heard_something_emitted = FALSE;
-  self->started_time = g_get_monotonic_time();
-  self->timeout = HUD_JULIUS_DEFAULT_TIMEOUT;
-  /* This sets *self->query as its result */
-  gboolean success = hud_julius_listen (self, gram, hmm, hlist);
+  gboolean success = hud_julius_listen (self, gram, hmm, hlist, result, error);
 
   rm_rf(temp_dir);
 
