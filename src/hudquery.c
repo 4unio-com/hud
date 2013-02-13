@@ -141,6 +141,16 @@ appstack_item_free (gpointer user_data)
 	return;
 }
 
+/* Sort function for the appstack */
+static gint
+appstack_sort (GVariant ** row1, GVariant ** row2, gpointer user_data)
+{
+	const gchar * app_id1 = g_variant_get_string(row1[0], NULL);
+	const gchar * app_id2 = g_variant_get_string(row2[0], NULL);
+
+	return g_strcmp0(app_id1, app_id2);
+}
+
 /* Takes the hash and puts it into the Dee Model */
 static void
 appstack_hash_to_model (GHashTable * hash, DeeModel * model)
@@ -156,7 +166,7 @@ appstack_hash_to_model (GHashTable * hash, DeeModel * model)
 		columns[1] = g_variant_new_string(item->app_icon ? item->app_icon : "");
 		columns[2] = NULL;
 
-		dee_model_prepend_row(model, columns);
+		dee_model_insert_row_sorted(model, columns, appstack_sort, NULL);
 	}
 
 	return;
