@@ -436,7 +436,7 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 	}
 	if (mm_collector == NULL) {
 		gchar * export_path = g_strdup_printf("%s/window%X", app->priv->path, xid);
-		mm_collector = hud_menu_model_collector_new(appid, NULL, 0, export_path);
+		mm_collector = hud_menu_model_collector_new(appid, NULL, 0, export_path, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
 		g_free(export_path);
 
 		if (mm_collector != NULL) {
@@ -558,7 +558,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
 
-		hud_menu_model_collector_add_model(collector, G_MENU_MODEL(model), NULL, 1, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+		hud_menu_model_collector_add_model(collector, G_MENU_MODEL(model), NULL, 1);
 		add_id_to_connection(app, session, sender, idn);
 	}
 
@@ -879,7 +879,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 
 	if (mm_collector == NULL) {
 		gchar * export_path = g_strdup_printf("%s/window%X", app->priv->path, xid);
-		mm_collector = hud_menu_model_collector_new(app_id, icon, 0, export_path);
+		mm_collector = hud_menu_model_collector_new(app_id, icon, 0, export_path, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
 		g_free(export_path);
 
 		if (mm_collector != NULL) {

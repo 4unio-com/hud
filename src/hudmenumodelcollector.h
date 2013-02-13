@@ -38,7 +38,8 @@ GType                   hud_menu_model_collector_get_type               (void);
 HudMenuModelCollector * hud_menu_model_collector_new                    (const gchar *application_id,
                                                                          const gchar *icon,
                                                                          guint        penalty,
-                                                                         const gchar *export_path);
+                                                                         const gchar *export_path,
+                                                                         HudSourceItemType type);
 
 void                    hud_menu_model_collector_add_window             (HudMenuModelCollector * collector,
                                                                          AbstractWindow *        window);
@@ -47,14 +48,12 @@ void                    hud_menu_model_collector_add_endpoint           (HudMenu
                                                                          const gchar *prefix,
                                                                          const gchar *bus_name,
                                                                          const gchar *menu_path,
-                                                                         const gchar *action_path,
-                                                                         HudSourceItemType type);
+                                                                         const gchar *action_path);
 
 void                    hud_menu_model_collector_add_model              (HudMenuModelCollector * collector,
                                                                          GMenuModel *   model,
                                                                          const gchar *  prefix,
-                                                                         guint          recurse,
-                                                                         HudSourceItemType type);
+                                                                         guint          recurse);
 
 void                    hud_menu_model_collector_add_actions            (HudMenuModelCollector * collector,
                                                                          GActionGroup *   group,

@@ -286,14 +286,13 @@ hud_indicator_source_name_appeared (GDBusConnection *connection,
 
   if (indicator->info->uses_gmenumodel)
     {
-      HudMenuModelCollector *collector = hud_menu_model_collector_new(indicator->info->indicator_name, indicator->info->icon, hud_settings.indicator_penalty, indicator->info->dbus_path);
+      HudMenuModelCollector *collector = hud_menu_model_collector_new(indicator->info->indicator_name, indicator->info->icon, hud_settings.indicator_penalty, indicator->info->dbus_path, HUD_SOURCE_ITEM_TYPE_INDICATOR);
 
       hud_menu_model_collector_add_endpoint (collector,
                                              _(indicator->info->user_visible_name),
                                              name_owner,
                                              indicator->info->dbus_menu_path,
-                                             indicator->info->action_path,
-                                             HUD_SOURCE_ITEM_TYPE_INDICATOR);
+                                             indicator->info->action_path);
 
       indicator->collector = HUD_SOURCE (collector);
     }
