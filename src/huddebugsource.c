@@ -47,6 +47,7 @@ struct _HudDebugSource
   HudItem *item;
   gint use_count;
   gint timeout;
+  HudSourceItemType type;
 };
 
 typedef GObjectClass HudDebugSourceClass;
@@ -136,7 +137,7 @@ hud_debug_source_list_applications (HudSource    *hud_source,
 
       result = hud_result_get_if_matched (source->item, search_string, 0);
       if (result != NULL) {
-        append_func(hud_item_get_app_id(source->item), hud_item_get_app_icon(source->item), 0 /* TODO */, user_data);
+        append_func(hud_item_get_app_id(source->item), hud_item_get_app_icon(source->item), source->type, user_data);
         g_object_unref (result);
       }
     }
@@ -174,6 +175,7 @@ hud_debug_source_finalize (GObject *object)
 static void
 hud_debug_source_init (HudDebugSource *source)
 {
+  source->type = HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP;
 }
 
 static void
