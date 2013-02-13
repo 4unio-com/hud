@@ -203,7 +203,8 @@ test_hud_query_sequence ()
 
   HudDbusmenuCollector *collector = hud_dbusmenu_collector_new_for_endpoint (
       "test-id", "Prefix", "no-icon", 0, /* penalty */
-      HUD_TEST_UTILS_LOADER_NAME, HUD_TEST_UTILS_LOADER_PATH);
+      HUD_TEST_UTILS_LOADER_NAME, HUD_TEST_UTILS_LOADER_PATH,
+      HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
   g_assert(collector != NULL);
   g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
@@ -378,7 +379,8 @@ test_hud_query_sequence_counter_increment ()
 
   HudDbusmenuCollector *collector = hud_dbusmenu_collector_new_for_endpoint (
       "test-id", "Prefix", "no-icon", 0, /* penalty */
-      HUD_TEST_UTILS_LOADER_NAME, HUD_TEST_UTILS_LOADER_PATH);
+      HUD_TEST_UTILS_LOADER_NAME, HUD_TEST_UTILS_LOADER_PATH,
+      HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
   g_assert(collector != NULL);
   g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
