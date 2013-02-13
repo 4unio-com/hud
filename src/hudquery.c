@@ -294,7 +294,7 @@ hud_query_refresh (HudQuery *query)
 
   hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
 
-  appstack_hash_add_source(appstack_hash, query->current_source, HUD_SOURCE_ITEM_TYPE_SELECTED_APP);
+  appstack_hash_add_source(appstack_hash, query->current_source, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
   appstack_hash_add_source(appstack_hash, query->original_source, HUD_SOURCE_ITEM_TYPE_FOCUSED_APP);
 
   appstack_hash_to_model(appstack_hash, query->appstack_model);
