@@ -174,7 +174,7 @@ appstack_hash_to_model (GHashTable * hash, DeeModel * model)
 
 /* Add a HudItem to the list of app results */
 static void
-app_results_list_populate (const gchar *application_id, const gchar *application_icon, gpointer user_data)
+app_results_list_populate (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data)
 {
 	GHashTable * table = (GHashTable *)user_data;
 

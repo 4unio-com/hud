@@ -72,7 +72,7 @@ static void source_search                     (HudSource *                 hud_s
                                                gpointer                    user_data);
 static void source_list_applications          (HudSource *                 hud_source,
                                                HudTokenList *              search_string,
-                                               void                      (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                               void                      (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                                                gpointer                    user_data);
 static void source_activate_toolbar           (HudSource *                 hud_source,
                                                HudClientQueryToolbarItems  item,
@@ -293,7 +293,7 @@ source_search (HudSource *     hud_source,
 static void
 source_list_applications (HudSource *     hud_source,
                           HudTokenList *  search_string,
-                          void           (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                          void           (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                           gpointer        user_data)
 {
   HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);

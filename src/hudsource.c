@@ -158,7 +158,7 @@ hud_source_search (HudSource    *source,
 void
 hud_source_list_applications (HudSource    *source,
                               HudTokenList *search_tokens,
-                              void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                              void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                               gpointer      user_data)
 {
   g_debug ("list_applications on %s %p", G_OBJECT_TYPE_NAME (source), source);

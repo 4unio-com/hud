@@ -218,7 +218,7 @@ hud_indicator_source_search (HudSource    *hud_source,
 static void
 hud_indicator_source_list_applications (HudSource    *hud_source,
                                         HudTokenList *search_string,
-                                        void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                        void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                                         gpointer      user_data)
 {
   HudIndicatorSource *source = HUD_INDICATOR_SOURCE (hud_source);

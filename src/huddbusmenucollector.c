@@ -377,7 +377,7 @@ hud_dbusmenu_collector_search (HudSource    *source,
 static void
 hud_dbusmenu_collector_list_application (HudSource    *source,
                                          HudTokenList *search_string,
-                                         void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                         void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                                          gpointer      user_data)
 {
   HudDbusmenuCollector *collector = HUD_DBUSMENU_COLLECTOR (source);
@@ -391,7 +391,7 @@ hud_dbusmenu_collector_list_application (HudSource    *source,
 
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
       if (result) {
-        append_func(collector->application_id, collector->icon, user_data);
+        append_func(collector->application_id, collector->icon, 0 /* TODO */, user_data);
         g_object_unref(result);
         break;
       }

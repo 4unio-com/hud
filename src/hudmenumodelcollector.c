@@ -858,7 +858,7 @@ hud_menu_model_collector_search (HudSource    *source,
 static void
 hud_menu_model_collector_list_applications (HudSource    *source,
                                             HudTokenList *search_string,
-                                            void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                            void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                                             gpointer      user_data)
 {
   HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
@@ -875,7 +875,7 @@ hud_menu_model_collector_list_applications (HudSource    *source,
       item = g_ptr_array_index (items, i);
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
       if (result) {
-        append_func(collector->app_id, collector->icon, user_data);
+        append_func(collector->app_id, collector->icon, 0 /* TODO */, user_data);
         g_object_unref(result);
         break;
       }

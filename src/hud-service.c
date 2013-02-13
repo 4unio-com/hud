@@ -109,7 +109,7 @@ typedef struct
 } GetFirstValidSourceData;
 
 static void
-get_first_valid_source(const gchar *application_id, const gchar *application_icon, gpointer user_data)
+get_first_valid_source(const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data)
 {
 	GetFirstValidSourceData *data = user_data;
 	if (*(data->current_source) == NULL) {
