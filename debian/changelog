@@ -1,3 +1,9 @@
+hud (13.04.0-0ubuntu1~ppa9) quantal; urgency=low
+
+  * Bumping version
+
+ -- Albert Astals Cid <albert.astals@canonical.com>  Wed, 13 Feb 2013 12:25:03 +0100
+
 hud (13.04.0-0ubuntu1~ppa8) quantal; urgency=low
 
   * Bumping version
