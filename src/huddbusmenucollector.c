@@ -392,7 +392,7 @@ hud_dbusmenu_collector_list_application (HudSource    *source,
 
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
       if (result) {
-        append_func(collector->application_id, collector->icon, 0 /* TODO */, user_data);
+        append_func(collector->application_id, collector->icon, collector->type, user_data);
         g_object_unref(result);
         break;
       }
