@@ -101,6 +101,7 @@ static const gchar * results_model_schema[] = {
 static const gchar * appstack_model_schema[] = {
 	"s", /* Application ID */
 	"s", /* Icon Name */
+	"i", /* Item Type */
 };
 
 static gint
@@ -125,7 +126,7 @@ typedef struct _appstack_item_t appstack_item_t;
 struct _appstack_item_t {
 	gchar * app_id;
 	gchar * app_icon;
-	/* HudSourceAppSort sortval; */
+	HudSourceItemType type;
 };
 
 /* Free all of them items */
@@ -145,10 +146,18 @@ appstack_item_free (gpointer user_data)
 static gint
 appstack_sort (GVariant ** row1, GVariant ** row2, gpointer user_data)
 {
-	const gchar * app_id1 = g_variant_get_string(row1[0], NULL);
-	const gchar * app_id2 = g_variant_get_string(row2[0], NULL);
+	gint32 type1 = g_variant_get_int32(row1[2]);
+	gint32 type2 = g_variant_get_int32(row2[2]);
 
-	return g_strcmp0(app_id1, app_id2);
+	/* If the types are the same, we'll alphabetize by ID */
+	if (type1 == type2) {
+		const gchar * app_id1 = g_variant_get_string(row1[0], NULL);
+		const gchar * app_id2 = g_variant_get_string(row2[0], NULL);
+
+		return g_strcmp0(app_id1, app_id2);
+	}
+
+	return type1 - type2;
 }
 
 /* Takes the hash and puts it into the Dee Model */
@@ -164,7 +173,8 @@ appstack_hash_to_model (GHashTable * hash, DeeModel * model)
 		GVariant * columns[G_N_ELEMENTS(appstack_model_schema) + 1];
 		columns[0] = g_variant_new_string(item->app_id ? item->app_id : "");
 		columns[1] = g_variant_new_string(item->app_icon ? item->app_icon : "");
-		columns[2] = NULL;
+		columns[2] = g_variant_new_int32(item->type);
+		columns[3] = NULL;
 
 		dee_model_insert_row_sorted(model, columns, appstack_sort, NULL);
 	}
@@ -181,6 +191,7 @@ app_results_list_populate (const gchar *application_id, const gchar *application
 	appstack_item_t * item = g_new0(appstack_item_t, 1);
 	item->app_id = g_strdup(application_id);
 	item->app_icon = g_strdup(application_icon);
+	item->type = type;
 
 	g_hash_table_insert(table, g_strdup(application_id), item);
 
