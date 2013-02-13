@@ -111,6 +111,8 @@ struct _HudMenuModelCollector
   /* This is the export path that we've been given */
   gchar * base_export_path;
   guint muxer_export;
+
+  HudSourceItemType type;
 };
 
 /* Structure for when we're tracking a model, all the info
@@ -466,7 +468,8 @@ static void hud_menu_model_collector_add_model_internal  (HudMenuModelCollector 
                                                           HudMenuModelContext   *parent_context,
                                                           const gchar           *action_namespace,
                                                           const gchar           *label,
-                                                          guint                  recurse);
+                                                          guint                  recurse,
+                                                          HudSourceItemType      type);
 
 static void hud_menu_model_collector_disconnect (gpointer               data,
                                                  gpointer               user_data);
@@ -478,7 +481,7 @@ readd_models (gpointer data, gpointer user_data)
 	HudMenuModelCollector *collector = user_data;
 	model_data_t * model_data = data;
 
-    hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label, model_data->recurse);
+    hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label, model_data->recurse, collector->type);
 	return;
 }
 
@@ -636,13 +639,13 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
        */
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SECTION)))
         {
-          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse);
+          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse, collector->type);
           g_object_unref (link);
         }
 
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SUBMENU)))
         {
-          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse - 1);
+          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse - 1, collector->type);
           if (item != NULL && recurse <= 1)
             {
               hud_model_item_set_submenu((HudModelItem *)item, link, collector->base_export_path);
@@ -681,9 +684,12 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
                                              HudMenuModelContext   *parent_context,
                                              const gchar           *action_namespace,
                                              const gchar           *label,
-                                             guint                  recurse)
+                                             guint                  recurse,
+                                             HudSourceItemType      type)
 {
   g_return_if_fail(G_IS_MENU_MODEL(model));
+
+  collector->type = type;
 
   /* We don't want to parse this one, just export it so that
      the UI could use it if needed */
@@ -1130,14 +1136,14 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   if (app_menu_object_path)
     {
       app_menu = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, app_menu_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
       g_object_unref(app_menu);
     }
 
   if (menubar_object_path)
     {
       menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, menubar_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
       g_object_unref(menubar);
     }
 
@@ -1217,7 +1223,7 @@ hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuMode
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_MENU_MODEL(model));
 
-	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix, recurse);
+	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix, recurse, type);
 }
 
 /**
