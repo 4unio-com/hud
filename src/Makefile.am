@@ -12,7 +12,8 @@ bin_SCRIPTS = \
 	hud-list-applications
 
 pkglibexec_PROGRAMS = \
-	hud-service
+	hud-service \
+	hud-julius-listen
 
 noinst_LTLIBRARIES = \
 	libhud-service-generated.la \
@@ -92,6 +93,7 @@ libhud_service_la_CFLAGS = \
 	$(HYBRIS_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
+	-DLIBEXECDIR=\""$(libexecdir)"\" \
 	-DDICT_PATH=\""/usr/share/pocketsphinx/model/lm/en_US/cmu07a.dic"\" \
 	-DJULIUS_DICT_PATH=\""/usr/share/julius-voxforge/acoustic/"\" \
 	-I$(top_srcdir)/libhud-client \
@@ -120,6 +122,27 @@ hud_service_LDADD = \
 	$(HYBRIS_LIBS) \
 	$(HUD_LIBS)
 
+#######################
+# HUD Listening Daemon
+#######################
+
+hud_julius_listen_SOURCES = hud-julius-listen.c
+
+hud_julius_listen_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	$(HYBRIS_CFLAGS) \
+	$(COVERAGE_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/libhud-client \
+	-DHUD_CLIENT_COMPILATION \
+	-Wall -Werror
+hud_julius_listen_LDADD = \
+	libhud-service.la	\
+	$(COVERAGE_LDFLAGS) \
+	$(BAMF_LIBS) \
+	$(HYBRIS_LIBS) \
+	$(HUD_LIBS)
 
 #######################
 # HUD Dump Application

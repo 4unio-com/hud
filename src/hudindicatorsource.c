@@ -80,7 +80,7 @@ static const IndicatorInfo indicator_info[] = {
     .dbus_path         = HUD_PATH_BASE "sound",
     .indicator_name    = "indicator-sound",
     .user_visible_name = N_("Sound"),
-    .icon              = "audio-volume-high-panel"
+    .icon              = "indicator-sound-hud"
   },
   {
     .dbus_name         = "com.canonical.indicator.messages",
@@ -89,7 +89,7 @@ static const IndicatorInfo indicator_info[] = {
     .dbus_path         = HUD_PATH_BASE "messages",
     .indicator_name    = "indicator-messages",
     .user_visible_name = N_("Messages"),
-    .icon              = "indicator-messages",
+    .icon              = "indicator-messages-hud",
     .uses_gmenumodel   = TRUE
   },
   {
@@ -99,7 +99,7 @@ static const IndicatorInfo indicator_info[] = {
     .dbus_path         = HUD_PATH_BASE "messages_phone",
     .indicator_name    = "indicator-messages-phone",
     .user_visible_name = N_("Messages"),
-    .icon              = "indicator-messages",
+    .icon              = "indicator-messages-hud",
     .uses_gmenumodel   = TRUE
   },
   {
@@ -109,7 +109,7 @@ static const IndicatorInfo indicator_info[] = {
     .dbus_path         = HUD_PATH_BASE "battery",
     .indicator_name    = "indicator-battery-phone",
     .user_visible_name = N_("Battery"),
-    .icon              = "indicator-battery",
+    .icon              = "indicator-battery-hud",
     .uses_gmenumodel   = TRUE
   },
   {
@@ -129,7 +129,7 @@ static const IndicatorInfo indicator_info[] = {
     .dbus_path         = HUD_PATH_BASE "network",
     .indicator_name    = "indicator-network-phone",
     .user_visible_name = N_("Network"),
-    .icon              = "indicator-network",
+    .icon              = "indicator-network-hud",
     .uses_gmenumodel   = TRUE
   },
   {
@@ -139,7 +139,7 @@ static const IndicatorInfo indicator_info[] = {
     .dbus_path         = HUD_PATH_BASE "sound",
     .indicator_name    = "indicator-sound-phone",
     .user_visible_name = N_("Sound"),
-    .icon              = "indicator-sound",
+    .icon              = "indicator-sound-hud",
     .uses_gmenumodel   = TRUE
   }
 };

@@ -1,3 +1,16 @@
+hud (13.04.0-0ubuntu1~ppa10) quantal; urgency=low
+
+  * Extract direct interaction with Julius into a command line process
+    - This should isolate us from it misbehaving
+
+ -- Pete Woods <pete.woods@canonical.com>  Wed, 13 Feb 2013 22:37:15 +0000
+
+hud (13.04.0-0ubuntu1~ppa9) quantal; urgency=low
+
+  * Bumping version
+
+ -- Albert Astals Cid <albert.astals@canonical.com>  Wed, 13 Feb 2013 12:25:03 +0100
+
 hud (13.04.0-0ubuntu1~ppa8) quantal; urgency=low
 
   * Bumping version
