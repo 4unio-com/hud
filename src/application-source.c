@@ -186,19 +186,6 @@ hud_application_source_finalize (GObject *object)
 	return;
 }
 
-/* Gets called when the items in a window's sources changes */
-static void
-window_source_changed (HudSource * source, gpointer user_data)
-{
-	HudApplicationSource * self = HUD_APPLICATION_SOURCE(user_data);
-
-	if (self->priv->used_source == source) {
-		hud_source_changed(HUD_SOURCE(self));
-	}
-
-	return;
-}
-
 static HudSource *
 get_used_source (HudApplicationSource *app)
 {
@@ -225,6 +212,19 @@ get_used_source (HudApplicationSource *app)
 
   g_warning("An app '%s' without a single window.", app->priv->app_id);
   return NULL ;
+}
+
+/* Gets called when the items in a window's sources changes */
+static void
+window_source_changed (HudSource * source, gpointer user_data)
+{
+	HudApplicationSource * self = HUD_APPLICATION_SOURCE(user_data);
+
+	if (get_used_source(self) == source) {
+		hud_source_changed(HUD_SOURCE(self));
+	}
+
+	return;
 }
 
 /* Source interface using this source */
