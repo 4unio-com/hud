@@ -22,6 +22,7 @@
 #include <gio/gio.h>
 
 #include "abstract-app.h"
+#include "hudsource.h"
 
 #define HUD_TYPE_MENU_MODEL_COLLECTOR                       (hud_menu_model_collector_get_type ())
 #define HUD_MENU_MODEL_COLLECTOR(inst)                      (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
@@ -46,12 +47,14 @@ void                    hud_menu_model_collector_add_endpoint           (HudMenu
                                                                          const gchar *prefix,
                                                                          const gchar *bus_name,
                                                                          const gchar *menu_path,
-                                                                         const gchar *action_path);
+                                                                         const gchar *action_path,
+                                                                         HudSourceItemType type);
 
 void                    hud_menu_model_collector_add_model              (HudMenuModelCollector * collector,
                                                                          GMenuModel *   model,
                                                                          const gchar *  prefix,
-                                                                         guint          recurse);
+                                                                         guint          recurse,
+                                                                         HudSourceItemType type);
 
 void                    hud_menu_model_collector_add_actions            (HudMenuModelCollector * collector,
                                                                          GActionGroup *   group,

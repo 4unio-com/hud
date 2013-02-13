@@ -1164,6 +1164,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
  * @bus_name: a D-Bus bus name
  * @menu_path: an object path at the destination given by @bus_name for the menu model
  * @action_path: an object path at the destination given by @bus_name for the actions
+ * @type: The type of items that are being added
  *
  * Creates a new #HudMenuModelCollector for the specified endpoint.
  *
@@ -1184,7 +1185,8 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
                                        const gchar *prefix,
                                        const gchar *bus_name,
                                        const gchar *menu_path,
-                                       const gchar *action_path)
+                                       const gchar *action_path,
+                                       HudSourceItemType type)
 {
   g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
@@ -1193,7 +1195,7 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
   g_object_unref(group);
 
   GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, menu_path);
-  hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix, DEFAULT_MENU_DEPTH);
+  hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix, DEFAULT_MENU_DEPTH, type);
   g_object_unref(app_menu);
 
   return;
@@ -1205,11 +1207,12 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
  * @model: Model to add
  * @prefix: (allow none): Text prefix to add to all entries if needed
  * @recurse: Amount of levels to go down the model.
+ * @type: The type of items that are being added
  *
  * Adds a Menu Model to the collector.
  */
 void
-hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuModel * model, const gchar * prefix, guint recurse)
+hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuModel * model, const gchar * prefix, guint recurse, HudSourceItemType type)
 {
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_MENU_MODEL(model));
