@@ -106,7 +106,8 @@ hud_app_indicator_source_add_indicator (HudAppIndicatorSource *source,
 
   collector = hud_dbusmenu_collector_new_for_endpoint (id, title, icon_name,
                                                        hud_settings.indicator_penalty,
-                                                       dbus_name, dbus_path);
+                                                       dbus_name, dbus_path,
+                                                       HUD_SOURCE_ITEM_TYPE_INDICATOR);
   g_signal_connect (collector, "changed", G_CALLBACK (hud_app_indicator_source_collector_changed), source);
 
   /* If query is active, mark new app indicator as used. */

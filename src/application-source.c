@@ -894,7 +894,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	}
 
 	if (dm_collector == NULL) {
-		dm_collector = hud_dbusmenu_collector_new_for_window(window, app_id, icon);
+		dm_collector = hud_dbusmenu_collector_new_for_window(window, app_id, icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
 
 		if (dm_collector != NULL) {
 			hud_source_list_add(collector_list, HUD_SOURCE(dm_collector));

@@ -703,7 +703,8 @@ hud_dbusmenu_collector_new_for_endpoint (const gchar *application_id,
                                          const gchar *icon,
                                          guint        penalty,
                                          const gchar *bus_name,
-                                         const gchar *object_path)
+                                         const gchar *object_path,
+                                         HudSourceItemType type)
 {
   HudDbusmenuCollector *collector;
 
@@ -736,7 +737,8 @@ hud_dbusmenu_collector_new_for_endpoint (const gchar *application_id,
 HudDbusmenuCollector *
 hud_dbusmenu_collector_new_for_window (AbstractWindow  *window,
                                        const gchar *application_id,
-                                       const gchar *icon)
+                                       const gchar *icon,
+                                       HudSourceItemType type)
 {
   HudDbusmenuCollector *collector;
 

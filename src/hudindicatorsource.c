@@ -314,7 +314,8 @@ hud_indicator_source_name_appeared (GDBusConnection *connection,
                                                                _(indicator->info->user_visible_name),
                                                                indicator->info->icon,
                                                                hud_settings.indicator_penalty,
-                                                               name_owner, indicator->info->dbus_menu_path);
+                                                               name_owner, indicator->info->dbus_menu_path,
+                                                               HUD_SOURCE_ITEM_TYPE_INDICATOR);
           indicator->collector = HUD_SOURCE (collector);
         }
     }

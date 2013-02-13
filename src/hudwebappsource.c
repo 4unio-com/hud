@@ -246,7 +246,8 @@ hud_webapp_application_source_new (HudSource *source,
 											bamf_view_get_name (BAMF_VIEW (application)),
 											bamf_view_get_icon (BAMF_VIEW (application)),
 											0,
-											name, path);
+											name, path,
+											HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
   
   g_signal_connect_object (application, "child-moved",
 			   G_CALLBACK (hud_webapp_source_application_child_moved),
