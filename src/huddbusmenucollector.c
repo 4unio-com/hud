@@ -281,6 +281,7 @@ struct _HudDbusmenuCollector
   gint use_count;
   gboolean reentrance_check;
   HudKeywordMapping* keyword_mapping;
+  HudSourceItemType type;
 };
 
 typedef GObjectClass HudDbusmenuCollectorClass;
@@ -711,6 +712,7 @@ hud_dbusmenu_collector_new_for_endpoint (const gchar *application_id,
   collector = g_object_new (HUD_TYPE_DBUSMENU_COLLECTOR, NULL);
   collector->application_id = g_strdup (application_id);
   collector->icon = g_strdup (icon);
+  collector->type = type;
   if (prefix)
     collector->prefix = hud_string_list_cons (prefix, NULL);
   collector->penalty = penalty;
@@ -745,6 +747,7 @@ hud_dbusmenu_collector_new_for_window (AbstractWindow  *window,
   collector = g_object_new (HUD_TYPE_DBUSMENU_COLLECTOR, NULL);
   collector->application_id = g_strdup (application_id);
   collector->icon = g_strdup (icon);
+  collector->type = type;
   collector->xid = 0;
 #ifdef HAVE_BAMF
   collector->xid = bamf_window_get_xid (window);
