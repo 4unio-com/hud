@@ -186,6 +186,19 @@ hud_application_source_finalize (GObject *object)
 	return;
 }
 
+/* Gets called when the items in a window's sources changes */
+static void
+window_source_changed (HudSource * source, gpointer user_data)
+{
+	HudApplicationSource * self = HUD_APPLICATION_SOURCE(user_data);
+
+	if (self->priv->used_source == source) {
+		hud_source_changed(HUD_SOURCE(self));
+	}
+
+	return;
+}
+
 static HudSource *
 get_used_source (HudApplicationSource *app)
 {
@@ -405,6 +418,7 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
 	if (collector_list == NULL) {
 		collector_list = hud_source_list_new();
+		g_signal_connect(collector_list, "changed", G_CALLBACK(window_source_changed), app);
 		g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector_list);
 	}
 
@@ -503,6 +517,10 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	gchar * prefix = NULL;
 	gchar * object = NULL;
 
+	/* NOTE: We are doing actions first as there are cases where
+	   the models need the actions, but it'd be hard to update them
+	   if we add the actions second.  This order is the best.  Don't
+	   change it. */
 	while (g_variant_iter_loop(&action_iter, "(vso)", &id, &prefix, &object)) {
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
 
@@ -786,6 +804,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
 	if (collector_list == NULL) {
 		collector_list = hud_source_list_new();
+		g_signal_connect(collector_list, "changed", G_CALLBACK(window_source_changed), app);
 		g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector_list);
 	}
 
