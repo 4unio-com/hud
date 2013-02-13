@@ -145,7 +145,6 @@ struct _HudModelItem {
   gchar *action_path;
   GVariant *target;
   HudClientQueryToolbarItems toolbar_item;
-  HudSourceItemType type;
 
   GMenuModel * submodel;
 };
@@ -357,7 +356,6 @@ hud_model_item_new (HudMenuModelCollector *collector,
   item->action_name = g_strdup (stripped_action_name);
   item->action_name_full = g_strdup (action_name);
   item->target = target ? g_variant_ref_sink (target) : NULL;
-  item->type = collector->type;
 
   if (toolbar != NULL)
     {
@@ -883,7 +881,7 @@ hud_menu_model_collector_list_applications (HudSource    *source,
       item = g_ptr_array_index (items, i);
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
       if (result) {
-        append_func(collector->app_id, collector->icon, HUD_MODEL_ITEM(item)->type, user_data);
+        append_func(collector->app_id, collector->icon, collector->type, user_data);
         g_object_unref(result);
         break;
       }
