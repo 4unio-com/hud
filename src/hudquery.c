@@ -303,13 +303,13 @@ hud_query_refresh (HudQuery *query)
   hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
 
   /* If we've selected a source, make sure it's in the list */
-  if (query->current_source != NULL) {
+  if (query->current_source != NULL && HUD_IS_APPLICATION_SOURCE(query->current_source)) {
     appstack_hash_add_source(appstack_hash, query->current_source, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
   }
 
   /* Always have the focused app in there too */
   HudSource * focused = hud_application_list_get_focused_app(query->app_list);
-  if (focused != NULL) {
+  if (focused != NULL && HUD_IS_APPLICATION_SOURCE(focused)) {
     appstack_hash_add_source(appstack_hash, focused, HUD_SOURCE_ITEM_TYPE_FOCUSED_APP);
   }
 
