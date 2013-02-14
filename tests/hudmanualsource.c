@@ -120,6 +120,20 @@ hud_manual_source_get (HudSource    *hud_source,
   return NULL;
 }
 
+static const gchar *
+hud_manual_source_get_app_id (HudSource * hud_source)
+{
+  HudManualSource *self = HUD_MANUAL_SOURCE (hud_source);
+  return self->application_id;
+}
+
+static const gchar *
+hud_manual_source_get_app_icon (HudSource * hud_source)
+{
+  HudManualSource *self = HUD_MANUAL_SOURCE (hud_source);
+  return self->app_icon;
+}
+
 static void
 hud_manual_source_finalize (GObject *object)
 {
@@ -148,6 +162,8 @@ hud_manual_source_iface_init (HudSourceInterface *iface)
   iface->search = hud_manual_source_search;
   iface->list_applications = hud_manual_source_list_applications;
   iface->get = hud_manual_source_get;
+  iface->get_app_id = hud_manual_source_get_app_id;
+  iface->get_app_icon = hud_manual_source_get_app_icon;
 }
 
 static void
