@@ -73,12 +73,14 @@ gpointer                hud_item_construct                              (GType  
                                                                          const gchar   *shortcut,
                                                                          const gchar   *app_id,
                                                                          const gchar   *app_icon,
+                                                                         const gchar   *description,
                                                                          gboolean       enabled);
 HudItem *               hud_item_new                                    (HudStringList *tokens,
                                                                          HudStringList *keywords,
                                                                          const gchar   *shortcut,
                                                                          const gchar   *app_id,
                                                                          const gchar   *app_icon,
+                                                                         const gchar   *description,
                                                                          gboolean       enabled);
 void                    hud_item_activate                               (HudItem       *item,
                                                                          GVariant      *platform_data);

@@ -149,6 +149,7 @@ hud_item_setup_usage (HudItem *item)
  * @shortcut: Keyboard shortcut for the item
  * @app_id: a string identifying the application
  * @app_icon: the icon name for the application that created this item
+ * @description: A textual description of the item
  * @enabled: if the item is enabled
  *
  * This is the Vala-style chain-up constructor corresponding to
@@ -165,6 +166,7 @@ hud_item_construct (GType          g_type,
                     const gchar   *shortcut,
                     const gchar   *app_id,
                     const gchar   *app_icon,
+                    const gchar   *description,
                     gboolean       enabled)
 {
   HudItem *item;
@@ -175,6 +177,7 @@ hud_item_construct (GType          g_type,
   item->priv->app_id = g_strdup (app_id);
   item->priv->app_icon = g_strdup (app_icon);
   item->priv->shortcut = g_strdup (shortcut);
+  item->priv->description = g_strdup (description);
   item->priv->enabled = enabled;
   item->priv->id = hud_item_next_id++;
   item->priv->token_list = hud_token_list_new_from_string_list (tokens, keywords);
@@ -193,6 +196,7 @@ hud_item_construct (GType          g_type,
  * @shortcut: Keyboard shortcut for the item
  * @app_id: a string identifying the application
  * @app_icon: the icon name for the application that created this item
+ * @description: A textual description of the item
  * @enabled: if the item is enabled
  *
  * Creates a new #HudItem.
@@ -208,9 +212,10 @@ hud_item_new (HudStringList *tokens,
               const gchar   *shortcut,
               const gchar   *app_id,
               const gchar   *app_icon,
+              const gchar   *description,
               gboolean       enabled)
 {
-  return hud_item_construct (HUD_TYPE_ITEM, tokens, keywords, shortcut, app_id, app_icon, enabled);
+  return hud_item_construct (HUD_TYPE_ITEM, tokens, keywords, shortcut, app_id, app_icon, description, enabled);
 }
 
 /**
