@@ -59,9 +59,9 @@ void                    hud_menu_model_collector_add_actions            (HudMenu
                                                                          GActionGroup *   group,
                                                                          const gchar *    prefix);
 
-const gchar *           hud_menu_model_colelctor_get_app_id             (HudMenuModelCollector * collector);
+const gchar *           hud_menu_model_collector_get_app_id             (HudMenuModelCollector * collector);
 
-const gchar *           hud_menu_model_colelctor_get_app_icon           (HudMenuModelCollector * collector);
+const gchar *           hud_menu_model_collector_get_app_icon           (HudMenuModelCollector * collector);
 
 #define HUD_TYPE_MODEL_ITEM                       (hud_model_item_get_type ())
 #define HUD_MODEL_ITEM(inst)                      (G_TYPE_CHECK_INSTANCE_CAST ((inst),    \

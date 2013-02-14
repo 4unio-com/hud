@@ -25,6 +25,7 @@
 #include "hudsourcelist.h"
 #include "hudresult.h"
 #include "hudmenumodelcollector.h"
+#include "huddbusmenucollector.h"
 #include "hudsphinx.h"
 #include "hudjulius.h"
 #include "application-source.h"
@@ -187,12 +188,37 @@ appstack_hash_to_model (GHashTable * hash, DeeModel * model)
 
 /* Add an item to the hash table */
 static void
-appstack_hash_add_source (GHashTable * table, HudSource * source, HudSourceItemType type)
+appstack_hash_add_source (GHashTable * table, HudSource * source, HudSourceItemType in_type)
 {
-	HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(source);
+	if (source == NULL) {
+		return;
+	}
 
-	const gchar * id = hud_application_source_get_id(appsource);
-	const gchar * icon = hud_application_source_get_app_icon(appsource);
+	const gchar * id = NULL;
+	const gchar * icon = NULL;
+	HudSourceItemType type = in_type;
+
+	if (HUD_IS_APPLICATION_SOURCE(source)) {
+		HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(source);
+
+		id = hud_application_source_get_id(appsource);
+		icon = hud_application_source_get_app_icon(appsource);
+	} else if (HUD_IS_MENU_MODEL_COLLECTOR(source)) {
+		HudMenuModelCollector * collector = HUD_MENU_MODEL_COLLECTOR(source);
+
+		id = hud_menu_model_collector_get_app_id(collector);
+		icon = hud_menu_model_collector_get_app_icon(collector);
+		type = HUD_SOURCE_ITEM_TYPE_INDICATOR;
+	} else if (HUD_IS_DBUSMENU_COLLECTOR(source)) {
+		HudDbusmenuCollector * collector = HUD_DBUSMENU_COLLECTOR(source);
+
+		id = hud_dbusmenu_collector_get_app_id(collector);
+		icon = hud_dbusmenu_collector_get_app_icon(collector);
+		type = HUD_SOURCE_ITEM_TYPE_INDICATOR;
+	} else {
+		g_warning("Unknown source type selected.");
+		return;
+	}
 
 	g_return_if_fail(id != NULL);
 
@@ -303,15 +329,11 @@ hud_query_refresh (HudQuery *query)
   hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
 
   /* If we've selected a source, make sure it's in the list */
-  if (query->current_source != NULL && HUD_IS_APPLICATION_SOURCE(query->current_source)) {
-    appstack_hash_add_source(appstack_hash, query->current_source, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
-  }
+  appstack_hash_add_source(appstack_hash, query->current_source, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
 
   /* Always have the focused app in there too */
   HudSource * focused = hud_application_list_get_focused_app(query->app_list);
-  if (focused != NULL && HUD_IS_APPLICATION_SOURCE(focused)) {
-    appstack_hash_add_source(appstack_hash, focused, HUD_SOURCE_ITEM_TYPE_FOCUSED_APP);
-  }
+  appstack_hash_add_source(appstack_hash, focused, HUD_SOURCE_ITEM_TYPE_FOCUSED_APP);
 
   /* Now take the hash, having already deduplicated for us, and turn
      it into a shorted DeeModel */

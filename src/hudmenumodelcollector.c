@@ -1284,7 +1284,7 @@ hud_menu_model_collector_get_items (HudSource * source)
  * Return value: Application ID
  */
 const gchar *
-hud_menu_model_colelctor_get_app_id (HudMenuModelCollector * collector)
+hud_menu_model_collector_get_app_id (HudMenuModelCollector * collector)
 {
 	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector), NULL);
 	return collector->app_id;
@@ -1299,7 +1299,7 @@ hud_menu_model_colelctor_get_app_id (HudMenuModelCollector * collector)
  * Return value: Application icon
  */
 const gchar *
-hud_menu_model_colelctor_get_app_icon (HudMenuModelCollector * collector)
+hud_menu_model_collector_get_app_icon (HudMenuModelCollector * collector)
 {
 	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector), NULL);
 	return collector->icon;
