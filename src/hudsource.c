@@ -247,3 +247,47 @@ hud_source_changed (HudSource *source)
 {
   g_signal_emit (source, hud_source_changed_signal, 0);
 }
+
+/**
+ * hud_source_get_app_id:
+ * @source: a #HudSource
+ *
+ * Get the application ID.  Shouldn't be implemented by list
+ * sources.
+ *
+ * Return value: The ID of the application
+ */
+const gchar *
+hud_source_get_app_id (HudSource * source)
+{
+  g_return_val_if_fail(HUD_IS_SOURCE(source), NULL);
+
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->get_app_id != NULL) {
+    return iface->get_app_id(source);
+  }
+
+  return NULL;
+}
+
+/**
+ * hud_source_get_app_icon:
+ * @source: a #HudSource
+ *
+ * Get the application icon.  Shouldn't be implemented by list
+ * sources.
+ *
+ * Return value: The icon of the application
+ */
+const gchar *
+hud_source_get_app_icon (HudSource * source)
+{
+  g_return_val_if_fail(HUD_IS_SOURCE(source), NULL);
+
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->get_app_icon != NULL) {
+    return iface->get_app_icon(source);
+  }
+
+  return NULL;
+}

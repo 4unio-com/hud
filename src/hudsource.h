@@ -56,6 +56,8 @@ struct _HudSourceInterface
   void (* activate_toolbar) (HudSource *                source,
                              HudClientQueryToolbarItems item,
                              GVariant                  *platform_data);
+  const gchar * (*get_app_id) (HudSource * source);
+  const gchar * (*get_app_icon) (HudSource * source);
 };
 
 enum _HudSourceItemType
@@ -90,5 +92,8 @@ void                    hud_source_changed                              (HudSour
 void                    hud_source_activate_toolbar                     (HudSource *   source,
                                                                          HudClientQueryToolbarItems item,
                                                                          GVariant     *platform_data);
+
+const gchar *           hud_source_get_app_id                           (HudSource *   source);
+const gchar *           hud_source_get_app_icon                         (HudSource *   source);
 
 #endif /* __HUD_SOURCE_H__ */
