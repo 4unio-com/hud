@@ -62,6 +62,8 @@ struct _HudItemPrivate
   gchar *app_icon;
   gchar *shortcut;
   gchar *description;
+  gchar *pretty_keywords;
+  gchar *pretty_context;
   gboolean enabled;
   guint usage;
   guint64 id;
@@ -83,6 +85,8 @@ hud_item_finalize (GObject *object)
   g_free (item->priv->usage_tag);
   g_free (item->priv->shortcut);
   g_free (item->priv->description);
+  g_free (item->priv->pretty_keywords);
+  g_free (item->priv->pretty_context);
 
   G_OBJECT_CLASS (hud_item_parent_class)
     ->finalize (object);
@@ -410,31 +414,6 @@ hud_item_get_command (HudItem *item)
 }
 
 /**
- * hud_item_get_context:
- * @item: a #HudItem
- *
- * Returns the context of this command as a string
- *
- * Returns: A string that can be shown to the user
- */
-gchar *
-hud_item_get_context (HudItem *item)
-{
-	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
-
-	if (item->priv->tokens == NULL) {
-		return g_strdup("");
-	}
-
-	HudStringList * tail = hud_string_list_get_tail(item->priv->tokens);
-	if (tail == NULL) {
-		return g_strdup("");
-	}
-
-	return hud_string_list_pretty_print(tail);
-}
-
-/**
  * hud_item_get_description:
  * @item: a #HudItem
  *
@@ -452,6 +431,20 @@ hud_item_get_description (HudItem *item)
 
 	if (item->priv->description != NULL) {
 		return item->priv->description;
+	}
+
+	if (item->priv->keywords != NULL) {
+		if (item->priv->pretty_keywords == NULL) {
+			item->priv->pretty_keywords = hud_string_list_pretty_print(item->priv->keywords, _(", "));
+		}
+		return item->priv->pretty_keywords;
+	}
+
+	if (item->priv->tokens != NULL && hud_string_list_get_tail(item->priv->tokens) != NULL) {
+		if (item->priv->pretty_context == NULL) {
+			item->priv->pretty_context = hud_string_list_pretty_print(hud_string_list_get_tail(item->priv->tokens), _(" > "));
+		}
+		return item->priv->pretty_context;
 	}
 
 	return "";
