@@ -93,7 +93,7 @@ guint64                 hud_item_get_id                                 (HudItem
 HudItem *               hud_item_lookup                                 (guint64        id);
 HudTokenList *          hud_item_get_token_list                         (HudItem       *item);
 const gchar *           hud_item_get_command                            (HudItem       *item);
-gchar *                 hud_item_get_context                            (HudItem       *item);
+const gchar *           hud_item_get_description                        (HudItem       *item);
 const gchar *           hud_item_get_shortcut                           (HudItem       *item);
 void                    hud_item_insert_pronounciation                  (HudItem       * item,
                                                                          HudItemPronunciationData    * user_data);

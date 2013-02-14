@@ -433,6 +433,24 @@ hud_item_get_context (HudItem *item)
 }
 
 /**
+ * hud_item_get_description:
+ * @item: a #HudItem
+ *
+ * Determines which description should be shown based on the data
+ * available.  From the menu context, to a formal description, to
+ * the keywords.  This is the guy that makes that into something
+ * cool.
+ *
+ * Returns: A string that can be shown to the user
+ */
+const gchar *
+hud_item_get_description (HudItem *item)
+{
+
+	return "";
+}
+
+/**
  * hud_item_get_shortcut:
  * @item: a #HudItem
  *
