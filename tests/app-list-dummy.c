@@ -110,3 +110,14 @@ matching_setup (HudApplicationList * list)
 	g_debug("Setting up matching");
 	return;
 }
+
+void
+app_list_dummy_set_focus (AppListDummy * dummy, HudSource * focused_source)
+{
+	g_return_if_fail(IS_APP_LIST_DUMMY(dummy));
+
+	AppListDummyPrivate * priv = APP_LIST_DUMMY_GET_PRIVATE(dummy);
+	g_clear_object(&priv->focused_source);
+	priv->focused_source = g_object_ref(focused_source);
+	return;
+}

@@ -42,6 +42,7 @@ struct _AppListDummy {
 
 GType app_list_dummy_get_type (void);
 AppListDummy * app_list_dummy_new (HudSource * focused_source);
+void app_list_dummy_set_focus (AppListDummy * dummy, HudSource * focused_source);
 
 G_END_DECLS
 
