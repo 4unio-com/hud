@@ -79,6 +79,8 @@ static void source_activate_toolbar           (HudSource *                 hud_s
                                                GVariant                   *platform_data);
 static HudSource * source_get                 (HudSource *                 hud_source,
                                                const gchar *               application_id);
+static const gchar * source_get_app_id        (HudSource *                 hud_source);
+static const gchar * source_get_app_icon      (HudSource *                 hud_source);
 static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplication * skel,
                                                GDBusMethodInvocation *     invocation,
                                                GVariant *                  actions,
@@ -114,6 +116,8 @@ source_iface_init (HudSourceInterface *iface)
 	iface->get = source_get;
 	iface->get_items = source_get_items;
 	iface->activate_toolbar = source_activate_toolbar;
+	iface->get_app_id = source_get_app_id;
+	iface->get_app_icon = source_get_app_icon;
 
 	return;
 }
@@ -317,6 +321,18 @@ source_get (HudSource *     hud_source,
 	}
 	
 	return NULL;
+}
+
+static const gchar *
+source_get_app_id (HudSource * hud_source)
+{
+	return hud_application_source_get_id(HUD_APPLICATION_SOURCE(hud_source));
+}
+
+static const gchar *
+source_get_app_icon (HudSource * hud_source)
+{
+	return hud_application_source_get_app_icon(HUD_APPLICATION_SOURCE(hud_source));
 }
 
 static void
