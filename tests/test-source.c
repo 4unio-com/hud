@@ -514,12 +514,15 @@ test_hud_query_sequence_counter_increment ()
       tokens2 = hud_string_list_add_item("something else darn", tokens2);
       hud_manual_source_add(manual_source, tokens2, NULL, "shortcut2", TRUE);
 
+      app_list_dummy_set_focus(APP_LIST_DUMMY(applist), HUD_SOURCE(manual_source));
+
       hud_test_utils_process_mainloop(50);
 
-      const gchar *expected_after[4] = { "something dare", "mess strand", "something else darn", "bowl"};
-      const guint32 expected_distances_after[4] = { 0, 2, 11, 30 };
+      const gchar *expected_after[2] = { "something dare", "something else darn" };
+      const guint32 expected_distances_after[2] = { 0, 11 };
 
-      test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, 4);
+      g_assert(G_N_ELEMENTS(expected_after) == G_N_ELEMENTS(expected_distances_after));
+      test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, G_N_ELEMENTS(expected_after));
 
       g_object_unref (query);
     }
