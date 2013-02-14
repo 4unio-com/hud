@@ -190,7 +190,8 @@ watch_function (GIOChannel *channel, GIOCondition condition,
   if ((condition & G_IO_HUP) != 0)
   {
     g_io_channel_shutdown (channel, TRUE, NULL );
-    *self->query = g_strdup("");
+    *self->query = NULL;
+    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "HUD Julius listening daemon failed");
     g_source_remove(self->timeout_source);
     g_main_loop_quit(self->mainloop);
     return FALSE;
@@ -216,11 +217,10 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
   self->heard_something_emitted = FALSE;
 
   gint standard_output;
-  gint standard_error;
   GPid pid = 0;
 
   if (!g_spawn_async_with_pipes (NULL, (gchar **) argv, NULL, 0, NULL, NULL,
-      &pid, NULL, &standard_output, &standard_error, error))
+      &pid, NULL, &standard_output, NULL, error))
   {
     g_warning("Failed to to load Julius daemon");
     *query = NULL;
