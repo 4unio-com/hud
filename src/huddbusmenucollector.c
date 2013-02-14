@@ -288,6 +288,8 @@ typedef GObjectClass HudDbusmenuCollectorClass;
 
 static void hud_dbusmenu_collector_iface_init (HudSourceInterface *iface);
 static GList * hud_dbusmenu_collector_get_items (HudSource * source);
+const gchar * hud_dbusmenu_collector_get_app_id (HudSource *collector);
+static const gchar * hud_dbusmenu_collector_get_app_icon (HudSource *collector);
 
 G_DEFINE_TYPE_WITH_CODE (HudDbusmenuCollector, hud_dbusmenu_collector, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, hud_dbusmenu_collector_iface_init))
@@ -663,6 +665,8 @@ hud_dbusmenu_collector_iface_init (HudSourceInterface *iface)
   iface->list_applications = hud_dbusmenu_collector_list_application;
   iface->get = hud_dbusmenu_collector_get;
   iface->get_items = hud_dbusmenu_collector_get_items;
+  iface->get_app_id = hud_dbusmenu_collector_get_app_id;
+  iface->get_app_icon = hud_dbusmenu_collector_get_app_icon;
 }
 
 static void
@@ -834,10 +838,10 @@ hud_dbusmenu_collector_get_items (HudSource * source)
  * Return value: Application ID
  */
 const gchar *
-hud_dbusmenu_collector_get_app_id (HudDbusmenuCollector *collector)
+hud_dbusmenu_collector_get_app_id (HudSource *collector)
 {
 	g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(collector), NULL);
-	return collector->application_id;
+	return HUD_DBUSMENU_COLLECTOR(collector)->application_id;
 }
 
 /**
@@ -848,9 +852,9 @@ hud_dbusmenu_collector_get_app_id (HudDbusmenuCollector *collector)
  *
  * Return value: Application icon
  */
-const gchar *
-hud_dbusmenu_collector_get_app_icon (HudDbusmenuCollector *collector)
+static const gchar *
+hud_dbusmenu_collector_get_app_icon (HudSource *collector)
 {
 	g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(collector), NULL);
-	return collector->icon;
+	return HUD_DBUSMENU_COLLECTOR(collector)->icon;
 }
