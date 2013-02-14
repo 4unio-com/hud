@@ -194,7 +194,7 @@ appstack_hash_add_source (GHashTable * table, HudSource * source, HudSourceItemT
 	const gchar * id = hud_application_source_get_id(appsource);
 	const gchar * icon = hud_application_source_get_app_icon(appsource);
 
-	g_return_if_fail(id == NULL);
+	g_return_if_fail(id != NULL);
 
 	appstack_item_t * item = g_new0(appstack_item_t, 1);
 	item->app_id = g_strdup(id);
