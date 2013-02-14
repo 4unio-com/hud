@@ -737,6 +737,10 @@ hud_query_new (HudSource   *all_sources,
   query->search_string = g_strdup (search_string);
   query->token_list = NULL;
   query->current_source = hud_application_list_get_focused_app(application_list);
+
+  if (query->current_source != NULL) {
+    g_object_ref(query->current_source);
+  }
   
   if (query->search_string[0] != '\0') {
     query->token_list = hud_token_list_new_from_string (query->search_string);
