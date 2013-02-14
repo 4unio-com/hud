@@ -24,6 +24,7 @@
 #include <julius/juliuslib.h>
 #include <glib/gstdio.h>
 #include <gio/gio.h>
+#include <signal.h>
 
 struct _HudJulius
 {
@@ -200,6 +201,12 @@ watch_function (GIOChannel *channel, GIOCondition condition,
   return TRUE;
 }
 
+static void
+hud_julius_kill(GPid pid)
+{
+  kill(pid, SIGTERM);
+}
+
 static gboolean
 hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
     const gchar *hlist, gchar **query, GError **error)
@@ -250,6 +257,7 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
   g_main_loop_unref (self->mainloop);
 
   g_io_channel_unref (channel);
+  hud_julius_kill(pid);
   g_spawn_close_pid(pid);
 
   return (*self->error == NULL);
