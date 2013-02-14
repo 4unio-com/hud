@@ -689,6 +689,11 @@ hud_application_list_get_focused_app (HudApplicationList * list)
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 
+	HudApplicationListClass * aclass = HUD_APPLICATION_LIST_GET_CLASS(list);
+	if (G_UNLIKELY(aclass->get_focused_app != NULL)) {
+		return aclass->get_focused_app(list);
+	}
+
 #ifdef HAVE_BAMF
 	/* TODO: Not sure if BAMF is right here, but not testing that. */
 	return list->priv->used_source;
