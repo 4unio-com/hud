@@ -194,33 +194,15 @@ appstack_hash_add_source (GHashTable * table, HudSource * source, HudSourceItemT
 		return;
 	}
 
-	const gchar * id = NULL;
-	const gchar * icon = NULL;
+	const gchar * id = hud_source_get_app_id(source);;
+	g_return_if_fail(id != NULL);
+
+	const gchar * icon = hud_source_get_app_icon(source);;
 	HudSourceItemType type = in_type;
 
-	if (HUD_IS_APPLICATION_SOURCE(source)) {
-		HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(source);
-
-		id = hud_application_source_get_id(appsource);
-		icon = hud_application_source_get_app_icon(appsource);
-	} else if (HUD_IS_MENU_MODEL_COLLECTOR(source)) {
-		HudMenuModelCollector * collector = HUD_MENU_MODEL_COLLECTOR(source);
-
-		id = hud_menu_model_collector_get_app_id(collector);
-		icon = hud_menu_model_collector_get_app_icon(collector);
+	if (HUD_IS_MENU_MODEL_COLLECTOR(source) || HUD_IS_DBUSMENU_COLLECTOR(source)) {
 		type = HUD_SOURCE_ITEM_TYPE_INDICATOR;
-	} else if (HUD_IS_DBUSMENU_COLLECTOR(source)) {
-		HudDbusmenuCollector * collector = HUD_DBUSMENU_COLLECTOR(source);
-
-		id = hud_dbusmenu_collector_get_app_id(collector);
-		icon = hud_dbusmenu_collector_get_app_icon(collector);
-		type = HUD_SOURCE_ITEM_TYPE_INDICATOR;
-	} else {
-		g_warning("Unknown source type selected.");
-		return;
 	}
-
-	g_return_if_fail(id != NULL);
 
 	appstack_item_t * item = g_new0(appstack_item_t, 1);
 	item->app_id = g_strdup(id);
