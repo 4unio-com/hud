@@ -824,3 +824,33 @@ hud_dbusmenu_collector_get_items (HudSource * source)
 
   return g_list_copy_deep (hashvals, (GCopyFunc) g_object_ref, NULL );
 }
+
+/**
+ * hud_dbusmenu_collector_get_app_id:
+ * @collector: a #HudDbusmenuCollector
+ *
+ * Gets the ID of the collected application
+ *
+ * Return value: Application ID
+ */
+const gchar *
+hud_dbusmenu_collector_get_app_id (HudDbusmenuCollector *collector)
+{
+	g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(collector), NULL);
+	return collector->application_id;
+}
+
+/**
+ * hud_dbusmenu_collector_get_app_icon:
+ * @collector: a #HudDbusmenuCollector
+ *
+ * Gets the icon of the collected application
+ *
+ * Return value: Application icon
+ */
+const gchar *
+hud_dbusmenu_collector_get_app_icon (HudDbusmenuCollector *collector)
+{
+	g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(collector), NULL);
+	return collector->icon;
+}
