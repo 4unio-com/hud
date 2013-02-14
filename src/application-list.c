@@ -688,8 +688,14 @@ HudSource *
 hud_application_list_get_focused_app (HudApplicationList * list)
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
-	
+
+#ifdef HAVE_BAMF
+	/* TODO: Not sure if BAMF is right here, but not testing that. */
 	return list->priv->used_source;
+#endif
+#ifdef HAVE_HYBRIS
+	return list->priv->last_focused_source;
+#endif
 }
 
 /**
