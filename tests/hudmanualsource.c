@@ -93,7 +93,7 @@ hud_manual_source_search (HudSource    *hud_source,
 static void
 hud_manual_source_list_applications (HudSource    *hud_source,
                                      HudTokenList *search_string,
-                                     void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                     void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                                      gpointer      user_data)
 {
   HudManualSource *self = HUD_MANUAL_SOURCE (hud_source);
@@ -103,7 +103,7 @@ hud_manual_source_list_applications (HudSource    *hud_source,
       HudResult *result = hud_result_get_if_matched (item, search_string, 0);
       if (result != NULL )
       {
-        append_func (self->application_id, self->app_icon, user_data);
+        append_func (self->application_id, self->app_icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP, user_data);
         g_object_unref(result);
         break;
       }
@@ -118,6 +118,20 @@ hud_manual_source_get (HudSource    *hud_source,
   if (g_strcmp0(self->application_id, application_id) == 0)
     return hud_source;
   return NULL;
+}
+
+static const gchar *
+hud_manual_source_get_app_id (HudSource * hud_source)
+{
+  HudManualSource *self = HUD_MANUAL_SOURCE (hud_source);
+  return self->application_id;
+}
+
+static const gchar *
+hud_manual_source_get_app_icon (HudSource * hud_source)
+{
+  HudManualSource *self = HUD_MANUAL_SOURCE (hud_source);
+  return self->app_icon;
 }
 
 static void
@@ -148,6 +162,8 @@ hud_manual_source_iface_init (HudSourceInterface *iface)
   iface->search = hud_manual_source_search;
   iface->list_applications = hud_manual_source_list_applications;
   iface->get = hud_manual_source_get;
+  iface->get_app_id = hud_manual_source_get_app_id;
+  iface->get_app_icon = hud_manual_source_get_app_icon;
 }
 
 static void

@@ -51,6 +51,13 @@ struct _HudApplicationListPrivate {
 
 static void hud_application_list_class_init (HudApplicationListClass * klass);
 static void hud_application_list_init       (HudApplicationList *      self);
+static void hud_application_list_constructed (GObject * object);
+#ifdef HAVE_BAMF
+static void matching_setup_bamf             (HudApplicationList *      self);
+#endif
+#ifdef HAVE_HYBRIS
+static void matching_setup_hybris           (HudApplicationList *      self);
+#endif
 static void hud_application_list_dispose    (GObject *                 object);
 static void hud_application_list_finalize   (GObject *                 object);
 static void source_iface_init               (HudSourceInterface *      iface);
@@ -83,7 +90,7 @@ static void source_search                   (HudSource *               hud_sourc
                                              gpointer                  user_data);
 static void source_list_applications        (HudSource *               hud_source,
                                              HudTokenList *            search_string,
-                                             void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                             void                    (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                                              gpointer                  user_data);
 static HudSource * source_get               (HudSource *               hud_source,
                                              const gchar *             application_id);
@@ -102,8 +109,16 @@ hud_application_list_class_init (HudApplicationListClass *klass)
 
 	g_type_class_add_private (klass, sizeof (HudApplicationListPrivate));
 
+	object_class->constructed = hud_application_list_constructed;
 	object_class->dispose = hud_application_list_dispose;
 	object_class->finalize = hud_application_list_finalize;
+
+#ifdef HAVE_BAMF
+	klass->matching_setup = matching_setup_bamf;
+#endif
+#ifdef HAVE_HYBRIS
+	klass->matching_setup = matching_setup_hybris;
+#endif
 
 	return;
 }
@@ -129,7 +144,27 @@ hud_application_list_init (HudApplicationList *self)
 	self->priv = HUD_APPLICATION_LIST_GET_PRIVATE(self);
 	self->priv->applications = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 
+	return;
+}
+
+/* Final build steps */
+static void
+hud_application_list_constructed (GObject * object)
+{
+	HudApplicationList * self = HUD_APPLICATION_LIST(object);
+
+	HudApplicationListClass * aclass = HUD_APPLICATION_LIST_GET_CLASS(self);
+	if (aclass->matching_setup != NULL) {
+		aclass->matching_setup(self);
+	}
+
+	return;
+}
+
 #ifdef HAVE_BAMF
+static void
+matching_setup_bamf (HudApplicationList * self)
+{
 	self->priv->matcher = bamf_matcher_get_default();
 	self->priv->matcher_app_sig = g_signal_connect(self->priv->matcher,
 		"active-window-changed",
@@ -137,20 +172,7 @@ hud_application_list_init (HudApplicationList *self)
 	self->priv->matcher_view_open_sig = g_signal_connect(self->priv->matcher,
 		"view-opened",
 		G_CALLBACK(view_opened), self);
-#endif
-#ifdef HAVE_HYBRIS
-	self->priv->observer_definition.on_session_requested = session_requested;
-	self->priv->observer_definition.on_session_born = session_born;
-	self->priv->observer_definition.on_session_unfocused = session_unfocused;
-	self->priv->observer_definition.on_session_focused = session_focused;
-	self->priv->observer_definition.on_session_died = session_died;
-	self->priv->observer_definition.context = self;
 
-	ubuntu_ui_session_install_session_lifecycle_observer(&self->priv->observer_definition);
-#endif
-
-
-#ifdef HAVE_BAMF
 	GList * apps = bamf_matcher_get_applications(self->priv->matcher);
 	GList * app = NULL;
 	for (app = apps; app != NULL; app = g_list_next(app)) {
@@ -184,14 +206,25 @@ hud_application_list_init (HudApplicationList *self)
 
 		view_opened(self->priv->matcher, BAMF_VIEW(window->data), self);
 	}
+}
 #endif
+
 #ifdef HAVE_HYBRIS
-	/* Hybris doesn't work like this.  When the observers are registered those
-	   functions are called like the session are just added automatically */
-#endif
+static void
+matching_setup_hybris (HudApplicationList * self)
+{
+	self->priv->observer_definition.on_session_requested = session_requested;
+	self->priv->observer_definition.on_session_born = session_born;
+	self->priv->observer_definition.on_session_unfocused = session_unfocused;
+	self->priv->observer_definition.on_session_focused = session_focused;
+	self->priv->observer_definition.on_session_died = session_died;
+	self->priv->observer_definition.context = self;
+
+	ubuntu_ui_session_install_session_lifecycle_observer(&self->priv->observer_definition);
 
 	return;
 }
+#endif
 
 /* Clean up references */
 static void
@@ -590,7 +623,7 @@ source_search (HudSource *     hud_source,
 static void
 source_list_applications (HudSource *               hud_source,
                           HudTokenList *            search_string,
-                          void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                          void                    (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                           gpointer                  user_data)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_LIST(hud_source));
@@ -688,8 +721,19 @@ HudSource *
 hud_application_list_get_focused_app (HudApplicationList * list)
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
-	
+
+	HudApplicationListClass * aclass = HUD_APPLICATION_LIST_GET_CLASS(list);
+	if (G_UNLIKELY(aclass->get_focused_app != NULL)) {
+		return aclass->get_focused_app(list);
+	}
+
+#ifdef HAVE_BAMF
+	/* TODO: Not sure if BAMF is right here, but not testing that. */
 	return list->priv->used_source;
+#endif
+#ifdef HAVE_HYBRIS
+	return HUD_SOURCE(list->priv->last_focused_source);
+#endif
 }
 
 /**
