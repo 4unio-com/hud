@@ -26,6 +26,7 @@
 #include "huddbusmenucollector.h"
 #include "hud-query-iface.h"
 #include "hudtestutils.h"
+#include "app-list-dummy.h"
 
 #include <glib-object.h>
 #include <dee.h>
@@ -187,10 +188,13 @@ test_source_make_assertions_ext (HudQuery* query, const gchar *appstack,
 }
 
 static HudQuery*
-test_source_create_query (GDBusConnection *session, HudSource *source, const gchar *search, const guint query_count)
+test_source_create_query (GDBusConnection *session, HudSource *source, HudApplicationList * list, const gchar *search, const guint query_count)
 {
   g_debug ("query: [%s], on [%s]", search, g_dbus_connection_get_unique_name(session));
-  return hud_query_new (source, source, search, 1u << 30, session, query_count);
+
+  HudQuery * query = hud_query_new (source, list, search, 1u << 30, session, query_count);
+
+  return query;
 }
 
 static void
@@ -203,13 +207,16 @@ test_hud_query_sequence ()
 
   HudDbusmenuCollector *collector = hud_dbusmenu_collector_new_for_endpoint (
       "test-id", "Prefix", "no-icon", 0, /* penalty */
-      HUD_TEST_UTILS_LOADER_NAME, HUD_TEST_UTILS_LOADER_PATH);
+      HUD_TEST_UTILS_LOADER_NAME, HUD_TEST_UTILS_LOADER_PATH,
+      HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
   g_assert(collector != NULL);
   g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
   hud_test_utils_process_mainloop (100);
 
   HudManualSource *manual_source = hud_manual_source_new("manual_app", "manual_icon");
+
+  HudApplicationList * applist = HUD_APPLICATION_LIST(app_list_dummy_new(HUD_SOURCE(collector)));
 
   HudSourceList *source_list = hud_source_list_new();
   hud_source_list_add(source_list, HUD_SOURCE(collector));
@@ -225,7 +232,7 @@ test_hud_query_sequence ()
     const gchar *path = "/com/canonical/hud/query0";
     const gchar *name = "com.canonical.hud.query0.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 0);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 0);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 5);
     g_object_unref (query);
   }
@@ -238,7 +245,7 @@ test_hud_query_sequence ()
     const gchar *path = "/com/canonical/hud/query1";
     const gchar *name = "com.canonical.hud.query1.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 1);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 1);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 1);
     g_object_unref (query);
   }
@@ -251,7 +258,7 @@ test_hud_query_sequence ()
     const gchar *path = "/com/canonical/hud/query2";
     const gchar *name = "com.canonical.hud.query2.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 2);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 2);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 2);
     g_object_unref (query);
   }
@@ -265,7 +272,7 @@ test_hud_query_sequence ()
     const gchar *path = "/com/canonical/hud/query3";
     const gchar *name = "com.canonical.hud.query3.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 3);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 3);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 1);
 
     TestSourceThreadData thread_data = {session, path};
@@ -283,7 +290,7 @@ test_hud_query_sequence ()
     const gchar *path = "/com/canonical/hud/query4";
     const gchar *name = "com.canonical.hud.query4.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 4);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 4);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 5);
 
     TestSourceThreadData thread_data = {session, path, "dare"};
@@ -308,7 +315,7 @@ test_hud_query_sequence ()
       const gchar *path = "/com/canonical/hud/query5";
       const gchar *name = "com.canonical.hud.query5.results";
 
-      HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 5);
+      HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 5);
       test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 2);
 
       HudStringList *tokens = hud_string_list_add_item("extra", NULL);
@@ -319,12 +326,15 @@ test_hud_query_sequence ()
       tokens2 = hud_string_list_add_item("something else darn", tokens2);
       hud_manual_source_add(manual_source, tokens2, NULL, "shortcut2", TRUE);
 
+      app_list_dummy_set_focus(APP_LIST_DUMMY(applist), HUD_SOURCE(manual_source));
+
       hud_test_utils_process_mainloop(50);
 
-      const gchar *expected_after[4] = { "something dare", "mess strand", "something else darn", "bowl"};
-      const guint32 expected_distances_after[4] = { 0, 2, 11, 30 };
+      const gchar *expected_after[2] = { "something dare", "something else darn"};
+      const guint32 expected_distances_after[2] = { 0, 11 };
 
-      test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, 4);
+      g_assert(G_N_ELEMENTS(expected_after) == G_N_ELEMENTS(expected_distances_after));
+      test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, G_N_ELEMENTS(expected_after));
 
       g_object_unref (query);
     }
@@ -334,16 +344,21 @@ test_hud_query_sequence ()
       gchar *search = "dare";
       const gchar *expected[2] = { "mess strand", "bowl"};
       const guint32 expected_distances[2] = { 2, 30 };
-      const gchar *appstack_expected_ids[2] = { "test-id", "manual_app"};
-      const gchar *appstack_expected_icons[2] = { "no-icon", "manual_icon" };
+      const gchar *appstack_expected_ids[2] = { "manual_app", "test-id"};
+      const gchar *appstack_expected_icons[2] = { "manual_icon", "no-icon"};
       const gchar *appstack = "com.canonical.hud.query6.appstack";
       const gchar *path = "/com/canonical/hud/query6";
       const gchar *name = "com.canonical.hud.query6.results";
 
-      HudQuery *query = hud_query_new (HUD_SOURCE(source_list), HUD_SOURCE(collector), search, 1u << 30, session, 6);
-      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, 2, path, name, expected, expected_distances, 2);
+      g_assert(G_N_ELEMENTS(appstack_expected_ids) == G_N_ELEMENTS(appstack_expected_icons));
+      g_assert(G_N_ELEMENTS(expected) == G_N_ELEMENTS(expected_distances));
+
+      AppListDummy * dummy = app_list_dummy_new(HUD_SOURCE(collector));
+      HudQuery *query = hud_query_new (HUD_SOURCE(source_list), HUD_APPLICATION_LIST(dummy), search, 1u << 30, session, 6);
+      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, G_N_ELEMENTS(appstack_expected_ids), path, name, expected, expected_distances, G_N_ELEMENTS(expected));
 
       // Change the app to the manual_source
+	  g_debug("Changing to 'manual_app'");
       TestSourceThreadData thread_data = {session, path, "manual_app"};
       GThread* thread = g_thread_new ("update_app", test_source_call_update_app, &thread_data);
       hud_test_utils_process_mainloop(100);
@@ -351,9 +366,10 @@ test_hud_query_sequence ()
 
       const gchar *expected_after[2] = { "something dare", "something else darn"};
       const guint32 expected_distances_after[2] = { 0, 11 };
-      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, 2, path, name, expected_after, expected_distances_after, 2);
+      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, G_N_ELEMENTS(appstack_expected_ids), path, name, expected_after, expected_distances_after, 2);
 
       g_object_unref (query);
+      g_object_unref(dummy);
     }
 
   hud_source_unuse (HUD_SOURCE(source_list) );
@@ -361,6 +377,7 @@ test_hud_query_sequence ()
   g_object_unref (source_list);
   g_object_unref (collector);
   g_object_unref (manual_source);
+  g_object_unref (applist);
 
   hud_test_utils_process_mainloop(100);
 
@@ -378,13 +395,16 @@ test_hud_query_sequence_counter_increment ()
 
   HudDbusmenuCollector *collector = hud_dbusmenu_collector_new_for_endpoint (
       "test-id", "Prefix", "no-icon", 0, /* penalty */
-      HUD_TEST_UTILS_LOADER_NAME, HUD_TEST_UTILS_LOADER_PATH);
+      HUD_TEST_UTILS_LOADER_NAME, HUD_TEST_UTILS_LOADER_PATH,
+      HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
   g_assert(collector != NULL);
   g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
   hud_test_utils_process_mainloop (100);
 
-  HudManualSource *manual_source = hud_manual_source_new(NULL, NULL);
+  HudManualSource *manual_source = hud_manual_source_new("manual-id", "manual-icon");
+
+  HudApplicationList * applist = HUD_APPLICATION_LIST(app_list_dummy_new(HUD_SOURCE(collector)));
 
   HudSourceList *source_list = hud_source_list_new();
   hud_source_list_add(source_list, HUD_SOURCE(collector));
@@ -400,7 +420,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *path = "/com/canonical/hud/query6";
     const gchar *name = "com.canonical.hud.query6.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 6);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 6);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 5);
     g_object_unref (query);
   }
@@ -413,7 +433,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *path = "/com/canonical/hud/query7";
     const gchar *name = "com.canonical.hud.query7.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 7);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 7);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 1);
     g_object_unref (query);
   }
@@ -426,7 +446,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *path = "/com/canonical/hud/query8";
     const gchar *name = "com.canonical.hud.query8.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 8);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 8);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 2);
     g_object_unref (query);
   }
@@ -440,7 +460,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *path = "/com/canonical/hud/query9";
     const gchar *name = "com.canonical.hud.query9.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 9);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 9);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 1);
 
     TestSourceThreadData thread_data = {session, path};
@@ -458,7 +478,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *path = "/com/canonical/hud/query10";
     const gchar *name = "com.canonical.hud.query10.results";
 
-    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 10);
+    HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 10);
     test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 5);
 
     TestSourceThreadData thread_data = {session, path, "dare"};
@@ -483,7 +503,7 @@ test_hud_query_sequence_counter_increment ()
       const gchar *path = "/com/canonical/hud/query11";
       const gchar *name = "com.canonical.hud.query11.results";
 
-      HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), search, 11);
+      HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 11);
       test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 2);
 
       HudStringList *tokens = hud_string_list_add_item("extra", NULL);
@@ -494,12 +514,15 @@ test_hud_query_sequence_counter_increment ()
       tokens2 = hud_string_list_add_item("something else darn", tokens2);
       hud_manual_source_add(manual_source, tokens2, NULL, "shortcut2", TRUE);
 
+      app_list_dummy_set_focus(APP_LIST_DUMMY(applist), HUD_SOURCE(manual_source));
+
       hud_test_utils_process_mainloop(50);
 
-      const gchar *expected_after[4] = { "something dare", "mess strand", "something else darn", "bowl"};
-      const guint32 expected_distances_after[4] = { 0, 2, 11, 30 };
+      const gchar *expected_after[2] = { "something dare", "something else darn" };
+      const guint32 expected_distances_after[2] = { 0, 11 };
 
-      test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, 4);
+      g_assert(G_N_ELEMENTS(expected_after) == G_N_ELEMENTS(expected_distances_after));
+      test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, G_N_ELEMENTS(expected_after));
 
       g_object_unref (query);
     }
@@ -509,6 +532,7 @@ test_hud_query_sequence_counter_increment ()
   g_object_unref (source_list);
   g_object_unref (collector);
   g_object_unref (manual_source);
+  g_object_unref (applist);
 
   hud_test_utils_process_mainloop(100);
 

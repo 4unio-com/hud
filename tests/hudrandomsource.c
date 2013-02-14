@@ -83,7 +83,7 @@ hud_random_source_search (HudSource    *hud_source,
 void
 hud_random_source_list_applications (HudSource    *hud_source,
     HudTokenList *search_tokens,
-    void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+    void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
     gpointer      user_data)
 {
   HudRandomSource *source = (HudRandomSource *) hud_source;
@@ -98,7 +98,7 @@ hud_random_source_list_applications (HudSource    *hud_source,
       result = hud_result_get_if_matched (item, search_tokens, 0);
       if (result)
         {
-          append_func (source->application_id, source->app_icon, user_data);
+          append_func (source->application_id, source->app_icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP, user_data);
           g_object_unref(result);
           break;
         }
