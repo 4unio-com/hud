@@ -333,6 +333,7 @@ test_hud_query_sequence ()
       const gchar *expected_after[2] = { "something dare", "something else darn"};
       const guint32 expected_distances_after[2] = { 0, 11 };
 
+      g_assert(G_N_ELEMENTS(expected_after) == G_N_ELEMENTS(expected_distances_after));
       test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, G_N_ELEMENTS(expected_after));
 
       g_object_unref (query);
@@ -343,18 +344,21 @@ test_hud_query_sequence ()
       gchar *search = "dare";
       const gchar *expected[2] = { "mess strand", "bowl"};
       const guint32 expected_distances[2] = { 2, 30 };
-      const gchar *appstack_expected_ids[2] = { "test-id", "manual_app"};
-      const gchar *appstack_expected_icons[2] = { "no-icon", "manual_icon" };
+      const gchar *appstack_expected_ids[2] = { "manual_app", "test-id"};
+      const gchar *appstack_expected_icons[2] = { "manual_icon", "no-icon"};
       const gchar *appstack = "com.canonical.hud.query6.appstack";
       const gchar *path = "/com/canonical/hud/query6";
       const gchar *name = "com.canonical.hud.query6.results";
 
+      g_assert(G_N_ELEMENTS(appstack_expected_ids) == G_N_ELEMENTS(appstack_expected_icons));
+      g_assert(G_N_ELEMENTS(expected) == G_N_ELEMENTS(expected_distances));
+
       AppListDummy * dummy = app_list_dummy_new(HUD_SOURCE(collector));
       HudQuery *query = hud_query_new (HUD_SOURCE(source_list), HUD_APPLICATION_LIST(dummy), search, 1u << 30, session, 6);
-      g_object_unref(dummy);
-      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, 2, path, name, expected, expected_distances, 2);
+      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, G_N_ELEMENTS(appstack_expected_ids), path, name, expected, expected_distances, G_N_ELEMENTS(expected));
 
       // Change the app to the manual_source
+	  g_debug("Changing to 'manual_app'");
       TestSourceThreadData thread_data = {session, path, "manual_app"};
       GThread* thread = g_thread_new ("update_app", test_source_call_update_app, &thread_data);
       hud_test_utils_process_mainloop(100);
@@ -362,9 +366,10 @@ test_hud_query_sequence ()
 
       const gchar *expected_after[2] = { "something dare", "something else darn"};
       const guint32 expected_distances_after[2] = { 0, 11 };
-      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, 2, path, name, expected_after, expected_distances_after, 2);
+      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, G_N_ELEMENTS(appstack_expected_ids), path, name, expected_after, expected_distances_after, 2);
 
       g_object_unref (query);
+      g_object_unref(dummy);
     }
 
   hud_source_unuse (HUD_SOURCE(source_list) );
