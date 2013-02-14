@@ -51,6 +51,7 @@ struct _HudApplicationListPrivate {
 
 static void hud_application_list_class_init (HudApplicationListClass * klass);
 static void hud_application_list_init       (HudApplicationList *      self);
+static void hud_application_list_constructed (GObject * object);
 #ifdef HAVE_BAMF
 static void matching_setup_bamf             (HudApplicationList *      self);
 #endif
@@ -108,6 +109,7 @@ hud_application_list_class_init (HudApplicationListClass *klass)
 
 	g_type_class_add_private (klass, sizeof (HudApplicationListPrivate));
 
+	object_class->constructed = hud_application_list_constructed;
 	object_class->dispose = hud_application_list_dispose;
 	object_class->finalize = hud_application_list_finalize;
 
@@ -142,10 +144,21 @@ hud_application_list_init (HudApplicationList *self)
 	self->priv = HUD_APPLICATION_LIST_GET_PRIVATE(self);
 	self->priv->applications = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 
+	return;
+}
+
+/* Final build steps */
+static void
+hud_application_list_constructed (GObject * object)
+{
+	HudApplicationList * self = HUD_APPLICATION_LIST(object);
+
 	HudApplicationListClass * aclass = HUD_APPLICATION_LIST_GET_CLASS(self);
 	if (aclass->matching_setup != NULL) {
 		aclass->matching_setup(self);
 	}
+
+	return;
 }
 
 #ifdef HAVE_BAMF
