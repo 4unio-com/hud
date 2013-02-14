@@ -160,6 +160,8 @@ static GList * hud_menu_model_collector_get_items (HudSource * source);
 static void hud_menu_model_collector_activate_toolbar (HudSource *   source,
                                                        HudClientQueryToolbarItems titem,
                                                        GVariant  *   platform_data);
+static const gchar * hud_menu_model_collector_get_app_icon (HudSource * collector);
+static const gchar * hud_menu_model_collector_get_app_id (HudSource * collector);
 
 /* Functions */
 static gchar *
@@ -987,6 +989,8 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->get = hud_menu_model_collector_get;
   iface->get_items = hud_menu_model_collector_get_items;
   iface->activate_toolbar = hud_menu_model_collector_activate_toolbar;
+  iface->get_app_id = hud_menu_model_collector_get_app_id;
+  iface->get_app_icon = hud_menu_model_collector_get_app_icon;
 }
 
 static void
@@ -1283,11 +1287,11 @@ hud_menu_model_collector_get_items (HudSource * source)
  *
  * Return value: Application ID
  */
-const gchar *
-hud_menu_model_collector_get_app_id (HudMenuModelCollector * collector)
+static const gchar *
+hud_menu_model_collector_get_app_id (HudSource * collector)
 {
 	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector), NULL);
-	return collector->app_id;
+	return HUD_MENU_MODEL_COLLECTOR(collector)->app_id;
 }
 
 /**
@@ -1298,9 +1302,9 @@ hud_menu_model_collector_get_app_id (HudMenuModelCollector * collector)
  *
  * Return value: Application icon
  */
-const gchar *
-hud_menu_model_collector_get_app_icon (HudMenuModelCollector * collector)
+static const gchar *
+hud_menu_model_collector_get_app_icon (HudSource * collector)
 {
 	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector), NULL);
-	return collector->icon;
+	return HUD_MENU_MODEL_COLLECTOR(collector)->icon;
 }
