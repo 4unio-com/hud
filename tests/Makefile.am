@@ -20,6 +20,8 @@ EXTRA_DIST += \
 #######################
 
 libhud_tests_la_SOURCES = \
+	app-list-dummy.h \
+	app-list-dummy.c \
 	word-list.h \
 	hudrandomsource.h \
 	hudrandomsource.c \
