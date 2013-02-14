@@ -61,6 +61,7 @@ struct _HudItemPrivate
   gchar *usage_tag;
   gchar *app_icon;
   gchar *shortcut;
+  gchar *description;
   gboolean enabled;
   guint usage;
   guint64 id;
@@ -81,6 +82,7 @@ hud_item_finalize (GObject *object)
   g_free (item->priv->app_icon);
   g_free (item->priv->usage_tag);
   g_free (item->priv->shortcut);
+  g_free (item->priv->description);
 
   G_OBJECT_CLASS (hud_item_parent_class)
     ->finalize (object);
@@ -446,6 +448,11 @@ hud_item_get_context (HudItem *item)
 const gchar *
 hud_item_get_description (HudItem *item)
 {
+	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
+
+	if (item->priv->description != NULL) {
+		return item->priv->description;
+	}
 
 	return "";
 }
