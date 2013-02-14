@@ -694,7 +694,7 @@ hud_application_list_get_focused_app (HudApplicationList * list)
 	return list->priv->used_source;
 #endif
 #ifdef HAVE_HYBRIS
-	return list->priv->last_focused_source;
+	return HUD_SOURCE(list->priv->last_focused_source);
 #endif
 }
 
