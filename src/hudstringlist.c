@@ -168,7 +168,7 @@ hud_string_list_get_tail (HudStringList *list)
  * Returns: the pretty-printed list
  **/
 gchar *
-hud_string_list_pretty_print (HudStringList *list)
+hud_string_list_pretty_print (HudStringList *list, const gchar * spacer)
 {
   GString *string;
 
@@ -179,8 +179,8 @@ hud_string_list_pretty_print (HudStringList *list)
 
       list = list->tail;
 
-      if (list)
-        g_string_prepend (string, " > ");
+      if (list && spacer)
+        g_string_prepend (string, spacer);
     }
 
   return g_string_free (string, FALSE);
