@@ -402,7 +402,7 @@ test_hud_query_sequence_counter_increment ()
 
   hud_test_utils_process_mainloop (100);
 
-  HudManualSource *manual_source = hud_manual_source_new(NULL, NULL);
+  HudManualSource *manual_source = hud_manual_source_new("manual-id", "manual-icon");
 
   HudApplicationList * applist = HUD_APPLICATION_LIST(app_list_dummy_new(HUD_SOURCE(collector)));
 
