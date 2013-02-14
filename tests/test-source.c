@@ -26,6 +26,7 @@
 #include "huddbusmenucollector.h"
 #include "hud-query-iface.h"
 #include "hudtestutils.h"
+#include "app-list-dummy.h"
 
 #include <glib-object.h>
 #include <dee.h>
@@ -190,7 +191,12 @@ static HudQuery*
 test_source_create_query (GDBusConnection *session, HudSource *source, const gchar *search, const guint query_count)
 {
   g_debug ("query: [%s], on [%s]", search, g_dbus_connection_get_unique_name(session));
-  return hud_query_new (source, source, search, 1u << 30, session, query_count);
+
+  AppListDummy * dummy = app_list_dummy_new(source);
+  HudQuery * query = hud_query_new (source, HUD_APPLICATION_LIST(dummy), search, 1u << 30, session, query_count);
+  g_object_unref(dummy);
+
+  return query;
 }
 
 static void
@@ -341,7 +347,9 @@ test_hud_query_sequence ()
       const gchar *path = "/com/canonical/hud/query6";
       const gchar *name = "com.canonical.hud.query6.results";
 
-      HudQuery *query = hud_query_new (HUD_SOURCE(source_list), HUD_SOURCE(collector), search, 1u << 30, session, 6);
+      AppListDummy * dummy = app_list_dummy_new(HUD_SOURCE(collector));
+      HudQuery *query = hud_query_new (HUD_SOURCE(source_list), HUD_APPLICATION_LIST(dummy), search, 1u << 30, session, 6);
+      g_object_unref(dummy);
       test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, 2, path, name, expected, expected_distances, 2);
 
       // Change the app to the manual_source
