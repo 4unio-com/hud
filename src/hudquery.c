@@ -287,8 +287,12 @@ hud_query_refresh (HudQuery *query)
   query->max_usage = 0;
 
   /* Note that the results are kept sorted as they are collected using a GSequence */
-  if (query->current_source != NULL) {
-    hud_source_search (query->current_source, query->token_list, results_list_populate, query);
+  HudSource * search_source = query->current_source;
+  if (search_source == NULL) {
+    search_source = hud_application_list_get_focused_app(query->app_list);
+  }
+  if (search_source != NULL) {
+    hud_source_search (search_source, query->token_list, results_list_populate, query);
   } else {
     g_debug("Current source was null. This should usually not happen outside tests in regular user use");
   }
@@ -372,7 +376,7 @@ hud_query_finalize (GObject *object)
 
   g_object_unref (query->all_sources);
   g_object_unref (query->app_list);
-  g_object_unref (query->current_source);
+  g_clear_object (&query->current_source);
   if (query->token_list != NULL) {
     hud_token_list_free (query->token_list);
     query->token_list = NULL;
@@ -400,8 +404,14 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   gchar *search_string;
   GError *error = NULL;
   HudJulius *julius = hud_julius_new (skel);
+
+  HudSource * search_source = query->current_source;
+  if (search_source == NULL) {
+    search_source = hud_application_list_get_focused_app(query->app_list);
+  }
+
   if (!hud_julius_voice_query (julius,
-          query->current_source, &search_string, &error))
+          search_source, &search_string, &error))
   {
     g_dbus_method_invocation_return_error_literal(invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, error->message);
     g_error_free(error);
@@ -479,7 +489,7 @@ handle_update_app (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocati
 
 	g_debug("Updating App to: '%s'", app_id);
 
-	g_object_unref (query->current_source);
+	g_clear_object (&query->current_source);
 	query->current_source = hud_source_get(query->all_sources, app_id);
 	g_object_ref (query->current_source);
 
@@ -595,7 +605,12 @@ handle_execute_toolbar (HudQueryIfaceComCanonicalHudQuery *object, GDBusMethodIn
 		return TRUE;
 	}
 
-	if (query->current_source == NULL) {
+	HudSource * search_source = query->current_source;
+	if (search_source == NULL) {
+		search_source = hud_application_list_get_focused_app(query->app_list);
+	}
+
+	if (search_source == NULL) {
 		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, "No source currently in use");
 		return TRUE;
 	}
@@ -612,7 +627,7 @@ handle_execute_toolbar (HudQueryIfaceComCanonicalHudQuery *object, GDBusMethodIn
 
 	g_variant_builder_add_value(&platform, g_variant_builder_end(&entry));
 
-	hud_source_activate_toolbar(query->current_source, item, g_variant_builder_end(&platform));
+	hud_source_activate_toolbar(search_source, item, g_variant_builder_end(&platform));
 	g_dbus_method_invocation_return_value(invocation, NULL);
 	return TRUE;
 }
@@ -740,11 +755,6 @@ hud_query_new (HudSource   *all_sources,
   query->app_list = g_object_ref (application_list);
   query->search_string = g_strdup (search_string);
   query->token_list = NULL;
-  query->current_source = hud_application_list_get_focused_app(application_list);
-
-  if (query->current_source != NULL) {
-    g_object_ref(query->current_source);
-  }
   
   if (query->search_string[0] != '\0') {
     query->token_list = hud_token_list_new_from_string (query->search_string);
