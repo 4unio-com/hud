@@ -203,7 +203,7 @@ static gboolean
 hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
     const gchar *hlist, gchar **query, GError **error)
 {
-  gchar *program = g_build_filename(LIBEXECDIR, "hud-julius-listen", NULL);
+  gchar *program = g_build_filename(LIBEXECDIR, "hud", "hud-julius-listen", NULL);
   g_debug("Julius listening program [%s]", program);
 
   const gchar *argv[] =
