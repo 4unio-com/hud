@@ -24,6 +24,7 @@
 #include <julius/juliuslib.h>
 #include <glib/gstdio.h>
 #include <gio/gio.h>
+#include <signal.h>
 
 struct _HudJulius
 {
@@ -190,7 +191,8 @@ watch_function (GIOChannel *channel, GIOCondition condition,
   if ((condition & G_IO_HUP) != 0)
   {
     g_io_channel_shutdown (channel, TRUE, NULL );
-    *self->query = g_strdup("");
+    *self->query = NULL;
+    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "HUD Julius listening daemon failed");
     g_source_remove(self->timeout_source);
     g_main_loop_quit(self->mainloop);
     return FALSE;
@@ -199,11 +201,17 @@ watch_function (GIOChannel *channel, GIOCondition condition,
   return TRUE;
 }
 
+static void
+hud_julius_kill(GPid pid)
+{
+  kill(pid, SIGTERM);
+}
+
 static gboolean
 hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
     const gchar *hlist, gchar **query, GError **error)
 {
-  gchar *program = g_build_filename(LIBEXECDIR, "hud-julius-listen", NULL);
+  gchar *program = g_build_filename(LIBEXECDIR, "hud", "hud-julius-listen", NULL);
   g_debug("Julius listening program [%s]", program);
 
   const gchar *argv[] =
@@ -216,11 +224,10 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
   self->heard_something_emitted = FALSE;
 
   gint standard_output;
-  gint standard_error;
   GPid pid = 0;
 
   if (!g_spawn_async_with_pipes (NULL, (gchar **) argv, NULL, 0, NULL, NULL,
-      &pid, NULL, &standard_output, &standard_error, error))
+      &pid, NULL, &standard_output, NULL, error))
   {
     g_warning("Failed to to load Julius daemon");
     *query = NULL;
@@ -250,6 +257,7 @@ hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
   g_main_loop_unref (self->mainloop);
 
   g_io_channel_unref (channel);
+  hud_julius_kill(pid);
   g_spawn_close_pid(pid);
 
   return (*self->error == NULL);
