@@ -469,6 +469,7 @@ handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoca
 
 	/* Grab the data from this one */
 	query->search_string = g_strdup (search_string);
+	query->search_string = g_strstrip(query->search_string);
 
 	if (query->search_string[0] != '\0') {
 		query->token_list = hud_token_list_new_from_string (query->search_string);
