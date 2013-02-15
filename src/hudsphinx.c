@@ -237,7 +237,7 @@ hud_sphinx_utterance_loop(HudSphinx *self, cmd_ln_t *config, ps_decoder_t *ps, g
    * listening until current utterance completely decoded
    */
   ad_stop_rec (ad);
-  while (ad_read (ad, adbuf, 4096) >= 0);;
+  while (ad_read (ad, adbuf, 4096) >= 0);
   cont_ad_reset (cont);
 
   g_debug("Voice query has stopped listening, processing...");
