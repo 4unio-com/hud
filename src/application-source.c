@@ -149,6 +149,8 @@ hud_application_source_dispose (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
+	g_debug("****************** source dispose **************************");
+
 	if (self->priv->used_source != NULL) {
 		hud_source_unuse(self->priv->used_source);
 		self->priv->used_source = NULL;
@@ -441,6 +443,7 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 
 		if (mm_collector != NULL) {
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
+			g_object_unref(mm_collector);
 		}
 	}
 
@@ -460,6 +463,8 @@ connection_lost (GDBusConnection * session, const gchar * name, gpointer user_da
 {
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(user_data);
 
+	g_debug("************************ connection lost *******************");
+
 	connection_watcher_t * watcher = g_hash_table_lookup(app->priv->connections, name);
 	if (watcher == NULL) {
 		return;
@@ -467,11 +472,13 @@ connection_lost (GDBusConnection * session, const gchar * name, gpointer user_da
 
 	GList * idtemp;
 	for (idtemp = watcher->ids; idtemp != NULL; idtemp = g_list_next(idtemp)) {
+	  g_debug("************************ removing %d *******************", GPOINTER_TO_INT(idtemp->data));
 		g_hash_table_remove(app->priv->windows, idtemp->data);
 	}
 
 	g_hash_table_remove(app->priv->connections, name);
 
+	hud_source_changed(HUD_SOURCE(app));
 	return;
 }
 
@@ -559,6 +566,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
 
 		hud_menu_model_collector_add_model(collector, G_MENU_MODEL(model), NULL, 1);
+		g_object_unref(model);
 		add_id_to_connection(app, session, sender, idn);
 	}
 
@@ -871,6 +879,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 			/* We only have GApplication based windows on the desktop, so we don't need this currently */
 #endif
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
+			g_object_unref(mm_collector);
 		}
 	}
 
@@ -879,6 +888,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 
 		if (dm_collector != NULL) {
 			hud_source_list_add(collector_list, HUD_SOURCE(dm_collector));
+			g_object_unref(dm_collector);
 		}
 	}
 	g_free (app_id);

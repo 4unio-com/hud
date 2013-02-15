@@ -336,6 +336,7 @@ hud_sphinx_voice_query (HudSphinx *self, HudSource *source, gchar **result, GErr
   PronounceDict *dict = pronounce_dict_get_sphinx(error);
   if (dict == NULL)
   {
+    g_list_free_full(items, g_object_unref);
     *result = NULL;
     return FALSE;
   }
@@ -433,6 +434,7 @@ hud_sphinx_voice_query (HudSphinx *self, HudSource *source, gchar **result, GErr
       g_free(filtered);
       g_free(upper);
       *result = NULL;
+      g_list_free_full(items, g_object_unref);
       return FALSE;
     }
 

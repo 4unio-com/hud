@@ -321,6 +321,7 @@ main (int argc, char **argv)
 
   application_list = hud_application_list_new();
   hud_source_list_add(source_list, HUD_SOURCE(application_list));
+  g_object_unref (application_list);
 
   if (getenv ("HUD_DEBUG_SOURCE"))
     {

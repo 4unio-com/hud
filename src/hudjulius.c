@@ -523,6 +523,7 @@ hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GErr
   gchar *temp_dir = NULL;
   if (!hud_julius_build_grammar(self, items, &temp_dir, error))
   {
+    g_list_free_full(items, g_object_unref);
     return FALSE;
   }
 
@@ -534,6 +535,7 @@ hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GErr
 
   rm_rf(temp_dir);
 
+  g_list_free_full(items, g_object_unref);
   g_free(gram);
   g_free(hmm);
   g_free(hlist);
