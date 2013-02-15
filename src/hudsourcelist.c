@@ -156,8 +156,8 @@ hud_source_list_get_items (HudSource *source)
   for (node = list->list; node; node = node->next) {
     if (HUD_IS_SOURCE(node->data))
     {
-      HudSource * source = HUD_SOURCE(node->data);
-      results = g_list_concat (results, hud_source_get_items (source));
+      HudSource * nodesource = HUD_SOURCE(node->data);
+      results = g_list_concat (results, hud_source_get_items (nodesource));
     }
   }
 
