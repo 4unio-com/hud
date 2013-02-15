@@ -1,3 +1,9 @@
+hud (13.04.0-0ubuntu1~ppa13) quantal; urgency=low
+
+  * Bumping version
+
+ -- Pete Woods <pete.woods@canonical.com>  Fri, 15 Feb 2013 12:47:58 +0000
+
 hud (13.04.0-0ubuntu1~ppa12) quantal; urgency=low
 
   * Bumping version
