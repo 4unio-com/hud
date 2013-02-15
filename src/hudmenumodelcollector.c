@@ -324,6 +324,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
                     const gchar           *action_name,
                     const gchar           *accel,
                     const gchar           *description,
+                    const gchar           *keywords_string,
                     GVariant              *target,
                     const gchar           *toolbar)
 {
@@ -605,6 +606,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       gchar *accel = NULL;
       gchar *toolbar = NULL;
       gchar *description = NULL;
+      gchar *keywords = NULL;
       HudItem *item = NULL;
 
 
@@ -614,6 +616,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_menu_model_get_item_attribute (model, i, "accel", "s", &accel);
       g_menu_model_get_item_attribute (model, i, "hud-toolbar-item", "s", &toolbar);
       g_menu_model_get_item_attribute (model, i, "description", "s", &description);
+      g_menu_model_get_item_attribute (model, i, "keywords", "s", &keywords);
 
       accel = format_accel_for_users(accel);
 
@@ -626,7 +629,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
 
           target = g_menu_model_get_item_attribute_value (model, i, G_MENU_ATTRIBUTE_TARGET, NULL);
 
-          item = hud_model_item_new (collector, context, label, action, accel, description, target, toolbar);
+          item = hud_model_item_new (collector, context, label, action, accel, description, keywords, target, toolbar);
 
           if (item)
             g_ptr_array_add (collector->items, item);
@@ -663,6 +666,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_free (accel);
       g_free (toolbar);
       g_free (description);
+      g_free (keywords);
     }
 
   if (changed)
