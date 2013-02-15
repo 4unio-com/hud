@@ -33,7 +33,6 @@
 #define DEFAULT_MENU_DEPTH  10
 #define RECURSE_DATA        "hud-menu-model-recurse-level"
 #define EXPORT_PATH         "hud-menu-model-export-path"
-#define EXPORT_ID           "hud-menu-model-export-id"
 #define EXPORT_MENU         "hud-menu-model-export-menu"
 
 /**
