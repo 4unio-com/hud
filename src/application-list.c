@@ -38,7 +38,7 @@ struct _HudApplicationListPrivate {
 	gulong matcher_view_close_sig;
 #endif
 #ifdef HAVE_HYBRIS
-	HudApplicationSource * last_focused_source; /* Not a reference */
+	HudApplicationSource * last_focused_source;
 	ubuntu_ui_session_lifecycle_observer observer_definition;
 #endif
 
@@ -264,6 +264,7 @@ hud_application_list_dispose (GObject *object)
 
 #ifdef HAVE_HYBRIS
 	/* Nothing to do as Hybris has no way to unregister our observer */
+	g_clear_object(&list->priv->last_focused_source);
 #endif
 
 	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
@@ -423,7 +424,7 @@ static void
 session_focused (ubuntu_ui_session_properties props, void * context)
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(context);
-	list->priv->last_focused_source = NULL;
+	g_clear_object(&list->priv->last_focused_source);
 
 	if (hud_application_list_name_in_ignore_list(&props)) {
 		return;
@@ -444,7 +445,7 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 
 	/* Used to track focus for use... unclear about race conditions */
 	g_warn_if_fail(list->priv->last_focused_source == NULL);
-	list->priv->last_focused_source = source;
+	list->priv->last_focused_source = g_object_ref(source);
 
 	return;
 }
@@ -454,7 +455,7 @@ static void
 session_unfocused (ubuntu_ui_session_properties props, void * context)
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(context);
-	list->priv->last_focused_source = NULL;
+	g_clear_object(&list->priv->last_focused_source);
 	return;
 }
 
