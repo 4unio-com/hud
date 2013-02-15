@@ -469,7 +469,7 @@ session_unfocused (ubuntu_ui_session_properties props, void * context)
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(context);
 
-	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(&props);
+	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
 	if (stage_hint == MAIN_STAGE_HINT)
 		list->priv->last_focused_main_stage_source = NULL;
 	else if (stage_hint == SIDE_STAGE_HINT)
