@@ -398,7 +398,7 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   g_debug("Voice query is loading");
   hud_query_iface_com_canonical_hud_query_emit_voice_query_loading (
       HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (skel));
-  gchar *search_string;
+  gchar *voice_result;
   GError *error = NULL;
   HudJulius *julius = hud_julius_new (skel);
 
@@ -408,7 +408,7 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   }
 
   if (!hud_julius_voice_query (julius,
-          search_source, &search_string, &error))
+          search_source, &voice_result, &error))
   {
     g_dbus_method_invocation_return_error_literal(invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, error->message);
     g_error_free(error);
@@ -418,8 +418,11 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   g_object_unref(julius);
   g_debug("Voice query is finished");
 
-  if (search_string == NULL)
-    search_string = g_strdup("");
+  if (voice_result == NULL)
+    voice_result = g_strdup("");
+
+  gchar *search_string = g_utf8_strdown(voice_result, -1);
+  g_free(voice_result);
 
   g_debug("Updating Query to: '%s'", search_string);
 
@@ -463,6 +466,7 @@ handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoca
 
 	/* Grab the data from this one */
 	query->search_string = g_strdup (search_string);
+	query->search_string = g_strstrip(query->search_string);
 
 	if (query->search_string[0] != '\0') {
 		query->token_list = hud_token_list_new_from_string (query->search_string);
@@ -488,10 +492,12 @@ handle_update_app (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocati
 
 	g_clear_object (&query->current_source);
 	query->current_source = hud_source_get(query->all_sources, app_id);
-	g_object_ref (query->current_source);
+	if (query->current_source != NULL) {
+		g_object_ref (query->current_source);
+	}
 
 	/* Refresh it all */
-	hud_query_refresh (query);
+	hud_query_refresh (query);	
 
 	/* Tell DBus everything is going to be A-OK */
 	hud_query_iface_com_canonical_hud_query_complete_update_app(skel, invocation, 0);
