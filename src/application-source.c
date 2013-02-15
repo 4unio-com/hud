@@ -153,8 +153,6 @@ hud_application_source_dispose (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
-	g_debug("****************** source dispose **************************");
-
 	if (self->priv->used_source != NULL) {
 		hud_source_unuse(self->priv->used_source);
 		self->priv->used_source = NULL;
@@ -479,8 +477,6 @@ connection_lost (GDBusConnection * session, const gchar * name, gpointer user_da
 {
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(user_data);
 
-	g_debug("************************ connection lost *******************");
-
 	connection_watcher_t * watcher = g_hash_table_lookup(app->priv->connections, name);
 	if (watcher == NULL) {
 		return;
@@ -488,7 +484,6 @@ connection_lost (GDBusConnection * session, const gchar * name, gpointer user_da
 
 	GList * idtemp;
 	for (idtemp = watcher->ids; idtemp != NULL; idtemp = g_list_next(idtemp)) {
-	  g_debug("************************ removing %d *******************", GPOINTER_TO_INT(idtemp->data));
 		g_hash_table_remove(app->priv->windows, idtemp->data);
 	}
 

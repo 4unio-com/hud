@@ -645,13 +645,11 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
           g_object_unref (link);
         }
 
-      g_debug("********************* collector model changed %s ************************", label);
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SUBMENU)))
         {
           hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse - 1, collector->type);
           if (item != NULL && recurse <= 1)
             {
-	      g_debug("********************* setting sub menu %s %s ************************", collector->base_export_path, (char*)g_object_get_data(G_OBJECT(link), EXPORT_PATH));
               hud_model_item_set_submenu((HudModelItem *)item, link, collector->base_export_path);
             }
           g_object_unref (link);
@@ -673,8 +671,6 @@ static void
 unexport_menu (gpointer user_data)
 {
 	exported_menu_id_t * idt = (exported_menu_id_t *)user_data;
-
-	g_debug("************************* unexport menu ********************");
 
 	g_dbus_connection_unexport_menu_model(idt->bus, idt->id);
 	g_object_unref(idt->bus);
@@ -946,8 +942,6 @@ static void
 hud_menu_model_collector_finalize (GObject *object)
 {
   HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (object);
-
-  g_debug("************* menu_model_collector_finalize %s ***********", collector->base_export_path);
 
   g_cancellable_cancel (collector->cancellable);
   g_object_unref (collector->cancellable);

@@ -169,8 +169,6 @@ hud_source_list_finalize (GObject *object)
 {
   HudSourceList *list = HUD_SOURCE_LIST (object);
 
-  g_debug("******************* hud_source_list_finalize *******************");
-
   /* signals have already been disconnected in dispose */
   g_slist_free_full (list->list, g_object_unref);
 
