@@ -714,7 +714,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
 	/* Make sure we're ready to clean up */
     g_object_set_data_full(G_OBJECT(model), EXPORT_PATH, menu_path, g_free);
     g_object_set_data_full(G_OBJECT(model), EXPORT_MENU, export, g_object_unref);
-    //g_object_set_data_full(G_OBJECT(model), EXPORT_ID, idt, unexport_menu);
+
     g_object_set_data_full(G_OBJECT(collector), menu_path, idt, unexport_menu);
 
     return;
