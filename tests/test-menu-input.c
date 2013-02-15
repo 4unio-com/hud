@@ -187,6 +187,29 @@ test_menus_dbusmenu_shortcuts (void)
 	hud_test_utils_wait_for_connection_close(session);
 }
 
+/* Gets called for each item in the collector, there should be only one */
+static void
+test_menus_model_base_search (HudResult * result, gpointer user_data)
+{
+	g_assert(result != NULL);
+	g_assert(HUD_IS_RESULT(result));
+
+	HudItem * item = hud_result_get_item(result);
+	g_assert(item != NULL);
+	g_assert(HUD_IS_ITEM(item));
+
+	g_assert(g_strcmp0(hud_item_get_app_icon(item), "no-icon") == 0);
+	g_assert(g_strcmp0(hud_item_get_command(item), "Simple") == 0);
+	g_assert(g_strcmp0(hud_item_get_description(item), "hard, difficult, challenging") == 0);
+
+	g_object_unref(result);
+
+	gboolean * found = (gboolean *)user_data;
+	*found = TRUE;
+
+	return;
+}
+
 /* Find an item in the base menu model */
 static void
 test_menus_model_base (void) 
@@ -218,7 +241,7 @@ test_menus_model_base (void)
 	hud_source_use(HUD_SOURCE(collector));
 
 	gboolean found = FALSE;
-	hud_source_search(HUD_SOURCE(collector), NULL, test_menus_dbusmenu_base_search, &found);
+	hud_source_search(HUD_SOURCE(collector), NULL, test_menus_model_base_search, &found);
 
 	g_assert(found);
 
