@@ -1257,14 +1257,7 @@ hud_menu_model_collector_add_actions (HudMenuModelCollector * collector, GAction
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_ACTION_GROUP(group));
 
-	gchar * local_prefix = NULL;
-	if (prefix == NULL) {
-		local_prefix = g_strdup("");
-	} else {
-		local_prefix = g_strdup(prefix);
-	}
-
-	g_action_muxer_insert(collector->muxer, local_prefix, group);
+	g_action_muxer_insert(collector->muxer, prefix, group);
 
 	return;
 }
