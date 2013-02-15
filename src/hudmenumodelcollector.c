@@ -335,7 +335,8 @@ append_keywords_string (HudStringList * list, const gchar * string)
 
 	int i;
 	for (i = 0; split[i] != NULL; i++) {
-		list = hud_string_list_cons(split[i], list);
+		if (split[i][0] != '\0')
+			list = hud_string_list_cons(split[i], list);
 	}
 
 	g_strfreev(split);
