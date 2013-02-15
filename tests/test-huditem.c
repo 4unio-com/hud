@@ -69,7 +69,7 @@ test_hud_item_getters (void)
 
 	g_assert_cmpstr(hud_item_get_app_icon(item), ==, "app_icon");
 	g_assert_cmpstr(hud_item_get_command(item), ==, "tokens3");
-	g_assert_cmpstr(hud_item_get_description(item), ==, "description");
+	g_assert_cmpstr(hud_item_get_description(item), ==, "keywords1, keywords2, keywords3");
 	g_assert_cmpint(hud_item_get_enabled(item), ==, TRUE);
 	g_assert_cmpstr(hud_item_get_item_icon(item), ==, ""); // For the base class this is always ""
 	g_assert(hud_item_get_keywords(item) == keywords);
