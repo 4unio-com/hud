@@ -531,16 +531,27 @@ static void rm_rf(const gchar *path)
     return;
   }
   const gchar *file_name;
-  while ((file_name = g_dir_read_name(dir)))
+  gboolean remove_error = FALSE;
+  while ((file_name = g_dir_read_name(dir)) && !remove_error)
   {
     gchar *file_path = g_build_filename(path, file_name, NULL);
     g_debug("removing file [%s]", file_path);
-    g_remove(file_path);
+    if (g_remove(file_path) != 0)
+    {
+      g_warning("Unable to remove file [%s]", file_path);
+      remove_error = TRUE;
+    }
     g_free(file_path);
   }
   g_dir_close(dir);
-  g_debug("removing dir [%s]", path);
-  g_rmdir(path);
+  if (!remove_error)
+  {
+    g_debug("removing dir [%s]", path);
+    g_rmdir(path);
+  } else
+  {
+    g_debug("not removing directory [%s]", path);
+  }
 }
 
 gboolean
