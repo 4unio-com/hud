@@ -321,7 +321,24 @@ hud_model_item_class_init (HudModelItemClass *class)
 static HudStringList *
 append_keywords_string (HudStringList * list, const gchar * string)
 {
+	if (string == NULL) {
+		return list;
+	}
 
+	/* Limiting to 64 keywords.  A bit arbitrary, but we need to ensure
+	   that bad apps can't hurt us. */
+	gchar ** split = g_strsplit(string, ";", 64);
+
+	if (split == NULL) {
+		return list;
+	}
+
+	int i;
+	for (i = 0; split[i] != NULL; i++) {
+		list = hud_string_list_cons(split[i], list);
+	}
+
+	g_strfreev(split);
 	return list;
 }
 
