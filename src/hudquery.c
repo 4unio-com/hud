@@ -174,7 +174,7 @@ appstack_hash_to_model (GHashTable * hash, DeeModel * model)
 	for (value = values; value != NULL; value = g_list_next(value)) {
 		appstack_item_t * item = (appstack_item_t *)value->data;
 
-		GVariant * columns[G_N_ELEMENTS(appstack_model_schema) + 1];
+	GVariant * columns[G_N_ELEMENTS(appstack_model_schema) + 1];
 		columns[0] = g_variant_new_string(item->app_id ? item->app_id : "");
 		columns[1] = g_variant_new_string(item->app_icon ? item->app_icon : "");
 		columns[2] = g_variant_new_int32(item->type);
@@ -401,7 +401,7 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   g_debug("Voice query is loading");
   hud_query_iface_com_canonical_hud_query_emit_voice_query_loading (
       HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (skel));
-  gchar *search_string;
+  gchar *voice_result;
   GError *error = NULL;
   HudJulius *julius = hud_julius_new (skel);
 
@@ -411,7 +411,7 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   }
 
   if (!hud_julius_voice_query (julius,
-          search_source, &search_string, &error))
+          search_source, &voice_result, &error))
   {
     g_dbus_method_invocation_return_error_literal(invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, error->message);
     g_error_free(error);
@@ -421,8 +421,11 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   g_object_unref(julius);
   g_debug("Voice query is finished");
 
-  if (search_string == NULL)
-    search_string = g_strdup("");
+  if (voice_result == NULL)
+    voice_result = g_strdup("");
+
+  gchar *search_string = g_utf8_strdown(voice_result, -1);
+  g_free(voice_result);
 
   g_debug("Updating Query to: '%s'", search_string);
 
