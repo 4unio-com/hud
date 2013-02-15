@@ -663,6 +663,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_free (label);
       g_free (accel);
       g_free (toolbar);
+      g_free (description);
     }
 
   if (changed)
