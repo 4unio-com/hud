@@ -447,7 +447,7 @@ hud_item_get_description (HudItem *item)
 
 	if (item->priv->tokens != NULL && hud_string_list_get_tail(item->priv->tokens) != NULL) {
 		if (item->priv->pretty_context == NULL) {
-			item->priv->pretty_context = hud_string_list_pretty_print(hud_string_list_get_tail(item->priv->tokens), _(" > "));
+			item->priv->pretty_context = hud_string_list_pretty_print(hud_string_list_get_tail(item->priv->tokens), _(", "));
 		}
 		return item->priv->pretty_context;
 	}
