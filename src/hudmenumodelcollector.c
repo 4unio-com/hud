@@ -317,6 +317,14 @@ hud_model_item_class_init (HudModelItemClass *class)
   class->activate = hud_model_item_activate;
 }
 
+/* Breaks apart the string and adds it to the list */
+static HudStringList *
+append_keywords_string (HudStringList * list, const gchar * string)
+{
+
+	return list;
+}
+
 static HudItem *
 hud_model_item_new (HudMenuModelCollector *collector,
                     HudMenuModelContext   *context,
@@ -353,6 +361,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
 
   full_label = hud_menu_model_context_get_label (context, label);
   keywords = hud_menu_model_context_get_tokens(label, collector->keyword_mapping);
+  keywords = append_keywords_string(keywords, keywords_string);
 
   item = hud_item_construct (hud_model_item_get_type (), full_label, keywords, accel, collector->app_id, collector->icon, description, TRUE);
   item->group = g_object_ref (group);
