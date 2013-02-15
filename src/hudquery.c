@@ -1,4 +1,4 @@
-/*
+B/*
  * Copyright © 2012 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
@@ -493,9 +493,10 @@ handle_update_app (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocati
 	query->current_source = hud_source_get(query->all_sources, app_id);
 	if (query->current_source != NULL) {
 		g_object_ref (query->current_source);
-		/* Refresh it all */
-		hud_query_refresh (query);	
 	}
+
+	/* Refresh it all */
+	hud_query_refresh (query);	
 
 	/* Tell DBus everything is going to be A-OK */
 	hud_query_iface_com_canonical_hud_query_complete_update_app(skel, invocation, 0);
