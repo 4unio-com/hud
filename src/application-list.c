@@ -659,6 +659,16 @@ static void
 application_source_changed (HudSource * source, gpointer user_data)
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
+	HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(source);
+
+	/* If the application source has become empty it means that it
+	 * the correspongind app has terminated and it's time to do the
+	 * cleanup.
+	 */
+	if (hud_application_source_is_empty (appsource)) {
+		g_hash_table_remove(list->priv->applications,
+				    hud_application_source_get_id(appsource));
+	}
 
 	hud_source_changed(HUD_SOURCE(list));
 
