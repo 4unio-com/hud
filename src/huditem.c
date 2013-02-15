@@ -434,15 +434,15 @@ hud_item_get_description (HudItem *item)
 {
 	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
 
-	if (item->priv->description != NULL) {
-		return item->priv->description;
-	}
-
 	if (item->priv->keywords != NULL) {
 		if (item->priv->pretty_keywords == NULL) {
 			item->priv->pretty_keywords = hud_string_list_pretty_print(item->priv->keywords, _(", "));
 		}
 		return item->priv->pretty_keywords;
+	}
+
+	if (item->priv->description != NULL) {
+		return item->priv->description;
 	}
 
 	if (item->priv->tokens != NULL && hud_string_list_get_tail(item->priv->tokens) != NULL) {
