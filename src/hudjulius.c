@@ -423,7 +423,7 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
 
   gchar *voca_path = g_build_filename (*temp_dir, "hud.voca", NULL );
   GFile *voca_file = g_file_new_for_path (voca_path);
-  error = NULL;
+  *error = NULL;
   GOutputStream* voca_output = G_OUTPUT_STREAM(g_file_create (voca_file,
           G_FILE_CREATE_PRIVATE, NULL, error ));
   if (voca_output == NULL )
