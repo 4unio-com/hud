@@ -323,9 +323,14 @@ hud_julius_write_new_vocabulary_entry(GOutputStream* voca_output, GHashTable *vo
   g_free(voca_id_str);
 }
 
+/**
+ * This writes a grammar entry for the whole command read out, and individual grammar entries
+ * for each word in the command.
+ */
 static void
 hud_julius_write_command(GOutputStream* grammar_output, GOutputStream* voca_output, GHashTable *voca, gint *voca_id_counter, GHashTable *pronounciations, GPtrArray *command)
 {
+  /* First we write a grammar entry as the complete sequence of words in the command */
   g_output_stream_write (grammar_output, "S : NS_B ", g_utf8_strlen ("S : NS_B ", -1),
               NULL, NULL );
 
@@ -353,6 +358,28 @@ hud_julius_write_command(GOutputStream* grammar_output, GOutputStream* voca_outp
 
   g_output_stream_write (grammar_output, " NS_E\n",
             g_utf8_strlen (" NS_E\n", -1), NULL, NULL );
+
+  /* Now we write a separate grammar entry for each word in the command */
+  for (i = 0; i < command->len; ++i)
+  {
+    g_output_stream_write (grammar_output, "S : NS_B ", g_utf8_strlen ("S : NS_B ", -1),
+                  NULL, NULL );
+
+    const gchar *word = g_ptr_array_index(command, i);
+    /* The voca_id will certainly be known as we've already written the while lot out once */
+    gint voca_id = GPOINTER_TO_INT(g_hash_table_lookup(voca, word));
+
+    gchar *voca_id_str = g_strdup_printf("TOKEN_%d", voca_id);
+
+    g_output_stream_write (grammar_output, voca_id_str,
+        g_utf8_strlen (voca_id_str, -1), NULL, NULL );
+    g_output_stream_write (grammar_output, " ", g_utf8_strlen (" ", -1),
+                  NULL, NULL );
+    g_free(voca_id_str);
+
+    g_output_stream_write (grammar_output, " NS_E\n",
+        g_utf8_strlen (" NS_E\n", -1), NULL, NULL );
+  }
 }
 
 static gboolean
