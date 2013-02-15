@@ -665,6 +665,11 @@ application_source_changed (HudSource * source, gpointer user_data)
 	 * cleanup.
 	 */
 	if (hud_application_source_is_empty (appsource)) {
+		if ((gpointer)appsource == (gpointer)list->priv->used_source) {
+			hud_source_unuse(HUD_SOURCE(appsource));
+			g_clear_object(&list->priv->used_source);
+		}
+
 		g_hash_table_remove(list->priv->applications,
 				    hud_application_source_get_id(appsource));
 	}
