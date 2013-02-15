@@ -362,7 +362,7 @@ handle_update_app (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocati
 
 	g_debug("Updating App to: '%s'", app_id);
 
-	g_object_unref (query->current_source);
+	g_clear_object (&query->current_source);
 	query->current_source = hud_source_get(query->all_sources, app_id);
 	if (query->current_source == NULL) {
 	  return TRUE;
