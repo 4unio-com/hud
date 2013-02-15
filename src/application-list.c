@@ -264,7 +264,7 @@ hud_application_list_dispose (GObject *object)
 
 #ifdef HAVE_HYBRIS
 	/* Nothing to do as Hybris has no way to unregister our observer */
-	g_clear_object(&list->priv->last_focused_source);
+	g_clear_object(&self->priv->last_focused_source);
 #endif
 
 	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
