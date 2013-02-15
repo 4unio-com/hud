@@ -334,6 +334,9 @@ hud_model_item_new (HudMenuModelCollector *collector,
 
   prefix = hud_menu_model_context_get_prefix (context, action_name);
 
+  if (prefix[0] == '\0')
+    g_clear_pointer(&prefix, g_free);
+
   group = g_action_muxer_get(collector->muxer, prefix);
 
   if (!group)
@@ -343,7 +346,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
     }
 
   /* Kinda silly, think we can do better here */
-  if (g_str_has_prefix(action_name, prefix)) {
+  if (prefix != NULL && g_str_has_prefix(action_name, prefix)) {
     stripped_action_name = action_name + strlen(prefix) + 1;
   } else {
     stripped_action_name = action_name;
