@@ -291,7 +291,6 @@ main (int argc, char **argv)
 
   application_list = hud_application_list_new();
   hud_source_list_add(source_list, HUD_SOURCE(application_list));
-  g_object_unref (application_list);
 
   if (getenv ("HUD_DEBUG_SOURCE"))
     {
@@ -312,6 +311,7 @@ main (int argc, char **argv)
   g_main_loop_run (mainloop);
   g_main_loop_unref (mainloop);
 
+  g_object_unref (application_list);
   g_object_unref (source_list);
   g_ptr_array_free(query_list, TRUE);
 
