@@ -111,6 +111,8 @@ struct _HudMenuModelCollector
   /* This is the export path that we've been given */
   gchar * base_export_path;
   guint muxer_export;
+
+  HudSourceItemType type;
 };
 
 /* Structure for when we're tracking a model, all the info
@@ -158,6 +160,8 @@ static GList * hud_menu_model_collector_get_items (HudSource * source);
 static void hud_menu_model_collector_activate_toolbar (HudSource *   source,
                                                        HudClientQueryToolbarItems titem,
                                                        GVariant  *   platform_data);
+static const gchar * hud_menu_model_collector_get_app_icon (HudSource * collector);
+static const gchar * hud_menu_model_collector_get_app_id (HudSource * collector);
 
 /* Functions */
 static gchar *
@@ -466,7 +470,8 @@ static void hud_menu_model_collector_add_model_internal  (HudMenuModelCollector 
                                                           HudMenuModelContext   *parent_context,
                                                           const gchar           *action_namespace,
                                                           const gchar           *label,
-                                                          guint                  recurse);
+                                                          guint                  recurse,
+                                                          HudSourceItemType      type);
 
 static void hud_menu_model_collector_disconnect (gpointer               data,
                                                  gpointer               user_data);
@@ -478,7 +483,7 @@ readd_models (gpointer data, gpointer user_data)
 	HudMenuModelCollector *collector = user_data;
 	model_data_t * model_data = data;
 
-    hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label, model_data->recurse);
+    hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label, model_data->recurse, collector->type);
 	return;
 }
 
@@ -636,14 +641,14 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
        */
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SECTION)))
         {
-          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse);
+          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse, collector->type);
           g_object_unref (link);
         }
 
       g_debug("********************* collector model changed %s ************************", label);
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SUBMENU)))
         {
-          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse - 1);
+          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse - 1, collector->type);
           if (item != NULL && recurse <= 1)
             {
 	      g_debug("********************* setting sub menu %s %s ************************", collector->base_export_path, (char*)g_object_get_data(G_OBJECT(link), EXPORT_PATH));
@@ -685,9 +690,12 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
                                              HudMenuModelContext   *parent_context,
                                              const gchar           *action_namespace,
                                              const gchar           *label,
-                                             guint                  recurse)
+                                             guint                  recurse,
+                                             HudSourceItemType      type)
 {
   g_return_if_fail(G_IS_MENU_MODEL(model));
+
+  collector->type = type;
 
   /* We don't want to parse this one, just export it so that
      the UI could use it if needed */
@@ -863,7 +871,7 @@ hud_menu_model_collector_search (HudSource    *source,
 static void
 hud_menu_model_collector_list_applications (HudSource    *source,
                                             HudTokenList *search_string,
-                                            void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                            void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                                             gpointer      user_data)
 {
   HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
@@ -880,7 +888,7 @@ hud_menu_model_collector_list_applications (HudSource    *source,
       item = g_ptr_array_index (items, i);
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
       if (result) {
-        append_func(collector->app_id, collector->icon, user_data);
+        append_func(collector->app_id, collector->icon, collector->type, user_data);
         g_object_unref(result);
         break;
       }
@@ -988,6 +996,8 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->get = hud_menu_model_collector_get;
   iface->get_items = hud_menu_model_collector_get_items;
   iface->activate_toolbar = hud_menu_model_collector_activate_toolbar;
+  iface->get_app_id = hud_menu_model_collector_get_app_id;
+  iface->get_app_icon = hud_menu_model_collector_get_app_icon;
 }
 
 static void
@@ -1044,6 +1054,7 @@ hud_menu_model_collector_hud_awareness_cb (GObject      *source,
  * @icon: the icon for the appliction
  * @penalty: the penalty to apply to all results
  * @export_path: the path to export items on dbus
+ * @type: the type of items in this collector
  *
  * Create a new #HudMenuModelCollector object
  *
@@ -1053,7 +1064,8 @@ HudMenuModelCollector *
 hud_menu_model_collector_new (const gchar *application_id,
                               const gchar *icon,
                               guint        penalty,
-                              const gchar *export_path)
+                              const gchar *export_path,
+                              HudSourceItemType type)
 {
 	g_return_val_if_fail(application_id != NULL, NULL);
 	g_return_val_if_fail(export_path != NULL, NULL);
@@ -1064,6 +1076,7 @@ hud_menu_model_collector_new (const gchar *application_id,
 	collector->icon = g_strdup (icon);
 	collector->penalty = penalty;
 	collector->base_export_path = g_strdup(export_path);
+	collector->type = type;
 
 	collector->keyword_mapping = hud_keyword_mapping_new();
 	hud_keyword_mapping_load(collector->keyword_mapping, collector->app_id, DATADIR, GNOMELOCALEDIR);
@@ -1137,14 +1150,14 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   if (app_menu_object_path)
     {
       app_menu = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, app_menu_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
       g_object_unref(app_menu);
     }
 
   if (menubar_object_path)
     {
       menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, menubar_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
       g_object_unref(menubar);
     }
 
@@ -1221,7 +1234,7 @@ hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuMode
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_MENU_MODEL(model));
 
-	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix, recurse);
+	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix, recurse, collector->type);
 }
 
 /**
@@ -1271,4 +1284,34 @@ hud_menu_model_collector_get_items (HudSource * source)
 	}
 
 	return retval;
+}
+
+/**
+ * hud_menu_model_collector_get_app_id:
+ * @collector: A #HudMenuModelCollector
+ *
+ * The ID of the application here
+ *
+ * Return value: Application ID
+ */
+static const gchar *
+hud_menu_model_collector_get_app_id (HudSource * collector)
+{
+	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector), NULL);
+	return HUD_MENU_MODEL_COLLECTOR(collector)->app_id;
+}
+
+/**
+ * hud_menu_model_collector_get_app_icon:
+ * @collector: A #HudMenuModelCollector
+ *
+ * The icon of the application here
+ *
+ * Return value: Application icon
+ */
+static const gchar *
+hud_menu_model_collector_get_app_icon (HudSource * collector)
+{
+	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector), NULL);
+	return HUD_MENU_MODEL_COLLECTOR(collector)->icon;
 }

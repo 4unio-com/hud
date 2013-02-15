@@ -218,7 +218,7 @@ hud_indicator_source_search (HudSource    *hud_source,
 static void
 hud_indicator_source_list_applications (HudSource    *hud_source,
                                         HudTokenList *search_string,
-                                        void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                        void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                                         gpointer      user_data)
 {
   HudIndicatorSource *source = HUD_INDICATOR_SOURCE (hud_source);
@@ -286,7 +286,7 @@ hud_indicator_source_name_appeared (GDBusConnection *connection,
 
   if (indicator->info->uses_gmenumodel)
     {
-      HudMenuModelCollector *collector = hud_menu_model_collector_new(indicator->info->indicator_name, indicator->info->icon, hud_settings.indicator_penalty, indicator->info->dbus_path);
+      HudMenuModelCollector *collector = hud_menu_model_collector_new(indicator->info->indicator_name, indicator->info->icon, hud_settings.indicator_penalty, indicator->info->dbus_path, HUD_SOURCE_ITEM_TYPE_INDICATOR);
 
       hud_menu_model_collector_add_endpoint (collector,
                                              _(indicator->info->user_visible_name),
@@ -314,7 +314,8 @@ hud_indicator_source_name_appeared (GDBusConnection *connection,
                                                                _(indicator->info->user_visible_name),
                                                                indicator->info->icon,
                                                                hud_settings.indicator_penalty,
-                                                               name_owner, indicator->info->dbus_menu_path);
+                                                               name_owner, indicator->info->dbus_menu_path,
+                                                               HUD_SOURCE_ITEM_TYPE_INDICATOR);
           indicator->collector = HUD_SOURCE (collector);
         }
     }
