@@ -321,6 +321,10 @@ hud_query_refresh (HudQuery *query)
   HudSource * focused = hud_application_list_get_focused_app(query->app_list);
   appstack_hash_add_source(appstack_hash, focused, HUD_SOURCE_ITEM_TYPE_FOCUSED_APP);
 
+  /* Always have the side stage app in there too */
+  HudSource * side_stage = hud_application_list_get_side_stage_focused_app(query->app_list);
+  appstack_hash_add_source(appstack_hash, side_stage, HUD_SOURCE_ITEM_TYPE_SIDESTAGE_APP);
+
   /* Now take the hash, having already deduplicated for us, and turn
      it into a shorted DeeModel */
   appstack_hash_to_model(appstack_hash, query->appstack_model);
