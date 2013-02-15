@@ -428,8 +428,7 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 static void
 session_focused (ubuntu_ui_session_properties props, void * context)
 {
-	// TODO This is crashing
-	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(&props);
+	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
 	// Do not care about anything not main or side stage
 	if (stage_hint != MAIN_STAGE_HINT && stage_hint != SIDE_STAGE_HINT)
 		return;
