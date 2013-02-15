@@ -203,7 +203,7 @@ hud_random_source_populate_table (HudRandomSource *self,
         /* At the maximum depth, prevent any items from being submenus. */
         is_submenu = FALSE;
 
-      item = hud_item_new (name, name, "", self->application_id, self->app_icon, !is_submenu);
+      item = hud_item_new (name, name, "", self->application_id, self->app_icon, NULL, !is_submenu);
       g_hash_table_add (self->items, item);
 
       if (is_submenu)

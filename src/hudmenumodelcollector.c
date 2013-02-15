@@ -323,6 +323,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
                     const gchar           *label,
                     const gchar           *action_name,
                     const gchar           *accel,
+                    const gchar           *description,
                     GVariant              *target,
                     const gchar           *toolbar)
 {
@@ -352,7 +353,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
   full_label = hud_menu_model_context_get_label (context, label);
   keywords = hud_menu_model_context_get_tokens(label, collector->keyword_mapping);
 
-  item = hud_item_construct (hud_model_item_get_type (), full_label, keywords, accel, collector->app_id, collector->icon, TRUE);
+  item = hud_item_construct (hud_model_item_get_type (), full_label, keywords, accel, collector->app_id, collector->icon, description, TRUE);
   item->group = g_object_ref (group);
   item->action_name = g_strdup (stripped_action_name);
   item->action_name_full = g_strdup (action_name);
@@ -603,6 +604,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       gchar *action = NULL;
       gchar *accel = NULL;
       gchar *toolbar = NULL;
+      gchar *description = NULL;
       HudItem *item = NULL;
 
 
@@ -611,6 +613,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_LABEL, "s", &label);
       g_menu_model_get_item_attribute (model, i, "accel", "s", &accel);
       g_menu_model_get_item_attribute (model, i, "hud-toolbar-item", "s", &toolbar);
+      g_menu_model_get_item_attribute (model, i, "description", "s", &description);
 
       accel = format_accel_for_users(accel);
 
@@ -623,7 +626,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
 
           target = g_menu_model_get_item_attribute_value (model, i, G_MENU_ATTRIBUTE_TARGET, NULL);
 
-          item = hud_model_item_new (collector, context, label, action, accel, target, toolbar);
+          item = hud_model_item_new (collector, context, label, action, accel, description, target, toolbar);
 
           if (item)
             g_ptr_array_add (collector->items, item);
@@ -659,6 +662,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_free (label);
       g_free (accel);
       g_free (toolbar);
+      g_free (description);
     }
 
   if (changed)
