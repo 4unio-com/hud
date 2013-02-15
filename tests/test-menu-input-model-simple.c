@@ -42,7 +42,7 @@ main (int argv, char ** argc)
 	  item = g_menu_item_new("Simple", "simple");
 
 	g_menu_item_set_attribute_value(item, "description", g_variant_new_string("A simple description"));
-	g_menu_item_set_attribute_value(item, "keywords", g_variant_new_string("hard;difficult;challenging"));
+	g_menu_item_set_attribute_value(item, "keywords", g_variant_new_string("hard;difficult;;challenging;"));
 	g_menu_append_item(menu, item);
 
 	GSimpleActionGroup * ag = g_simple_action_group_new();
