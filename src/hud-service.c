@@ -342,7 +342,6 @@ main (int argc, char **argv)
   g_main_loop_run (mainloop);
   g_main_loop_unref (mainloop);
 
-  g_object_unref (application_list);
   g_object_unref (source_list);
   g_ptr_array_free(query_list, TRUE);
 
