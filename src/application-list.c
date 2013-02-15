@@ -43,7 +43,7 @@ struct _HudApplicationListPrivate {
 #endif
 
 	GHashTable * applications;
-	HudSource * used_source; /* Not a reference */
+	HudSource * used_source;
 };
 
 #define HUD_APPLICATION_LIST_GET_PRIVATE(o) \
@@ -234,7 +234,7 @@ hud_application_list_dispose (GObject *object)
 
 	if (self->priv->used_source != NULL) {
 		hud_source_unuse(self->priv->used_source);
-		self->priv->used_source = NULL;
+		g_clear_object(&self->priv->used_source);
 	}
 
 #ifdef HAVE_BAMF
@@ -409,10 +409,11 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 
 	if (list->priv->used_source) {
 		hud_source_unuse(list->priv->used_source);
+		g_clear_object(&list->priv->used_source);
 	}
 
-  list->priv->used_source = HUD_SOURCE(source);
-  hud_source_use(list->priv->used_source);
+	list->priv->used_source = g_object_ref(source);
+	hud_source_use(list->priv->used_source);
 
 	return;
 }
@@ -582,7 +583,12 @@ source_use (HudSource *hud_source)
 		return;
 	}
 
-	list->priv->used_source = HUD_SOURCE(source);
+	if (list->priv->used_source != NULL) {
+		hud_source_unuse(list->priv->used_source);
+		g_clear_object(&list->priv->used_source);
+	}
+
+	list->priv->used_source = g_object_ref(source);
 
 	hud_source_use(HUD_SOURCE(source));
 
@@ -599,7 +605,7 @@ source_unuse (HudSource *hud_source)
 	g_return_if_fail(list->priv->used_source != NULL);
 
 	hud_source_unuse(list->priv->used_source);
-	list->priv->used_source = NULL;
+	g_clear_object(&list->priv->used_source);
 
 	return;
 }
