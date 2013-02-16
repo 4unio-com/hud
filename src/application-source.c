@@ -413,10 +413,16 @@ hud_application_source_new_for_id (const gchar * id)
 	source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s", app_id_clean);
 
 	int i = 0;
+	GError * error = NULL;
 	while (!g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(source->priv->skel),
 	                                 g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
 	                                 source->priv->path,
-	                                 NULL)) {
+	                                 &error)) {
+		if (error != NULL) {
+			g_warning("Unable to export application '%s' skeleton on path '%s': %s", id, source->priv->path, error->message);
+			g_error_free(error);
+			error = NULL;
+		}
 		g_free(source->priv->path);
 		source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s_%d", app_id_clean, ++i);
 	}
