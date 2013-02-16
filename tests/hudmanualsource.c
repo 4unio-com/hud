@@ -41,7 +41,7 @@ void
 hud_manual_source_add (HudManualSource *self, HudStringList *tokens, HudStringList *keywords,
     const gchar *shortcut, gboolean enabled)
 {
-  HudItem *item = hud_item_new (tokens, keywords, shortcut, self->application_id, self->app_icon, enabled);
+  HudItem *item = hud_item_new (tokens, keywords, shortcut, self->application_id, self->app_icon, NULL, enabled);
   g_ptr_array_add(self->items, item);
   hud_source_changed (HUD_SOURCE (self));
 }

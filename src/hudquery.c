@@ -175,7 +175,7 @@ appstack_hash_to_model (GHashTable * hash, DeeModel * model)
 	for (value = values; value != NULL; value = g_list_next(value)) {
 		appstack_item_t * item = (appstack_item_t *)value->data;
 
-	GVariant * columns[G_N_ELEMENTS(appstack_model_schema) + 1];
+		GVariant * columns[G_N_ELEMENTS(appstack_model_schema) + 1];
 		columns[0] = g_variant_new_string(item->app_id ? item->app_id : "");
 		columns[1] = g_variant_new_string(item->app_icon ? item->app_icon : "");
 		columns[2] = g_variant_new_int32(item->type);
@@ -253,20 +253,17 @@ results_list_to_model (gpointer data, gpointer user_data)
 	HudResult * result = (HudResult *)data;
 	HudQuery * query = (HudQuery *)user_data;
 	HudItem * item = hud_result_get_item(result);
-	gchar * context = NULL; /* Need to free this one, sucks, practical reality */
 
 	GVariant * columns[G_N_ELEMENTS(results_model_schema) + 1];
 	columns[0] = g_variant_new_variant(g_variant_new_uint64(hud_item_get_id(item)));
 	columns[1] = g_variant_new_string(hud_item_get_command(item));
 	columns[2] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
-	columns[3] = g_variant_new_string(context = hud_item_get_context(item));
+	columns[3] = g_variant_new_string(hud_item_get_description(item));
 	columns[4] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
 	columns[5] = g_variant_new_string(hud_item_get_shortcut(item));
 	columns[6] = g_variant_new_uint32(hud_result_get_distance(result, query->max_usage));
 	columns[7] = g_variant_new_boolean(HUD_IS_MODEL_ITEM(item) ? hud_model_item_is_parameterized(HUD_MODEL_ITEM(item)) : FALSE);
 	columns[8] = NULL;
-
-	g_free(context);
 
 	DeeModelIter * iter = dee_model_append_row(query->results_model,
 	                                                  columns /* variants */);
