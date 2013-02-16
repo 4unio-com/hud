@@ -34,6 +34,7 @@
 #define RECURSE_DATA        "hud-menu-model-recurse-level"
 #define EXPORT_PATH         "hud-menu-model-export-path"
 #define EXPORT_MENU         "hud-menu-model-export-menu"
+#define EXPORT_ID           "hud-menu-model-export-idt"
 
 /**
  * SECTION:hudmenumodelcollector
@@ -709,6 +710,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
     gchar * menu_path = g_strdup_printf("%s/menu%X", collector->base_export_path, GPOINTER_TO_UINT(model));
     g_debug("Exporting menu model: %s", menu_path);
     idt->id = g_dbus_connection_export_menu_model(collector->session, menu_path, G_MENU_MODEL(export), NULL);
+	g_object_unref(export);
 
 	/* Make sure we're ready to clean up */
     g_object_set_data_full(G_OBJECT(model), EXPORT_PATH, menu_path, g_free);
@@ -727,7 +729,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
      * menu_path is simply used as a unique key to store the idt in collector GObject.
      * There is no need to retrieve the idt using g_object_get_data().
      */
-    g_object_set_data_full(G_OBJECT(collector), menu_path, idt, unexport_menu);
+    g_object_set_data_full(G_OBJECT(model), EXPORT_ID, idt, unexport_menu);
 
     return;
   }

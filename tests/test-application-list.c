@@ -166,6 +166,8 @@ test_window_source_menu_model ()
 
   hud_test_utils_process_mainloop (100);
 
+  hud_source_use(HUD_SOURCE(source));
+
   HudTokenList *search = hud_token_list_new_from_string ("simple");
   {
     GPtrArray *results = g_ptr_array_new_with_free_func(g_object_unref);
@@ -204,6 +206,8 @@ test_window_source_menu_model ()
     g_assert_cmpstr(hud_application_source_get_path (app), ==,
         "/com/canonical/hud/applications/name");
   }
+
+  hud_source_unuse(HUD_SOURCE(source));
 
   hud_token_list_free(search);
   hud_token_list_free(search_two);
