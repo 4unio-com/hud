@@ -476,7 +476,7 @@ session_died (ubuntu_ui_session_properties props, void * context)
 	g_debug("Source is getting removed: %s", app_id);
 
 	if (source == list->priv->used_source) {
-		hud_source_unuse(source);
+		hud_source_unuse(HUD_SOURCE(source));
 		g_clear_object(&list->priv->used_source);
 	}
 
