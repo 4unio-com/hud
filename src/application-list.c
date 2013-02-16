@@ -480,6 +480,10 @@ session_died (ubuntu_ui_session_properties props, void * context)
 		g_clear_object(&list->priv->used_source);
 	}
 
+	if ((gpointer)source == (gpointer)list->priv->last_focused_source) {
+		g_clear_object(&list->priv->last_focused_source);
+	}
+
 	g_hash_table_remove(list->priv->applications, app_id);
 	g_free(app_id);
 
