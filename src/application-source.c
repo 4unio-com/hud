@@ -421,8 +421,15 @@ hud_application_source_new_for_id (const gchar * id)
 	                                 &error)) {
 		if (error != NULL) {
 			g_warning("Unable to export application '%s' skeleton on path '%s': %s", id, source->priv->path, error->message);
+
+			gboolean exists_error = g_error_matches(error, G_IO_ERROR, G_IO_ERROR_EXISTS);
+
 			g_error_free(error);
 			error = NULL;
+
+			if (!exists_error) {
+				break;
+			}
 		}
 		g_free(source->priv->path);
 		source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s_%d", app_id_clean, ++i);
