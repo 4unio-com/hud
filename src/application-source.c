@@ -30,6 +30,8 @@
 #include "hudsourcelist.h"
 
 struct _HudApplicationSourcePrivate {
+	GDBusConnection * session;
+
 	gchar * app_id;
 	gchar * path;
 	AppIfaceComCanonicalHudApplication * skel;
@@ -143,6 +145,7 @@ hud_application_source_init (HudApplicationSource *self)
 
 	self->priv->windows = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, g_object_unref);
 	self->priv->connections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, connection_watcher_free);
+	self->priv->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 
 	return;
 }
@@ -169,6 +172,7 @@ hud_application_source_dispose (GObject *object)
 #ifdef HAVE_BAMF
 	g_clear_object(&self->priv->bamf_app);
 #endif
+	g_clear_object(&self->priv->session);
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->dispose (object);
 	return;
@@ -416,7 +420,7 @@ hud_application_source_new_for_id (const gchar * id)
 	int i = 0;
 	GError * error = NULL;
 	while (!g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(source->priv->skel),
-	                                 g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
+	                                 source->priv->session,
 	                                 source->priv->path,
 	                                 &error)) {
 		if (error != NULL) {
