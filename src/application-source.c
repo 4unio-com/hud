@@ -406,7 +406,6 @@ hud_application_source_new_for_id (const gchar * id)
 	source->priv->app_id = g_strdup(id);
 
 	source->priv->skel = app_iface_com_canonical_hud_application_skeleton_new();
-	g_signal_connect(G_OBJECT(source->priv->skel), "handle-add-sources", G_CALLBACK(dbus_add_sources), source);
 
 	gchar * app_id_clean = g_strdup(id);
 	gchar * app_id_cleanp;
@@ -436,8 +435,13 @@ hud_application_source_new_for_id (const gchar * id)
 			}
 		}
 		g_free(source->priv->path);
+		g_clear_object(&source->priv->skel);
+
 		source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s_%d", app_id_clean, ++i);
+		source->priv->skel = app_iface_com_canonical_hud_application_skeleton_new();
 	}
+
+	g_signal_connect(G_OBJECT(source->priv->skel), "handle-add-sources", G_CALLBACK(dbus_add_sources), source);
 
 	g_debug("Application ('%s') path: %s", id, source->priv->path);
 	g_free(app_id_clean);
