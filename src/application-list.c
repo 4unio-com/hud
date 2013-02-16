@@ -460,11 +460,31 @@ session_requested (ubuntu_ui_well_known_application app, void * context)
 	return;
 }
 
-/* This function does nothing, but Hybris isn't smart enough to handle
-   NULL pointers, so we need to fill in the structure. */
+/* Finds the application object for the session and unref's it so
+   we'll assume it is gone, gone, gone. */
 static void
 session_died (ubuntu_ui_session_properties props, void * context)
 {
+	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+
+	HudApplicationSource * source = bamf_app_to_source(list, &props);
+	if (source == NULL) {
+		return;
+	}
+
+	gchar * app_id = g_strdup(hud_application_source_get_id(source));
+	g_debug("Source is getting removed: %s", app_id);
+
+	if (source == list->priv->used_source) {
+		hud_source_unuse(source);
+		g_clear_object(&list->priv->used_source);
+	}
+
+	g_hash_table_remove(list->priv->applications, app_id);
+	g_free(app_id);
+
+	hud_source_changed(HUD_SOURCE(list));
+
 	return;
 }
 #endif
