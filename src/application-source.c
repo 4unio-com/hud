@@ -559,6 +559,8 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 
 		hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), prefix);
 		add_id_to_connection(app, session, sender, idn);
+
+		g_object_unref(ag);
 	}
 
 	GVariantIter desc_iter;
