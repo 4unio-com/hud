@@ -670,8 +670,10 @@ application_source_changed (HudSource * source, gpointer user_data)
 			g_clear_object(&list->priv->used_source);
 		}
 
-		g_hash_table_remove(list->priv->applications,
-				    hud_application_source_get_id(appsource));
+		gchar * id = g_strdup(hud_application_source_get_id(appsource));
+
+		g_hash_table_remove(list->priv->applications, id);
+		g_free(id);
 	}
 
 	hud_source_changed(HUD_SOURCE(list));
