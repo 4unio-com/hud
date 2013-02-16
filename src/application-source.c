@@ -43,7 +43,7 @@ struct _HudApplicationSourcePrivate {
 
 	guint32 focused_window;
 
-	HudSource * used_source; /* Not a ref */
+	HudSource * used_source;
 	guint how_used;
 
 	GHashTable * windows;
@@ -155,7 +155,7 @@ hud_application_source_dispose (GObject *object)
 
 	if (self->priv->used_source != NULL) {
 		hud_source_unuse(self->priv->used_source);
-		self->priv->used_source = NULL;
+		g_clear_object(&self->priv->used_source);
 	}
 
 	g_clear_pointer(&self->priv->windows, g_hash_table_unref);
@@ -239,6 +239,7 @@ source_use (HudSource *hud_source)
 
 	if (app->priv->used_source == NULL) {
 		app->priv->used_source = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(app->priv->focused_window));
+		g_object_ref(app->priv->used_source);
 		app->priv->how_used = 0;
 	}
 
@@ -271,7 +272,7 @@ source_unuse (HudSource *hud_source)
 
 	if (app->priv->how_used == 0) {
 		hud_source_unuse(app->priv->used_source);
-		app->priv->used_source = NULL;
+		g_clear_object(&app->priv->used_source);
 	}
 
 	return;
@@ -791,7 +792,7 @@ window_destroyed (gpointer data, GObject * old_address)
 	window_info->window = NULL;
 
 	if (window_info->source->priv->focused_window == window_info->xid) {
-		window_info->source->priv->used_source = NULL;
+		g_clear_object(&window_info->source->priv->used_source);
 	}
 	g_hash_table_remove(window_info->source->priv->windows, GINT_TO_POINTER(window_info->xid));
 	/* NOTE: DO NOT use the window_info after this point as
