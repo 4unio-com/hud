@@ -106,8 +106,10 @@ hud_source_use (HudSource *source)
 
   g_debug ("use on %s %p", G_OBJECT_TYPE_NAME (source), source);
 
-  HUD_SOURCE_GET_IFACE (source)
-    ->use (source);
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->use != NULL) {
+    return iface->use(source);
+  }
 }
 
 /**
@@ -126,8 +128,10 @@ hud_source_unuse (HudSource *source)
 
   g_debug ("unuse on %s %p", G_OBJECT_TYPE_NAME (source), source);
 
-  HUD_SOURCE_GET_IFACE (source)
-    ->unuse (source);
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->unuse != NULL) {
+    return iface->unuse(source);
+  }
 }
 
 /**
@@ -151,8 +155,10 @@ hud_source_search (HudSource    *source,
 {
   g_debug ("search on %s %p", G_OBJECT_TYPE_NAME (source), source);
 
-  HUD_SOURCE_GET_IFACE (source)
-    ->search (source, search_string, append_func, user_data);
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->unuse != NULL) {
+    return iface->search(source, search_string, append_func, user_data);
+  }
 }
 
 void
@@ -163,8 +169,10 @@ hud_source_list_applications (HudSource    *source,
 {
   g_debug ("list_applications on %s %p", G_OBJECT_TYPE_NAME (source), source);
 
-  HUD_SOURCE_GET_IFACE (source)
-    ->list_applications (source, search_tokens, append_func, user_data);
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->list_applications != NULL) {
+    return iface->list_applications(source, search_tokens, append_func, user_data);
+  }
 }
 
 /**
@@ -183,8 +191,12 @@ hud_source_get (HudSource   *source,
 
   g_debug ("get on %s %p", G_OBJECT_TYPE_NAME (source), source);
 
-  return HUD_SOURCE_GET_IFACE (source)
-    ->get (source, application_id);
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->get != NULL) {
+    return iface->get(source, application_id);
+  }
+
+  return NULL;
 }
 
 /**
