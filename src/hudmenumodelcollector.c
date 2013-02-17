@@ -317,6 +317,32 @@ hud_model_item_class_init (HudModelItemClass *class)
   class->activate = hud_model_item_activate;
 }
 
+/* Breaks apart the string and adds it to the list */
+static HudStringList *
+append_keywords_string (HudStringList * list, const gchar * string)
+{
+	if (string == NULL) {
+		return list;
+	}
+
+	/* Limiting to 64 keywords.  A bit arbitrary, but we need to ensure
+	   that bad apps can't hurt us. */
+	gchar ** split = g_strsplit(string, ";", 64);
+
+	if (split == NULL) {
+		return list;
+	}
+
+	int i;
+	for (i = 0; split[i] != NULL; i++) {
+		if (split[i][0] != '\0')
+			list = hud_string_list_cons(split[i], list);
+	}
+
+	g_strfreev(split);
+	return list;
+}
+
 static HudItem *
 hud_model_item_new (HudMenuModelCollector *collector,
                     HudMenuModelContext   *context,
@@ -324,6 +350,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
                     const gchar           *action_name,
                     const gchar           *accel,
                     const gchar           *description,
+                    const gchar           *keywords_string,
                     GVariant              *target,
                     const gchar           *toolbar)
 {
@@ -352,6 +379,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
 
   full_label = hud_menu_model_context_get_label (context, label);
   keywords = hud_menu_model_context_get_tokens(label, collector->keyword_mapping);
+  keywords = append_keywords_string(keywords, keywords_string);
 
   item = hud_item_construct (hud_model_item_get_type (), full_label, keywords, accel, collector->app_id, collector->icon, description, TRUE);
   item->group = g_object_ref (group);
@@ -605,6 +633,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       gchar *accel = NULL;
       gchar *toolbar = NULL;
       gchar *description = NULL;
+      gchar *keywords = NULL;
       HudItem *item = NULL;
 
 
@@ -614,6 +643,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_menu_model_get_item_attribute (model, i, "accel", "s", &accel);
       g_menu_model_get_item_attribute (model, i, "hud-toolbar-item", "s", &toolbar);
       g_menu_model_get_item_attribute (model, i, "description", "s", &description);
+      g_menu_model_get_item_attribute (model, i, "keywords", "s", &keywords);
 
       accel = format_accel_for_users(accel);
 
@@ -626,7 +656,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
 
           target = g_menu_model_get_item_attribute_value (model, i, G_MENU_ATTRIBUTE_TARGET, NULL);
 
-          item = hud_model_item_new (collector, context, label, action, accel, description, target, toolbar);
+          item = hud_model_item_new (collector, context, label, action, accel, description, keywords, target, toolbar);
 
           if (item)
             g_ptr_array_add (collector->items, item);
@@ -663,6 +693,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_free (accel);
       g_free (toolbar);
       g_free (description);
+      g_free (keywords);
     }
 
   if (changed)
