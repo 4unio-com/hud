@@ -61,6 +61,7 @@ struct _HudQuery
   HudSource *all_sources;
   HudApplicationList *app_list;
   HudSource *current_source;
+  HudSource *last_used_source;
   gchar *search_string;
   HudTokenList *token_list;
   gint num_results;
@@ -288,6 +289,18 @@ hud_query_refresh (HudQuery *query)
   if (search_source == NULL) {
     search_source = hud_application_list_get_focused_app(query->app_list);
   }
+
+  /* Make sure we've used it before searching it */
+  if (search_source != NULL && search_source != query->last_used_source) {
+    if (query->last_used_source != NULL)
+    {
+      hud_source_unuse(query->last_used_source);
+      g_clear_object(&query->last_used_source);
+    }
+	hud_source_use(search_source);
+	query->last_used_source = g_object_ref(search_source);
+  }
+
   if (search_source != NULL) {
     hud_source_search (search_source, query->token_list, results_list_populate, query);
   } else {
@@ -361,6 +374,12 @@ hud_query_finalize (GObject *object)
   g_debug ("Destroyed query '%s'", query->search_string);
 
   /* TODO: move to destroy */
+  if (query->last_used_source != NULL)
+  {
+    hud_source_unuse(query->last_used_source);
+    g_clear_object(&query->last_used_source);
+  }
+
   g_clear_object(&query->skel);
   g_clear_object(&query->results_model);
   /* NOTE: ^^ Kills results_tag as well */
@@ -368,8 +387,6 @@ hud_query_finalize (GObject *object)
 
   if (query->refresh_id)
     g_source_remove (query->refresh_id);
-
-  hud_source_unuse (query->all_sources);
 
   g_object_unref (query->all_sources);
   g_object_unref (query->app_list);
@@ -764,8 +781,6 @@ hud_query_new (HudSource   *all_sources,
   }
 
   query->num_results = num_results;
-
-  hud_source_use (query->all_sources);
 
   hud_query_refresh (query);
 

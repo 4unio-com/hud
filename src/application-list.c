@@ -38,12 +38,12 @@ struct _HudApplicationListPrivate {
 	gulong matcher_view_close_sig;
 #endif
 #ifdef HAVE_HYBRIS
-	HudApplicationSource * last_focused_source; /* Not a reference */
+	HudApplicationSource * last_focused_source;
 	ubuntu_ui_session_lifecycle_observer observer_definition;
 #endif
 
 	GHashTable * applications;
-	HudSource * used_source; /* Not a reference */
+	HudSource * used_source;
 };
 
 #define HUD_APPLICATION_LIST_GET_PRIVATE(o) \
@@ -234,7 +234,7 @@ hud_application_list_dispose (GObject *object)
 
 	if (self->priv->used_source != NULL) {
 		hud_source_unuse(self->priv->used_source);
-		self->priv->used_source = NULL;
+		g_clear_object(&self->priv->used_source);
 	}
 
 #ifdef HAVE_BAMF
@@ -264,6 +264,7 @@ hud_application_list_dispose (GObject *object)
 
 #ifdef HAVE_HYBRIS
 	/* Nothing to do as Hybris has no way to unregister our observer */
+	g_clear_object(&self->priv->last_focused_source);
 #endif
 
 	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
@@ -406,13 +407,6 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 
 	hud_application_source_focus(source, new_app, new_win);
 
-	if (list->priv->used_source) {
-		hud_source_unuse(list->priv->used_source);
-	}
-
-  list->priv->used_source = HUD_SOURCE(source);
-  hud_source_use(list->priv->used_source);
-
 	return;
 }
 #endif
@@ -423,7 +417,7 @@ static void
 session_focused (ubuntu_ui_session_properties props, void * context)
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(context);
-	list->priv->last_focused_source = NULL;
+	g_clear_object(&list->priv->last_focused_source);
 
 	if (hud_application_list_name_in_ignore_list(&props)) {
 		return;
@@ -444,7 +438,7 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 
 	/* Used to track focus for use... unclear about race conditions */
 	g_warn_if_fail(list->priv->last_focused_source == NULL);
-	list->priv->last_focused_source = source;
+	list->priv->last_focused_source = g_object_ref(source);
 
 	return;
 }
@@ -454,7 +448,7 @@ static void
 session_unfocused (ubuntu_ui_session_properties props, void * context)
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(context);
-	list->priv->last_focused_source = NULL;
+	g_clear_object(&list->priv->last_focused_source);
 	return;
 }
 
@@ -466,11 +460,35 @@ session_requested (ubuntu_ui_well_known_application app, void * context)
 	return;
 }
 
-/* This function does nothing, but Hybris isn't smart enough to handle
-   NULL pointers, so we need to fill in the structure. */
+/* Finds the application object for the session and unref's it so
+   we'll assume it is gone, gone, gone. */
 static void
 session_died (ubuntu_ui_session_properties props, void * context)
 {
+	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+
+	HudApplicationSource * source = bamf_app_to_source(list, &props);
+	if (source == NULL) {
+		return;
+	}
+
+	gchar * app_id = g_strdup(hud_application_source_get_id(source));
+	g_debug("Source is getting removed: %s", app_id);
+
+	if ((gpointer)source == (gpointer)list->priv->used_source) {
+		hud_source_unuse(HUD_SOURCE(source));
+		g_clear_object(&list->priv->used_source);
+	}
+
+	if ((gpointer)source == (gpointer)list->priv->last_focused_source) {
+		g_clear_object(&list->priv->last_focused_source);
+	}
+
+	g_hash_table_remove(list->priv->applications, app_id);
+	g_free(app_id);
+
+	hud_source_changed(HUD_SOURCE(list));
+
 	return;
 }
 #endif
@@ -581,7 +599,12 @@ source_use (HudSource *hud_source)
 		return;
 	}
 
-	list->priv->used_source = HUD_SOURCE(source);
+	if (list->priv->used_source != NULL) {
+		hud_source_unuse(list->priv->used_source);
+		g_clear_object(&list->priv->used_source);
+	}
+
+	list->priv->used_source = g_object_ref(source);
 
 	hud_source_use(HUD_SOURCE(source));
 
@@ -598,7 +621,7 @@ source_unuse (HudSource *hud_source)
 	g_return_if_fail(list->priv->used_source != NULL);
 
 	hud_source_unuse(list->priv->used_source);
-	list->priv->used_source = NULL;
+	g_clear_object(&list->priv->used_source);
 
 	return;
 }
@@ -666,8 +689,15 @@ application_source_changed (HudSource * source, gpointer user_data)
 	 * cleanup.
 	 */
 	if (hud_application_source_is_empty (appsource)) {
-		g_hash_table_remove(list->priv->applications,
-				    hud_application_source_get_id(appsource));
+		if ((gpointer)appsource == (gpointer)list->priv->used_source) {
+			hud_source_unuse(HUD_SOURCE(appsource));
+			g_clear_object(&list->priv->used_source);
+		}
+
+		gchar * id = g_strdup(hud_application_source_get_id(appsource));
+
+		g_hash_table_remove(list->priv->applications, id);
+		g_free(id);
 	}
 
 	hud_source_changed(HUD_SOURCE(list));

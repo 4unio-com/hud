@@ -761,6 +761,10 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
      *
      * menu_path is simply used as a unique key to store the idt in collector GObject.
      * There is no need to retrieve the idt using g_object_get_data().
+     *
+     * The reason that it can't be on the model is because the model is referenced
+     * by the exported item.  So the model will never be free'd until the export is
+     * first.
      */
     g_object_set_data_full(G_OBJECT(collector), menu_path, idt, unexport_menu);
 
