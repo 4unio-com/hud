@@ -642,18 +642,16 @@ hud_menu_model_collector_get (BamfWindow  *window,
   gchar *window_object_path;
   GDBusConnection *session;
 
+  unique_bus_name = bamf_window_get_utf8_prop (window, "_GTK_UNIQUE_BUS_NAME");
+
+  if (!unique_bus_name) {
+    return NULL;
+  }
+
   session = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
 
   if (!session)
     return NULL;
-
-  unique_bus_name = bamf_window_get_utf8_prop (window, "_GTK_UNIQUE_BUS_NAME");
-
-  if (!unique_bus_name) {
-    /* If this isn't set, we won't get very far... */
-    g_object_unref(session);
-    return NULL;
-  }
 
   collector = g_object_new (HUD_TYPE_MENU_MODEL_COLLECTOR, NULL);
   collector->session = session;
