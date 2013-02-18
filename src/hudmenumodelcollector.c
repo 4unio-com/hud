@@ -277,7 +277,7 @@ hud_model_item_activate_toolbar (HudModelItem  *hud_item,
                                  GVariant *platform_data)
 {
 	if (hud_item->toolbar_item == item) {
-		hud_model_item_activate(HUD_ITEM(hud_item), platform_data);
+		hud_item_activate(HUD_ITEM(hud_item), platform_data);
 	}
 
 	return;
@@ -476,6 +476,8 @@ hud_model_item_activate_parameterized (HudModelItem * item, guint32 timestamp, c
 	*model_path = (const gchar *)g_object_get_data(G_OBJECT(item->submodel), EXPORT_PATH);
 	*action_path = item->action_path;
 	*section = 1;
+
+	hud_item_mark_usage(HUD_ITEM(item));
 
 	return;
 }

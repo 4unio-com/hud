@@ -84,6 +84,7 @@ HudItem *               hud_item_new                                    (HudStri
                                                                          gboolean       enabled);
 void                    hud_item_activate                               (HudItem       *item,
                                                                          GVariant      *platform_data);
+void                    hud_item_mark_usage                             (HudItem       *item);
 HudStringList *         hud_item_get_tokens                             (HudItem       *item);
 HudStringList *         hud_item_get_keywords                             (HudItem       *item);
 const gchar *           hud_item_get_app_id                             (HudItem       *item);

@@ -238,6 +238,20 @@ hud_item_activate (HudItem  *item,
   HUD_ITEM_GET_CLASS (item)
     ->activate (item, platform_data);
 
+  hud_item_mark_usage(item);
+}
+
+/**
+ * hud_item_mark_usage:
+ * @item: a #HudItem
+ *
+ * Marks usage on @item.
+ **/
+void
+hud_item_mark_usage (HudItem  *item)
+{
+  g_return_if_fail (HUD_IS_ITEM (item));
+
   if (item->priv->usage_tag)
     {
       usage_tracker_mark_usage (usage_tracker_get_instance (), item->priv->app_id, item->priv->usage_tag);
