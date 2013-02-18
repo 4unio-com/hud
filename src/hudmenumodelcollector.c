@@ -474,6 +474,8 @@ hud_model_item_activate_parameterized (HudModelItem * item, guint32 timestamp, c
 	*action_path = item->action_path;
 	*section = 1;
 
+	hud_item_mark_usage(HUD_ITEM(item));
+
 	return;
 }
 
