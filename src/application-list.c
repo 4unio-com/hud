@@ -265,7 +265,8 @@ hud_application_list_dispose (GObject *object)
 
 #ifdef HAVE_HYBRIS
 	/* Nothing to do as Hybris has no way to unregister our observer */
-	g_clear_object(&self->priv->last_focused_source);
+	g_clear_object(&self->priv->last_focused_main_stage_source);
+	g_clear_object(&self->priv->last_focused_side_stage_source);
 #endif
 
 	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
@@ -497,8 +498,11 @@ session_died (ubuntu_ui_session_properties props, void * context)
 		g_clear_object(&list->priv->used_source);
 	}
 
-	if ((gpointer)source == (gpointer)list->priv->last_focused_source) {
-		g_clear_object(&list->priv->last_focused_source);
+	if ((gpointer)source == (gpointer)list->priv->last_focused_main_stage_source) {
+		g_clear_object(&list->priv->last_focused_main_stage_source);
+	}
+	if ((gpointer)source == (gpointer)list->priv->last_focused_side_stage_source) {
+		g_clear_object(&list->priv->last_focused_side_stage_source);
 	}
 
 	g_hash_table_remove(list->priv->applications, app_id);
