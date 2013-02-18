@@ -117,12 +117,14 @@ compare_func (gconstpointer a, gconstpointer b, gpointer user_data)
       - hud_result_get_distance ((HudResult *) b, max_usage);
 }
 
-/* Add a HudResult to the list of results */
+/* Add a HudResult to the list of results.  This is inserted just at the
+   beginning.  We can't sort until we have the max usage, then we can sort
+   everything depending on distance and usage.  */
 static void
 results_list_populate (HudResult * result, gpointer user_data)
 {
 	HudQuery * query = (HudQuery *)user_data;
-	g_sequence_insert_sorted(query->results_list, result, compare_func, query);
+	g_sequence_insert_before(g_sequence_get_begin_iter(query->results_list), result);
 	return;
 }
 
@@ -310,6 +312,9 @@ hud_query_refresh (HudQuery *query)
 
   g_sequence_foreach(query->results_list, results_list_max_usage, &query->max_usage);
   g_debug("Max Usage: %d", query->max_usage);
+
+  /* Now that we have the max usage we can sort */
+  g_sequence_sort(query->results_list, compare_func, query);
   g_sequence_foreach(query->results_list, results_list_to_model, query);
 
   /* NOTE: Not freeing the items as the references are picked up by the DeeModel */
