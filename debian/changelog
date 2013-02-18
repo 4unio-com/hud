@@ -1,3 +1,22 @@
+hud (13.04.0-0ubuntu1~ppa15) quantal; urgency=low
+
+  * Sidestage support for appstack ordering (LP: #1127653)
+  * Stop crashing on second application start after quit (LP: #1126580)
+  * Usage not getting used in ranking (LP: #1129154) and not tracked
+    for parameterized actions (LP: #1129156)
+  * Fix GMenuModel based indicator actions (LP: #1129170)
+  * Description fixes (LP: #1122171)
+    * Use keywords from menu model for description
+    * Make context look like keywords in description (LP: #1125685)
+    * Show descriptions in results model
+  * Small Coverity fixes
+    * Unchecked return value (LP: #1126462)
+    * Parameter name hidden (LP: #1126448)
+    * Forward NULL (LP: #1126458)
+    * Stray semicolon (LP: #1126459)
+
+ -- Ted Gould <ted@ubuntu.com>  Mon, 18 Feb 2013 10:36:12 -0600
+
 hud (13.04.0-0ubuntu1~ppa14) quantal; urgency=low
 
   * Bumping version
