@@ -362,6 +362,9 @@ hud_model_item_new (HudMenuModelCollector *collector,
 
   prefix = hud_menu_model_context_get_prefix (context, action_name);
 
+  if (prefix[0] == '\0')
+    g_clear_pointer(&prefix, g_free);
+
   group = g_action_muxer_get(collector->muxer, prefix);
 
   if (!group)
@@ -371,7 +374,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
     }
 
   /* Kinda silly, think we can do better here */
-  if (g_str_has_prefix(action_name, prefix)) {
+  if (prefix != NULL && g_str_has_prefix(action_name, prefix)) {
     stripped_action_name = action_name + strlen(prefix) + 1;
   } else {
     stripped_action_name = action_name;
@@ -1296,14 +1299,7 @@ hud_menu_model_collector_add_actions (HudMenuModelCollector * collector, GAction
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_ACTION_GROUP(group));
 
-	gchar * local_prefix = NULL;
-	if (prefix == NULL) {
-		local_prefix = g_strdup("");
-	} else {
-		local_prefix = g_strdup(prefix);
-	}
-
-	g_action_muxer_insert(collector->muxer, local_prefix, group);
+	g_action_muxer_insert(collector->muxer, prefix, group);
 
 	return;
 }
