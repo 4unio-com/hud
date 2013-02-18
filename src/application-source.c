@@ -30,6 +30,8 @@
 #include "hudsourcelist.h"
 
 struct _HudApplicationSourcePrivate {
+	GDBusConnection * session;
+
 	gchar * app_id;
 	gchar * path;
 	AppIfaceComCanonicalHudApplication * skel;
@@ -43,7 +45,7 @@ struct _HudApplicationSourcePrivate {
 
 	guint32 focused_window;
 
-	HudSource * used_source; /* Not a ref */
+	HudSource * used_source;
 	guint how_used;
 
 	GHashTable * windows;
@@ -143,6 +145,7 @@ hud_application_source_init (HudApplicationSource *self)
 
 	self->priv->windows = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, g_object_unref);
 	self->priv->connections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, connection_watcher_free);
+	self->priv->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 
 	return;
 }
@@ -155,7 +158,7 @@ hud_application_source_dispose (GObject *object)
 
 	if (self->priv->used_source != NULL) {
 		hud_source_unuse(self->priv->used_source);
-		self->priv->used_source = NULL;
+		g_clear_object(&self->priv->used_source);
 	}
 
 	g_clear_pointer(&self->priv->windows, g_hash_table_unref);
@@ -169,6 +172,7 @@ hud_application_source_dispose (GObject *object)
 #ifdef HAVE_BAMF
 	g_clear_object(&self->priv->bamf_app);
 #endif
+	g_clear_object(&self->priv->session);
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->dispose (object);
 	return;
@@ -239,6 +243,7 @@ source_use (HudSource *hud_source)
 
 	if (app->priv->used_source == NULL) {
 		app->priv->used_source = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(app->priv->focused_window));
+		g_object_ref(app->priv->used_source);
 		app->priv->how_used = 0;
 	}
 
@@ -271,7 +276,7 @@ source_unuse (HudSource *hud_source)
 
 	if (app->priv->how_used == 0) {
 		hud_source_unuse(app->priv->used_source);
-		app->priv->used_source = NULL;
+		g_clear_object(&app->priv->used_source);
 	}
 
 	return;
@@ -401,7 +406,6 @@ hud_application_source_new_for_id (const gchar * id)
 	source->priv->app_id = g_strdup(id);
 
 	source->priv->skel = app_iface_com_canonical_hud_application_skeleton_new();
-	g_signal_connect(G_OBJECT(source->priv->skel), "handle-add-sources", G_CALLBACK(dbus_add_sources), source);
 
 	gchar * app_id_clean = g_strdup(id);
 	gchar * app_id_cleanp;
@@ -413,13 +417,31 @@ hud_application_source_new_for_id (const gchar * id)
 	source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s", app_id_clean);
 
 	int i = 0;
+	GError * error = NULL;
 	while (!g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(source->priv->skel),
-	                                 g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
+	                                 source->priv->session,
 	                                 source->priv->path,
-	                                 NULL)) {
+	                                 &error)) {
+		if (error != NULL) {
+			g_warning("Unable to export application '%s' skeleton on path '%s': %s", id, source->priv->path, error->message);
+
+			gboolean exists_error = g_error_matches(error, G_IO_ERROR, G_IO_ERROR_EXISTS);
+
+			g_error_free(error);
+			error = NULL;
+
+			if (!exists_error) {
+				break;
+			}
+		}
 		g_free(source->priv->path);
+		g_clear_object(&source->priv->skel);
+
 		source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s_%d", app_id_clean, ++i);
+		source->priv->skel = app_iface_com_canonical_hud_application_skeleton_new();
 	}
+
+	g_signal_connect(G_OBJECT(source->priv->skel), "handle-add-sources", G_CALLBACK(dbus_add_sources), source);
 
 	g_debug("Application ('%s') path: %s", id, source->priv->path);
 	g_free(app_id_clean);
@@ -457,6 +479,7 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 
 		if (mm_collector != NULL) {
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
+			g_object_unref(mm_collector);
 		}
 	}
 
@@ -488,6 +511,10 @@ connection_lost (GDBusConnection * session, const gchar * name, gpointer user_da
 
 	g_hash_table_remove(app->priv->connections, name);
 
+	/* all the items have been removed. When application-list sees this it
+	 * will happily unref us to complete the cleanup.
+	 */
+	hud_source_changed(HUD_SOURCE(app));
 	return;
 }
 
@@ -554,6 +581,8 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 
 		hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), prefix);
 		add_id_to_connection(app, session, sender, idn);
+
+		g_object_unref(ag);
 	}
 
 	GVariantIter desc_iter;
@@ -575,6 +604,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
 
 		hud_menu_model_collector_add_model(collector, G_MENU_MODEL(model), NULL, 1);
+		g_object_unref(model);
 		add_id_to_connection(app, session, sender, idn);
 	}
 
@@ -777,7 +807,7 @@ window_destroyed (gpointer data, GObject * old_address)
 	window_info->window = NULL;
 
 	if (window_info->source->priv->focused_window == window_info->xid) {
-		window_info->source->priv->used_source = NULL;
+		g_clear_object(&window_info->source->priv->used_source);
 	}
 	g_hash_table_remove(window_info->source->priv->windows, GINT_TO_POINTER(window_info->xid));
 	/* NOTE: DO NOT use the window_info after this point as
@@ -906,6 +936,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 			/* We only have GApplication based windows on the desktop, so we don't need this currently */
 #endif
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
+			g_object_unref(mm_collector);
 		}
 	}
 
@@ -914,6 +945,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 
 		if (dm_collector != NULL) {
 			hud_source_list_add(collector_list, HUD_SOURCE(dm_collector));
+			g_object_unref(dm_collector);
 		}
 	}
 	g_free (app_id);

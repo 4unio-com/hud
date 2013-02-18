@@ -61,6 +61,9 @@ struct _HudItemPrivate
   gchar *usage_tag;
   gchar *app_icon;
   gchar *shortcut;
+  gchar *description;
+  gchar *pretty_keywords;
+  gchar *pretty_context;
   gboolean enabled;
   guint usage;
   guint64 id;
@@ -81,6 +84,9 @@ hud_item_finalize (GObject *object)
   g_free (item->priv->app_icon);
   g_free (item->priv->usage_tag);
   g_free (item->priv->shortcut);
+  g_free (item->priv->description);
+  g_free (item->priv->pretty_keywords);
+  g_free (item->priv->pretty_context);
 
   G_OBJECT_CLASS (hud_item_parent_class)
     ->finalize (object);
@@ -143,6 +149,7 @@ hud_item_setup_usage (HudItem *item)
  * @shortcut: Keyboard shortcut for the item
  * @app_id: a string identifying the application
  * @app_icon: the icon name for the application that created this item
+ * @description: A textual description of the item
  * @enabled: if the item is enabled
  *
  * This is the Vala-style chain-up constructor corresponding to
@@ -159,6 +166,7 @@ hud_item_construct (GType          g_type,
                     const gchar   *shortcut,
                     const gchar   *app_id,
                     const gchar   *app_icon,
+                    const gchar   *description,
                     gboolean       enabled)
 {
   HudItem *item;
@@ -169,6 +177,7 @@ hud_item_construct (GType          g_type,
   item->priv->app_id = g_strdup (app_id);
   item->priv->app_icon = g_strdup (app_icon);
   item->priv->shortcut = g_strdup (shortcut);
+  item->priv->description = g_strdup (description);
   item->priv->enabled = enabled;
   item->priv->id = hud_item_next_id++;
   item->priv->token_list = hud_token_list_new_from_string_list (tokens, keywords);
@@ -187,6 +196,7 @@ hud_item_construct (GType          g_type,
  * @shortcut: Keyboard shortcut for the item
  * @app_id: a string identifying the application
  * @app_icon: the icon name for the application that created this item
+ * @description: A textual description of the item
  * @enabled: if the item is enabled
  *
  * Creates a new #HudItem.
@@ -202,9 +212,10 @@ hud_item_new (HudStringList *tokens,
               const gchar   *shortcut,
               const gchar   *app_id,
               const gchar   *app_icon,
+              const gchar   *description,
               gboolean       enabled)
 {
-  return hud_item_construct (HUD_TYPE_ITEM, tokens, keywords, shortcut, app_id, app_icon, enabled);
+  return hud_item_construct (HUD_TYPE_ITEM, tokens, keywords, shortcut, app_id, app_icon, description, enabled);
 }
 
 /**
@@ -408,28 +419,40 @@ hud_item_get_command (HudItem *item)
 }
 
 /**
- * hud_item_get_context:
+ * hud_item_get_description:
  * @item: a #HudItem
  *
- * Returns the context of this command as a string
+ * Determines which description should be shown based on the data
+ * available.  From the menu context, to a formal description, to
+ * the keywords.  This is the guy that makes that into something
+ * cool.
  *
  * Returns: A string that can be shown to the user
  */
-gchar *
-hud_item_get_context (HudItem *item)
+const gchar *
+hud_item_get_description (HudItem *item)
 {
 	g_return_val_if_fail(HUD_IS_ITEM(item), NULL);
 
-	if (item->priv->tokens == NULL) {
-		return g_strdup("");
+	if (item->priv->keywords != NULL) {
+		if (item->priv->pretty_keywords == NULL) {
+			item->priv->pretty_keywords = hud_string_list_pretty_print(item->priv->keywords, _(", "));
+		}
+		return item->priv->pretty_keywords;
 	}
 
-	HudStringList * tail = hud_string_list_get_tail(item->priv->tokens);
-	if (tail == NULL) {
-		return g_strdup("");
+	if (item->priv->description != NULL) {
+		return item->priv->description;
 	}
 
-	return hud_string_list_pretty_print(tail);
+	if (item->priv->tokens != NULL && hud_string_list_get_tail(item->priv->tokens) != NULL) {
+		if (item->priv->pretty_context == NULL) {
+			item->priv->pretty_context = hud_string_list_pretty_print(hud_string_list_get_tail(item->priv->tokens), _(", "));
+		}
+		return item->priv->pretty_context;
+	}
+
+	return "";
 }
 
 /**

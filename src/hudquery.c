@@ -61,6 +61,7 @@ struct _HudQuery
   HudSource *all_sources;
   HudApplicationList *app_list;
   HudSource *current_source;
+  HudSource *last_used_source;
   gchar *search_string;
   HudTokenList *token_list;
   gint num_results;
@@ -252,20 +253,17 @@ results_list_to_model (gpointer data, gpointer user_data)
 	HudResult * result = (HudResult *)data;
 	HudQuery * query = (HudQuery *)user_data;
 	HudItem * item = hud_result_get_item(result);
-	gchar * context = NULL; /* Need to free this one, sucks, practical reality */
 
 	GVariant * columns[G_N_ELEMENTS(results_model_schema) + 1];
 	columns[0] = g_variant_new_variant(g_variant_new_uint64(hud_item_get_id(item)));
 	columns[1] = g_variant_new_string(hud_item_get_command(item));
 	columns[2] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
-	columns[3] = g_variant_new_string(context = hud_item_get_context(item));
+	columns[3] = g_variant_new_string(hud_item_get_description(item));
 	columns[4] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
 	columns[5] = g_variant_new_string(hud_item_get_shortcut(item));
 	columns[6] = g_variant_new_uint32(hud_result_get_distance(result, query->max_usage));
 	columns[7] = g_variant_new_boolean(HUD_IS_MODEL_ITEM(item) ? hud_model_item_is_parameterized(HUD_MODEL_ITEM(item)) : FALSE);
 	columns[8] = NULL;
-
-	g_free(context);
 
 	DeeModelIter * iter = dee_model_append_row(query->results_model,
 	                                                  columns /* variants */);
@@ -291,6 +289,18 @@ hud_query_refresh (HudQuery *query)
   if (search_source == NULL) {
     search_source = hud_application_list_get_focused_app(query->app_list);
   }
+
+  /* Make sure we've used it before searching it */
+  if (search_source != NULL && search_source != query->last_used_source) {
+    if (query->last_used_source != NULL)
+    {
+      hud_source_unuse(query->last_used_source);
+      g_clear_object(&query->last_used_source);
+    }
+	hud_source_use(search_source);
+	query->last_used_source = g_object_ref(search_source);
+  }
+
   if (search_source != NULL) {
     hud_source_search (search_source, query->token_list, results_list_populate, query);
   } else {
@@ -368,6 +378,12 @@ hud_query_finalize (GObject *object)
   g_debug ("Destroyed query '%s'", query->search_string);
 
   /* TODO: move to destroy */
+  if (query->last_used_source != NULL)
+  {
+    hud_source_unuse(query->last_used_source);
+    g_clear_object(&query->last_used_source);
+  }
+
   g_clear_object(&query->skel);
   g_clear_object(&query->results_model);
   /* NOTE: ^^ Kills results_tag as well */
@@ -375,8 +391,6 @@ hud_query_finalize (GObject *object)
 
   if (query->refresh_id)
     g_source_remove (query->refresh_id);
-
-  hud_source_unuse (query->all_sources);
 
   g_object_unref (query->all_sources);
   g_object_unref (query->app_list);
@@ -405,7 +419,7 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   g_debug("Voice query is loading");
   hud_query_iface_com_canonical_hud_query_emit_voice_query_loading (
       HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (skel));
-  gchar *search_string;
+  gchar *voice_result;
   GError *error = NULL;
   HudJulius *julius = hud_julius_new (skel);
 
@@ -415,7 +429,7 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   }
 
   if (!hud_julius_voice_query (julius,
-          search_source, &search_string, &error))
+          search_source, &voice_result, &error))
   {
     g_dbus_method_invocation_return_error_literal(invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, error->message);
     g_error_free(error);
@@ -425,8 +439,11 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   g_object_unref(julius);
   g_debug("Voice query is finished");
 
-  if (search_string == NULL)
-    search_string = g_strdup("");
+  if (voice_result == NULL)
+    voice_result = g_strdup("");
+
+  gchar *search_string = g_utf8_strdown(voice_result, -1);
+  g_free(voice_result);
 
   g_debug("Updating Query to: '%s'", search_string);
 
@@ -470,6 +487,7 @@ handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoca
 
 	/* Grab the data from this one */
 	query->search_string = g_strdup (search_string);
+	query->search_string = g_strstrip(query->search_string);
 
 	if (query->search_string[0] != '\0') {
 		query->token_list = hud_token_list_new_from_string (query->search_string);
@@ -495,10 +513,12 @@ handle_update_app (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocati
 
 	g_clear_object (&query->current_source);
 	query->current_source = hud_source_get(query->all_sources, app_id);
-	g_object_ref (query->current_source);
+	if (query->current_source != NULL) {
+		g_object_ref (query->current_source);
+	}
 
 	/* Refresh it all */
-	hud_query_refresh (query);
+	hud_query_refresh (query);	
 
 	/* Tell DBus everything is going to be A-OK */
 	hud_query_iface_com_canonical_hud_query_complete_update_app(skel, invocation, 0);
@@ -765,8 +785,6 @@ hud_query_new (HudSource   *all_sources,
   }
 
   query->num_results = num_results;
-
-  hud_source_use (query->all_sources);
 
   hud_query_refresh (query);
 

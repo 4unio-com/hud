@@ -276,6 +276,112 @@ static const gchar *VOCA_HEADER = "% NS_B\n"
 "</s>            sil\n"
 "\n";
 
+static void
+hud_julius_write_new_vocabulary_entry(GOutputStream* voca_output, GHashTable *voca, const gint voca_id, GHashTable *pronounciations, const gchar *word)
+{
+  g_hash_table_insert(voca, g_strdup(word), GINT_TO_POINTER(voca_id));
+
+  gchar *voca_id_str = g_strdup_printf("TOKEN_%d", voca_id);
+  gchar **phonetics_list = g_hash_table_lookup(pronounciations, word);
+
+  /* We are writing:
+   *
+   * % <voca_id>:
+   * <word> <phonetics 1>
+   * <word> <phonetics 2>
+   */
+
+  /* we only need to write out the vocab entry for a new token */
+  g_output_stream_write (voca_output, "% ", g_utf8_strlen ("% ", -1),
+                              NULL, NULL );
+  g_output_stream_write (voca_output, voca_id_str,
+                g_utf8_strlen (voca_id_str, -1), NULL, NULL );
+  g_output_stream_write (voca_output, ":\n", g_utf8_strlen (":\n", -1),
+                      NULL, NULL );
+
+  gchar **phonetics = phonetics_list;
+  while (*phonetics)
+  {
+    gchar* lower = g_utf8_strdown(*phonetics, -1);
+
+    g_output_stream_write (voca_output, word,
+            g_utf8_strlen (word, -1), NULL, NULL );
+    g_output_stream_write (voca_output, "\t",
+                    g_utf8_strlen ("\t", -1), NULL, NULL );
+    /* also add the phonetics */
+    g_output_stream_write (voca_output, lower,
+                            g_utf8_strlen (lower, -1), NULL, NULL );
+    g_output_stream_write (voca_output, "\n", g_utf8_strlen ("\n", -1),
+                  NULL, NULL );
+    g_free(lower);
+    phonetics++;
+  }
+
+  g_output_stream_write (voca_output, "\n", g_utf8_strlen ("\n", -1),
+    NULL, NULL );
+
+  g_free(voca_id_str);
+}
+
+/**
+ * This writes a grammar entry for the whole command read out, and individual grammar entries
+ * for each word in the command.
+ */
+static void
+hud_julius_write_command(GOutputStream* grammar_output, GOutputStream* voca_output, GHashTable *voca, gint *voca_id_counter, GHashTable *pronounciations, GPtrArray *command)
+{
+  /* First we write a grammar entry as the complete sequence of words in the command */
+  g_output_stream_write (grammar_output, "S : NS_B ", g_utf8_strlen ("S : NS_B ", -1),
+              NULL, NULL );
+
+  guint i;
+  for (i = 0; i < command->len; ++i)
+  {
+    const gchar *word = g_ptr_array_index(command,  i);
+    gint voca_id = GPOINTER_TO_INT(g_hash_table_lookup(voca, word));
+
+    /* If this a new phonetic */
+    if (voca_id == 0)
+    {
+      voca_id = ++(*voca_id_counter);
+      hud_julius_write_new_vocabulary_entry(voca_output, voca, voca_id, pronounciations, word);
+    }
+
+    gchar *voca_id_str = g_strdup_printf("TOKEN_%d", voca_id);
+
+    g_output_stream_write (grammar_output, voca_id_str,
+        g_utf8_strlen (voca_id_str, -1), NULL, NULL );
+    g_output_stream_write (grammar_output, " ", g_utf8_strlen (" ", -1),
+                  NULL, NULL );
+    g_free(voca_id_str);
+  }
+
+  g_output_stream_write (grammar_output, " NS_E\n",
+            g_utf8_strlen (" NS_E\n", -1), NULL, NULL );
+
+  /* Now we write a separate grammar entry for each word in the command */
+  for (i = 0; i < command->len; ++i)
+  {
+    g_output_stream_write (grammar_output, "S : NS_B ", g_utf8_strlen ("S : NS_B ", -1),
+                  NULL, NULL );
+
+    const gchar *word = g_ptr_array_index(command, i);
+    /* The voca_id will certainly be known as we've already written the while lot out once */
+    gint voca_id = GPOINTER_TO_INT(g_hash_table_lookup(voca, word));
+
+    gchar *voca_id_str = g_strdup_printf("TOKEN_%d", voca_id);
+
+    g_output_stream_write (grammar_output, voca_id_str,
+        g_utf8_strlen (voca_id_str, -1), NULL, NULL );
+    g_output_stream_write (grammar_output, " ", g_utf8_strlen (" ", -1),
+                  NULL, NULL );
+    g_free(voca_id_str);
+
+    g_output_stream_write (grammar_output, " NS_E\n",
+        g_utf8_strlen (" NS_E\n", -1), NULL, NULL );
+  }
+}
+
 static gboolean
 hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GError **error)
 {
@@ -365,79 +471,12 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
   g_output_stream_write (voca_output, VOCA_HEADER,
       g_utf8_strlen (VOCA_HEADER, -1), NULL, NULL );
 
-  guint i, j;
+  guint i;
   for (i = 0; i < command_list->len; ++i)
   {
     GPtrArray *command = g_ptr_array_index(command_list, i);
-
-    g_output_stream_write (grammar_output, "S : NS_B ", g_utf8_strlen ("S : NS_B ", -1),
-                NULL, NULL );
-
-      for (j = 0; j < command->len; ++j)
-      {
-        const gchar *word = g_ptr_array_index(command,  j);
-        gint voca_id = GPOINTER_TO_INT(g_hash_table_lookup(voca, word));
-
-        /* If this a new phonetic */
-        if (voca_id == 0)
-        {
-          voca_id = ++voca_id_counter;
-          g_hash_table_insert(voca, g_strdup(word), GINT_TO_POINTER(voca_id));
-
-          gchar *voca_id_str = g_strdup_printf("TOKEN_%d", voca_id);
-          gchar **phonetics_list = g_hash_table_lookup(pronounciations, word);
-
-          /* We are writing:
-           *
-           * % <voca_id>:
-           * <word> <phonetics 1>
-           * <word> <phonetics 2>
-           */
-
-          /* we only need to write out the vocab entry for a new token */
-          g_output_stream_write (voca_output, "% ", g_utf8_strlen ("% ", -1),
-                                      NULL, NULL );
-          g_output_stream_write (voca_output, voca_id_str,
-                        g_utf8_strlen (voca_id_str, -1), NULL, NULL );
-          g_output_stream_write (voca_output, ":\n", g_utf8_strlen (":\n", -1),
-                              NULL, NULL );
-
-          gchar **phonetics = phonetics_list;
-          while (*phonetics)
-          {
-            gchar* lower = g_utf8_strdown(*phonetics, -1);
-
-            g_output_stream_write (voca_output, word,
-                    g_utf8_strlen (word, -1), NULL, NULL );
-            g_output_stream_write (voca_output, "\t",
-                            g_utf8_strlen ("\t", -1), NULL, NULL );
-            /* also add the phonetics */
-            g_output_stream_write (voca_output, lower,
-                                    g_utf8_strlen (lower, -1), NULL, NULL );
-            g_output_stream_write (voca_output, "\n", g_utf8_strlen ("\n", -1),
-                          NULL, NULL );
-            g_free(lower);
-            phonetics++;
-          }
-
-          g_output_stream_write (voca_output, "\n", g_utf8_strlen ("\n", -1),
-            NULL, NULL );
-
-          g_free(voca_id_str);
-        }
-
-        gchar *voca_id_str = g_strdup_printf("TOKEN_%d", voca_id);
-
-        g_output_stream_write (grammar_output, voca_id_str,
-            g_utf8_strlen (voca_id_str, -1), NULL, NULL );
-        g_output_stream_write (grammar_output, " ", g_utf8_strlen (" ", -1),
-                      NULL, NULL );
-        g_free(voca_id_str);
-      }
-
-      g_output_stream_write (grammar_output, " NS_E\n",
-          g_utf8_strlen (" NS_E\n", -1), NULL, NULL );
-    }
+    hud_julius_write_command(grammar_output, voca_output, voca, &voca_id_counter, pronounciations, command);
+  }
 
   g_hash_table_destroy(voca);
   g_hash_table_destroy(pronounciations);
@@ -523,6 +562,7 @@ hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GErr
   gchar *temp_dir = NULL;
   if (!hud_julius_build_grammar(self, items, &temp_dir, error))
   {
+    g_list_free_full(items, g_object_unref);
     return FALSE;
   }
 
@@ -534,6 +574,7 @@ hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GErr
 
   rm_rf(temp_dir);
 
+  g_list_free_full(items, g_object_unref);
   g_free(gram);
   g_free(hmm);
   g_free(hlist);

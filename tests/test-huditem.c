@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 static void
 test_hud_item_get_command_null_tokens (void)
 {
-  HudItem *item = hud_item_new (NULL, NULL, NULL, NULL, NULL, TRUE);
+  HudItem *item = hud_item_new (NULL, NULL, NULL, NULL, NULL, NULL, TRUE);
   g_assert_cmpstr(hud_item_get_command(item), ==, "No Command");
 
   g_object_unref (item);
@@ -32,8 +32,8 @@ test_hud_item_get_command_null_tokens (void)
 static void
 test_hud_item_get_context_null_tokens (void)
 {
-  HudItem *item = hud_item_new (NULL, NULL, NULL, NULL, NULL, TRUE);
-  g_assert_cmpstr(hud_item_get_context(item), ==, "");
+  HudItem *item = hud_item_new (NULL, NULL, NULL, NULL, NULL, NULL, TRUE);
+  g_assert_cmpstr(hud_item_get_description(item), ==, "");
 
   g_object_unref (item);
 }
@@ -44,8 +44,8 @@ test_hud_item_get_context_null_tokens_tail (void)
   HudStringList *tokens;
   tokens = hud_string_list_add_item ("a", NULL);
 
-  HudItem *item = hud_item_new (tokens, NULL, NULL, NULL, NULL, TRUE);
-  g_assert_cmpstr(hud_item_get_context(item), ==, "");
+  HudItem *item = hud_item_new (tokens, NULL, NULL, NULL, NULL, NULL, TRUE);
+  g_assert_cmpstr(hud_item_get_description(item), ==, "");
 
   g_object_unref (item);
 }
@@ -65,11 +65,11 @@ test_hud_item_getters (void)
 	keywords = hud_string_list_add_item ("keywords2", keywords);
 	keywords = hud_string_list_add_item ("keywords3", keywords);
 
-	item = hud_item_new (tokens, keywords, "shortcut", "desktop_file", "app_icon", TRUE);
+	item = hud_item_new (tokens, keywords, "shortcut", "desktop_file", "app_icon", "description", TRUE);
 
 	g_assert_cmpstr(hud_item_get_app_icon(item), ==, "app_icon");
 	g_assert_cmpstr(hud_item_get_command(item), ==, "tokens3");
-	g_assert_cmpstr(hud_item_get_context(item), ==, "tokens1 > tokens2");
+	g_assert_cmpstr(hud_item_get_description(item), ==, "keywords1, keywords2, keywords3");
 	g_assert_cmpint(hud_item_get_enabled(item), ==, TRUE);
 	g_assert_cmpstr(hud_item_get_item_icon(item), ==, ""); // For the base class this is always ""
 	g_assert(hud_item_get_keywords(item) == keywords);

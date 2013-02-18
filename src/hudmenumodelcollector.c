@@ -33,7 +33,6 @@
 #define DEFAULT_MENU_DEPTH  10
 #define RECURSE_DATA        "hud-menu-model-recurse-level"
 #define EXPORT_PATH         "hud-menu-model-export-path"
-#define EXPORT_ID           "hud-menu-model-export-id"
 #define EXPORT_MENU         "hud-menu-model-export-menu"
 
 /**
@@ -318,12 +317,40 @@ hud_model_item_class_init (HudModelItemClass *class)
   class->activate = hud_model_item_activate;
 }
 
+/* Breaks apart the string and adds it to the list */
+static HudStringList *
+append_keywords_string (HudStringList * list, const gchar * string)
+{
+	if (string == NULL) {
+		return list;
+	}
+
+	/* Limiting to 64 keywords.  A bit arbitrary, but we need to ensure
+	   that bad apps can't hurt us. */
+	gchar ** split = g_strsplit(string, ";", 64);
+
+	if (split == NULL) {
+		return list;
+	}
+
+	int i;
+	for (i = 0; split[i] != NULL; i++) {
+		if (split[i][0] != '\0')
+			list = hud_string_list_cons(split[i], list);
+	}
+
+	g_strfreev(split);
+	return list;
+}
+
 static HudItem *
 hud_model_item_new (HudMenuModelCollector *collector,
                     HudMenuModelContext   *context,
                     const gchar           *label,
                     const gchar           *action_name,
                     const gchar           *accel,
+                    const gchar           *description,
+                    const gchar           *keywords_string,
                     GVariant              *target,
                     const gchar           *toolbar)
 {
@@ -352,8 +379,9 @@ hud_model_item_new (HudMenuModelCollector *collector,
 
   full_label = hud_menu_model_context_get_label (context, label);
   keywords = hud_menu_model_context_get_tokens(label, collector->keyword_mapping);
+  keywords = append_keywords_string(keywords, keywords_string);
 
-  item = hud_item_construct (hud_model_item_get_type (), full_label, keywords, accel, collector->app_id, collector->icon, TRUE);
+  item = hud_item_construct (hud_model_item_get_type (), full_label, keywords, accel, collector->app_id, collector->icon, description, TRUE);
   item->group = g_object_ref (group);
   item->action_name = g_strdup (stripped_action_name);
   item->action_name_full = g_strdup (action_name);
@@ -604,6 +632,8 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       gchar *action = NULL;
       gchar *accel = NULL;
       gchar *toolbar = NULL;
+      gchar *description = NULL;
+      gchar *keywords = NULL;
       HudItem *item = NULL;
 
 
@@ -612,6 +642,8 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_LABEL, "s", &label);
       g_menu_model_get_item_attribute (model, i, "accel", "s", &accel);
       g_menu_model_get_item_attribute (model, i, "hud-toolbar-item", "s", &toolbar);
+      g_menu_model_get_item_attribute (model, i, "description", "s", &description);
+      g_menu_model_get_item_attribute (model, i, "keywords", "s", &keywords);
 
       accel = format_accel_for_users(accel);
 
@@ -624,7 +656,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
 
           target = g_menu_model_get_item_attribute_value (model, i, G_MENU_ATTRIBUTE_TARGET, NULL);
 
-          item = hud_model_item_new (collector, context, label, action, accel, target, toolbar);
+          item = hud_model_item_new (collector, context, label, action, accel, description, keywords, target, toolbar);
 
           if (item)
             g_ptr_array_add (collector->items, item);
@@ -660,6 +692,8 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_free (label);
       g_free (accel);
       g_free (toolbar);
+      g_free (description);
+      g_free (keywords);
     }
 
   if (changed)
@@ -714,7 +748,25 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
 	/* Make sure we're ready to clean up */
     g_object_set_data_full(G_OBJECT(model), EXPORT_PATH, menu_path, g_free);
     g_object_set_data_full(G_OBJECT(model), EXPORT_MENU, export, g_object_unref);
-    g_object_set_data_full(G_OBJECT(model), EXPORT_ID, idt, unexport_menu);
+
+    /* All the callers of this function assume that we take the responsibility
+     * to manage the lifecycle of the model. Or in other words, HudMenuModelCollector
+     * takes the responsibility.
+     *
+     * g_dbus_connection_export_menu_model() increases the reference count of the given
+     * model and the model is not disposed before it's unexported.
+     *
+     * By using g_object_set_data_full() we guarantee that the model gets unexported
+     * and cleaned up when the collector disposes it self.
+     *
+     * menu_path is simply used as a unique key to store the idt in collector GObject.
+     * There is no need to retrieve the idt using g_object_get_data().
+     *
+     * The reason that it can't be on the model is because the model is referenced
+     * by the exported item.  So the model will never be free'd until the export is
+     * first.
+     */
+    g_object_set_data_full(G_OBJECT(collector), menu_path, idt, unexport_menu);
 
     return;
   }
