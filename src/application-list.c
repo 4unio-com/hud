@@ -28,11 +28,6 @@
 #include "application-source.h"
 #include "hudsource.h"
 
-// TODO
-// Remove when fix ubuntu_application_ui.h in abstract-app.h
-#define MAIN_STAGE_HINT 0
-#define SIDE_STAGE_HINT 4
-
 typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
 
 struct _HudApplicationListPrivate {
