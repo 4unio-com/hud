@@ -12,7 +12,7 @@ hud (13.04.0-0ubuntu1~ppa15) quantal; urgency=low
   * Small Coverity fixes
     * Unchecked return value (LP: #1126462)
     * Parameter name hidden (LP: #1126448)
-    * Forward NULL (LP: #1136458)
+    * Forward NULL (LP: #1126458)
     * Stray semicolon (LP: #1126459)
 
  -- Ted Gould <ted@ubuntu.com>  Mon, 18 Feb 2013 10:36:12 -0600
