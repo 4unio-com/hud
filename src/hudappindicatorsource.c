@@ -390,7 +390,9 @@ hud_app_indicator_source_search (HudSource    *hud_source,
 static void
 hud_app_indicator_source_finalize (GObject *object)
 {
-  g_assert_not_reached ();
+
+  G_OBJECT_CLASS(hud_app_indicator_source_parent_class)->finalize(object);
+  return;
 }
 
 static void
