@@ -277,7 +277,7 @@ hud_model_item_activate_toolbar (HudModelItem  *hud_item,
                                  GVariant *platform_data)
 {
 	if (hud_item->toolbar_item == item) {
-		hud_model_item_activate(HUD_ITEM(hud_item), platform_data);
+		hud_item_activate(HUD_ITEM(hud_item), platform_data);
 	}
 
 	return;
