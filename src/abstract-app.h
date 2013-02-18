@@ -33,6 +33,7 @@ typedef BamfApplication AbstractApplication;
 #ifdef HAVE_HYBRIS
 
 #include <ubuntu/ui/ubuntu_ui_session_service.h>
+#include <ubuntu/application/ui/ubuntu_application_ui.h>
 
 #define WINDOW_ID_CONSTANT (5)
 

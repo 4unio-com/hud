@@ -38,7 +38,8 @@ struct _HudApplicationListPrivate {
 	gulong matcher_view_close_sig;
 #endif
 #ifdef HAVE_HYBRIS
-	HudApplicationSource * last_focused_source;
+	HudApplicationSource * last_focused_main_stage_source;
+	HudApplicationSource * last_focused_side_stage_source;
 	ubuntu_ui_session_lifecycle_observer observer_definition;
 #endif
 
@@ -264,7 +265,8 @@ hud_application_list_dispose (GObject *object)
 
 #ifdef HAVE_HYBRIS
 	/* Nothing to do as Hybris has no way to unregister our observer */
-	g_clear_object(&self->priv->last_focused_source);
+	g_clear_object(&self->priv->last_focused_main_stage_source);
+	g_clear_object(&self->priv->last_focused_side_stage_source);
 #endif
 
 	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
@@ -416,8 +418,12 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 static void
 session_focused (ubuntu_ui_session_properties props, void * context)
 {
+	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
+	// Do not care about anything not main or side stage
+	if (stage_hint != MAIN_STAGE_HINT && stage_hint != SIDE_STAGE_HINT)
+		return;
+
 	HudApplicationList * list = HUD_APPLICATION_LIST(context);
-	g_clear_object(&list->priv->last_focused_source);
 
 	if (hud_application_list_name_in_ignore_list(&props)) {
 		return;
@@ -436,9 +442,13 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 	   we can't get window IDs anyway. */
 	hud_application_source_focus(source, &props, &props);
 
-	/* Used to track focus for use... unclear about race conditions */
-	g_warn_if_fail(list->priv->last_focused_source == NULL);
-	list->priv->last_focused_source = g_object_ref(source);
+	if (stage_hint == MAIN_STAGE_HINT) {
+		g_clear_object(&list->priv->last_focused_main_stage_source);
+		list->priv->last_focused_main_stage_source = g_object_ref(source);
+	} else { /*SIDE_STAGE_HINT*/
+		g_clear_object(&list->priv->last_focused_side_stage_source);
+		list->priv->last_focused_side_stage_source = g_object_ref(source);
+	}
 
 	return;
 }
@@ -448,7 +458,12 @@ static void
 session_unfocused (ubuntu_ui_session_properties props, void * context)
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(context);
-	g_clear_object(&list->priv->last_focused_source);
+
+	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
+	if (stage_hint == MAIN_STAGE_HINT)
+		g_clear_object(&list->priv->last_focused_main_stage_source);
+	else if (stage_hint == SIDE_STAGE_HINT)
+		g_clear_object(&list->priv->last_focused_side_stage_source);
 	return;
 }
 
@@ -480,8 +495,11 @@ session_died (ubuntu_ui_session_properties props, void * context)
 		g_clear_object(&list->priv->used_source);
 	}
 
-	if ((gpointer)source == (gpointer)list->priv->last_focused_source) {
-		g_clear_object(&list->priv->last_focused_source);
+	if ((gpointer)source == (gpointer)list->priv->last_focused_main_stage_source) {
+		g_clear_object(&list->priv->last_focused_main_stage_source);
+	}
+	if ((gpointer)source == (gpointer)list->priv->last_focused_side_stage_source) {
+		g_clear_object(&list->priv->last_focused_side_stage_source);
 	}
 
 	g_hash_table_remove(list->priv->applications, app_id);
@@ -564,7 +582,7 @@ source_use (HudSource *hud_source)
 	   we'll just have to hope we've tracked it perfectly.  Hopefully
 	   there are no races in the API, we can't protect ourselves against
 	   them in any way. */
-	source = list->priv->last_focused_source;
+	source = list->priv->last_focused_main_stage_source;
 #endif
 
 	/* If we weren't able to use BAMF, let's try to find a source
@@ -772,10 +790,31 @@ hud_application_list_get_focused_app (HudApplicationList * list)
 	return list->priv->used_source;
 #endif
 #ifdef HAVE_HYBRIS
-	return HUD_SOURCE(list->priv->last_focused_source);
+	return HUD_SOURCE(list->priv->last_focused_main_stage_source);
 #endif
 }
 
+/**
+ * hud_application_list_get_side_stage_focused_app:
+ * @list: A #HudApplicationList object
+ * 
+ * Gets the side stage focused app source
+ *
+ * Return value: (transfer none): The current #HudApplicationSource
+ */
+HudSource *
+hud_application_list_get_side_stage_focused_app (HudApplicationList * list)
+{
+    g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
+
+#ifdef HAVE_BAMF
+    /* TODO: Not sure if BAMF is right here, but not testing that. */
+    return NULL;
+#endif
+#ifdef HAVE_HYBRIS
+    return HUD_SOURCE(list->priv->last_focused_side_stage_source);
+#endif
+}
 /**
  * hud_application_list_get_apps:
  * @list: A #HudApplicationList object
