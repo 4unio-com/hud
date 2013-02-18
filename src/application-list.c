@@ -442,9 +442,6 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 	   we can't get window IDs anyway. */
 	hud_application_source_focus(source, &props, &props);
 
-	/* Used to track focus for use... unclear about race conditions */
-	g_warn_if_fail(source == NULL);
-
 	if (stage_hint == MAIN_STAGE_HINT) {
 		g_clear_object(&list->priv->last_focused_main_stage_source);
 		list->priv->last_focused_main_stage_source = g_object_ref(source);
