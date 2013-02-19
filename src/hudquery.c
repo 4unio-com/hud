@@ -124,7 +124,7 @@ static void
 results_list_populate (HudResult * result, gpointer user_data)
 {
 	HudQuery * query = (HudQuery *)user_data;
-	g_sequence_insert_before(g_sequence_get_begin_iter(query->results_list), result);
+	g_sequence_append(query->results_list, result);
 	return;
 }
 
