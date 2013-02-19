@@ -219,6 +219,7 @@ matching_setup_hybris (HudApplicationList * self)
 	self->priv->observer_definition.on_session_unfocused = session_unfocused;
 	self->priv->observer_definition.on_session_focused = session_focused;
 	self->priv->observer_definition.on_session_died = session_died;
+	self->priv->observer_definition.on_keyboard_geometry_changed = NULL;
 	self->priv->observer_definition.context = self;
 
 	ubuntu_ui_session_install_session_lifecycle_observer(&self->priv->observer_definition);
