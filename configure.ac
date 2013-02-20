@@ -90,7 +90,7 @@ PKG_CHECK_MODULES([HUD],[
 ])
 
 AC_CHECK_HEADER("julius/julius.h",
-	[has_julius_h="yes"], [AC_MSG_ERROR([Couldn't find libjulius.h])])
+	[has_julius_h="yes"], [AC_MSG_ERROR([Could not find libjulius.h])])
 
 AM_CONDITIONAL([HUD], [test "x$has_julius_h" == "xyes"])
 
