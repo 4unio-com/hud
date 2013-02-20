@@ -6,3 +6,6 @@ hudkeywords_SCRIPTS = \
 
 hudkeywordsdir = \
 	$(datadir)/../lib/python2.7/dist-packages/hudkeywords
+
+EXTRA_DIST = \
+	$(hudkeywords_SCRIPTS)
