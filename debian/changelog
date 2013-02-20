@@ -1,3 +1,9 @@
+hud (13.10.0-0ubuntu1~ppa1) quantal; urgency=low
+
+  * Upstream release of many, many changes.
+
+ -- Ted Gould <ted@ubuntu.com>  Wed, 20 Feb 2013 09:28:40 -0600
+
 hud (13.04.0daily13.02.20-0ubuntu1) raring; urgency=low
 
   [ Ted Gould ]
