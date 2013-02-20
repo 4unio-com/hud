@@ -1,5 +1,5 @@
 AC_INIT([hud],
-        [13.04.0],
+        [13.10.0],
         [http://bugs.launchpad.net/hud],
         [hud],
         [http://launchpad.net/hud])
