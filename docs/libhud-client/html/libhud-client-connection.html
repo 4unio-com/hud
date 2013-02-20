@@ -1,0 +1,258 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>connection</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<link rel="home" href="index.html" title="libhud-client Docs">
+<link rel="up" href="ch01.html" title="Data Types">
+<link rel="prev" href="libhud-client-query.html" title="query">
+<link rel="next" href="libhud-client-param.html" title="param">
+<meta name="generator" content="GTK-Doc V1.18 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="libhud-client-query.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libhud-client Docs</th>
+<td><a accesskey="n" href="libhud-client-param.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#libhud-client-connection.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#libhud-client-connection.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#libhud-client-connection.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#libhud-client-connection.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="libhud-client-connection"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libhud-client-connection.top_of_page"></a>connection</span></h2>
+<p>connection — Provide a connection to the HUD service</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libhud-client-connection.stability-level"></a><h2>Stability Level</h2>
+Unstable, unless otherwise indicated
+</div>
+<div class="refsynopsisdiv">
+<a name="libhud-client-connection.synopsis"></a><h2>Synopsis</h2>
+<a name="HudClientConnection"></a><pre class="synopsis">
+#include &lt;libhud-client/connection.h&gt;
+
+                    <a class="link" href="libhud-client-connection.html#HudClientConnection-struct" title="HudClientConnection">HudClientConnection</a>;
+struct              <a class="link" href="libhud-client-connection.html#HudClientConnectionClass" title="struct HudClientConnectionClass">HudClientConnectionClass</a>;
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="libhud-client-connection.html#hud-client-connection-get-address" title="hud_client_connection_get_address ()">hud_client_connection_get_address</a>   (<em class="parameter"><code><a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a> *connection</code></em>);
+<a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="returnvalue">HudClientConnection</span></a> * <a class="link" href="libhud-client-connection.html#hud-client-connection-get-ref" title="hud_client_connection_get_ref ()">hud_client_connection_get_ref</a>     (<em class="parameter"><code><span class="type">void</span></code></em>);
+<a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="returnvalue">HudClientConnection</span></a> * <a class="link" href="libhud-client-connection.html#hud-client-connection-new" title="hud_client_connection_new ()">hud_client_connection_new</a>         (<em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dbus_address</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dbus_path</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="libhud-client-connection.html#hud-client-connection-new-query" title="hud_client_connection_new_query ()">hud_client_connection_new_query</a>     (<em class="parameter"><code><a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *query</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> **query_path</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> **results_name</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> **appstack_name</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="libhud-client-connection.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----HudClientConnection
+</pre>
+</div>
+<div class="refsect1">
+<a name="libhud-client-connection.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="libhud-client-connection.html#HudClientConnection--address" title='The "address" property'>address</a>"                  <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only
+  "<a class="link" href="libhud-client-connection.html#HudClientConnection--path" title='The "path" property'>path</a>"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only
+</pre>
+</div>
+<div class="refsect1">
+<a name="libhud-client-connection.description"></a><h2>Description</h2>
+<p>
+The connection is an object to maintain a connection to the default
+	objects on the HUD service.  It provides access to the functionality
+	there and can be used to create queries.
+</p>
+<p>
+	Most users should not bother with a connection, it will be created
+	by the <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> if one is not provided.  Most usage is for
+	testing and using custom HUD services.
+</p>
+</div>
+<div class="refsect1">
+<a name="libhud-client-connection.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="HudClientConnection-struct"></a><h3>HudClientConnection</h3>
+<pre class="programlisting">typedef struct _HudClientConnection HudClientConnection;</pre>
+<p>
+Object to make a generic connection to a HUD service.  For the most
+part people should just create a <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> and that'll use the
+default HUD service.  For most folks that should be enough.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HudClientConnectionClass"></a><h3>struct HudClientConnectionClass</h3>
+<pre class="programlisting">struct HudClientConnectionClass {
+	GObjectClass parent_class;
+};
+</pre>
+<p>
+Class information for <a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a>
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObjectClass"><span class="type">GObjectClass</span></a> <em class="structfield"><code><a name="HudClientConnectionClass.parent-class"></a>parent_class</code></em>;</span></p></td>
+<td><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObjectClass"><span class="type">GObjectClass</span></a></td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-connection-get-address"></a><h3>hud_client_connection_get_address ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       hud_client_connection_get_address   (<em class="parameter"><code><a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a> *connection</code></em>);</pre>
+<p>
+Accessor to get the address of the HUD service.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>connection</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>A DBus address</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-connection-get-ref"></a><h3>hud_client_connection_get_ref ()</h3>
+<pre class="programlisting"><a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="returnvalue">HudClientConnection</span></a> * hud_client_connection_get_ref     (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Gets a reference to the default object that connects to the
+default HUD service.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>Refence to a <a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-connection-new"></a><h3>hud_client_connection_new ()</h3>
+<pre class="programlisting"><a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="returnvalue">HudClientConnection</span></a> * hud_client_connection_new         (<em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dbus_address</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dbus_path</code></em>);</pre>
+<p>
+Builds a HUD Connection object that can be used to connect to a
+custom HUD service.  For the most part, this should only be used
+in testing, though there might be other uses.  It is likely if you're
+using this function you'd also be interested in
+<a class="link" href="libhud-client-query.html#hud-client-query-new-for-connection" title="hud_client_query_new_for_connection ()"><code class="function">hud_client_query_new_for_connection()</code></a>
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>dbus_address</code></em> :</span></p></td>
+<td>Address on DBus for the HUD service</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>dbus_path</code></em> :</span></p></td>
+<td>Path to the object to create stuff</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>A new <a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-connection-new-query"></a><h3>hud_client_connection_new_query ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            hud_client_connection_new_query     (<em class="parameter"><code><a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *query</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> **query_path</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> **results_name</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> **appstack_name</code></em>);</pre>
+<p>
+Function to create a new query in the HUD service and pass back
+the information needed to create a <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> object.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>connection</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>query</code></em> :</span></p></td>
+<td>The initial query string</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>query_path</code></em> :</span></p></td>
+<td>Place to put the path for the new query. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>results_name</code></em> :</span></p></td>
+<td>Place to put the <span class="type">DeeModel</span> name for the results. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>appstack_name</code></em> :</span></p></td>
+<td>Place to put the <span class="type">DeeModel</span> name for the appstack. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>Whether we were able to create the query</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libhud-client-connection.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="HudClientConnection--address"></a><h3>The <code class="literal">"address"</code> property</h3>
+<pre class="programlisting">  "address"                  <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only</pre>
+<p>The DBus address of the HUD service we should connect to.</p>
+<p>Default value: "com.canonical.hud"</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HudClientConnection--path"></a><h3>The <code class="literal">"path"</code> property</h3>
+<pre class="programlisting">  "path"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only</pre>
+<p>The DBus path of the HUD service we should connect to.</p>
+<p>Default value: "/com/canonical/hud"</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18</div>
+</body>
+</html>

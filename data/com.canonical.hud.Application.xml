@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node name="/">
+	<interface name="com.canonical.hud.Application">
+<!-- Properties -->
+		<property name="ActionGroups" type="a(vso)" access="read" />
+		<property name="MenuModels" type="a(vo)" access="read" />
+		<property name="DesktopPath" type="s" access="read" />
+		<property name="Icon" type="s" access="read" />
+
+<!-- Functions -->
+		<method name="AddSources">
+			<arg type="a(vso)" name="actions" direction="in" />
+			<arg type="a(vo)"  name="descriptions" direction="in" />
+		</method>
+
+<!-- Signals -->
+		<!-- None -->
+
+	</interface>
+</node>

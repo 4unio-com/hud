@@ -47,6 +47,7 @@ struct _HudDebugSource
   HudItem *item;
   gint use_count;
   gint timeout;
+  HudSourceItemType type;
 };
 
 typedef GObjectClass HudDebugSourceClass;
@@ -71,7 +72,7 @@ hud_debug_source_timeout (gpointer user_data)
   g_date_time_unref (now);
   g_free (time);
 
-  source->item = hud_item_new (tokens, NULL, NULL, TRUE);
+  source->item = hud_item_new (tokens, NULL, NULL, NULL, NULL, NULL, TRUE);
   hud_string_list_unref (tokens);
 
   hud_source_changed (HUD_SOURCE (source));
@@ -106,8 +107,9 @@ hud_debug_source_unuse (HudSource *hud_source)
 
 static void
 hud_debug_source_search (HudSource    *hud_source,
-                         GPtrArray    *results_array,
-                         HudTokenList *search_string)
+                         HudTokenList *search_string,
+                         void        (*append_func) (HudResult * result, gpointer user_data),
+                         gpointer      user_data)
 {
   HudDebugSource *source = HUD_DEBUG_SOURCE (hud_source);
 
@@ -117,8 +119,43 @@ hud_debug_source_search (HudSource    *hud_source,
 
       result = hud_result_get_if_matched (source->item, search_string, 0);
       if (result != NULL)
-        g_ptr_array_add (results_array, result);
+        append_func(result, user_data);
     }
+}
+
+static void
+hud_debug_source_list_applications (HudSource    *hud_source,
+                                    HudTokenList *search_string,
+                                    void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
+                                    gpointer      user_data)
+{
+  HudDebugSource *source = HUD_DEBUG_SOURCE (hud_source);
+
+  if (source->item)
+    {
+      HudResult *result;
+
+      result = hud_result_get_if_matched (source->item, search_string, 0);
+      if (result != NULL) {
+        append_func(hud_item_get_app_id(source->item), hud_item_get_app_icon(source->item), source->type, user_data);
+        g_object_unref (result);
+      }
+    }
+}
+
+static HudSource *
+hud_debug_source_get (HudSource     *hud_source,
+                      const gchar   *application_id)
+{
+  HudDebugSource *source = HUD_DEBUG_SOURCE (hud_source);
+
+  if (source->item)
+    {
+      if (g_strcmp0 (application_id, hud_item_get_app_id(source->item)) == 0)
+        return hud_source;
+    }
+
+  return NULL;
 }
 
 static void
@@ -138,6 +175,7 @@ hud_debug_source_finalize (GObject *object)
 static void
 hud_debug_source_init (HudDebugSource *source)
 {
+  source->type = HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP;
 }
 
 static void
@@ -146,6 +184,8 @@ hud_debug_source_iface_init (HudSourceInterface *iface)
   iface->use = hud_debug_source_use;
   iface->unuse = hud_debug_source_unuse;
   iface->search = hud_debug_source_search;
+  iface->list_applications = hud_debug_source_list_applications;
+  iface->get = hud_debug_source_get;
 }
 
 static void

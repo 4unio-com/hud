@@ -44,10 +44,6 @@
  * This is an opaque structure type.
  **/
 
-#define APP_INDICATOR_SERVICE_BUS_NAME    "com.canonical.indicator.application"
-#define APP_INDICATOR_SERVICE_OBJECT_PATH "/com/canonical/indicator/application/service"
-#define APP_INDICATOR_SERVICE_IFACE       "com.canonical.indicator.application.service"
-
 struct _HudAppIndicatorSource
 {
   GObject parent_instance;
@@ -57,6 +53,8 @@ struct _HudAppIndicatorSource
   GCancellable *cancellable;
   gint          use_count;
   gboolean      ready;
+  guint         watch_id;
+  GDBusConnection *connection;
 };
 
 typedef GObjectClass HudAppIndicatorSourceClass;
@@ -108,7 +106,8 @@ hud_app_indicator_source_add_indicator (HudAppIndicatorSource *source,
 
   collector = hud_dbusmenu_collector_new_for_endpoint (id, title, icon_name,
                                                        hud_settings.indicator_penalty,
-                                                       dbus_name, dbus_path);
+                                                       dbus_name, dbus_path,
+                                                       HUD_SOURCE_ITEM_TYPE_INDICATOR);
   g_signal_connect (collector, "changed", G_CALLBACK (hud_app_indicator_source_collector_changed), source);
 
   /* If query is active, mark new app indicator as used. */
@@ -242,6 +241,12 @@ hud_app_indicator_source_ready (GObject      *connection,
 
   g_clear_object (&source->cancellable);
 
+  if (source == NULL)
+  {
+    g_debug("Callback invoked with null connection");
+    return;
+  }
+
   reply = g_dbus_connection_call_finish (G_DBUS_CONNECTION (connection), result, &error);
 
   if (reply)
@@ -299,7 +304,7 @@ hud_app_indicator_source_name_appeared (GDBusConnection *connection,
   g_dbus_connection_call (connection, name_owner, APP_INDICATOR_SERVICE_OBJECT_PATH, APP_INDICATOR_SERVICE_IFACE,
                           "GetApplications", NULL, G_VARIANT_TYPE ("(a(sisossssss))"),
                           G_DBUS_CALL_FLAGS_NONE, -1, source->cancellable,
-                          hud_app_indicator_source_ready, g_object_ref (source));
+                          hud_app_indicator_source_ready, g_object_ref(source));
 }
 
 static void
@@ -372,8 +377,9 @@ hud_app_indicator_source_unuse (HudSource *hud_source)
 
 static void
 hud_app_indicator_source_search (HudSource    *hud_source,
-                                 GPtrArray    *results_array,
-                                 HudTokenList *search_tokens)
+                                 HudTokenList *search_tokens,
+                                 void        (*append_func) (HudResult * result, gpointer user_data),
+                                 gpointer      user_data)
 {
   HudAppIndicatorSource *source = HUD_APP_INDICATOR_SOURCE (hud_source);
   GSequenceIter *iter;
@@ -382,15 +388,64 @@ hud_app_indicator_source_search (HudSource    *hud_source,
 
   while (!g_sequence_iter_is_end (iter))
     {
-      hud_source_search (g_sequence_get (iter), results_array, search_tokens);
+      hud_source_search (g_sequence_get (iter), search_tokens, append_func, user_data);
       iter = g_sequence_iter_next (iter);
     }
 }
 
 static void
+hud_app_indicator_source_list_applications (HudSource    *hud_source,
+                                            HudTokenList *search_tokens,
+                                            void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
+                                            gpointer      user_data)
+{
+  HudAppIndicatorSource *source = HUD_APP_INDICATOR_SOURCE (hud_source);
+  GSequenceIter *iter;
+
+  iter = g_sequence_get_begin_iter (source->indicators);
+
+  while (!g_sequence_iter_is_end (iter))
+    {
+      hud_source_list_applications (g_sequence_get (iter), search_tokens, append_func, user_data);
+      iter = g_sequence_iter_next (iter);
+    }
+}
+
+static HudSource *
+hud_app_indicator_source_get (HudSource     *hud_source,
+                              const gchar   *application_id)
+{
+  HudAppIndicatorSource *source = HUD_APP_INDICATOR_SOURCE (hud_source);
+  GSequenceIter *iter;
+
+  iter = g_sequence_get_begin_iter (source->indicators);
+
+  while (!g_sequence_iter_is_end (iter))
+    {
+      HudSource *result = hud_source_get (g_sequence_get (iter), application_id);
+      if (result != NULL)
+        return result;
+      iter = g_sequence_iter_next (iter);
+    }
+  return NULL;
+}
+
+static void
 hud_app_indicator_source_finalize (GObject *object)
 {
-  g_assert_not_reached ();
+  g_debug("hud_app_indicator_source_finalize");
+
+  HudAppIndicatorSource *source = HUD_APP_INDICATOR_SOURCE(object);
+  if (source->subscription)
+  {
+    g_dbus_connection_signal_unsubscribe(source->connection, source->subscription);
+    source->subscription = 0;
+  }
+  g_bus_unwatch_name(source->watch_id);
+  g_sequence_free(source->indicators);
+  g_object_unref(source->connection);
+
+  G_OBJECT_CLASS(hud_app_indicator_source_parent_class)->finalize(object);
 }
 
 static void
@@ -399,9 +454,6 @@ hud_app_indicator_source_init (HudAppIndicatorSource *source)
   g_debug ("online");
 
   source->indicators = g_sequence_new (g_object_unref);
-  g_bus_watch_name (G_BUS_TYPE_SESSION, APP_INDICATOR_SERVICE_BUS_NAME, G_BUS_NAME_WATCHER_FLAGS_NONE,
-                    hud_app_indicator_source_name_appeared, hud_app_indicator_source_name_vanished,
-                    g_object_ref (source), g_object_unref);
 }
 
 static void
@@ -410,6 +462,8 @@ hud_app_indicator_source_iface_init (HudSourceInterface *iface)
   iface->use = hud_app_indicator_source_use;
   iface->unuse = hud_app_indicator_source_unuse;
   iface->search = hud_app_indicator_source_search;
+  iface->list_applications = hud_app_indicator_source_list_applications;
+  iface->get = hud_app_indicator_source_get;
 }
 
 static void
@@ -426,7 +480,13 @@ hud_app_indicator_source_class_init (HudAppIndicatorSourceClass *class)
  * Returns: a new #HudAppIndicatorSource
  **/
 HudAppIndicatorSource *
-hud_app_indicator_source_new (void)
+hud_app_indicator_source_new (GDBusConnection *connection)
 {
-  return g_object_new (HUD_TYPE_APP_INDICATOR_SOURCE, NULL);
+  HudAppIndicatorSource *source = g_object_new (HUD_TYPE_APP_INDICATOR_SOURCE, NULL);
+
+  source->connection = g_object_ref(connection);
+  source->watch_id = g_bus_watch_name_on_connection(connection, APP_INDICATOR_SERVICE_BUS_NAME, G_BUS_NAME_WATCHER_FLAGS_NONE,
+                    hud_app_indicator_source_name_appeared, hud_app_indicator_source_name_vanished,
+                    source, NULL);
+  return source;
 }

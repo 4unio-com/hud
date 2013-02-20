@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE book PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "">
+<book xmlns="http://www.devhelp.net/book" title="libhud-client Docs" link="index.html" author="" name="libhud-client" version="2" language="c">
+  <chapters>
+    <sub name="Data Types" link="ch01.html">
+      <sub name="query" link="libhud-client-query.html"/>
+      <sub name="connection" link="libhud-client-connection.html"/>
+      <sub name="param" link="libhud-client-param.html"/>
+    </sub>
+    <sub name="Object Hierarchy" link="object-tree.html"/>
+    <sub name="API Index" link="api-index-full.html"/>
+    <sub name="Index of deprecated API" link="deprecated-api-index.html"/>
+    <sub name="Annotation Glossary" link="annotation-glossary.html"/>
+  </chapters>
+  <functions>
+    <keyword type="struct" name="HudClientQuery" link="libhud-client-query.html#HudClientQuery-struct"/>
+    <keyword type="struct" name="struct HudClientQueryClass" link="libhud-client-query.html#HudClientQueryClass"/>
+    <keyword type="function" name="hud_client_query_execute_command ()" link="libhud-client-query.html#hud-client-query-execute-command"/>
+    <keyword type="function" name="hud_client_query_execute_param_command ()" link="libhud-client-query.html#hud-client-query-execute-param-command"/>
+    <keyword type="function" name="hud_client_query_execute_toolbar_item ()" link="libhud-client-query.html#hud-client-query-execute-toolbar-item"/>
+    <keyword type="function" name="hud_client_query_get_active_toolbar ()" link="libhud-client-query.html#hud-client-query-get-active-toolbar"/>
+    <keyword type="function" name="hud_client_query_get_appstack_model ()" link="libhud-client-query.html#hud-client-query-get-appstack-model"/>
+    <keyword type="function" name="hud_client_query_get_query ()" link="libhud-client-query.html#hud-client-query-get-query"/>
+    <keyword type="function" name="hud_client_query_get_results_model ()" link="libhud-client-query.html#hud-client-query-get-results-model"/>
+    <keyword type="function" name="hud_client_query_new ()" link="libhud-client-query.html#hud-client-query-new"/>
+    <keyword type="function" name="hud_client_query_new_for_connection ()" link="libhud-client-query.html#hud-client-query-new-for-connection"/>
+    <keyword type="function" name="hud_client_query_toolbar_item_active ()" link="libhud-client-query.html#hud-client-query-toolbar-item-active"/>
+    <keyword type="function" name="hud_client_query_set_appstack_app ()" link="libhud-client-query.html#hud-client-query-set-appstack-app"/>
+    <keyword type="function" name="hud_client_query_set_query ()" link="libhud-client-query.html#hud-client-query-set-query"/>
+    <keyword type="function" name="hud_client_query_voice_query ()" link="libhud-client-query.html#hud-client-query-voice-query"/>
+    <keyword type="property" name="The &quot;connection&quot; property" link="libhud-client-query.html#HudClientQuery--connection"/>
+    <keyword type="property" name="The &quot;query&quot; property" link="libhud-client-query.html#HudClientQuery--query"/>
+    <keyword type="signal" name="The &quot;toolbar-updated&quot; signal" link="libhud-client-query.html#HudClientQuery-toolbar-updated"/>
+    <keyword type="signal" name="The &quot;voice-query-failed&quot; signal" link="libhud-client-query.html#HudClientQuery-voice-query-failed"/>
+    <keyword type="signal" name="The &quot;voice-query-finished&quot; signal" link="libhud-client-query.html#HudClientQuery-voice-query-finished"/>
+    <keyword type="signal" name="The &quot;voice-query-heard-something&quot; signal" link="libhud-client-query.html#HudClientQuery-voice-query-heard-something"/>
+    <keyword type="signal" name="The &quot;voice-query-listening&quot; signal" link="libhud-client-query.html#HudClientQuery-voice-query-listening"/>
+    <keyword type="signal" name="The &quot;voice-query-loading&quot; signal" link="libhud-client-query.html#HudClientQuery-voice-query-loading"/>
+    <keyword type="struct" name="HudClientConnection" link="libhud-client-connection.html#HudClientConnection-struct"/>
+    <keyword type="struct" name="struct HudClientConnectionClass" link="libhud-client-connection.html#HudClientConnectionClass"/>
+    <keyword type="function" name="hud_client_connection_get_address ()" link="libhud-client-connection.html#hud-client-connection-get-address"/>
+    <keyword type="function" name="hud_client_connection_get_ref ()" link="libhud-client-connection.html#hud-client-connection-get-ref"/>
+    <keyword type="function" name="hud_client_connection_new ()" link="libhud-client-connection.html#hud-client-connection-new"/>
+    <keyword type="function" name="hud_client_connection_new_query ()" link="libhud-client-connection.html#hud-client-connection-new-query"/>
+    <keyword type="property" name="The &quot;address&quot; property" link="libhud-client-connection.html#HudClientConnection--address"/>
+    <keyword type="property" name="The &quot;path&quot; property" link="libhud-client-connection.html#HudClientConnection--path"/>
+    <keyword type="struct" name="HudClientParam" link="libhud-client-param.html#HudClientParam"/>
+    <keyword type="struct" name="struct HudClientParamClass" link="libhud-client-param.html#HudClientParamClass"/>
+    <keyword type="function" name="hud_client_param_get_actions ()" link="libhud-client-param.html#hud-client-param-get-actions"/>
+    <keyword type="function" name="hud_client_param_get_model ()" link="libhud-client-param.html#hud-client-param-get-model"/>
+    <keyword type="function" name="hud_client_param_new ()" link="libhud-client-param.html#hud-client-param-new"/>
+    <keyword type="function" name="hud_client_param_send_cancel ()" link="libhud-client-param.html#hud-client-param-send-cancel"/>
+    <keyword type="function" name="hud_client_param_send_commit ()" link="libhud-client-param.html#hud-client-param-send-commit"/>
+    <keyword type="function" name="hud_client_param_send_reset ()" link="libhud-client-param.html#hud-client-param-send-reset"/>
+  </functions>
+</book>

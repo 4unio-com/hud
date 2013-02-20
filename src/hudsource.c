@@ -106,8 +106,10 @@ hud_source_use (HudSource *source)
 
   g_debug ("use on %s %p", G_OBJECT_TYPE_NAME (source), source);
 
-  HUD_SOURCE_GET_IFACE (source)
-    ->use (source);
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->use != NULL) {
+    return iface->use(source);
+  }
 }
 
 /**
@@ -126,8 +128,10 @@ hud_source_unuse (HudSource *source)
 
   g_debug ("unuse on %s %p", G_OBJECT_TYPE_NAME (source), source);
 
-  HUD_SOURCE_GET_IFACE (source)
-    ->unuse (source);
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->unuse != NULL) {
+    return iface->unuse(source);
+  }
 }
 
 /**
@@ -145,13 +149,99 @@ hud_source_unuse (HudSource *source)
  **/
 void
 hud_source_search (HudSource    *source,
-                   GPtrArray    *results_array,
-                   HudTokenList *search_string)
+                   HudTokenList *search_string,
+                   void        (*append_func) (HudResult * result, gpointer user_data),
+                   gpointer      user_data)
 {
   g_debug ("search on %s %p", G_OBJECT_TYPE_NAME (source), source);
 
-  HUD_SOURCE_GET_IFACE (source)
-    ->search (source, results_array, search_string);
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->unuse != NULL) {
+    return iface->search(source, search_string, append_func, user_data);
+  }
+}
+
+void
+hud_source_list_applications (HudSource    *source,
+                              HudTokenList *search_tokens,
+                              void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
+                              gpointer      user_data)
+{
+  g_debug ("list_applications on %s %p", G_OBJECT_TYPE_NAME (source), source);
+
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->list_applications != NULL) {
+    return iface->list_applications(source, search_tokens, append_func, user_data);
+  }
+}
+
+/**
+ * hud_source_get:
+ * @source; a #HudSource
+ *
+ * Mark a #HudSource as "in use" (ie: actively being queried).
+ *
+ * Gets the last source that is responsible of giving results for application_id
+ **/
+HudSource *
+hud_source_get (HudSource   *source,
+                const gchar *application_id)
+{
+  g_return_val_if_fail (HUD_IS_SOURCE (source), NULL);
+
+  g_debug ("get on %s %p", G_OBJECT_TYPE_NAME (source), source);
+
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->get != NULL) {
+    return iface->get(source, application_id);
+  }
+
+  return NULL;
+}
+
+/**
+ * hud_source_activate_toolbar:
+ * @source; a #HudSource
+ *
+ * Activate a toolbar item on a source
+ **/
+void
+hud_source_activate_toolbar (HudSource * source, HudClientQueryToolbarItems item, GVariant *platform_data)
+{
+  g_return_if_fail (HUD_IS_SOURCE (source));
+
+  g_debug ("activate toolbar on %s %p", G_OBJECT_TYPE_NAME (source), source);
+
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->activate_toolbar != NULL) {
+    return iface->activate_toolbar(source, item, platform_data);
+  }
+
+  return;
+}
+
+/**
+ * hud_source_get_items:
+ * @collector: a #HudDbusmenuCollector
+ *
+ * Gets the items that have been collected at any point in time.
+ *
+ * Return Value: (element-type HudItem) (transfer full) A list of #HudItem
+ * objects.  Free with g_list_free_full(g_object_unref)
+ */
+GList *
+hud_source_get_items (HudSource *source)
+{
+  g_return_val_if_fail(HUD_IS_SOURCE(source), NULL);
+
+  g_debug ("get_items on %s %p", G_OBJECT_TYPE_NAME (source), source);
+
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->get_items != NULL) {
+    return iface->get_items(source);
+  }
+
+  return NULL;
 }
 
 /**
@@ -167,7 +257,49 @@ hud_source_search (HudSource    *source,
 void
 hud_source_changed (HudSource *source)
 {
-  g_debug ("%s %p changed", G_OBJECT_TYPE_NAME (source), source);
-
   g_signal_emit (source, hud_source_changed_signal, 0);
+}
+
+/**
+ * hud_source_get_app_id:
+ * @source: a #HudSource
+ *
+ * Get the application ID.  Shouldn't be implemented by list
+ * sources.
+ *
+ * Return value: The ID of the application
+ */
+const gchar *
+hud_source_get_app_id (HudSource * source)
+{
+  g_return_val_if_fail(HUD_IS_SOURCE(source), NULL);
+
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->get_app_id != NULL) {
+    return iface->get_app_id(source);
+  }
+
+  return NULL;
+}
+
+/**
+ * hud_source_get_app_icon:
+ * @source: a #HudSource
+ *
+ * Get the application icon.  Shouldn't be implemented by list
+ * sources.
+ *
+ * Return value: The icon of the application
+ */
+const gchar *
+hud_source_get_app_icon (HudSource * source)
+{
+  g_return_val_if_fail(HUD_IS_SOURCE(source), NULL);
+
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->get_app_icon != NULL) {
+    return iface->get_app_icon(source);
+  }
+
+  return NULL;
 }

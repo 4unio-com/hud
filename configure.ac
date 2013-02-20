@@ -1,5 +1,5 @@
 AC_INIT([hud],
-        [13.04.0],
+        [13.10.0],
         [http://bugs.launchpad.net/hud],
         [hud],
         [http://launchpad.net/hud])
@@ -54,22 +54,115 @@ AC_CONFIG_MACRO_DIR(m4)
 GLIB_GSETTINGS
 
 ###########################
+# GObject Introspection
+###########################
+
+GOBJECT_INTROSPECTION_CHECK([0.9.5])
+
+###########################
+# Vala API Generation
+###########################
+
+AC_ARG_ENABLE([vala],
+    AC_HELP_STRING([--disable-vala], [Disable vala]),
+    [enable_vala=$enableval], [enable_vala=auto])
+
+AS_IF([test "x$enable_vala" != "xno"],[
+    AM_COND_IF([HAVE_INTROSPECTION],,[
+        AC_MSG_ERROR([Vala bindings require introspection support, please --enable-introspection])
+    ])  
+AC_PATH_PROG([VALA_API_GEN], [vapigen])
+])
+AM_CONDITIONAL([HAVE_VALA], [test -n "$VALA_API_GEN"])
+
+###########################
 # Dependencies
 ###########################
 
 DBUSMENU_GLIB_REQUIRED_VERSION=0.4.0
-BAMF_REQUIRED_VERSION=0.2.53
 SQLITE_REQUIRED_VERSION=0.0
 
 PKG_CHECK_MODULES([HUD],[
 		dbusmenu-glib-0.4 >= $DBUSMENU_GLIB_REQUIRED_VERSION
-		libbamf3 
 		sqlite3 >= $SQLITE_REQUIRED_VERSION
+		dee-1.0
+		pocketsphinx
 ])
+
+AC_CHECK_HEADER("julius/julius.h",
+	[has_julius_h="yes"], [AC_MSG_ERROR([Could not find libjulius.h])])
+
+AM_CONDITIONAL([HUD], [test "x$has_julius_h" == "xyes"])
+
+AC_PATH_PROG([LIBJULIUS_CONFIG], [libjulius-config])
+AC_PATH_PROG([LIBSENT_CONFIG], [libsent-config])
+
+if test "$LIBJULIUS_CONFIG" == ""
+then
+	AC_MSG_ERROR([libjulius-config could not be found])
+fi
+
+if test "$LIBSENT_CONFIG" == ""
+then
+	AC_MSG_ERROR([libsent-config could not be found])
+fi
+
+LIBJULIUS_CFLAGS=`$LIBJULIUS_CONFIG --cflags`
+LIBJULIUS_LIBS=`$LIBJULIUS_CONFIG --libs`
+AC_SUBST([LIBJULIUS_CFLAGS])
+AC_SUBST([LIBJULIUS_LIBS])
+
+LIBSENT_CFLAGS=`$LIBSENT_CONFIG --cflags`
+LIBSENT_LIBS=`$LIBSENT_CONFIG --libs`
+AC_SUBST([LIBSENT_CFLAGS])
+AC_SUBST([LIBSENT_LIBS])
 
 GTK_REQUIRED_VERSION=3.0
 PKG_CHECK_MODULES(gtk,[
 		gtk+-3.0 >= $GTK_REQUIRED_VERSION
+])
+
+PKG_CHECK_MODULES([DBUSMENU_JSON], [dbusmenu-jsonloader-0.4])
+
+###########################
+# BAMF Dependency
+###########################
+
+BAMF_REQUIRED_VERSION=0.2.53
+
+AC_ARG_ENABLE([bamf],
+    AC_HELP_STRING([--disable-bamf], [Disable bamf]),
+    [enable_bamf=$enableval], [enable_bamf=auto])
+
+AS_IF([test "x$enable_bamf" != "xno"],[
+PKG_CHECK_MODULES([BAMF],[
+		libbamf3 
+])
+AC_DEFINE([HAVE_BAMF], [1], [Defined if we are building with BAMF])
+])
+
+###########################
+# Hybris Dependency
+###########################
+
+AC_ARG_ENABLE([hybris],
+    AC_HELP_STRING([--disable-hybris], [Disable hybris]),
+    [enable_hybris=$enableval], [enable_hybris=auto])
+
+AS_IF([test "x$enable_hybris" != "xno"],[
+AC_DEFINE([HAVE_HYBRIS], [1], [Defined if we are building with libhybris])
+HYBRIS_CFLAGS="-I/usr/include/hybris"
+HYBRIS_LIBS="-lubuntu_application_api"
+AC_SUBST([HYBRIS_CFLAGS])
+AC_SUBST([HYBRIS_LIBS])
+])
+
+###########################
+# Sanity Check
+###########################
+
+AS_IF([test "x$enable_hybris" == "x$enable_bamf"],[
+AC_MSG_ERROR([Invalid to use hybris and bamf together or neither of them])
 ])
 
 ###########################
@@ -83,7 +176,7 @@ AC_CHECK_HEADER("readline/history.h",
 AC_CHECK_HEADER("curses.h",
 	[has_curses_h="yes"])
 
-AM_CONDITIONAL([BUILD_CLI], [test "x$has_readline_h" == "xyes" && test "x$has_history_h" == "xyes" && test "x$has_curses_h" == "xyes"]),
+AM_CONDITIONAL([BUILD_CLI], [test "x$has_readline_h" == "xyes" && test "x$has_history_h" == "xyes" && test "x$has_curses_h" == "xyes"])
 
 ###########################
 # Test Dependencies
@@ -113,6 +206,10 @@ AM_CONDITIONAL(BUILD_TESTS, test x${have_dbusmenu_jsonloader} = xyes)
 
 AC_SUBST(INDICATORTEST_CFLAGS)
 AC_SUBST(INDICATORTEST_LIBS)
+
+PKG_CHECK_MODULES(DBUSTEST, dbustest-1)
+AC_SUBST(DBUSTEST_CFLAGS)
+AC_SUBST(DBUSTEST_LIBS)
 
 ###########################
 # gcov coverage reporting
@@ -168,6 +265,13 @@ else
 fi
 AC_SUBST(DBUSSERVICEDIR)
 
+if test "x$with_localinstall" = "xyes"; then
+	DBUSIFACEDIR="${datadir}/dbus-1/interfaces/"
+else
+	DBUSIFACEDIR=`$PKG_CONFIG --variable=interfaces_dir dbus-1`
+fi
+AC_SUBST(DBUSIFACEDIR)
+
 ##############################
 # Custom Junk
 ##############################
@@ -206,13 +310,22 @@ AC_DEFINE_PATH(GNOMELOCALEDIR, "${datadir}/locale", [locale directory])
 AC_OUTPUT([
 Makefile
 src/Makefile
+libhud/Makefile
+libhud/tests/Makefile
+libhud/demo/Makefile
+libhud-gtk/Makefile
+libhud-client/Makefile
 data/Makefile
 po/Makefile.in
 tools-vala/Makefile
+tools/Makefile
+tools/hudkeywords/Makefile
+tools/hudkeywords/bin/Makefile
+tools/hudkeywords/hudkeywords/Makefile
 tests/Makefile
 docs/Makefile
 docs/man/Makefile
-docs/devel/Makefile
+docs/libhud-client/Makefile
 ])
 
 ###########################

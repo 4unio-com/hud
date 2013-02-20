@@ -3,7 +3,6 @@ data/com.canonical.indicator.appmenu.hud.search.gschema.xml
 src/dump-app-info.c
 src/hudappindicatorsource.c
 src/hudappmenuregistrar.c
-src/hud-cli.c
 src/huddbusmenucollector.c
 src/hud-dump-application.c
 src/hudindicatorsource.c
@@ -17,6 +16,6 @@ src/hudsourcelist.c
 src/hudstringlist.c
 src/hudtoken.c
 src/hud-verify-app-info.c
-src/hudwindowsource.c
 src/load-app-info.c
 src/usage-tracker.c
+tools/hud-cli.c

@@ -23,10 +23,12 @@
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
+#ifdef HAVE_BAMF
 #include <libbamf/libbamf.h>
 #include <libbamf/bamf-application.h>
 #include <libbamf/bamf-view.h>
 #include <libbamf/bamf-tab.h>
+#endif
 
 #include "hudsettings.h"
 #include "huddbusmenucollector.h"
@@ -53,13 +55,15 @@ struct _HudWebappSource
   
   GList *applications;
   
-  HudWindowSource *window_source;
+#ifdef HAVE_BAMF
+  BamfMatcher *matcher;
+#endif
 };
 
 typedef GObjectClass HudWebappSourceClass;
 
 typedef struct _HudWebappApplicationSource {
-  BamfApplication *application;
+  AbstractApplication *application;
 
   HudSource *source;
   HudSource *collector;
@@ -71,15 +75,18 @@ G_DEFINE_TYPE_WITH_CODE (HudWebappSource, hud_webapp_source, G_TYPE_OBJECT,
 
 
 
+#ifdef HAVE_BAMF
 static void
 hud_webapp_source_collector_changed (HudSource *source,
 				     gpointer   user_data)
 {
   hud_source_changed ((HudSource *)user_data);
 }
+#endif
 
+#ifdef HAVE_BAMF
 static void
-hud_webapp_source_application_child_moved (BamfApplication *application,
+hud_webapp_source_application_child_moved (AbstractApplication *application,
 					     BamfView *child,
 					     gpointer user_data)
 {
@@ -87,16 +94,18 @@ hud_webapp_source_application_child_moved (BamfApplication *application,
   
   hud_source_changed (source);
 }
+#endif
 
 static gboolean
-hud_webapp_source_should_search_app (BamfApplication *application,
+hud_webapp_source_should_search_app (AbstractApplication *application,
 				     guint32 active_xid)
 {
-  GList *children, *walk;
   gboolean should;
   
   should = FALSE;
-  
+
+#ifdef HAVE_BAMF
+  GList *children, *walk;
   children = bamf_view_get_children (BAMF_VIEW (application));
 
   for (walk = children; walk != NULL; walk = walk->next)
@@ -117,13 +126,15 @@ hud_webapp_source_should_search_app (BamfApplication *application,
     }
   
   g_list_free (children);
+#endif
   return should;
 }
 
 static void
-hud_webapp_source_search (HudSource   *hud_source,
-			  GPtrArray   *results_array,
-			  HudTokenList *token_list)
+hud_webapp_source_search (HudSource    *hud_source,
+                          HudTokenList *token_list,
+                          void        (*append_func) (HudResult * result, gpointer user_data),
+                          gpointer      user_data)
 {
   HudWebappSource *source;
   GList *walk;
@@ -133,34 +144,98 @@ hud_webapp_source_search (HudSource   *hud_source,
   for (walk = source->applications; walk != NULL; walk = walk->next)
     {
       HudWebappApplicationSource *application_source;
-      guint32 active_xid;
+      guint32 active_xid = 0;
       
       application_source = (HudWebappApplicationSource *)walk->data;
-      
-      active_xid = hud_window_source_get_active_xid (source->window_source);
+
+#ifdef HAVE_BAMF
+      active_xid = bamf_window_get_xid(bamf_matcher_get_active_window(source->matcher));
+#endif
 
       if (hud_webapp_source_should_search_app (application_source->application, active_xid))
 	{
-	  hud_source_search (application_source->collector, results_array, token_list);
+	  hud_source_search (application_source->collector, token_list, append_func, user_data);
 	}
 
     }
 }
 
+static void
+hud_webapp_source_list_applications (HudSource    *hud_source,
+                                     HudTokenList *token_list,
+                                     void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
+                                     gpointer      user_data)
+{
+  HudWebappSource *source;
+  GList *walk;
+  source = HUD_WEBAPP_SOURCE (hud_source);
+  
+  for (walk = source->applications; walk != NULL; walk = walk->next)
+    {
+      HudWebappApplicationSource *application_source;
+      guint32 active_xid = 0;
+      
+      application_source = (HudWebappApplicationSource *)walk->data;
+
+#ifdef HAVE_BAMF
+      active_xid = bamf_window_get_xid(bamf_matcher_get_active_window(source->matcher));
+#endif
+
+      if (active_xid != 0 && hud_webapp_source_should_search_app (application_source->application, active_xid))
+        {
+          hud_source_list_applications (application_source->collector, token_list, append_func, user_data);
+        }
+    }
+}
+
+static HudSource *
+hud_webapp_source_get (HudSource   *hud_source,
+                       const gchar *application_id)
+{
+  HudWebappSource *source;
+  GList *walk;
+  source = HUD_WEBAPP_SOURCE (hud_source);
+
+  for (walk = source->applications; walk != NULL; walk = walk->next)
+    {
+      HudWebappApplicationSource *application_source;
+      guint32 active_xid = 0;
+
+      application_source = (HudWebappApplicationSource *)walk->data;
+
+#ifdef HAVE_BAMF
+      active_xid = bamf_window_get_xid(bamf_matcher_get_active_window(source->matcher));
+#endif
+
+      if (active_xid != 0 && hud_webapp_source_should_search_app (application_source->application, active_xid))
+        {
+          HudSource *result = hud_source_get(application_source->collector, application_id);
+          if (result != NULL)
+            return result;
+        }
+    }
+
+  return NULL;
+}
+
 HudWebappApplicationSource *
 hud_webapp_application_source_new (HudSource *source,
-				   BamfApplication *application)
+				   AbstractApplication *application)
 {
-  HudWebappApplicationSource *application_source;
   gchar *name, *path;
 
   name = path = NULL;
-  
+
+#ifdef HAVE_BAMF
   bamf_application_get_application_menu (application,
 					 &name, &path);
+#endif
   
   if (name == NULL || *name == '\0')
     return NULL;
+
+#ifdef HAVE_BAMF
+  HudWebappApplicationSource *application_source;
 
   application_source = g_malloc0 (sizeof (HudWebappApplicationSource));
   
@@ -171,7 +246,8 @@ hud_webapp_application_source_new (HudSource *source,
 											bamf_view_get_name (BAMF_VIEW (application)),
 											bamf_view_get_icon (BAMF_VIEW (application)),
 											0,
-											name, path);
+											name, path,
+											HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
   
   g_signal_connect_object (application, "child-moved",
 			   G_CALLBACK (hud_webapp_source_application_child_moved),
@@ -183,8 +259,12 @@ hud_webapp_application_source_new (HudSource *source,
   g_free (path);
   
   return application_source;
+#else
+  return NULL;
+#endif
 }
 
+#ifdef HAVE_BAMF
 static void
 hud_webapp_application_source_free (HudWebappApplicationSource *application_source)
 {
@@ -193,8 +273,9 @@ hud_webapp_application_source_free (HudWebappApplicationSource *application_sour
   
   g_free (application_source);
 }
+#endif
 
-
+#ifdef HAVE_BAMF
 static void
 on_active_changed (BamfApplication *application,
 		   gboolean active,
@@ -202,10 +283,12 @@ on_active_changed (BamfApplication *application,
 {
   hud_source_changed (source);
 }
+#endif
 
+#ifdef HAVE_BAMF
 static void
 hud_webapp_source_remove_application (HudWebappSource *source,
-				      BamfApplication *application)
+				      AbstractApplication *application)
 {
   HudWebappApplicationSource *application_source;
   GList *walk;
@@ -230,7 +313,7 @@ hud_webapp_source_remove_application (HudWebappSource *source,
 					source);
   g_signal_handlers_disconnect_by_func (application, G_CALLBACK (on_active_changed),
 					source);
-  
+
   source->applications = g_list_remove (source->applications, application_source);
   
   hud_webapp_application_source_free (application_source);
@@ -238,7 +321,9 @@ hud_webapp_source_remove_application (HudWebappSource *source,
   hud_webapp_source_collector_changed ((HudSource *)source, source);
   
 }
+#endif
 
+#ifdef HAVE_BAMF
 static void
 hud_webapp_source_bamf_view_closed (BamfMatcher *matcher,
 				    BamfView *view,
@@ -253,10 +338,12 @@ hud_webapp_source_bamf_view_closed (BamfMatcher *matcher,
   
   hud_webapp_source_remove_application (source, (BamfApplication *)view);
 }
+#endif
 
+#ifdef HAVE_BAMF 
 static void
 hud_webapp_source_register_application (HudWebappSource *source,
-					BamfApplication *application)
+					AbstractApplication *application)
 {
   HudWebappApplicationSource *application_source;
   
@@ -270,17 +357,21 @@ hud_webapp_source_register_application (HudWebappSource *source,
   source->applications = g_list_append (source->applications, application_source);
   
   hud_webapp_source_collector_changed ((HudSource *)source, source);
-  
+
   g_signal_connect (application, "active-changed", G_CALLBACK (on_active_changed), source);
   
 }
+#endif
 
 static void
 hud_webapp_source_finalize (GObject *object)
 {
-  g_assert_not_reached ();
+
+  G_OBJECT_CLASS(hud_webapp_source_parent_class)->finalize(object);
+  return;
 }
 
+#ifdef HAVE_BAMF
 static void
 hud_webapp_source_bamf_view_opened (BamfMatcher *matcher,
 				    BamfView *view,
@@ -301,15 +392,19 @@ hud_webapp_source_bamf_view_opened (BamfMatcher *matcher,
   
   hud_webapp_source_register_application (source, application);
 }
+#endif
 
 static void
 hud_webapp_source_init (HudWebappSource *source)
 {
+#ifdef HAVE_BAMF
   BamfMatcher *matcher;
   GList *applications, *walk;
+#endif
   
   source->applications = NULL;
   
+#ifdef HAVE_BAMF
   matcher = bamf_matcher_get_default ();
   
   applications = bamf_matcher_get_applications (matcher);
@@ -330,6 +425,7 @@ hud_webapp_source_init (HudWebappSource *source)
   g_signal_connect (matcher, "view-closed", G_CALLBACK (hud_webapp_source_bamf_view_closed), source);
   
   g_list_free (applications);
+#endif
 }
 
 static void
@@ -346,8 +442,10 @@ static void
 hud_webapp_source_iface_init (HudSourceInterface *iface)
 {
   iface->search = hud_webapp_source_search;
+  iface->list_applications = hud_webapp_source_list_applications;
   iface->use = hud_webapp_source_use;
   iface->unuse = hud_webapp_source_unuse;
+  iface->get = hud_webapp_source_get;
 }
 
 static void
@@ -364,13 +462,11 @@ hud_webapp_source_class_init (HudWebappSourceClass *class)
  * Returns: a new #HudWebappSource
  **/
 HudWebappSource *
-hud_webapp_source_new (HudWindowSource *window_source)
+hud_webapp_source_new (void)
 {
   HudWebappSource *webapp_source;
   
   webapp_source = (HudWebappSource *) g_object_new (HUD_TYPE_WEBAPP_SOURCE, NULL);
-  
-  webapp_source->window_source = window_source;
   
   return webapp_source;
 }

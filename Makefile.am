@@ -4,6 +4,10 @@ SUBDIRS = \
 	data \
 	po \
 	src \
+	libhud \
+	libhud-gtk \
+	libhud-client \
+	tools \
 	docs
 
 if BUILD_TESTS
@@ -14,7 +18,9 @@ endif
 
 tests: src
 
-DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-localinstall --enable-deprecations
+tools: libhud-client
+
+DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-localinstall --enable-deprecations --disable-hybris
 
 dist-hook:
 	@if test -d "$(top_srcdir)/.bzr"; \
@@ -43,3 +49,9 @@ dist-hook:
 	fi
 
 include $(top_srcdir)/Makefile.am.coverage
+
+EXTRA_DIST = \
+	autogen.sh \
+	Makefile.am.coverage \
+	Makefile.am.enum \
+	Makefile.am.marshal

@@ -110,8 +110,9 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(dbus_servicesdir)"
-DATA = $(dbus_services_DATA)
+am__installdirs = "$(DESTDIR)$(dbus_interfacesdir)" \
+	"$(DESTDIR)$(dbus_servicesdir)" "$(DESTDIR)$(pkgdatadir)"
+DATA = $(dbus_interfaces_DATA) $(dbus_services_DATA) $(pkgdata_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALL_LINGUAS = @ALL_LINGUAS@
@@ -122,6 +123,8 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+BAMF_CFLAGS = @BAMF_CFLAGS@
+BAMF_LIBS = @BAMF_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -132,7 +135,12 @@ CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DATADIRNAME = @DATADIRNAME@
+DBUSIFACEDIR = @DBUSIFACEDIR@
+DBUSMENU_JSON_CFLAGS = @DBUSMENU_JSON_CFLAGS@
+DBUSMENU_JSON_LIBS = @DBUSMENU_JSON_LIBS@
 DBUSSERVICEDIR = @DBUSSERVICEDIR@
+DBUSTEST_CFLAGS = @DBUSTEST_CFLAGS@
+DBUSTEST_LIBS = @DBUSTEST_LIBS@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
@@ -164,6 +172,8 @@ GTKDOC_REBASE = @GTKDOC_REBASE@
 HTML_DIR = @HTML_DIR@
 HUD_CFLAGS = @HUD_CFLAGS@
 HUD_LIBS = @HUD_LIBS@
+HYBRIS_CFLAGS = @HYBRIS_CFLAGS@
+HYBRIS_LIBS = @HYBRIS_LIBS@
 INDICATORDIR = @INDICATORDIR@
 INDICATORICONSDIR = @INDICATORICONSDIR@
 INDICATORTEST_CFLAGS = @INDICATORTEST_CFLAGS@
@@ -183,13 +193,27 @@ INTLTOOL_V_MERGE_OPTIONS = @INTLTOOL_V_MERGE_OPTIONS@
 INTLTOOL__v_MERGE_ = @INTLTOOL__v_MERGE_@
 INTLTOOL__v_MERGE_0 = @INTLTOOL__v_MERGE_0@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
+INTROSPECTION_CFLAGS = @INTROSPECTION_CFLAGS@
+INTROSPECTION_COMPILER = @INTROSPECTION_COMPILER@
+INTROSPECTION_GENERATE = @INTROSPECTION_GENERATE@
+INTROSPECTION_GIRDIR = @INTROSPECTION_GIRDIR@
+INTROSPECTION_LIBS = @INTROSPECTION_LIBS@
+INTROSPECTION_MAKEFILE = @INTROSPECTION_MAKEFILE@
+INTROSPECTION_SCANNER = @INTROSPECTION_SCANNER@
+INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
+LIBJULIUS_CFLAGS = @LIBJULIUS_CFLAGS@
+LIBJULIUS_CONFIG = @LIBJULIUS_CONFIG@
+LIBJULIUS_LIBS = @LIBJULIUS_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBSENT_CFLAGS = @LIBSENT_CFLAGS@
+LIBSENT_CONFIG = @LIBSENT_CONFIG@
+LIBSENT_LIBS = @LIBSENT_LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
@@ -229,6 +253,7 @@ SHTOOL = @SHTOOL@
 STRIP = @STRIP@
 USE_NLS = @USE_NLS@
 VALAC = @VALAC@
+VALA_API_GEN = @VALA_API_GEN@
 VERSION = @VERSION@
 XGETTEXT = @XGETTEXT@
 XGETTEXT_015 = @XGETTEXT_015@
@@ -297,13 +322,22 @@ gsettings_SCHEMAS = \
 
 dbus_servicesdir = $(DBUSSERVICEDIR)
 dbus_services_DATA = com.canonical.hud.service
+dbus_interfacesdir = $(DBUSIFACEDIR)
+dbus_interfaces_DATA = \
+	com.canonical.hud.query.xml \
+	com.canonical.hud.xml
+
 EXTRA_DIST = \
+	$(dbus_interfaces_DATA) \
+	com.canonical.hud.Application.xml \
 	$(dbus_services_DATA:.service=.service.in) \
-	$(gsettings_SCHEMAS)
+	$(gsettings_SCHEMAS) \
+	$(pkgdata_DATA)
 
 CLEANFILES = \
 	$(dbus_services_DATA)
 
+pkgdata_DATA = 
 all: all-am
 
 .SUFFIXES:
@@ -343,6 +377,27 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-dbus_interfacesDATA: $(dbus_interfaces_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(dbus_interfaces_DATA)'; test -n "$(dbus_interfacesdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(dbus_interfacesdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(dbus_interfacesdir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(dbus_interfacesdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(dbus_interfacesdir)" || exit $$?; \
+	done
+
+uninstall-dbus_interfacesDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dbus_interfaces_DATA)'; test -n "$(dbus_interfacesdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(dbus_interfacesdir)'; $(am__uninstall_files_from_dir)
 install-dbus_servicesDATA: $(dbus_services_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(dbus_services_DATA)'; test -n "$(dbus_servicesdir)" || list=; \
@@ -364,6 +419,27 @@ uninstall-dbus_servicesDATA:
 	@list='$(dbus_services_DATA)'; test -n "$(dbus_servicesdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(dbus_servicesdir)'; $(am__uninstall_files_from_dir)
+install-pkgdataDATA: $(pkgdata_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(pkgdata_DATA)'; test -n "$(pkgdatadir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(pkgdatadir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(pkgdatadir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pkgdatadir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pkgdatadir)" || exit $$?; \
+	done
+
+uninstall-pkgdataDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(pkgdata_DATA)'; test -n "$(pkgdatadir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(pkgdatadir)'; $(am__uninstall_files_from_dir)
 tags: TAGS
 TAGS:
 
@@ -405,7 +481,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(dbus_servicesdir)"; do \
+	for dir in "$(DESTDIR)$(dbus_interfacesdir)" "$(DESTDIR)$(dbus_servicesdir)" "$(DESTDIR)$(pkgdatadir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -459,7 +535,8 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dbus_servicesDATA
+install-data-am: install-dbus_interfacesDATA install-dbus_servicesDATA \
+	install-pkgdataDATA
 
 install-dvi: install-dvi-am
 
@@ -503,27 +580,30 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dbus_servicesDATA
+uninstall-am: uninstall-dbus_interfacesDATA \
+	uninstall-dbus_servicesDATA uninstall-pkgdataDATA
 
 .MAKE: install-am install-strip
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dbus_servicesDATA \
-	install-dvi install-dvi-am install-exec install-exec-am \
-	install-html install-html-am install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
-	ps ps-am uninstall uninstall-am uninstall-dbus_servicesDATA
+	install-data install-data-am install-dbus_interfacesDATA \
+	install-dbus_servicesDATA install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-pkgdataDATA install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	uninstall uninstall-am uninstall-dbus_interfacesDATA \
+	uninstall-dbus_servicesDATA uninstall-pkgdataDATA
 
 
 @GSETTINGS_RULES@
 
 %.service: %.service.in
-	sed -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@
+	sed -e "s|\@pkglibexecdir\@|$(pkglibexecdir)|" $< > $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

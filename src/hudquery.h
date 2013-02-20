@@ -21,30 +21,31 @@
 
 #include "hudsource.h"
 #include "hudresult.h"
+#include "application-list.h"
 
 #define HUD_TYPE_QUERY                                      (hud_query_get_type ())
 #define HUD_QUERY(inst)                                     (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
                                                              HUD_TYPE_QUERY, HudQuery))
 #define HUD_IS_QUERY(inst)                                  (G_TYPE_CHECK_INSTANCE_TYPE ((inst),                     \
                                                              HUD_TYPE_QUERY))
+typedef struct _DeeModel DeeModel;
+typedef struct _GDBusConnection               GDBusConnection;
 
 typedef struct _HudQuery                                    HudQuery;
 
 GType                   hud_query_get_type                              (void);
 
-HudQuery *              hud_query_new                                   (HudSource   *source,
+HudQuery *              hud_query_new                                   (HudSource   *all_sources,
+                                                                         HudApplicationList  * application_list,
                                                                          const gchar *search_string,
-                                                                         gint         num_results);
+                                                                         gint         num_results,
+                                                                         GDBusConnection *connection,
+                                                                         const guint  query_count);
 
-GVariant *              hud_query_get_query_key                         (HudQuery    *query);
-
-HudResult *             hud_query_get_result_by_index                   (HudQuery    *query,
-                                                                         guint        i);
-
-guint                   hud_query_get_n_results                         (HudQuery    *query);
-
-void                    hud_query_close                                 (HudQuery    *query);
-
-HudQuery *              hud_query_lookup                                (GVariant    *query_key);
+const gchar *           hud_query_get_path                              (HudQuery    *query);
+const gchar *           hud_query_get_results_name                      (HudQuery    *query);
+const gchar *           hud_query_get_appstack_name                     (HudQuery    *query);
+DeeModel    *           hud_query_get_results_model                     (HudQuery    *query);
+DeeModel    *           hud_query_get_appstack_model                    (HudQuery    *query);
 
 #endif /* __HUD_QUERY_H__ */

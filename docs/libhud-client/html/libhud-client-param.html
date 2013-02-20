@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>param</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<link rel="home" href="index.html" title="libhud-client Docs">
+<link rel="up" href="ch01.html" title="Data Types">
+<link rel="prev" href="libhud-client-connection.html" title="connection">
+<link rel="next" href="object-tree.html" title="Object Hierarchy">
+<meta name="generator" content="GTK-Doc V1.18 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="libhud-client-connection.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libhud-client Docs</th>
+<td><a accesskey="n" href="object-tree.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#libhud-client-param.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#libhud-client-param.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="libhud-client-param"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libhud-client-param.top_of_page"></a>param</span></h2>
+<p>param — Track a parameterized view</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libhud-client-param.stability-level"></a><h2>Stability Level</h2>
+Unstable, unless otherwise indicated
+</div>
+<div class="refsynopsisdiv">
+<a name="libhud-client-param.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">
+#include &lt;libhud-client/param.h&gt;
+
+                    <a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam">HudClientParam</a>;
+struct              <a class="link" href="libhud-client-param.html#HudClientParamClass" title="struct HudClientParamClass">HudClientParamClass</a>;
+<a href="http://library.gnome.org/devel/gio/unstable/GActionGroup.html"><span class="returnvalue">GActionGroup</span></a> *      <a class="link" href="libhud-client-param.html#hud-client-param-get-actions" title="hud_client_param_get_actions ()">hud_client_param_get_actions</a>        (<em class="parameter"><code><a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> *param</code></em>);
+<a href="http://library.gnome.org/devel/gio/unstable/GMenuModel.html"><span class="returnvalue">GMenuModel</span></a> *        <a class="link" href="libhud-client-param.html#hud-client-param-get-model" title="hud_client_param_get_model ()">hud_client_param_get_model</a>          (<em class="parameter"><code><a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> *param</code></em>);
+<a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="returnvalue">HudClientParam</span></a> *    <a class="link" href="libhud-client-param.html#hud-client-param-new" title="hud_client_param_new ()">hud_client_param_new</a>                (<em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dbus_address</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *base_action</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_path</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *model_path</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a> model_section</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="libhud-client-param.html#hud-client-param-send-cancel" title="hud_client_param_send_cancel ()">hud_client_param_send_cancel</a>        (<em class="parameter"><code><a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> *param</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="libhud-client-param.html#hud-client-param-send-commit" title="hud_client_param_send_commit ()">hud_client_param_send_commit</a>        (<em class="parameter"><code><a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> *param</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="libhud-client-param.html#hud-client-param-send-reset" title="hud_client_param_send_reset ()">hud_client_param_send_reset</a>         (<em class="parameter"><code><a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> *param</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="libhud-client-param.description"></a><h2>Description</h2>
+<p>
+This makes it much easier to interact with the parameterized
+	pane of the HUD.  Provides the links to the menu model and the
+	actions that should be shown.  Also provides convienience functions
+	for resetting it and fun stuff like that.
+</p>
+</div>
+<div class="refsect1">
+<a name="libhud-client-param.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="HudClientParam"></a><h3>HudClientParam</h3>
+<pre class="programlisting">typedef struct _HudClientParam HudClientParam;</pre>
+<p>
+An object that tracks all the of the stuff needed to handle
+a parameterized dialog of actions.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HudClientParamClass"></a><h3>struct HudClientParamClass</h3>
+<pre class="programlisting">struct HudClientParamClass {
+	GObjectClass parent_class;
+
+	/*&lt; Private &gt;*/
+	void (*model_ready) (HudClientParamClass * param, gpointer user_data);
+};
+</pre>
+<p>
+Class information for <a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a>
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObjectClass"><span class="type">GObjectClass</span></a> <em class="structfield"><code><a name="HudClientParamClass.parent-class"></a>parent_class</code></em>;</span></p></td>
+<td><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObjectClass"><span class="type">GObjectClass</span></a></td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="structfield"><code><a name="HudClientParamClass.model-ready"></a>model_ready</code></em> ()</span></p></td>
+<td>Slot for the model-ready signal</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-param-get-actions"></a><h3>hud_client_param_get_actions ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/gio/unstable/GActionGroup.html"><span class="returnvalue">GActionGroup</span></a> *      hud_client_param_get_actions        (<em class="parameter"><code><a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> *param</code></em>);</pre>
+<p>
+The object path to the actions
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>param</code></em> :</span></p></td>
+<td>The <a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> to query</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>A <a href="http://library.gnome.org/devel/gio/unstable/GActionGroup.html"><span class="type">GActionGroup</span></a> that has the actions in it. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-param-get-model"></a><h3>hud_client_param_get_model ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/gio/unstable/GMenuModel.html"><span class="returnvalue">GMenuModel</span></a> *        hud_client_param_get_model          (<em class="parameter"><code><a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> *param</code></em>);</pre>
+<p>
+The object path to the model
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>param</code></em> :</span></p></td>
+<td>The <a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> to query</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>The menu model of the pane. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-param-new"></a><h3>hud_client_param_new ()</h3>
+<pre class="programlisting"><a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="returnvalue">HudClientParam</span></a> *    hud_client_param_new                (<em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dbus_address</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *base_action</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_path</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *model_path</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a> model_section</code></em>);</pre>
+<p>
+Create a new <a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> object for adjusting a specified
+paramaterized dialog.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>dbus_address</code></em> :</span></p></td>
+<td>The address on dbus to find the actions</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>base_action</code></em> :</span></p></td>
+<td>The action to send events for the dialog on</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>action_path</code></em> :</span></p></td>
+<td>DBus path to the action object</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>model_path</code></em> :</span></p></td>
+<td>DBus path to the menu model object</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>model_section</code></em> :</span></p></td>
+<td>Section of the model to use</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>A new <a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> dialog. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-param-send-cancel"></a><h3>hud_client_param_send_cancel ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hud_client_param_send_cancel        (<em class="parameter"><code><a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> *param</code></em>);</pre>
+<p>
+Send the command to the application to cancel the values
+of the actions in the panel and expect it to close soon.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>param</code></em> :</span></p></td>
+<td>The <a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> to query</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-param-send-commit"></a><h3>hud_client_param_send_commit ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hud_client_param_send_commit        (<em class="parameter"><code><a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> *param</code></em>);</pre>
+<p>
+Tell the application that the user has requested the values
+be applied.  This doesn't mean that there isn't a dialog
+still open, when it closes "end" will be sent.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>param</code></em> :</span></p></td>
+<td>The <a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> to query</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-param-send-reset"></a><h3>hud_client_param_send_reset ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hud_client_param_send_reset         (<em class="parameter"><code><a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> *param</code></em>);</pre>
+<p>
+Send the command to the application to reset the values
+of the actions in the pane.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>param</code></em> :</span></p></td>
+<td>The <a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> to query</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18</div>
+</body>
+</html>

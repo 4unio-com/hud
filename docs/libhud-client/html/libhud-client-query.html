@@ -1,0 +1,620 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>query</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<link rel="home" href="index.html" title="libhud-client Docs">
+<link rel="up" href="ch01.html" title="Data Types">
+<link rel="prev" href="ch01.html" title="Data Types">
+<link rel="next" href="libhud-client-connection.html" title="connection">
+<meta name="generator" content="GTK-Doc V1.18 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="ch01.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libhud-client Docs</th>
+<td><a accesskey="n" href="libhud-client-connection.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#libhud-client-query.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#libhud-client-query.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#libhud-client-query.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#libhud-client-query.properties" class="shortcut">Properties</a>
+                   | 
+                  <a href="#libhud-client-query.signals" class="shortcut">Signals</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="libhud-client-query"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libhud-client-query.top_of_page"></a>query</span></h2>
+<p>query — Query the HUD service for entries</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libhud-client-query.stability-level"></a><h2>Stability Level</h2>
+Unstable, unless otherwise indicated
+</div>
+<div class="refsynopsisdiv">
+<a name="libhud-client-query.synopsis"></a><h2>Synopsis</h2>
+<a name="HudClientQuery"></a><pre class="synopsis">
+#include &lt;libhud-client/query.h&gt;
+
+                    <a class="link" href="libhud-client-query.html#HudClientQuery-struct" title="HudClientQuery">HudClientQuery</a>;
+struct              <a class="link" href="libhud-client-query.html#HudClientQueryClass" title="struct HudClientQueryClass">HudClientQueryClass</a>;
+<span class="returnvalue">void</span>                <a class="link" href="libhud-client-query.html#hud-client-query-execute-command" title="hud_client_query_execute_command ()">hud_client_query_execute_command</a>    (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *command_key</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> timestamp</code></em>);
+<a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="returnvalue">HudClientParam</span></a> *    <a class="link" href="libhud-client-query.html#hud-client-query-execute-param-command" title="hud_client_query_execute_param_command ()">hud_client_query_execute_param_command</a>
+                                                        (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *command_key</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> timestamp</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="libhud-client-query.html#hud-client-query-execute-toolbar-item" title="hud_client_query_execute_toolbar_item ()">hud_client_query_execute_toolbar_item</a>
+                                                        (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>,
+                                                         <em class="parameter"><code><span class="type">HudClientQueryToolbarItems</span> item</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> timestamp</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Arrays.html#GArray"><span class="returnvalue">GArray</span></a> *            <a class="link" href="libhud-client-query.html#hud-client-query-get-active-toolbar" title="hud_client_query_get_active_toolbar ()">hud_client_query_get_active_toolbar</a> (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>);
+<span class="returnvalue">DeeModel</span> *          <a class="link" href="libhud-client-query.html#hud-client-query-get-appstack-model" title="hud_client_query_get_appstack_model ()">hud_client_query_get_appstack_model</a> (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="libhud-client-query.html#hud-client-query-get-query" title="hud_client_query_get_query ()">hud_client_query_get_query</a>          (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>);
+<span class="returnvalue">DeeModel</span> *          <a class="link" href="libhud-client-query.html#hud-client-query-get-results-model" title="hud_client_query_get_results_model ()">hud_client_query_get_results_model</a>  (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>);
+<a class="link" href="libhud-client-query.html#HudClientQuery"><span class="returnvalue">HudClientQuery</span></a> *    <a class="link" href="libhud-client-query.html#hud-client-query-new" title="hud_client_query_new ()">hud_client_query_new</a>                (<em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *query</code></em>);
+<a class="link" href="libhud-client-query.html#HudClientQuery"><span class="returnvalue">HudClientQuery</span></a> *    <a class="link" href="libhud-client-query.html#hud-client-query-new-for-connection" title="hud_client_query_new_for_connection ()">hud_client_query_new_for_connection</a> (<em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *query</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a> *connection</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="libhud-client-query.html#hud-client-query-toolbar-item-active" title="hud_client_query_toolbar_item_active ()">hud_client_query_toolbar_item_active</a>
+                                                        (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>,
+                                                         <em class="parameter"><code><span class="type">HudClientQueryToolbarItems</span> item</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="libhud-client-query.html#hud-client-query-set-appstack-app" title="hud_client_query_set_appstack_app ()">hud_client_query_set_appstack_app</a>   (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="libhud-client-query.html#hud-client-query-set-query" title="hud_client_query_set_query ()">hud_client_query_set_query</a>          (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *query</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="libhud-client-query.html#hud-client-query-voice-query" title="hud_client_query_voice_query ()">hud_client_query_voice_query</a>        (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="libhud-client-query.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----HudClientQuery
+</pre>
+</div>
+<div class="refsect1">
+<a name="libhud-client-query.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="libhud-client-query.html#HudClientQuery--connection" title='The "connection" property'>connection</a>"               <a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a>*  : Read / Write / Construct Only
+  "<a class="link" href="libhud-client-query.html#HudClientQuery--query" title='The "query" property'>query</a>"                    <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write
+</pre>
+</div>
+<div class="refsect1">
+<a name="libhud-client-query.signals"></a><h2>Signals</h2>
+<pre class="synopsis">
+  "<a class="link" href="libhud-client-query.html#HudClientQuery-toolbar-updated" title='The "toolbar-updated" signal'>toolbar-updated</a>"                                : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="libhud-client-query.html#HudClientQuery-voice-query-failed" title='The "voice-query-failed" signal'>voice-query-failed</a>"                             : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="libhud-client-query.html#HudClientQuery-voice-query-finished" title='The "voice-query-finished" signal'>voice-query-finished</a>"                           : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="libhud-client-query.html#HudClientQuery-voice-query-heard-something" title='The "voice-query-heard-something" signal'>voice-query-heard-something</a>"                    : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="libhud-client-query.html#HudClientQuery-voice-query-listening" title='The "voice-query-listening" signal'>voice-query-listening</a>"                          : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="libhud-client-query.html#HudClientQuery-voice-query-loading" title='The "voice-query-loading" signal'>voice-query-loading</a>"                            : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+</pre>
+</div>
+<div class="refsect1">
+<a name="libhud-client-query.description"></a><h2>Description</h2>
+<p>
+A query is an open query to the HUD service which provides
+	Dee models for the results.  The query can update without changing
+	the search string (the application changes the entires) or can
+	be udated by calling <a class="link" href="libhud-client-query.html#hud-client-query-set-query" title="hud_client_query_set_query ()"><code class="function">hud_client_query_set_query()</code></a>.
+</p>
+<p>
+	When the usage of the Query is complete it should be unreferenced
+	as that will communicate to the applications that the HUD is closed
+	and they should not update their items.
+</p>
+</div>
+<div class="refsect1">
+<a name="libhud-client-query.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="HudClientQuery-struct"></a><h3>HudClientQuery</h3>
+<pre class="programlisting">typedef struct _HudClientQuery HudClientQuery;</pre>
+<p>
+Object to track a query and the models for that query.  Should
+be unref'd when a client is done using the query so that applications
+can be told that the HUD is no longer open.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HudClientQueryClass"></a><h3>struct HudClientQueryClass</h3>
+<pre class="programlisting">struct HudClientQueryClass {
+	GObjectClass parent_class;
+};
+</pre>
+<p>
+Class information for <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a>
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObjectClass"><span class="type">GObjectClass</span></a> <em class="structfield"><code><a name="HudClientQueryClass.parent-class"></a>parent_class</code></em>;</span></p></td>
+<td><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObjectClass"><span class="type">GObjectClass</span></a></td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-execute-command"></a><h3>hud_client_query_execute_command ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hud_client_query_execute_command    (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *command_key</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> timestamp</code></em>);</pre>
+<p>
+Executes a particular entry from the results model.  The <em class="parameter"><code>command_key</code></em>
+should be grabbed from the table and passed to this function to activate
+it.  This function will block until the command is activated.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cquery</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>command_key</code></em> :</span></p></td>
+<td>The key from the results model for the entry to activate</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>timestamp</code></em> :</span></p></td>
+<td>Timestamp for the user event</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-execute-param-command"></a><h3>hud_client_query_execute_param_command ()</h3>
+<pre class="programlisting"><a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="returnvalue">HudClientParam</span></a> *    hud_client_query_execute_param_command
+                                                        (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *command_key</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> timestamp</code></em>);</pre>
+<p>
+Executes a command that results in a parameterized dialog
+which is controlled using the returned <a class="link" href="libhud-client-param.html#HudClientParam" title="HudClientParam"><span class="type">HudClientParam</span></a> object.
+When created this sends the "opened" event to the application.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cquery</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>command_key</code></em> :</span></p></td>
+<td>The key from the results model for the entry to activate</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>timestamp</code></em> :</span></p></td>
+<td>Timestamp for the user event</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>Object to control the parameterized dialog. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-execute-toolbar-item"></a><h3>hud_client_query_execute_toolbar_item ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hud_client_query_execute_toolbar_item
+                                                        (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>,
+                                                         <em class="parameter"><code><span class="type">HudClientQueryToolbarItems</span> item</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> timestamp</code></em>);</pre>
+<p>
+Executes a particular item in the tool bar.  The item should
+be active before passing this.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cquery</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>item</code></em> :</span></p></td>
+<td>Which toolbar item is being activated</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>timestamp</code></em> :</span></p></td>
+<td>Timestamp for the user event</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-get-active-toolbar"></a><h3>hud_client_query_get_active_toolbar ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Arrays.html#GArray"><span class="returnvalue">GArray</span></a> *            hud_client_query_get_active_toolbar (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>);</pre>
+<p>
+Gets a list of all the active toolbar items as an array.  Array should be
+free'd after use.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cquery</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>A
+list of the active toolbar items. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> HudClientQueryToolbarItems]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-get-appstack-model"></a><h3>hud_client_query_get_appstack_model ()</h3>
+<pre class="programlisting"><span class="returnvalue">DeeModel</span> *          hud_client_query_get_appstack_model (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>);</pre>
+<p>
+Accessor for the current appstack model.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cquery</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>Appstack Model. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-get-query"></a><h3>hud_client_query_get_query ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       hud_client_query_get_query          (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>);</pre>
+<p>
+Accessor for the current query string.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cquery</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>Query string. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-get-results-model"></a><h3>hud_client_query_get_results_model ()</h3>
+<pre class="programlisting"><span class="returnvalue">DeeModel</span> *          hud_client_query_get_results_model  (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>);</pre>
+<p>
+Accessor for the current results model.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cquery</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>Results Model. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-new"></a><h3>hud_client_query_new ()</h3>
+<pre class="programlisting"><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="returnvalue">HudClientQuery</span></a> *    hud_client_query_new                (<em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *query</code></em>);</pre>
+<p>
+Startes a query with the HUD using a specific string.  This
+will block until the query is created.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>query</code></em> :</span></p></td>
+<td>String to build the initial set of results from</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>A new <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> object. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-new-for-connection"></a><h3>hud_client_query_new_for_connection ()</h3>
+<pre class="programlisting"><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="returnvalue">HudClientQuery</span></a> *    hud_client_query_new_for_connection (<em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *query</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a> *connection</code></em>);</pre>
+<p>
+Very similar to <a class="link" href="libhud-client-query.html#hud-client-query-new" title="hud_client_query_new ()"><code class="function">hud_client_query_new()</code></a> except that it uses a
+custom connection.  This is mostly for testing, though it is
+available if you need it.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>query</code></em> :</span></p></td>
+<td>String to build the initial set of results from</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>connection</code></em> :</span></p></td>
+<td>A custom <a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a> to a non-default HUD service</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>A new <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> object. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-toolbar-item-active"></a><h3>hud_client_query_toolbar_item_active ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            hud_client_query_toolbar_item_active
+                                                        (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>,
+                                                         <em class="parameter"><code><span class="type">HudClientQueryToolbarItems</span> item</code></em>);</pre>
+<p>
+Checks to see if a particular toolbar item is implemented by the
+application and should be shown to the user as available for use.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cquery</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>item</code></em> :</span></p></td>
+<td>Item to check for</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>Whether this <em class="parameter"><code>item</code></em> is active.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-set-appstack-app"></a><h3>hud_client_query_set_appstack_app ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hud_client_query_set_appstack_app   (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>);</pre>
+<p>
+This revises the query application to be application_id.  Updates can
+be seen through the <span class="type">DeeModel</span>'s.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cquery</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>application_id</code></em> :</span></p></td>
+<td>New application to get results from</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-set-query"></a><h3>hud_client_query_set_query ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hud_client_query_set_query          (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *query</code></em>);</pre>
+<p>
+This revises the query to be the new query string.  Updates can
+be seen through the <span class="type">DeeModel</span>'s.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cquery</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>query</code></em> :</span></p></td>
+<td>New query string</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hud-client-query-voice-query"></a><h3>hud_client_query_voice_query ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hud_client_query_voice_query        (<em class="parameter"><code><a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *cquery</code></em>);</pre>
+<p>
+Execute a HUD query using voice recognition.
+</p>
+<p>
+Will cause a series of signals to be emitted indicating progress:
+</p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem"><p>voice-query-loading - the voice recognition toolkit is loading.</p></li>
+<li class="listitem"><p>voice-query-failed - the voice recognition toolkit has failed to initialize.</p></li>
+<li class="listitem"><p>voice-query-listening - the voice recognition toolkit is listening to speech.</p></li>
+<li class="listitem"><p>voice-query-heard-something - the voice recognition toolkit has heard a complete utterance.</p></li>
+<li class="listitem"><p>voice-query-finished - the voice recognition toolkit has completed, and has a (possibly empty) result.</p></li>
+</ul></div>
+<p>
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>cquery</code></em> :</span></p></td>
+<td>A <a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libhud-client-query.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="HudClientQuery--connection"></a><h3>The <code class="literal">"connection"</code> property</h3>
+<pre class="programlisting">  "connection"               <a class="link" href="libhud-client-connection.html#HudClientConnection"><span class="type">HudClientConnection</span></a>*  : Read / Write / Construct Only</pre>
+<p>HUD service connection.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HudClientQuery--query"></a><h3>The <code class="literal">"query"</code> property</h3>
+<pre class="programlisting">  "query"                    <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write</pre>
+<p>HUD query.</p>
+<p>Default value: NULL</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="libhud-client-query.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="HudClientQuery-toolbar-updated"></a><h3>The <code class="literal">"toolbar-updated"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *arg0,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>        user_data)      : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+<p>
+The active items in the toolbar changed.  Please requery.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HudClientQuery-voice-query-failed"></a><h3>The <code class="literal">"voice-query-failed"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *arg0,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>          *arg1,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>        user_data)      : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+<p>
+The voice recognition toolkit has failed to connect to the audio device.
+The specific cause is provided as an argument.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HudClientQuery-voice-query-finished"></a><h3>The <code class="literal">"voice-query-finished"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *arg0,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>          *arg1,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>        user_data)      : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+<p>
+The voice recognition toolkit has completed and has a (possibly empty) result.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HudClientQuery-voice-query-heard-something"></a><h3>The <code class="literal">"voice-query-heard-something"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *arg0,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>        user_data)      : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+<p>
+The voice recognition toolkit has heard an utterance.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HudClientQuery-voice-query-listening"></a><h3>The <code class="literal">"voice-query-listening"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *arg0,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>        user_data)      : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+<p>
+The voice recognition toolkit is active and listening for speech.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HudClientQuery-voice-query-loading"></a><h3>The <code class="literal">"voice-query-loading"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="libhud-client-query.html#HudClientQuery"><span class="type">HudClientQuery</span></a> *arg0,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>        user_data)      : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+<p>
+The voice recognition toolkit is loading, and not ready for speech yet.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18</div>
+</body>
+</html>

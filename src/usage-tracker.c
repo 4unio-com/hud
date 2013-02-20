@@ -209,20 +209,30 @@ configure_db (UsageTracker * self)
 			basecachedir = g_get_user_cache_dir();
 		}
 
+		gint abletomkdir = 0;
 		gchar * cachedir = g_build_filename(basecachedir, "indicator-appmenu", NULL);
 		if (!g_file_test(cachedir, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)) {
-			g_mkdir(cachedir, 1 << 6 | 1 << 7 | 1 << 8); // 700
+			abletomkdir = g_mkdir_with_parents(cachedir, 1 << 6 | 1 << 7 | 1 << 8); // 700
+			if (abletomkdir != 0) {
+				g_warning("Unable to create cache directory");
+			}
 		}
 		g_free(cachedir);
 
-		self->priv->cachefile = g_build_filename(basecachedir, "indicator-appmenu", "hud-usage-log.sqlite", NULL);
-		db_exists = g_file_test(self->priv->cachefile, G_FILE_TEST_EXISTS);
-		int open_status = sqlite3_open(self->priv->cachefile, &self->priv->db); 
+		int open_status = SQLITE_ERROR;
+		if (abletomkdir == 0) {
+			self->priv->cachefile = g_build_filename(basecachedir, "indicator-appmenu", "hud-usage-log.sqlite", NULL);
+			db_exists = g_file_test(self->priv->cachefile, G_FILE_TEST_EXISTS);
+			open_status = sqlite3_open(self->priv->cachefile, &self->priv->db); 
+		}
 
 		if (open_status != SQLITE_OK) {
 			g_warning("Error building LRU DB");
-			sqlite3_close(self->priv->db);
-			self->priv->db = NULL;
+
+			if (self->priv->db != NULL) {
+				sqlite3_close(self->priv->db);
+				self->priv->db = NULL;
+			}
 		}
 	} else {
 		/* If we're not storing it, let's make an in memory database
@@ -408,8 +418,6 @@ usage_tracker_get_usage (UsageTracker * self, const gchar * application, const g
 		g_warning("Unknown status from executing entry_count: %d", exec_status);
 	}
 
-	g_debug ("Usage of %s %s is %u", application, entry, count);
-
 	return count;
 }
 
@@ -465,7 +473,6 @@ check_app_init (UsageTracker * self, const gchar * application)
 		return;
 	}
 
-	g_debug("Initializing application: %s", application);
 	gchar * basename = g_path_get_basename(application);
 
 	gchar * app_info_path = NULL;

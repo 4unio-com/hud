@@ -29,89 +29,77 @@
 #include "hudappindicatorsource.h"
 #include "hudindicatorsource.h"
 #include "hudwebappsource.h"
-#include "hudwindowsource.h"
 #include "huddebugsource.h"
 #include "hudsourcelist.h"
 #include "hudsettings.h"
+#include "application-list.h"
 
-#include "hud.interface.h"
+#include "hud-iface.h"
 #include "shared-values.h"
 #include "hudquery.h"
 
-/* The return value of 'StartQuery' and the signal parameters for
- * 'UpdatedQuery' are the same, so use a utility function for both.
- */
+/* Prototypes */
+static void            bus_method         (GDBusConnection       *connection,
+                                           const gchar           *sender,
+                                           const gchar           *object_path,
+                                           const gchar           *interface_name,
+                                           const gchar           *method_name,
+                                           GVariant              *parameters,
+                                           GDBusMethodInvocation *invocation,
+                                           gpointer               user_data);
+static GVariant *      bus_get_prop       (GDBusConnection *      connection,
+                                           const gchar *          sender,
+                                           const gchar *          object_path,
+                                           const gchar *          interface_name,
+                                           const gchar *          property_name,
+                                           GError **              error,
+                                           gpointer               user_data);
+
+
+/* Globals */
+static guint query_count = 0;
+static GPtrArray * query_list = NULL;
+static GMainLoop *mainloop = NULL;
+static GDBusInterfaceVTable vtable = {
+	.method_call = bus_method,
+	.get_property = bus_get_prop,
+	.set_property = NULL
+};
+static HudApplicationList * application_list = NULL;
+
+/* Get our error domain */
+GQuark
+error (void)
+{
+	static GQuark err = 0;
+	if (err == 0) {
+		err = g_quark_from_static_string("hud");
+	}
+	return err;
+}
+
+/* Describe the important values in the query */
 GVariant *
 describe_query (HudQuery *query)
 {
   GVariantBuilder builder;
-  gint n, i;
 
-  n = hud_query_get_n_results (query);
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_TUPLE);
 
-  g_variant_builder_init (&builder, G_VARIANT_TYPE ("(sa(sssssv)v)"));
-
-  /* Target */
-  g_variant_builder_add (&builder, "s", "");
-
-  /* List of results */
-  g_variant_builder_open (&builder, G_VARIANT_TYPE ("a(sssssv)"));
-  for (i = 0; i < n; i++)
-    {
-      HudResult *result = hud_query_get_result_by_index (query, i);
-      HudItem *item;
-
-      item = hud_result_get_item (result);
-
-      g_variant_builder_add (&builder, "(sssssv)",
-                             hud_result_get_html_description (result),
-                             hud_item_get_app_icon (item),
-                             hud_item_get_item_icon (item),
-                             "" /* complete text */ , "" /* accel */,
-                             g_variant_new_uint64 (hud_item_get_id (item)));
-    }
-  g_variant_builder_close (&builder);
-
-  /* Query key */
-  g_variant_builder_add (&builder, "v", hud_query_get_query_key (query));
+  g_variant_builder_add_value(&builder, g_variant_new_object_path(hud_query_get_path(query)));
+  g_variant_builder_add_value(&builder, g_variant_new_string(hud_query_get_results_name(query)));
+  g_variant_builder_add_value(&builder, g_variant_new_string(hud_query_get_appstack_name(query)));
+  g_variant_builder_add_value(&builder, g_variant_new_int32(0)); /* TODO: Get model rev */
 
   return g_variant_builder_end (&builder);
 }
 
 static void
-query_changed (HudQuery *query,
-               gpointer  user_data)
+query_destroyed (gpointer data, GObject * old_object)
 {
-  GDBusConnection *connection = user_data;
-
-  g_debug ("emit UpdatedQuery signal");
-
-  g_dbus_connection_emit_signal (connection, NULL, DBUS_PATH,
-                                 DBUS_IFACE, "UpdatedQuery",
-                                 describe_query (query), NULL);
-}
-
-static GVariant *
-unpack_platform_data (GVariant *parameters)
-{
-  GVariant *platform_data;
-  gchar *startup_id;
-  guint32 timestamp;
-
-  g_variant_get_child (parameters, 1, "u", &timestamp);
-  startup_id = g_strdup_printf ("_TIME%u", timestamp);
-  platform_data = g_variant_new_parsed ("{'desktop-startup-id': < %s >}", startup_id);
-  g_free (startup_id);
-
-  return g_variant_ref_sink (platform_data);
-}
-
-static gboolean
-drop_query_timeout (gpointer user_data)
-{
-  g_object_unref (user_data);
-
-  return G_SOURCE_REMOVE;
+	GPtrArray * list = (GPtrArray *)data;
+	g_ptr_array_remove(list, old_object);
+	return;
 }
 
 static void
@@ -124,111 +112,95 @@ bus_method (GDBusConnection       *connection,
             GDBusMethodInvocation *invocation,
             gpointer               user_data)
 {
-  HudSource *source = user_data;
+	if (g_str_equal (method_name, "StartQuery")) {
+		HudSourceList *all_sources = user_data;
+		GVariant * vsearch;
+		const gchar *search_string;
+		HudQuery *query;
 
-  if (g_str_equal (method_name, "StartQuery"))
-    {
-      const gchar *search_string;
-      gint num_results;
-      HudQuery *query;
+		vsearch = g_variant_get_child_value (parameters, 0);
+		search_string = g_variant_get_string(vsearch, NULL);
+		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
 
-      g_variant_get (parameters, "(&si)", &search_string, &num_results);
-      g_debug ("'StartQuery' from %s: '%s', %d", sender, search_string, num_results);
-      query = hud_query_new (source, search_string, num_results);
-      g_signal_connect_object (query, "changed", G_CALLBACK (query_changed), connection, 0);
-      g_dbus_method_invocation_return_value (invocation, describe_query (query));
-      g_object_unref (query);
-    }
+		query = hud_query_new (HUD_SOURCE(all_sources), application_list, search_string, 10, connection, ++query_count);
+		g_dbus_method_invocation_return_value (invocation, describe_query (query));
 
-  else if (g_str_equal (method_name, "ExecuteQuery"))
-    {
-      GVariant *platform_data;
-      GVariant *item_key;
-      guint64 key_value;
-      HudItem *item;
+		g_ptr_array_add(query_list, query);
+		g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
 
-      g_variant_get_child (parameters, 0, "v", &item_key);
+		g_variant_unref(vsearch);
+	} else if (g_str_equal (method_name, "RegisterApplication")) {
+		GVariant * vid = g_variant_get_child_value (parameters, 0);
 
-      if (!g_variant_is_of_type (item_key, G_VARIANT_TYPE_UINT64))
-        {
-          g_debug ("'ExecuteQuery' from %s: incorrect item key (not uint64)", sender);
-          g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS,
-                                                 "item key has invalid format");
-          g_variant_unref (item_key);
-          return;
-        }
+		HudApplicationSource * appsource = hud_application_list_get_source(application_list, g_variant_get_string(vid, NULL));
 
-      key_value = g_variant_get_uint64 (item_key);
-      g_variant_unref (item_key);
+		const gchar * path = NULL;
+		if (appsource != NULL) {
+			path = hud_application_source_get_path(appsource);
+		}
 
-      item = hud_item_lookup (key_value);
-      g_debug ("'ExecuteQuery' from %s, item #%"G_GUINT64_FORMAT": %p", sender, key_value, item);
+		GVariant * vpath = NULL;
+		if (path != NULL) {
+			vpath = g_variant_new_object_path(path);
+		}
 
-      if (item == NULL)
-        {
-          g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS,
-                                                 "item specified by item key does not exist");
-          return;
-        }
+		if (vpath != NULL) {
+			g_dbus_method_invocation_return_value(invocation, g_variant_new_tuple(&vpath, 1));
+		} else {
+			g_dbus_method_invocation_return_error_literal(invocation, error(), 1, "Unable to get path for the created application");
+		}
+		g_variant_unref(vid);
+	} else {
+		g_warn_if_reached();
+	}
 
-      platform_data = unpack_platform_data (parameters);
-      hud_item_activate (item, platform_data);
-      g_variant_unref (platform_data);
-
-      g_dbus_method_invocation_return_value (invocation, NULL);
-    }
-
-  else if (g_str_equal (method_name, "CloseQuery"))
-    {
-      GVariant *query_key;
-      HudQuery *query;
-
-      g_debug ("Got 'CloseQuery' from %s", sender);
-
-      g_variant_get (parameters, "(v)", &query_key);
-      query = hud_query_lookup (query_key);
-      g_variant_unref (query_key);
-
-      if (query != NULL)
-        {
-          g_signal_handlers_disconnect_by_func (query, query_changed, connection);
-          /* Unity does 'CloseQuery' immediately followed by
-           * 'StartQuery' on every keystroke.  Delay the destruction of
-           * the query for a moment just in case a 'StartQuery' is on the
-           * way.
-           *
-           * That way we can avoid allowing the use count to drop to
-           * zero only to be increased again back to 1.  This prevents a
-           * bunch of dbusmenu "closed"/"opened" calls being sent.
-           */
-          g_timeout_add (1000, drop_query_timeout, g_object_ref (query));
-          hud_query_close (query);
-        }
-
-      /* always success -- they may have just been closing a timed out query */
-      g_dbus_method_invocation_return_value (invocation, NULL);
-    }
+	return;
 }
 
-static GMainLoop *mainloop = NULL;
-
-static GDBusInterfaceInfo *
-get_iface_info (void)
+/* Gets properties for DBus */
+static GVariant *
+bus_get_prop (GDBusConnection * connection, const gchar * sender, const gchar * object_path, const gchar * interface_name, const gchar * property_name, GError ** error, gpointer user_data)
 {
-  GDBusInterfaceInfo *iface_info;
-  GDBusNodeInfo *node_info;
-  GError *error = NULL;
+	// HudSource *source = user_data;
 
-  node_info = g_dbus_node_info_new_for_xml (hud_interface, &error);
-  g_assert_no_error (error);
+	if (g_str_equal(property_name, "OpenQueries")) {
+		if (query_list->len == 0) {
+			return g_variant_new_array(G_VARIANT_TYPE_OBJECT_PATH, NULL, 0);
+		}
 
-  iface_info = g_dbus_node_info_lookup_interface (node_info, DBUS_IFACE);
-  g_assert (iface_info != NULL);
+		int i;
+		GVariantBuilder builder;
+		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
 
-  g_dbus_interface_info_ref (iface_info);
-  g_dbus_node_info_unref (node_info);
+		for (i = 0; i < query_list->len; i++) {
+			HudQuery * query = g_ptr_array_index(query_list, i);
+			g_variant_builder_add_value(&builder, g_variant_new_object_path(hud_query_get_path(query)));
+		}
 
-  return iface_info;
+		return g_variant_builder_end(&builder);
+	} else if (g_str_equal(property_name, "Applications")) {
+		GList * apps = hud_application_list_get_apps(application_list);
+		if (apps == NULL) {
+			return g_variant_new_array(G_VARIANT_TYPE_OBJECT_PATH, NULL, 0);
+		}
+
+		GVariantBuilder builder;
+		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
+		while (apps != NULL) {
+			HudApplicationSource * source = HUD_APPLICATION_SOURCE(apps->data);
+			g_variant_builder_open(&builder, G_VARIANT_TYPE_TUPLE);
+			g_variant_builder_add_value(&builder, g_variant_new_string(hud_application_source_get_id(source)));
+			g_variant_builder_add_value(&builder, g_variant_new_object_path(hud_application_source_get_path(source)));
+			g_variant_builder_close(&builder);
+			apps = g_list_next(apps);
+		}
+
+		return g_variant_builder_end(&builder);
+	} else {
+		g_warn_if_reached();
+	}
+
+	return NULL;
 }
 
 static void
@@ -236,15 +208,37 @@ bus_acquired_cb (GDBusConnection *connection,
                  const gchar     *name,
                  gpointer         user_data)
 {
-  HudSource *source = user_data;
-  GDBusInterfaceVTable vtable = {
-    bus_method
-  };
+  HudSourceList *source_list = user_data;
   GError *error = NULL;
 
   g_debug ("Bus acquired (guid %s)", g_dbus_connection_get_guid (connection));
 
-  if (!g_dbus_connection_register_object (connection, DBUS_PATH, get_iface_info (), &vtable, source, NULL, &error))
+  {
+    HudIndicatorSource *source;
+
+    source = hud_indicator_source_new (connection);
+    hud_source_list_add (source_list, HUD_SOURCE (source));
+    g_object_unref (source);
+  }
+
+  {
+    HudAppIndicatorSource *source;
+
+    source = hud_app_indicator_source_new (connection);
+    hud_source_list_add (source_list, HUD_SOURCE (source));
+    g_object_unref (source);
+  }
+
+  {
+    HudWebappSource *source;
+
+    source = hud_webapp_source_new ();
+    hud_source_list_add (source_list, HUD_SOURCE (source));
+
+    g_object_unref (G_OBJECT (source));
+  }
+
+  if (!g_dbus_connection_register_object (connection, DBUS_PATH, hud_iface_com_canonical_hud_interface_info (), &vtable, source_list, NULL, &error))
     {
       g_warning ("Unable to register path '"DBUS_PATH"': %s", error->message);
       g_main_loop_quit (mainloop);
@@ -269,13 +263,22 @@ name_lost_cb (GDBusConnection *connection,
   g_main_loop_quit (mainloop);
 }
 
+static void
+sigterm_graceful_exit (int signal)
+{
+  g_warning("SIGTERM recieved");
+  g_main_loop_quit(mainloop);
+  return;
+}
+
 int
 main (int argc, char **argv)
 {
-  HudWindowSource *window_source;
   HudSourceList *source_list;
 
+#ifndef GLIB_VERSION_2_36
   g_type_init ();
+#endif
 
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
@@ -283,36 +286,11 @@ main (int argc, char **argv)
 
   hud_settings_init ();
 
+  query_list = g_ptr_array_new();
   source_list = hud_source_list_new ();
 
-  /* we will eventually pull GtkMenu out of this, so keep it around */
-  window_source = hud_window_source_new ();
-  hud_source_list_add (source_list, HUD_SOURCE (window_source));
-
-  {
-    HudIndicatorSource *source;
-
-    source = hud_indicator_source_new ();
-    hud_source_list_add (source_list, HUD_SOURCE (source));
-    g_object_unref (source);
-  }
-
-  {
-    HudAppIndicatorSource *source;
-
-    source = hud_app_indicator_source_new ();
-    hud_source_list_add (source_list, HUD_SOURCE (source));
-    g_object_unref (source);
-  }
-  
-  {
-    HudWebappSource *source;
-    
-    source = hud_webapp_source_new (window_source);
-    hud_source_list_add (source_list, HUD_SOURCE (source));
-    
-    g_object_unref (G_OBJECT (source));
-  }
+  application_list = hud_application_list_new();
+  hud_source_list_add(source_list, HUD_SOURCE(application_list));
 
   if (getenv ("HUD_DEBUG_SOURCE"))
     {
@@ -327,11 +305,15 @@ main (int argc, char **argv)
                   bus_acquired_cb, name_acquired_cb, name_lost_cb, source_list, NULL);
 
   mainloop = g_main_loop_new (NULL, FALSE);
+
+  signal(SIGTERM, sigterm_graceful_exit);
+  
   g_main_loop_run (mainloop);
   g_main_loop_unref (mainloop);
 
-  g_object_unref (window_source);
+  g_object_unref (application_list);
   g_object_unref (source_list);
+  g_ptr_array_free(query_list, TRUE);
 
   return 0;
 }

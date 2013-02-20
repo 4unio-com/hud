@@ -198,7 +198,7 @@ hud_app_menu_registrar_dbus_signal (GDBusConnection *connection,
       if (!g_variant_is_of_type (parameters, G_VARIANT_TYPE ("(u)")))
         return;
 
-      g_variant_get (parameters, 0, "u", &xid);
+      g_variant_get (parameters, "(u)", &xid);
 
       g_debug ("xid %u disappeared", xid);
 
@@ -227,6 +227,12 @@ hud_app_menu_registrar_ready (GObject      *source,
   g_debug ("GetMenus returned");
 
   g_clear_object (&registrar->cancellable);
+
+  if (source == NULL)
+  {
+    g_debug("Callback invoked with null connection");
+    return;
+  }
 
   reply = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
 
@@ -308,6 +314,11 @@ hud_app_menu_registrar_name_vanished (GDBusConnection *connection,
 
   g_debug ("name vanished");
 
+  if(connection == NULL)
+    {
+      return;
+    }
+
   if (registrar->subscription > 0)
     {
       g_dbus_connection_signal_unsubscribe (connection, registrar->subscription);
@@ -349,8 +360,9 @@ hud_app_menu_registrar_name_vanished (GDBusConnection *connection,
 static void
 hud_app_menu_registrar_finalize (GObject *object)
 {
-  /* This is an immortal singleton.  If we're here, we have trouble. */
-  g_assert_not_reached ();
+
+  G_OBJECT_CLASS(hud_app_menu_registrar_parent_class)->finalize(object);
+  return;
 }
 
 static void

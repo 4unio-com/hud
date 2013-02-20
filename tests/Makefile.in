@@ -14,6 +14,7 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
 VPATH = @srcdir@
 am__make_dryrun = \
   { \
@@ -50,12 +51,20 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-check_PROGRAMS = test-distance$(EXEEXT) \
+check_PROGRAMS = test-distance$(EXEEXT) test-hud-item$(EXEEXT) \
 	test-result-highlighting$(EXEEXT) \
+	dbusmenu-json-loader$(EXEEXT) \
+	test-menu-input-model-deep$(EXEEXT) \
+	test-menu-input-model-simple$(EXEEXT) \
+	test-menu-input-model-shortcuts$(EXEEXT) \
+	test-menu-input$(EXEEXT) test-keyword-mapping$(EXEEXT) \
+	test-string-list$(EXEEXT) test-pronounce-dict$(EXEEXT) \
+	test-source$(EXEEXT) test-app-indicator-source$(EXEEXT) \
+	test-indicator-source$(EXEEXT) test-application-list$(EXEEXT) \
 	test-usage-db-simple$(EXEEXT) test-usage-db-old$(EXEEXT) \
 	test-usage-db-ancient$(EXEEXT) test-usage-db-testapp$(EXEEXT) \
 	test-bad-app-info$(EXEEXT) test-load-app-info$(EXEEXT) \
-	hud-performance$(EXEEXT)
+	hud-performance$(EXEEXT) libhud-client-test$(EXEEXT)
 XFAIL_TESTS =
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -76,23 +85,75 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_hud_performance_OBJECTS =  \
-	hud_performance-hud-performance.$(OBJEXT)
-hud_performance_OBJECTS = $(am_hud_performance_OBJECTS)
-am__DEPENDENCIES_1 =
-hud_performance_DEPENDENCIES = ../src/libhud-service.a \
-	$(am__DEPENDENCIES_1)
+LTLIBRARIES = $(noinst_LTLIBRARIES)
+libhud_tests_la_LIBADD =
+am_libhud_tests_la_OBJECTS = libhud_tests_la-app-list-dummy.lo \
+	libhud_tests_la-hudrandomsource.lo \
+	libhud_tests_la-hudmanualsource.lo \
+	libhud_tests_la-hudtestutils.lo
+libhud_tests_la_OBJECTS = $(am_libhud_tests_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
+libhud_tests_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(libhud_tests_la_CFLAGS) $(CFLAGS) $(libhud_tests_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_dbusmenu_json_loader_OBJECTS =  \
+	dbusmenu_json_loader-dbusmenu-json-loader.$(OBJEXT)
+dbusmenu_json_loader_OBJECTS = $(am_dbusmenu_json_loader_OBJECTS)
+am__DEPENDENCIES_1 =
+dbusmenu_json_loader_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+dbusmenu_json_loader_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(dbusmenu_json_loader_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_hud_performance_OBJECTS =  \
+	hud_performance-hud-performance.$(OBJEXT)
+hud_performance_OBJECTS = $(am_hud_performance_OBJECTS)
+hud_performance_DEPENDENCIES = $(top_builddir)/src/libhud-service.la \
+	libhud-tests.la $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 hud_performance_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(hud_performance_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
+am_libhud_client_test_OBJECTS =  \
+	libhud_client_test-hud-client-test.$(OBJEXT)
+libhud_client_test_OBJECTS = $(am_libhud_client_test_OBJECTS)
+libhud_client_test_DEPENDENCIES =  \
+	$(top_builddir)/libhud-client/libhud-client.la libhud-tests.la \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+libhud_client_test_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(libhud_client_test_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_test_app_indicator_source_OBJECTS =  \
+	test_app_indicator_source-test-app-indicator-source.$(OBJEXT)
+test_app_indicator_source_OBJECTS =  \
+	$(am_test_app_indicator_source_OBJECTS)
+test_app_indicator_source_DEPENDENCIES =  \
+	$(top_builddir)/src/libhud-service.la $(am__DEPENDENCIES_1) \
+	libhud-tests.la $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+test_app_indicator_source_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(test_app_indicator_source_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_test_application_list_OBJECTS =  \
+	test_application_list-test-application-list.$(OBJEXT)
+test_application_list_OBJECTS = $(am_test_application_list_OBJECTS)
+test_application_list_DEPENDENCIES =  \
+	$(top_builddir)/src/libhud-service.la $(am__DEPENDENCIES_1) \
+	libhud-tests.la $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+test_application_list_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(test_application_list_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_test_bad_app_info_OBJECTS =  \
 	test_bad_app_info-test-bad-app-info.$(OBJEXT)
 test_bad_app_info_OBJECTS = $(am_test_bad_app_info_OBJECTS)
-test_bad_app_info_DEPENDENCIES = ../src/libhud-service.a \
+test_bad_app_info_DEPENDENCIES =  \
+	$(top_builddir)/src/libhud-service.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 test_bad_app_info_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
@@ -100,34 +161,127 @@ test_bad_app_info_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	-o $@
 am_test_distance_OBJECTS = test_distance-test-distance.$(OBJEXT)
 test_distance_OBJECTS = $(am_test_distance_OBJECTS)
-test_distance_DEPENDENCIES = ../src/libhud-service.a \
-	$(am__DEPENDENCIES_1)
+test_distance_DEPENDENCIES = $(top_builddir)/src/libhud-service.la \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 test_distance_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test_distance_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_test_hud_item_OBJECTS = test_hud_item-test-huditem.$(OBJEXT)
+test_hud_item_OBJECTS = $(am_test_hud_item_OBJECTS)
+test_hud_item_DEPENDENCIES = $(top_builddir)/src/libhud-service.la \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+test_hud_item_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test_hud_item_CFLAGS) \
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_test_indicator_source_OBJECTS =  \
+	test_indicator_source-test-indicator-source.$(OBJEXT)
+test_indicator_source_OBJECTS = $(am_test_indicator_source_OBJECTS)
+test_indicator_source_DEPENDENCIES =  \
+	$(top_builddir)/src/libhud-service.la $(am__DEPENDENCIES_1) \
+	libhud-tests.la $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+test_indicator_source_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(test_indicator_source_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_test_keyword_mapping_OBJECTS =  \
+	test_keyword_mapping-test-keyword-mapping.$(OBJEXT)
+test_keyword_mapping_OBJECTS = $(am_test_keyword_mapping_OBJECTS)
+test_keyword_mapping_DEPENDENCIES =  \
+	$(top_builddir)/src/libhud-service.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+test_keyword_mapping_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(test_keyword_mapping_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_test_load_app_info_OBJECTS =  \
 	test_load_app_info-test-load-app-info.$(OBJEXT)
 test_load_app_info_OBJECTS = $(am_test_load_app_info_OBJECTS)
-test_load_app_info_DEPENDENCIES = ../src/libhud-service.a \
+test_load_app_info_DEPENDENCIES =  \
+	$(top_builddir)/src/libhud-service.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 test_load_app_info_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(test_load_app_info_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_test_menu_input_OBJECTS =  \
+	test_menu_input-test-menu-input.$(OBJEXT)
+test_menu_input_OBJECTS = $(am_test_menu_input_OBJECTS)
+test_menu_input_DEPENDENCIES = $(top_builddir)/src/libhud-service.la \
+	libhud-tests.la $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+test_menu_input_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(test_menu_input_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
+am_test_menu_input_model_deep_OBJECTS = test_menu_input_model_deep-test-menu-input-model-deep.$(OBJEXT)
+test_menu_input_model_deep_OBJECTS =  \
+	$(am_test_menu_input_model_deep_OBJECTS)
+test_menu_input_model_deep_DEPENDENCIES = $(am__DEPENDENCIES_1)
+test_menu_input_model_deep_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(test_menu_input_model_deep_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_test_menu_input_model_shortcuts_OBJECTS = test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.$(OBJEXT)
+test_menu_input_model_shortcuts_OBJECTS =  \
+	$(am_test_menu_input_model_shortcuts_OBJECTS)
+test_menu_input_model_shortcuts_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+test_menu_input_model_shortcuts_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(test_menu_input_model_shortcuts_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_test_menu_input_model_simple_OBJECTS = test_menu_input_model_simple-test-menu-input-model-simple.$(OBJEXT)
+test_menu_input_model_simple_OBJECTS =  \
+	$(am_test_menu_input_model_simple_OBJECTS)
+test_menu_input_model_simple_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+test_menu_input_model_simple_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(test_menu_input_model_simple_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_test_pronounce_dict_OBJECTS =  \
+	test_pronounce_dict-test-pronounce-dict.$(OBJEXT)
+test_pronounce_dict_OBJECTS = $(am_test_pronounce_dict_OBJECTS)
+test_pronounce_dict_DEPENDENCIES =  \
+	$(top_builddir)/src/libhud-service.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+test_pronounce_dict_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(test_pronounce_dict_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_test_result_highlighting_OBJECTS =  \
 	test_result_highlighting-test-result-highlighting.$(OBJEXT)
 test_result_highlighting_OBJECTS =  \
 	$(am_test_result_highlighting_OBJECTS)
-test_result_highlighting_DEPENDENCIES = ../src/libhud-service.a \
+test_result_highlighting_DEPENDENCIES =  \
+	$(top_builddir)/src/libhud-service.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 test_result_highlighting_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(test_result_highlighting_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_test_source_OBJECTS = test_source-test-source.$(OBJEXT)
+test_source_OBJECTS = $(am_test_source_OBJECTS)
+test_source_DEPENDENCIES = $(top_builddir)/src/libhud-service.la \
+	$(am__DEPENDENCIES_1) libhud-tests.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+test_source_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test_source_CFLAGS) \
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_test_string_list_OBJECTS =  \
+	test_string_list-test-string-list.$(OBJEXT)
+test_string_list_OBJECTS = $(am_test_string_list_OBJECTS)
+test_string_list_DEPENDENCIES = $(top_builddir)/src/libhud-service.la \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+test_string_list_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(test_string_list_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
 am_test_usage_db_ancient_OBJECTS =  \
 	test_usage_db_ancient-test-usage-db-ancient.$(OBJEXT)
 test_usage_db_ancient_OBJECTS = $(am_test_usage_db_ancient_OBJECTS)
-test_usage_db_ancient_DEPENDENCIES = ../src/libhud-service.a \
+test_usage_db_ancient_DEPENDENCIES =  \
+	$(top_builddir)/src/libhud-service.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 test_usage_db_ancient_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
@@ -136,7 +290,8 @@ test_usage_db_ancient_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 am_test_usage_db_old_OBJECTS =  \
 	test_usage_db_old-test-usage-db-old.$(OBJEXT)
 test_usage_db_old_OBJECTS = $(am_test_usage_db_old_OBJECTS)
-test_usage_db_old_DEPENDENCIES = ../src/libhud-service.a \
+test_usage_db_old_DEPENDENCIES =  \
+	$(top_builddir)/src/libhud-service.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 test_usage_db_old_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
@@ -145,7 +300,8 @@ test_usage_db_old_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 am_test_usage_db_simple_OBJECTS =  \
 	test_usage_db_simple-test-usage-db-simple.$(OBJEXT)
 test_usage_db_simple_OBJECTS = $(am_test_usage_db_simple_OBJECTS)
-test_usage_db_simple_DEPENDENCIES = ../src/libhud-service.a \
+test_usage_db_simple_DEPENDENCIES =  \
+	$(top_builddir)/src/libhud-service.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 test_usage_db_simple_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
@@ -154,7 +310,8 @@ test_usage_db_simple_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 am_test_usage_db_testapp_OBJECTS =  \
 	test_usage_db_testapp-test-usage-db-testapp.$(OBJEXT)
 test_usage_db_testapp_OBJECTS = $(am_test_usage_db_testapp_OBJECTS)
-test_usage_db_testapp_DEPENDENCIES = ../src/libhud-service.a \
+test_usage_db_testapp_DEPENDENCIES =  \
+	$(top_builddir)/src/libhud-service.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 test_usage_db_testapp_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
@@ -186,17 +343,38 @@ am__v_CCLD_0 = @echo "  CCLD  " $@;
 AM_V_GEN = $(am__v_GEN_@AM_V@)
 am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
 am__v_GEN_0 = @echo "  GEN   " $@;
-SOURCES = $(hud_performance_SOURCES) $(test_bad_app_info_SOURCES) \
-	$(test_distance_SOURCES) $(test_load_app_info_SOURCES) \
-	$(test_result_highlighting_SOURCES) \
-	$(test_usage_db_ancient_SOURCES) $(test_usage_db_old_SOURCES) \
-	$(test_usage_db_simple_SOURCES) \
+SOURCES = $(libhud_tests_la_SOURCES) $(dbusmenu_json_loader_SOURCES) \
+	$(hud_performance_SOURCES) $(libhud_client_test_SOURCES) \
+	$(test_app_indicator_source_SOURCES) \
+	$(test_application_list_SOURCES) $(test_bad_app_info_SOURCES) \
+	$(test_distance_SOURCES) $(test_hud_item_SOURCES) \
+	$(test_indicator_source_SOURCES) \
+	$(test_keyword_mapping_SOURCES) $(test_load_app_info_SOURCES) \
+	$(test_menu_input_SOURCES) \
+	$(test_menu_input_model_deep_SOURCES) \
+	$(test_menu_input_model_shortcuts_SOURCES) \
+	$(test_menu_input_model_simple_SOURCES) \
+	$(test_pronounce_dict_SOURCES) \
+	$(test_result_highlighting_SOURCES) $(test_source_SOURCES) \
+	$(test_string_list_SOURCES) $(test_usage_db_ancient_SOURCES) \
+	$(test_usage_db_old_SOURCES) $(test_usage_db_simple_SOURCES) \
 	$(test_usage_db_testapp_SOURCES)
-DIST_SOURCES = $(hud_performance_SOURCES) $(test_bad_app_info_SOURCES) \
-	$(test_distance_SOURCES) $(test_load_app_info_SOURCES) \
-	$(test_result_highlighting_SOURCES) \
-	$(test_usage_db_ancient_SOURCES) $(test_usage_db_old_SOURCES) \
-	$(test_usage_db_simple_SOURCES) \
+DIST_SOURCES = $(libhud_tests_la_SOURCES) \
+	$(dbusmenu_json_loader_SOURCES) $(hud_performance_SOURCES) \
+	$(libhud_client_test_SOURCES) \
+	$(test_app_indicator_source_SOURCES) \
+	$(test_application_list_SOURCES) $(test_bad_app_info_SOURCES) \
+	$(test_distance_SOURCES) $(test_hud_item_SOURCES) \
+	$(test_indicator_source_SOURCES) \
+	$(test_keyword_mapping_SOURCES) $(test_load_app_info_SOURCES) \
+	$(test_menu_input_SOURCES) \
+	$(test_menu_input_model_deep_SOURCES) \
+	$(test_menu_input_model_shortcuts_SOURCES) \
+	$(test_menu_input_model_simple_SOURCES) \
+	$(test_pronounce_dict_SOURCES) \
+	$(test_result_highlighting_SOURCES) $(test_source_SOURCES) \
+	$(test_string_list_SOURCES) $(test_usage_db_ancient_SOURCES) \
+	$(test_usage_db_old_SOURCES) $(test_usage_db_simple_SOURCES) \
 	$(test_usage_db_testapp_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -217,6 +395,8 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+BAMF_CFLAGS = @BAMF_CFLAGS@
+BAMF_LIBS = @BAMF_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -227,7 +407,12 @@ CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DATADIRNAME = @DATADIRNAME@
+DBUSIFACEDIR = @DBUSIFACEDIR@
+DBUSMENU_JSON_CFLAGS = @DBUSMENU_JSON_CFLAGS@
+DBUSMENU_JSON_LIBS = @DBUSMENU_JSON_LIBS@
 DBUSSERVICEDIR = @DBUSSERVICEDIR@
+DBUSTEST_CFLAGS = @DBUSTEST_CFLAGS@
+DBUSTEST_LIBS = @DBUSTEST_LIBS@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
@@ -259,6 +444,8 @@ GTKDOC_REBASE = @GTKDOC_REBASE@
 HTML_DIR = @HTML_DIR@
 HUD_CFLAGS = @HUD_CFLAGS@
 HUD_LIBS = @HUD_LIBS@
+HYBRIS_CFLAGS = @HYBRIS_CFLAGS@
+HYBRIS_LIBS = @HYBRIS_LIBS@
 INDICATORDIR = @INDICATORDIR@
 INDICATORICONSDIR = @INDICATORICONSDIR@
 INDICATORTEST_CFLAGS = @INDICATORTEST_CFLAGS@
@@ -278,13 +465,27 @@ INTLTOOL_V_MERGE_OPTIONS = @INTLTOOL_V_MERGE_OPTIONS@
 INTLTOOL__v_MERGE_ = @INTLTOOL__v_MERGE_@
 INTLTOOL__v_MERGE_0 = @INTLTOOL__v_MERGE_0@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
+INTROSPECTION_CFLAGS = @INTROSPECTION_CFLAGS@
+INTROSPECTION_COMPILER = @INTROSPECTION_COMPILER@
+INTROSPECTION_GENERATE = @INTROSPECTION_GENERATE@
+INTROSPECTION_GIRDIR = @INTROSPECTION_GIRDIR@
+INTROSPECTION_LIBS = @INTROSPECTION_LIBS@
+INTROSPECTION_MAKEFILE = @INTROSPECTION_MAKEFILE@
+INTROSPECTION_SCANNER = @INTROSPECTION_SCANNER@
+INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
+LIBJULIUS_CFLAGS = @LIBJULIUS_CFLAGS@
+LIBJULIUS_CONFIG = @LIBJULIUS_CONFIG@
+LIBJULIUS_LIBS = @LIBJULIUS_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBSENT_CFLAGS = @LIBSENT_CFLAGS@
+LIBSENT_CONFIG = @LIBSENT_CONFIG@
+LIBSENT_LIBS = @LIBSENT_LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
@@ -324,6 +525,7 @@ SHTOOL = @SHTOOL@
 STRIP = @STRIP@
 USE_NLS = @USE_NLS@
 VALAC = @VALAC@
+VALA_API_GEN = @VALA_API_GEN@
 VERSION = @VERSION@
 XGETTEXT = @XGETTEXT@
 XGETTEXT_015 = @XGETTEXT_015@
@@ -390,13 +592,38 @@ top_srcdir = @top_srcdir@
 #########################
 # Footer
 #########################
-DISTCLEANFILES = $(DISTANCE_XML_REPORT) $(DISTANCE_XML_REPORT) \
-	$(USAGE_DB_SIMPLE_XML_REPORT) $(USAGE_DB_OLD_XML_REPORT) \
-	$(USAGE_TESTAPP_XML_REPORT) $(USAGE_OFF_XML_REPORT) \
-	test-dbus-message-count.bustle $(TESTS)
-EXTRA_DIST = run-xvfb.sh test-usage-db-simple.sql \
-	test-usage-db-old.sql test-usage-db-ancient.sql \
-	test-usage-dump-entries.sql \
+DISTCLEANFILES = $(DISTANCE_XML_REPORT) \
+	$(DISTANCE_XML_REPORT:.xml=-xunit.xml) $(HUD_ITEM_XML_REPORT) \
+	$(HUD_ITEM_XML_REPORT:.xml=-xunit.xml) $(RESULT_XML_REPORT) \
+	$(RESULT_XML_REPORT:.xml=-xunit.xml) $(MENU_INPUT_XML_REPORT) \
+	$(MENU_INPUT_XML_REPORT:.xml=-xunit.xml) $(KEYWORD_XML_REPORT) \
+	$(KEYWORD_XML_REPORT:.xml=-xunit.xml) \
+	$(STRING_LIST_XML_REPORT) \
+	$(STRING_LIST_XML_REPORT:.xml=-xunit.xml) \
+	$(PRONOUNCE_DICT_XML_REPORT) \
+	$(PRONOUNCE_DICT_XML_REPORT:.xml=-xunit.xml) \
+	$(SOURCE_XML_REPORT) $(SOURCE_XML_REPORT:.xml=-xunit.xml) \
+	$(APP_INDICATOR_SOURCE_XML_REPORT) \
+	$(APP_INDICATOR_SOURCE_XML_REPORT:.xml=-xunit.xml) \
+	$(INDICATOR_SOURCE_XML_REPORT) \
+	$(INDICATOR_SOURCE_XML_REPORT:.xml=-xunit.xml) \
+	$(APPLICATION_LIST_XML_REPORT) \
+	$(APPLICATION_LIST_XML_REPORT:.xml=-xunit.xml) \
+	$(USAGE_DB_SIMPLE_XML_REPORT) \
+	$(USAGE_DB_SIMPLE_XML_REPORT:.xml=-xunit.xml) \
+	$(USAGE_DB_OLD_XML_REPORT) \
+	$(USAGE_DB_OLD_XML_REPORT:.xml=-xunit.xml) \
+	$(USAGE_TESTAPP_XML_REPORT) \
+	$(USAGE_TESTAPP_XML_REPORT:.xml=-xunit.xml) \
+	$(USAGE_OFF_XML_REPORT) \
+	$(USAGE_OFF_XML_REPORT:.xml=-xunit.xml) \
+	test-dbus-message-count.bustle $(LIBHUD_XML_REPORT) \
+	$(LIBHUD_XML_REPORT:.xml=-xunit.xml) libhud-client-tester \
+	$(TESTS)
+EXTRA_DIST = run-xvfb.sh test-menu-input-simple.json \
+	test-menu-input-shortcuts.json test-source.json \
+	test-usage-db-simple.sql test-usage-db-old.sql \
+	test-usage-db-ancient.sql test-usage-dump-entries.sql \
 	good-app-info/testapp100.desktop.hud-app-info \
 	good-app-info/testapp.desktop.hud-app-info \
 	bad-app-info/dual-headers.hud-app-info \
@@ -415,7 +642,43 @@ EXTRA_DIST = run-xvfb.sh test-usage-db-simple.sql \
 ######################
 
 ######################
+# Test Hud Item
+######################
+
+######################
 # Test Result Highlighting
+######################
+
+######################
+# Test Menu Input
+######################
+
+######################
+# Test Keyword Mapping
+######################
+
+######################
+# Test String List
+######################
+
+######################
+# Test Pronounce Dict
+######################
+
+######################
+# Test Source
+######################
+
+######################
+# Test App Indicator Source
+######################
+
+######################
+# Test Indicator Source
+######################
+
+######################
+# Test Application List
 ######################
 
 ######################
@@ -449,46 +712,331 @@ EXTRA_DIST = run-xvfb.sh test-usage-db-simple.sql \
 #########################
 # Test Dbus Messages
 #########################
-TESTS = test-distance-test test-result-highlighting-test \
-	test-usage-db-simple-test test-usage-db-old-test \
-	test-usage-db-ancient-test test-usage-db-testapp-test \
-	test-usage-db-off-test test-bad-app-info-dual-header \
-	test-bad-app-info-item-no-count test-bad-app-info-item-no-name \
-	test-bad-app-info-menu-no-name \
+
+#####################################
+# libhud-client-test
+#####################################
+TESTS = test-distance-test test-hud-item-test \
+	test-result-highlighting-test test-menu-input-tester \
+	test-keyword-mapping-test test-string-list-test \
+	test-pronounce-dict-test test-source-test \
+	test-app-indicator-source-test test-indicator-source-test \
+	test-application-list-test test-usage-db-simple-test \
+	test-usage-db-old-test test-usage-db-ancient-test \
+	test-usage-db-testapp-test test-usage-db-off-test \
+	test-bad-app-info-dual-header test-bad-app-info-item-no-count \
+	test-bad-app-info-item-no-name test-bad-app-info-menu-no-name \
 	test-bad-app-info-missing-desktop \
 	test-bad-app-info-missing-menus \
 	test-bad-app-info-multiple-menus \
-	test-good-app-info-tons-of-entries test-dbus-message-count
+	test-good-app-info-tons-of-entries test-dbus-message-count \
+	libhud-client-tester
+noinst_LTLIBRARIES = \
+	libhud-tests.la
+
 DBUS_RUNNER = dbus-test-runner
 XVFB_RUN = ". $(srcdir)/run-xvfb.sh"
-DISTANCE_XML_REPORT = test-result-highlighting.xml
+MOCK_JSON_APP = /usr/lib/indicator-appmenu/mock-json-app
+
+#######################
+# HUD Test Common Code
+#######################
+libhud_tests_la_SOURCES = \
+	app-list-dummy.h \
+	app-list-dummy.c \
+	word-list.h \
+	hudrandomsource.h \
+	hudrandomsource.c \
+	hudmanualsource.h \
+	hudmanualsource.c \
+	hudtestutils.h \
+	hudtestutils.c
+
+libhud_tests_la_LDFLAGS = \
+	$(top_builddir)/src/libhud-service.la \
+	$(DBUSTEST_LIBS) \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+libhud_tests_la_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-D DBUSMENU_JSON_LOADER=\"$(builddir)/dbusmenu-json-loader\" \
+	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
+	-DHUD_CLIENT_COMPILATION \
+	-Wall -Werror
+
+DISTANCE_XML_REPORT = test-distance.xml
 test_distance_SOURCES = \
 	test-distance.c
 
 test_distance_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_distance_LDADD = \
-	../src/libhud-service.a		\
-	$(HUD_LIBS)
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
+HUD_ITEM_XML_REPORT = test-hud-item.xml
+test_hud_item_SOURCES = \
+	test-huditem.c
+
+test_hud_item_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_hud_item_LDADD = \
+	$(top_builddir)/src/libhud-service.la \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+RESULT_XML_REPORT = test-result-highlighting.xml
 test_result_highlighting_SOURCES = \
 	test-result-highlighting.c
 
 test_result_highlighting_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_result_highlighting_LDADD = \
-	../src/libhud-service.a		\
+	$(top_builddir)/src/libhud-service.la \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+MENU_INPUT_XML_REPORT = test-menu-input.xml
+test_menu_input_SOURCES = \
+	test-menu-input.c
+
+test_menu_input_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
+	-DHUD_CLIENT_COMPILATION \
+	-D MOCK_JSON_APP=\"$(MOCK_JSON_APP)\" \
+	-D MODEL_DEEP=\"$(builddir)/test-menu-input-model-deep\" \
+	-D MODEL_SIMPLE=\"$(builddir)/test-menu-input-model-simple\" \
+	-D MODEL_SHORTCUTS=\"$(builddir)/test-menu-input-model-shortcuts\" \
+	-D JSON_SIMPLE=\"$(srcdir)/test-menu-input-simple.json\" \
+	-D JSON_SHORTCUTS=\"$(srcdir)/test-menu-input-shortcuts.json\" \
+	-Wall -Werror
+
+test_menu_input_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	libhud-tests.la \
+	$(DBUSTEST_LIBS) \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+dbusmenu_json_loader_SOURCES = \
+	dbusmenu-json-loader.c
+
+dbusmenu_json_loader_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	$(DBUSMENU_JSON_CFLAGS) \
+	-Wall -Werror
+
+dbusmenu_json_loader_LDADD = \
+	$(DBUSMENU_JSON_LIBS) \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+test_menu_input_model_deep_SOURCES = \
+	test-menu-input-model-deep.c
+
+test_menu_input_model_deep_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-Wall -Werror
+
+test_menu_input_model_deep_LDADD = \
 	$(HUD_LIBS)
+
+test_menu_input_model_simple_SOURCES = \
+	test-menu-input-model-simple.c
+
+test_menu_input_model_simple_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	-Wall -Werror
+
+test_menu_input_model_simple_LDADD = \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+test_menu_input_model_shortcuts_SOURCES = \
+	test-menu-input-model-shortcuts.c
+
+test_menu_input_model_shortcuts_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	-Wall -Werror
+
+test_menu_input_model_shortcuts_LDADD = \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+KEYWORD_XML_REPORT = test-keyword-mapping.xml
+test_keyword_mapping_SOURCES = \
+	test-keyword-mapping.c
+
+test_keyword_mapping_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_keyword_mapping_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+STRING_LIST_XML_REPORT = test-string-list.xml
+test_string_list_SOURCES = \
+	test-string-list.c
+
+test_string_list_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_string_list_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+PRONOUNCE_DICT_XML_REPORT = test-pronounce-dict.xml
+test_pronounce_dict_SOURCES = \
+	test-pronounce-dict.c
+
+test_pronounce_dict_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_pronounce_dict_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+SOURCE_XML_REPORT = test-source.xml
+test_source_SOURCES = \
+	test-source.c
+
+test_source_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
+	-DHUD_CLIENT_COMPILATION \
+	-D JSON_INPUT=\"$(srcdir)/test-source.json\" \
+	-Wall -Werror
+
+test_source_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
+	libhud-tests.la \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+APP_INDICATOR_SOURCE_XML_REPORT = test-app-indicator-source.xml
+test_app_indicator_source_SOURCES = \
+	test-app-indicator-source.c
+
+test_app_indicator_source_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
+	-DHUD_CLIENT_COMPILATION \
+	-Wall -Werror
+
+test_app_indicator_source_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
+	libhud-tests.la \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+INDICATOR_SOURCE_XML_REPORT = test-indicator-source.xml
+test_indicator_source_SOURCES = \
+	test-indicator-source.c
+
+test_indicator_source_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
+	-DHUD_CLIENT_COMPILATION \
+	-Wall -Werror
+
+test_indicator_source_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
+	libhud-tests.la \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+APPLICATION_LIST_XML_REPORT = test-application-list.xml
+test_application_list_SOURCES = \
+	test-application-list.c
+
+test_application_list_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
+	-DHUD_CLIENT_COMPILATION \
+	-Wall -Werror
+
+test_application_list_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(DBUSTEST_LIBS) \
+	libhud-tests.la \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 USAGE_DB_SIMPLE_XML_REPORT = test-usage-db-simple.xml
 test_usage_db_simple_SOURCES = \
@@ -496,15 +1044,16 @@ test_usage_db_simple_SOURCES = \
 
 test_usage_db_simple_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_usage_db_simple_LDADD = \
-	../src/libhud-service.a		\
-	$(HUD_LIBS)
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 USAGE_DB_OLD_XML_REPORT = test-usage-db-old.xml
 test_usage_db_old_SOURCES = \
@@ -512,30 +1061,32 @@ test_usage_db_old_SOURCES = \
 
 test_usage_db_old_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_usage_db_old_LDADD = \
-	../src/libhud-service.a		\
-	$(HUD_LIBS)
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 test_usage_db_ancient_SOURCES = \
 	test-usage-db-ancient.c
 
 test_usage_db_ancient_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_usage_db_ancient_LDADD = \
-	../src/libhud-service.a		\
-	$(HUD_LIBS)
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 USAGE_TESTAPP_XML_REPORT = test-usage-db-testapp.xml
 test_usage_db_testapp_SOURCES = \
@@ -543,57 +1094,84 @@ test_usage_db_testapp_SOURCES = \
 
 test_usage_db_testapp_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_usage_db_testapp_LDADD = \
-	../src/libhud-service.a		\
-	$(HUD_LIBS)
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
-USAGE_OFF_XML_REPORT = $(abs_builddir)/test-usage-db-off.xml
+USAGE_OFF_XML_REPORT = test-usage-db-off.xml
 test_bad_app_info_SOURCES = \
 	test-bad-app-info.c
 
 test_bad_app_info_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_bad_app_info_LDADD = \
-	../src/libhud-service.a		\
-	$(HUD_LIBS)
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 test_load_app_info_SOURCES = \
 	test-load-app-info.c
 
 test_load_app_info_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
+	$(BAMF_CFLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-Wall -Werror
 
 test_load_app_info_LDADD = \
-	../src/libhud-service.a		\
-	$(HUD_LIBS)
+	$(top_builddir)/src/libhud-service.la		\
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 hud_performance_CFLAGS = \
 	-I$(top_builddir)/src		\
 	-I$(top_srcdir)/src		\
-	$(HUD_CFLAGS)
+	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
+	-DHUD_CLIENT_COMPILATION \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS)
 
 hud_performance_LDADD = \
-	../src/libhud-service.a		\
-	$(HUD_LIBS)
+	$(top_builddir)/src/libhud-service.la		\
+	libhud-tests.la \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
 
 hud_performance_SOURCES = \
-	hud-performance.c	\
-	word-list.h
+	hud-performance.c
+
+LIBHUD_XML_REPORT = libhud-client-test.xml
+libhud_client_test_SOURCES = \
+	hud-client-test.c
+
+libhud_client_test_CFLAGS = \
+	-D HUD_SERVICE="\"$(top_builddir)/src/hud-service\"" \
+	-I $(top_srcdir) \
+	-I $(top_srcdir)/libhud-client \
+	$(HUD_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	$(TEST_CFLAGS)
+
+libhud_client_test_LDADD = \
+	$(top_builddir)/libhud-client/libhud-client.la \
+	libhud-tests.la \
+	$(HUD_LIBS) \
+	$(DBUSTEST_LIBS) \
+	$(TEST_LIBS)
 
 all: all-am
 
@@ -630,6 +1208,17 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
+clean-noinstLTLIBRARIES:
+	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
+	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+libhud-tests.la: $(libhud_tests_la_OBJECTS) $(libhud_tests_la_DEPENDENCIES) $(EXTRA_libhud_tests_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(libhud_tests_la_LINK)  $(libhud_tests_la_OBJECTS) $(libhud_tests_la_LIBADD) $(LIBS)
+
 clean-checkPROGRAMS:
 	@list='$(check_PROGRAMS)'; test -n "$$list" || exit 0; \
 	echo " rm -f" $$list; \
@@ -638,21 +1227,63 @@ clean-checkPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+dbusmenu-json-loader$(EXEEXT): $(dbusmenu_json_loader_OBJECTS) $(dbusmenu_json_loader_DEPENDENCIES) $(EXTRA_dbusmenu_json_loader_DEPENDENCIES) 
+	@rm -f dbusmenu-json-loader$(EXEEXT)
+	$(AM_V_CCLD)$(dbusmenu_json_loader_LINK) $(dbusmenu_json_loader_OBJECTS) $(dbusmenu_json_loader_LDADD) $(LIBS)
 hud-performance$(EXEEXT): $(hud_performance_OBJECTS) $(hud_performance_DEPENDENCIES) $(EXTRA_hud_performance_DEPENDENCIES) 
 	@rm -f hud-performance$(EXEEXT)
 	$(AM_V_CCLD)$(hud_performance_LINK) $(hud_performance_OBJECTS) $(hud_performance_LDADD) $(LIBS)
+libhud-client-test$(EXEEXT): $(libhud_client_test_OBJECTS) $(libhud_client_test_DEPENDENCIES) $(EXTRA_libhud_client_test_DEPENDENCIES) 
+	@rm -f libhud-client-test$(EXEEXT)
+	$(AM_V_CCLD)$(libhud_client_test_LINK) $(libhud_client_test_OBJECTS) $(libhud_client_test_LDADD) $(LIBS)
+test-app-indicator-source$(EXEEXT): $(test_app_indicator_source_OBJECTS) $(test_app_indicator_source_DEPENDENCIES) $(EXTRA_test_app_indicator_source_DEPENDENCIES) 
+	@rm -f test-app-indicator-source$(EXEEXT)
+	$(AM_V_CCLD)$(test_app_indicator_source_LINK) $(test_app_indicator_source_OBJECTS) $(test_app_indicator_source_LDADD) $(LIBS)
+test-application-list$(EXEEXT): $(test_application_list_OBJECTS) $(test_application_list_DEPENDENCIES) $(EXTRA_test_application_list_DEPENDENCIES) 
+	@rm -f test-application-list$(EXEEXT)
+	$(AM_V_CCLD)$(test_application_list_LINK) $(test_application_list_OBJECTS) $(test_application_list_LDADD) $(LIBS)
 test-bad-app-info$(EXEEXT): $(test_bad_app_info_OBJECTS) $(test_bad_app_info_DEPENDENCIES) $(EXTRA_test_bad_app_info_DEPENDENCIES) 
 	@rm -f test-bad-app-info$(EXEEXT)
 	$(AM_V_CCLD)$(test_bad_app_info_LINK) $(test_bad_app_info_OBJECTS) $(test_bad_app_info_LDADD) $(LIBS)
 test-distance$(EXEEXT): $(test_distance_OBJECTS) $(test_distance_DEPENDENCIES) $(EXTRA_test_distance_DEPENDENCIES) 
 	@rm -f test-distance$(EXEEXT)
 	$(AM_V_CCLD)$(test_distance_LINK) $(test_distance_OBJECTS) $(test_distance_LDADD) $(LIBS)
+test-hud-item$(EXEEXT): $(test_hud_item_OBJECTS) $(test_hud_item_DEPENDENCIES) $(EXTRA_test_hud_item_DEPENDENCIES) 
+	@rm -f test-hud-item$(EXEEXT)
+	$(AM_V_CCLD)$(test_hud_item_LINK) $(test_hud_item_OBJECTS) $(test_hud_item_LDADD) $(LIBS)
+test-indicator-source$(EXEEXT): $(test_indicator_source_OBJECTS) $(test_indicator_source_DEPENDENCIES) $(EXTRA_test_indicator_source_DEPENDENCIES) 
+	@rm -f test-indicator-source$(EXEEXT)
+	$(AM_V_CCLD)$(test_indicator_source_LINK) $(test_indicator_source_OBJECTS) $(test_indicator_source_LDADD) $(LIBS)
+test-keyword-mapping$(EXEEXT): $(test_keyword_mapping_OBJECTS) $(test_keyword_mapping_DEPENDENCIES) $(EXTRA_test_keyword_mapping_DEPENDENCIES) 
+	@rm -f test-keyword-mapping$(EXEEXT)
+	$(AM_V_CCLD)$(test_keyword_mapping_LINK) $(test_keyword_mapping_OBJECTS) $(test_keyword_mapping_LDADD) $(LIBS)
 test-load-app-info$(EXEEXT): $(test_load_app_info_OBJECTS) $(test_load_app_info_DEPENDENCIES) $(EXTRA_test_load_app_info_DEPENDENCIES) 
 	@rm -f test-load-app-info$(EXEEXT)
 	$(AM_V_CCLD)$(test_load_app_info_LINK) $(test_load_app_info_OBJECTS) $(test_load_app_info_LDADD) $(LIBS)
+test-menu-input$(EXEEXT): $(test_menu_input_OBJECTS) $(test_menu_input_DEPENDENCIES) $(EXTRA_test_menu_input_DEPENDENCIES) 
+	@rm -f test-menu-input$(EXEEXT)
+	$(AM_V_CCLD)$(test_menu_input_LINK) $(test_menu_input_OBJECTS) $(test_menu_input_LDADD) $(LIBS)
+test-menu-input-model-deep$(EXEEXT): $(test_menu_input_model_deep_OBJECTS) $(test_menu_input_model_deep_DEPENDENCIES) $(EXTRA_test_menu_input_model_deep_DEPENDENCIES) 
+	@rm -f test-menu-input-model-deep$(EXEEXT)
+	$(AM_V_CCLD)$(test_menu_input_model_deep_LINK) $(test_menu_input_model_deep_OBJECTS) $(test_menu_input_model_deep_LDADD) $(LIBS)
+test-menu-input-model-shortcuts$(EXEEXT): $(test_menu_input_model_shortcuts_OBJECTS) $(test_menu_input_model_shortcuts_DEPENDENCIES) $(EXTRA_test_menu_input_model_shortcuts_DEPENDENCIES) 
+	@rm -f test-menu-input-model-shortcuts$(EXEEXT)
+	$(AM_V_CCLD)$(test_menu_input_model_shortcuts_LINK) $(test_menu_input_model_shortcuts_OBJECTS) $(test_menu_input_model_shortcuts_LDADD) $(LIBS)
+test-menu-input-model-simple$(EXEEXT): $(test_menu_input_model_simple_OBJECTS) $(test_menu_input_model_simple_DEPENDENCIES) $(EXTRA_test_menu_input_model_simple_DEPENDENCIES) 
+	@rm -f test-menu-input-model-simple$(EXEEXT)
+	$(AM_V_CCLD)$(test_menu_input_model_simple_LINK) $(test_menu_input_model_simple_OBJECTS) $(test_menu_input_model_simple_LDADD) $(LIBS)
+test-pronounce-dict$(EXEEXT): $(test_pronounce_dict_OBJECTS) $(test_pronounce_dict_DEPENDENCIES) $(EXTRA_test_pronounce_dict_DEPENDENCIES) 
+	@rm -f test-pronounce-dict$(EXEEXT)
+	$(AM_V_CCLD)$(test_pronounce_dict_LINK) $(test_pronounce_dict_OBJECTS) $(test_pronounce_dict_LDADD) $(LIBS)
 test-result-highlighting$(EXEEXT): $(test_result_highlighting_OBJECTS) $(test_result_highlighting_DEPENDENCIES) $(EXTRA_test_result_highlighting_DEPENDENCIES) 
 	@rm -f test-result-highlighting$(EXEEXT)
 	$(AM_V_CCLD)$(test_result_highlighting_LINK) $(test_result_highlighting_OBJECTS) $(test_result_highlighting_LDADD) $(LIBS)
+test-source$(EXEEXT): $(test_source_OBJECTS) $(test_source_DEPENDENCIES) $(EXTRA_test_source_DEPENDENCIES) 
+	@rm -f test-source$(EXEEXT)
+	$(AM_V_CCLD)$(test_source_LINK) $(test_source_OBJECTS) $(test_source_LDADD) $(LIBS)
+test-string-list$(EXEEXT): $(test_string_list_OBJECTS) $(test_string_list_DEPENDENCIES) $(EXTRA_test_string_list_DEPENDENCIES) 
+	@rm -f test-string-list$(EXEEXT)
+	$(AM_V_CCLD)$(test_string_list_LINK) $(test_string_list_OBJECTS) $(test_string_list_LDADD) $(LIBS)
 test-usage-db-ancient$(EXEEXT): $(test_usage_db_ancient_OBJECTS) $(test_usage_db_ancient_DEPENDENCIES) $(EXTRA_test_usage_db_ancient_DEPENDENCIES) 
 	@rm -f test-usage-db-ancient$(EXEEXT)
 	$(AM_V_CCLD)$(test_usage_db_ancient_LINK) $(test_usage_db_ancient_OBJECTS) $(test_usage_db_ancient_LDADD) $(LIBS)
@@ -672,11 +1303,29 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dbusmenu_json_loader-dbusmenu-json-loader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hud_performance-hud-performance.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhud_client_test-hud-client-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhud_tests_la-app-list-dummy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhud_tests_la-hudmanualsource.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhud_tests_la-hudrandomsource.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhud_tests_la-hudtestutils.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_app_indicator_source-test-app-indicator-source.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_application_list-test-application-list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_bad_app_info-test-bad-app-info.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_distance-test-distance.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_hud_item-test-huditem.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_indicator_source-test-indicator-source.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_keyword_mapping-test-keyword-mapping.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_load_app_info-test-load-app-info.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_menu_input-test-menu-input.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_menu_input_model_deep-test-menu-input-model-deep.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_menu_input_model_simple-test-menu-input-model-simple.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_pronounce_dict-test-pronounce-dict.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_result_highlighting-test-result-highlighting.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_source-test-source.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_string_list-test-string-list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_usage_db_ancient-test-usage-db-ancient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_usage_db_old-test-usage-db-old.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_usage_db_simple-test-usage-db-simple.Po@am__quote@
@@ -706,6 +1355,48 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
+libhud_tests_la-app-list-dummy.lo: app-list-dummy.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhud_tests_la_CFLAGS) $(CFLAGS) -MT libhud_tests_la-app-list-dummy.lo -MD -MP -MF $(DEPDIR)/libhud_tests_la-app-list-dummy.Tpo -c -o libhud_tests_la-app-list-dummy.lo `test -f 'app-list-dummy.c' || echo '$(srcdir)/'`app-list-dummy.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhud_tests_la-app-list-dummy.Tpo $(DEPDIR)/libhud_tests_la-app-list-dummy.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='app-list-dummy.c' object='libhud_tests_la-app-list-dummy.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhud_tests_la_CFLAGS) $(CFLAGS) -c -o libhud_tests_la-app-list-dummy.lo `test -f 'app-list-dummy.c' || echo '$(srcdir)/'`app-list-dummy.c
+
+libhud_tests_la-hudrandomsource.lo: hudrandomsource.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhud_tests_la_CFLAGS) $(CFLAGS) -MT libhud_tests_la-hudrandomsource.lo -MD -MP -MF $(DEPDIR)/libhud_tests_la-hudrandomsource.Tpo -c -o libhud_tests_la-hudrandomsource.lo `test -f 'hudrandomsource.c' || echo '$(srcdir)/'`hudrandomsource.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhud_tests_la-hudrandomsource.Tpo $(DEPDIR)/libhud_tests_la-hudrandomsource.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='hudrandomsource.c' object='libhud_tests_la-hudrandomsource.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhud_tests_la_CFLAGS) $(CFLAGS) -c -o libhud_tests_la-hudrandomsource.lo `test -f 'hudrandomsource.c' || echo '$(srcdir)/'`hudrandomsource.c
+
+libhud_tests_la-hudmanualsource.lo: hudmanualsource.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhud_tests_la_CFLAGS) $(CFLAGS) -MT libhud_tests_la-hudmanualsource.lo -MD -MP -MF $(DEPDIR)/libhud_tests_la-hudmanualsource.Tpo -c -o libhud_tests_la-hudmanualsource.lo `test -f 'hudmanualsource.c' || echo '$(srcdir)/'`hudmanualsource.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhud_tests_la-hudmanualsource.Tpo $(DEPDIR)/libhud_tests_la-hudmanualsource.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='hudmanualsource.c' object='libhud_tests_la-hudmanualsource.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhud_tests_la_CFLAGS) $(CFLAGS) -c -o libhud_tests_la-hudmanualsource.lo `test -f 'hudmanualsource.c' || echo '$(srcdir)/'`hudmanualsource.c
+
+libhud_tests_la-hudtestutils.lo: hudtestutils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhud_tests_la_CFLAGS) $(CFLAGS) -MT libhud_tests_la-hudtestutils.lo -MD -MP -MF $(DEPDIR)/libhud_tests_la-hudtestutils.Tpo -c -o libhud_tests_la-hudtestutils.lo `test -f 'hudtestutils.c' || echo '$(srcdir)/'`hudtestutils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhud_tests_la-hudtestutils.Tpo $(DEPDIR)/libhud_tests_la-hudtestutils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='hudtestutils.c' object='libhud_tests_la-hudtestutils.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhud_tests_la_CFLAGS) $(CFLAGS) -c -o libhud_tests_la-hudtestutils.lo `test -f 'hudtestutils.c' || echo '$(srcdir)/'`hudtestutils.c
+
+dbusmenu_json_loader-dbusmenu-json-loader.o: dbusmenu-json-loader.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(dbusmenu_json_loader_CFLAGS) $(CFLAGS) -MT dbusmenu_json_loader-dbusmenu-json-loader.o -MD -MP -MF $(DEPDIR)/dbusmenu_json_loader-dbusmenu-json-loader.Tpo -c -o dbusmenu_json_loader-dbusmenu-json-loader.o `test -f 'dbusmenu-json-loader.c' || echo '$(srcdir)/'`dbusmenu-json-loader.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/dbusmenu_json_loader-dbusmenu-json-loader.Tpo $(DEPDIR)/dbusmenu_json_loader-dbusmenu-json-loader.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dbusmenu-json-loader.c' object='dbusmenu_json_loader-dbusmenu-json-loader.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(dbusmenu_json_loader_CFLAGS) $(CFLAGS) -c -o dbusmenu_json_loader-dbusmenu-json-loader.o `test -f 'dbusmenu-json-loader.c' || echo '$(srcdir)/'`dbusmenu-json-loader.c
+
+dbusmenu_json_loader-dbusmenu-json-loader.obj: dbusmenu-json-loader.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(dbusmenu_json_loader_CFLAGS) $(CFLAGS) -MT dbusmenu_json_loader-dbusmenu-json-loader.obj -MD -MP -MF $(DEPDIR)/dbusmenu_json_loader-dbusmenu-json-loader.Tpo -c -o dbusmenu_json_loader-dbusmenu-json-loader.obj `if test -f 'dbusmenu-json-loader.c'; then $(CYGPATH_W) 'dbusmenu-json-loader.c'; else $(CYGPATH_W) '$(srcdir)/dbusmenu-json-loader.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/dbusmenu_json_loader-dbusmenu-json-loader.Tpo $(DEPDIR)/dbusmenu_json_loader-dbusmenu-json-loader.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dbusmenu-json-loader.c' object='dbusmenu_json_loader-dbusmenu-json-loader.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(dbusmenu_json_loader_CFLAGS) $(CFLAGS) -c -o dbusmenu_json_loader-dbusmenu-json-loader.obj `if test -f 'dbusmenu-json-loader.c'; then $(CYGPATH_W) 'dbusmenu-json-loader.c'; else $(CYGPATH_W) '$(srcdir)/dbusmenu-json-loader.c'; fi`
+
 hud_performance-hud-performance.o: hud-performance.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hud_performance_CFLAGS) $(CFLAGS) -MT hud_performance-hud-performance.o -MD -MP -MF $(DEPDIR)/hud_performance-hud-performance.Tpo -c -o hud_performance-hud-performance.o `test -f 'hud-performance.c' || echo '$(srcdir)/'`hud-performance.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/hud_performance-hud-performance.Tpo $(DEPDIR)/hud_performance-hud-performance.Po
@@ -719,6 +1410,48 @@ hud_performance-hud-performance.obj: hud-performance.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='hud-performance.c' object='hud_performance-hud-performance.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hud_performance_CFLAGS) $(CFLAGS) -c -o hud_performance-hud-performance.obj `if test -f 'hud-performance.c'; then $(CYGPATH_W) 'hud-performance.c'; else $(CYGPATH_W) '$(srcdir)/hud-performance.c'; fi`
+
+libhud_client_test-hud-client-test.o: hud-client-test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhud_client_test_CFLAGS) $(CFLAGS) -MT libhud_client_test-hud-client-test.o -MD -MP -MF $(DEPDIR)/libhud_client_test-hud-client-test.Tpo -c -o libhud_client_test-hud-client-test.o `test -f 'hud-client-test.c' || echo '$(srcdir)/'`hud-client-test.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhud_client_test-hud-client-test.Tpo $(DEPDIR)/libhud_client_test-hud-client-test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='hud-client-test.c' object='libhud_client_test-hud-client-test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhud_client_test_CFLAGS) $(CFLAGS) -c -o libhud_client_test-hud-client-test.o `test -f 'hud-client-test.c' || echo '$(srcdir)/'`hud-client-test.c
+
+libhud_client_test-hud-client-test.obj: hud-client-test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhud_client_test_CFLAGS) $(CFLAGS) -MT libhud_client_test-hud-client-test.obj -MD -MP -MF $(DEPDIR)/libhud_client_test-hud-client-test.Tpo -c -o libhud_client_test-hud-client-test.obj `if test -f 'hud-client-test.c'; then $(CYGPATH_W) 'hud-client-test.c'; else $(CYGPATH_W) '$(srcdir)/hud-client-test.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhud_client_test-hud-client-test.Tpo $(DEPDIR)/libhud_client_test-hud-client-test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='hud-client-test.c' object='libhud_client_test-hud-client-test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhud_client_test_CFLAGS) $(CFLAGS) -c -o libhud_client_test-hud-client-test.obj `if test -f 'hud-client-test.c'; then $(CYGPATH_W) 'hud-client-test.c'; else $(CYGPATH_W) '$(srcdir)/hud-client-test.c'; fi`
+
+test_app_indicator_source-test-app-indicator-source.o: test-app-indicator-source.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_app_indicator_source_CFLAGS) $(CFLAGS) -MT test_app_indicator_source-test-app-indicator-source.o -MD -MP -MF $(DEPDIR)/test_app_indicator_source-test-app-indicator-source.Tpo -c -o test_app_indicator_source-test-app-indicator-source.o `test -f 'test-app-indicator-source.c' || echo '$(srcdir)/'`test-app-indicator-source.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_app_indicator_source-test-app-indicator-source.Tpo $(DEPDIR)/test_app_indicator_source-test-app-indicator-source.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-app-indicator-source.c' object='test_app_indicator_source-test-app-indicator-source.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_app_indicator_source_CFLAGS) $(CFLAGS) -c -o test_app_indicator_source-test-app-indicator-source.o `test -f 'test-app-indicator-source.c' || echo '$(srcdir)/'`test-app-indicator-source.c
+
+test_app_indicator_source-test-app-indicator-source.obj: test-app-indicator-source.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_app_indicator_source_CFLAGS) $(CFLAGS) -MT test_app_indicator_source-test-app-indicator-source.obj -MD -MP -MF $(DEPDIR)/test_app_indicator_source-test-app-indicator-source.Tpo -c -o test_app_indicator_source-test-app-indicator-source.obj `if test -f 'test-app-indicator-source.c'; then $(CYGPATH_W) 'test-app-indicator-source.c'; else $(CYGPATH_W) '$(srcdir)/test-app-indicator-source.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_app_indicator_source-test-app-indicator-source.Tpo $(DEPDIR)/test_app_indicator_source-test-app-indicator-source.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-app-indicator-source.c' object='test_app_indicator_source-test-app-indicator-source.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_app_indicator_source_CFLAGS) $(CFLAGS) -c -o test_app_indicator_source-test-app-indicator-source.obj `if test -f 'test-app-indicator-source.c'; then $(CYGPATH_W) 'test-app-indicator-source.c'; else $(CYGPATH_W) '$(srcdir)/test-app-indicator-source.c'; fi`
+
+test_application_list-test-application-list.o: test-application-list.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_application_list_CFLAGS) $(CFLAGS) -MT test_application_list-test-application-list.o -MD -MP -MF $(DEPDIR)/test_application_list-test-application-list.Tpo -c -o test_application_list-test-application-list.o `test -f 'test-application-list.c' || echo '$(srcdir)/'`test-application-list.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_application_list-test-application-list.Tpo $(DEPDIR)/test_application_list-test-application-list.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-application-list.c' object='test_application_list-test-application-list.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_application_list_CFLAGS) $(CFLAGS) -c -o test_application_list-test-application-list.o `test -f 'test-application-list.c' || echo '$(srcdir)/'`test-application-list.c
+
+test_application_list-test-application-list.obj: test-application-list.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_application_list_CFLAGS) $(CFLAGS) -MT test_application_list-test-application-list.obj -MD -MP -MF $(DEPDIR)/test_application_list-test-application-list.Tpo -c -o test_application_list-test-application-list.obj `if test -f 'test-application-list.c'; then $(CYGPATH_W) 'test-application-list.c'; else $(CYGPATH_W) '$(srcdir)/test-application-list.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_application_list-test-application-list.Tpo $(DEPDIR)/test_application_list-test-application-list.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-application-list.c' object='test_application_list-test-application-list.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_application_list_CFLAGS) $(CFLAGS) -c -o test_application_list-test-application-list.obj `if test -f 'test-application-list.c'; then $(CYGPATH_W) 'test-application-list.c'; else $(CYGPATH_W) '$(srcdir)/test-application-list.c'; fi`
 
 test_bad_app_info-test-bad-app-info.o: test-bad-app-info.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_bad_app_info_CFLAGS) $(CFLAGS) -MT test_bad_app_info-test-bad-app-info.o -MD -MP -MF $(DEPDIR)/test_bad_app_info-test-bad-app-info.Tpo -c -o test_bad_app_info-test-bad-app-info.o `test -f 'test-bad-app-info.c' || echo '$(srcdir)/'`test-bad-app-info.c
@@ -748,6 +1481,48 @@ test_distance-test-distance.obj: test-distance.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_distance_CFLAGS) $(CFLAGS) -c -o test_distance-test-distance.obj `if test -f 'test-distance.c'; then $(CYGPATH_W) 'test-distance.c'; else $(CYGPATH_W) '$(srcdir)/test-distance.c'; fi`
 
+test_hud_item-test-huditem.o: test-huditem.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_hud_item_CFLAGS) $(CFLAGS) -MT test_hud_item-test-huditem.o -MD -MP -MF $(DEPDIR)/test_hud_item-test-huditem.Tpo -c -o test_hud_item-test-huditem.o `test -f 'test-huditem.c' || echo '$(srcdir)/'`test-huditem.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_hud_item-test-huditem.Tpo $(DEPDIR)/test_hud_item-test-huditem.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-huditem.c' object='test_hud_item-test-huditem.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_hud_item_CFLAGS) $(CFLAGS) -c -o test_hud_item-test-huditem.o `test -f 'test-huditem.c' || echo '$(srcdir)/'`test-huditem.c
+
+test_hud_item-test-huditem.obj: test-huditem.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_hud_item_CFLAGS) $(CFLAGS) -MT test_hud_item-test-huditem.obj -MD -MP -MF $(DEPDIR)/test_hud_item-test-huditem.Tpo -c -o test_hud_item-test-huditem.obj `if test -f 'test-huditem.c'; then $(CYGPATH_W) 'test-huditem.c'; else $(CYGPATH_W) '$(srcdir)/test-huditem.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_hud_item-test-huditem.Tpo $(DEPDIR)/test_hud_item-test-huditem.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-huditem.c' object='test_hud_item-test-huditem.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_hud_item_CFLAGS) $(CFLAGS) -c -o test_hud_item-test-huditem.obj `if test -f 'test-huditem.c'; then $(CYGPATH_W) 'test-huditem.c'; else $(CYGPATH_W) '$(srcdir)/test-huditem.c'; fi`
+
+test_indicator_source-test-indicator-source.o: test-indicator-source.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_indicator_source_CFLAGS) $(CFLAGS) -MT test_indicator_source-test-indicator-source.o -MD -MP -MF $(DEPDIR)/test_indicator_source-test-indicator-source.Tpo -c -o test_indicator_source-test-indicator-source.o `test -f 'test-indicator-source.c' || echo '$(srcdir)/'`test-indicator-source.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_indicator_source-test-indicator-source.Tpo $(DEPDIR)/test_indicator_source-test-indicator-source.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-indicator-source.c' object='test_indicator_source-test-indicator-source.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_indicator_source_CFLAGS) $(CFLAGS) -c -o test_indicator_source-test-indicator-source.o `test -f 'test-indicator-source.c' || echo '$(srcdir)/'`test-indicator-source.c
+
+test_indicator_source-test-indicator-source.obj: test-indicator-source.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_indicator_source_CFLAGS) $(CFLAGS) -MT test_indicator_source-test-indicator-source.obj -MD -MP -MF $(DEPDIR)/test_indicator_source-test-indicator-source.Tpo -c -o test_indicator_source-test-indicator-source.obj `if test -f 'test-indicator-source.c'; then $(CYGPATH_W) 'test-indicator-source.c'; else $(CYGPATH_W) '$(srcdir)/test-indicator-source.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_indicator_source-test-indicator-source.Tpo $(DEPDIR)/test_indicator_source-test-indicator-source.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-indicator-source.c' object='test_indicator_source-test-indicator-source.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_indicator_source_CFLAGS) $(CFLAGS) -c -o test_indicator_source-test-indicator-source.obj `if test -f 'test-indicator-source.c'; then $(CYGPATH_W) 'test-indicator-source.c'; else $(CYGPATH_W) '$(srcdir)/test-indicator-source.c'; fi`
+
+test_keyword_mapping-test-keyword-mapping.o: test-keyword-mapping.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_keyword_mapping_CFLAGS) $(CFLAGS) -MT test_keyword_mapping-test-keyword-mapping.o -MD -MP -MF $(DEPDIR)/test_keyword_mapping-test-keyword-mapping.Tpo -c -o test_keyword_mapping-test-keyword-mapping.o `test -f 'test-keyword-mapping.c' || echo '$(srcdir)/'`test-keyword-mapping.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_keyword_mapping-test-keyword-mapping.Tpo $(DEPDIR)/test_keyword_mapping-test-keyword-mapping.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-keyword-mapping.c' object='test_keyword_mapping-test-keyword-mapping.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_keyword_mapping_CFLAGS) $(CFLAGS) -c -o test_keyword_mapping-test-keyword-mapping.o `test -f 'test-keyword-mapping.c' || echo '$(srcdir)/'`test-keyword-mapping.c
+
+test_keyword_mapping-test-keyword-mapping.obj: test-keyword-mapping.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_keyword_mapping_CFLAGS) $(CFLAGS) -MT test_keyword_mapping-test-keyword-mapping.obj -MD -MP -MF $(DEPDIR)/test_keyword_mapping-test-keyword-mapping.Tpo -c -o test_keyword_mapping-test-keyword-mapping.obj `if test -f 'test-keyword-mapping.c'; then $(CYGPATH_W) 'test-keyword-mapping.c'; else $(CYGPATH_W) '$(srcdir)/test-keyword-mapping.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_keyword_mapping-test-keyword-mapping.Tpo $(DEPDIR)/test_keyword_mapping-test-keyword-mapping.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-keyword-mapping.c' object='test_keyword_mapping-test-keyword-mapping.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_keyword_mapping_CFLAGS) $(CFLAGS) -c -o test_keyword_mapping-test-keyword-mapping.obj `if test -f 'test-keyword-mapping.c'; then $(CYGPATH_W) 'test-keyword-mapping.c'; else $(CYGPATH_W) '$(srcdir)/test-keyword-mapping.c'; fi`
+
 test_load_app_info-test-load-app-info.o: test-load-app-info.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_load_app_info_CFLAGS) $(CFLAGS) -MT test_load_app_info-test-load-app-info.o -MD -MP -MF $(DEPDIR)/test_load_app_info-test-load-app-info.Tpo -c -o test_load_app_info-test-load-app-info.o `test -f 'test-load-app-info.c' || echo '$(srcdir)/'`test-load-app-info.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_load_app_info-test-load-app-info.Tpo $(DEPDIR)/test_load_app_info-test-load-app-info.Po
@@ -762,6 +1537,76 @@ test_load_app_info-test-load-app-info.obj: test-load-app-info.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_load_app_info_CFLAGS) $(CFLAGS) -c -o test_load_app_info-test-load-app-info.obj `if test -f 'test-load-app-info.c'; then $(CYGPATH_W) 'test-load-app-info.c'; else $(CYGPATH_W) '$(srcdir)/test-load-app-info.c'; fi`
 
+test_menu_input-test-menu-input.o: test-menu-input.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_CFLAGS) $(CFLAGS) -MT test_menu_input-test-menu-input.o -MD -MP -MF $(DEPDIR)/test_menu_input-test-menu-input.Tpo -c -o test_menu_input-test-menu-input.o `test -f 'test-menu-input.c' || echo '$(srcdir)/'`test-menu-input.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_menu_input-test-menu-input.Tpo $(DEPDIR)/test_menu_input-test-menu-input.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-menu-input.c' object='test_menu_input-test-menu-input.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_CFLAGS) $(CFLAGS) -c -o test_menu_input-test-menu-input.o `test -f 'test-menu-input.c' || echo '$(srcdir)/'`test-menu-input.c
+
+test_menu_input-test-menu-input.obj: test-menu-input.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_CFLAGS) $(CFLAGS) -MT test_menu_input-test-menu-input.obj -MD -MP -MF $(DEPDIR)/test_menu_input-test-menu-input.Tpo -c -o test_menu_input-test-menu-input.obj `if test -f 'test-menu-input.c'; then $(CYGPATH_W) 'test-menu-input.c'; else $(CYGPATH_W) '$(srcdir)/test-menu-input.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_menu_input-test-menu-input.Tpo $(DEPDIR)/test_menu_input-test-menu-input.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-menu-input.c' object='test_menu_input-test-menu-input.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_CFLAGS) $(CFLAGS) -c -o test_menu_input-test-menu-input.obj `if test -f 'test-menu-input.c'; then $(CYGPATH_W) 'test-menu-input.c'; else $(CYGPATH_W) '$(srcdir)/test-menu-input.c'; fi`
+
+test_menu_input_model_deep-test-menu-input-model-deep.o: test-menu-input-model-deep.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_model_deep_CFLAGS) $(CFLAGS) -MT test_menu_input_model_deep-test-menu-input-model-deep.o -MD -MP -MF $(DEPDIR)/test_menu_input_model_deep-test-menu-input-model-deep.Tpo -c -o test_menu_input_model_deep-test-menu-input-model-deep.o `test -f 'test-menu-input-model-deep.c' || echo '$(srcdir)/'`test-menu-input-model-deep.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_menu_input_model_deep-test-menu-input-model-deep.Tpo $(DEPDIR)/test_menu_input_model_deep-test-menu-input-model-deep.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-menu-input-model-deep.c' object='test_menu_input_model_deep-test-menu-input-model-deep.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_model_deep_CFLAGS) $(CFLAGS) -c -o test_menu_input_model_deep-test-menu-input-model-deep.o `test -f 'test-menu-input-model-deep.c' || echo '$(srcdir)/'`test-menu-input-model-deep.c
+
+test_menu_input_model_deep-test-menu-input-model-deep.obj: test-menu-input-model-deep.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_model_deep_CFLAGS) $(CFLAGS) -MT test_menu_input_model_deep-test-menu-input-model-deep.obj -MD -MP -MF $(DEPDIR)/test_menu_input_model_deep-test-menu-input-model-deep.Tpo -c -o test_menu_input_model_deep-test-menu-input-model-deep.obj `if test -f 'test-menu-input-model-deep.c'; then $(CYGPATH_W) 'test-menu-input-model-deep.c'; else $(CYGPATH_W) '$(srcdir)/test-menu-input-model-deep.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_menu_input_model_deep-test-menu-input-model-deep.Tpo $(DEPDIR)/test_menu_input_model_deep-test-menu-input-model-deep.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-menu-input-model-deep.c' object='test_menu_input_model_deep-test-menu-input-model-deep.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_model_deep_CFLAGS) $(CFLAGS) -c -o test_menu_input_model_deep-test-menu-input-model-deep.obj `if test -f 'test-menu-input-model-deep.c'; then $(CYGPATH_W) 'test-menu-input-model-deep.c'; else $(CYGPATH_W) '$(srcdir)/test-menu-input-model-deep.c'; fi`
+
+test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.o: test-menu-input-model-shortcuts.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_model_shortcuts_CFLAGS) $(CFLAGS) -MT test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.o -MD -MP -MF $(DEPDIR)/test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.Tpo -c -o test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.o `test -f 'test-menu-input-model-shortcuts.c' || echo '$(srcdir)/'`test-menu-input-model-shortcuts.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.Tpo $(DEPDIR)/test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-menu-input-model-shortcuts.c' object='test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_model_shortcuts_CFLAGS) $(CFLAGS) -c -o test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.o `test -f 'test-menu-input-model-shortcuts.c' || echo '$(srcdir)/'`test-menu-input-model-shortcuts.c
+
+test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.obj: test-menu-input-model-shortcuts.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_model_shortcuts_CFLAGS) $(CFLAGS) -MT test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.obj -MD -MP -MF $(DEPDIR)/test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.Tpo -c -o test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.obj `if test -f 'test-menu-input-model-shortcuts.c'; then $(CYGPATH_W) 'test-menu-input-model-shortcuts.c'; else $(CYGPATH_W) '$(srcdir)/test-menu-input-model-shortcuts.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.Tpo $(DEPDIR)/test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-menu-input-model-shortcuts.c' object='test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_model_shortcuts_CFLAGS) $(CFLAGS) -c -o test_menu_input_model_shortcuts-test-menu-input-model-shortcuts.obj `if test -f 'test-menu-input-model-shortcuts.c'; then $(CYGPATH_W) 'test-menu-input-model-shortcuts.c'; else $(CYGPATH_W) '$(srcdir)/test-menu-input-model-shortcuts.c'; fi`
+
+test_menu_input_model_simple-test-menu-input-model-simple.o: test-menu-input-model-simple.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_model_simple_CFLAGS) $(CFLAGS) -MT test_menu_input_model_simple-test-menu-input-model-simple.o -MD -MP -MF $(DEPDIR)/test_menu_input_model_simple-test-menu-input-model-simple.Tpo -c -o test_menu_input_model_simple-test-menu-input-model-simple.o `test -f 'test-menu-input-model-simple.c' || echo '$(srcdir)/'`test-menu-input-model-simple.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_menu_input_model_simple-test-menu-input-model-simple.Tpo $(DEPDIR)/test_menu_input_model_simple-test-menu-input-model-simple.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-menu-input-model-simple.c' object='test_menu_input_model_simple-test-menu-input-model-simple.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_model_simple_CFLAGS) $(CFLAGS) -c -o test_menu_input_model_simple-test-menu-input-model-simple.o `test -f 'test-menu-input-model-simple.c' || echo '$(srcdir)/'`test-menu-input-model-simple.c
+
+test_menu_input_model_simple-test-menu-input-model-simple.obj: test-menu-input-model-simple.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_model_simple_CFLAGS) $(CFLAGS) -MT test_menu_input_model_simple-test-menu-input-model-simple.obj -MD -MP -MF $(DEPDIR)/test_menu_input_model_simple-test-menu-input-model-simple.Tpo -c -o test_menu_input_model_simple-test-menu-input-model-simple.obj `if test -f 'test-menu-input-model-simple.c'; then $(CYGPATH_W) 'test-menu-input-model-simple.c'; else $(CYGPATH_W) '$(srcdir)/test-menu-input-model-simple.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_menu_input_model_simple-test-menu-input-model-simple.Tpo $(DEPDIR)/test_menu_input_model_simple-test-menu-input-model-simple.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-menu-input-model-simple.c' object='test_menu_input_model_simple-test-menu-input-model-simple.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_menu_input_model_simple_CFLAGS) $(CFLAGS) -c -o test_menu_input_model_simple-test-menu-input-model-simple.obj `if test -f 'test-menu-input-model-simple.c'; then $(CYGPATH_W) 'test-menu-input-model-simple.c'; else $(CYGPATH_W) '$(srcdir)/test-menu-input-model-simple.c'; fi`
+
+test_pronounce_dict-test-pronounce-dict.o: test-pronounce-dict.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_pronounce_dict_CFLAGS) $(CFLAGS) -MT test_pronounce_dict-test-pronounce-dict.o -MD -MP -MF $(DEPDIR)/test_pronounce_dict-test-pronounce-dict.Tpo -c -o test_pronounce_dict-test-pronounce-dict.o `test -f 'test-pronounce-dict.c' || echo '$(srcdir)/'`test-pronounce-dict.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_pronounce_dict-test-pronounce-dict.Tpo $(DEPDIR)/test_pronounce_dict-test-pronounce-dict.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-pronounce-dict.c' object='test_pronounce_dict-test-pronounce-dict.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_pronounce_dict_CFLAGS) $(CFLAGS) -c -o test_pronounce_dict-test-pronounce-dict.o `test -f 'test-pronounce-dict.c' || echo '$(srcdir)/'`test-pronounce-dict.c
+
+test_pronounce_dict-test-pronounce-dict.obj: test-pronounce-dict.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_pronounce_dict_CFLAGS) $(CFLAGS) -MT test_pronounce_dict-test-pronounce-dict.obj -MD -MP -MF $(DEPDIR)/test_pronounce_dict-test-pronounce-dict.Tpo -c -o test_pronounce_dict-test-pronounce-dict.obj `if test -f 'test-pronounce-dict.c'; then $(CYGPATH_W) 'test-pronounce-dict.c'; else $(CYGPATH_W) '$(srcdir)/test-pronounce-dict.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_pronounce_dict-test-pronounce-dict.Tpo $(DEPDIR)/test_pronounce_dict-test-pronounce-dict.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-pronounce-dict.c' object='test_pronounce_dict-test-pronounce-dict.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_pronounce_dict_CFLAGS) $(CFLAGS) -c -o test_pronounce_dict-test-pronounce-dict.obj `if test -f 'test-pronounce-dict.c'; then $(CYGPATH_W) 'test-pronounce-dict.c'; else $(CYGPATH_W) '$(srcdir)/test-pronounce-dict.c'; fi`
+
 test_result_highlighting-test-result-highlighting.o: test-result-highlighting.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_result_highlighting_CFLAGS) $(CFLAGS) -MT test_result_highlighting-test-result-highlighting.o -MD -MP -MF $(DEPDIR)/test_result_highlighting-test-result-highlighting.Tpo -c -o test_result_highlighting-test-result-highlighting.o `test -f 'test-result-highlighting.c' || echo '$(srcdir)/'`test-result-highlighting.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_result_highlighting-test-result-highlighting.Tpo $(DEPDIR)/test_result_highlighting-test-result-highlighting.Po
@@ -775,6 +1620,34 @@ test_result_highlighting-test-result-highlighting.obj: test-result-highlighting.
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-result-highlighting.c' object='test_result_highlighting-test-result-highlighting.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_result_highlighting_CFLAGS) $(CFLAGS) -c -o test_result_highlighting-test-result-highlighting.obj `if test -f 'test-result-highlighting.c'; then $(CYGPATH_W) 'test-result-highlighting.c'; else $(CYGPATH_W) '$(srcdir)/test-result-highlighting.c'; fi`
+
+test_source-test-source.o: test-source.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_source_CFLAGS) $(CFLAGS) -MT test_source-test-source.o -MD -MP -MF $(DEPDIR)/test_source-test-source.Tpo -c -o test_source-test-source.o `test -f 'test-source.c' || echo '$(srcdir)/'`test-source.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_source-test-source.Tpo $(DEPDIR)/test_source-test-source.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-source.c' object='test_source-test-source.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_source_CFLAGS) $(CFLAGS) -c -o test_source-test-source.o `test -f 'test-source.c' || echo '$(srcdir)/'`test-source.c
+
+test_source-test-source.obj: test-source.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_source_CFLAGS) $(CFLAGS) -MT test_source-test-source.obj -MD -MP -MF $(DEPDIR)/test_source-test-source.Tpo -c -o test_source-test-source.obj `if test -f 'test-source.c'; then $(CYGPATH_W) 'test-source.c'; else $(CYGPATH_W) '$(srcdir)/test-source.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_source-test-source.Tpo $(DEPDIR)/test_source-test-source.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-source.c' object='test_source-test-source.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_source_CFLAGS) $(CFLAGS) -c -o test_source-test-source.obj `if test -f 'test-source.c'; then $(CYGPATH_W) 'test-source.c'; else $(CYGPATH_W) '$(srcdir)/test-source.c'; fi`
+
+test_string_list-test-string-list.o: test-string-list.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_string_list_CFLAGS) $(CFLAGS) -MT test_string_list-test-string-list.o -MD -MP -MF $(DEPDIR)/test_string_list-test-string-list.Tpo -c -o test_string_list-test-string-list.o `test -f 'test-string-list.c' || echo '$(srcdir)/'`test-string-list.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_string_list-test-string-list.Tpo $(DEPDIR)/test_string_list-test-string-list.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-string-list.c' object='test_string_list-test-string-list.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_string_list_CFLAGS) $(CFLAGS) -c -o test_string_list-test-string-list.o `test -f 'test-string-list.c' || echo '$(srcdir)/'`test-string-list.c
+
+test_string_list-test-string-list.obj: test-string-list.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_string_list_CFLAGS) $(CFLAGS) -MT test_string_list-test-string-list.obj -MD -MP -MF $(DEPDIR)/test_string_list-test-string-list.Tpo -c -o test_string_list-test-string-list.obj `if test -f 'test-string-list.c'; then $(CYGPATH_W) 'test-string-list.c'; else $(CYGPATH_W) '$(srcdir)/test-string-list.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_string_list-test-string-list.Tpo $(DEPDIR)/test_string_list-test-string-list.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-string-list.c' object='test_string_list-test-string-list.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_string_list_CFLAGS) $(CFLAGS) -c -o test_string_list-test-string-list.obj `if test -f 'test-string-list.c'; then $(CYGPATH_W) 'test-string-list.c'; else $(CYGPATH_W) '$(srcdir)/test-string-list.c'; fi`
 
 test_usage_db_ancient-test-usage-db-ancient.o: test-usage-db-ancient.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_usage_db_ancient_CFLAGS) $(CFLAGS) -MT test_usage_db_ancient-test-usage-db-ancient.o -MD -MP -MF $(DEPDIR)/test_usage_db_ancient-test-usage-db-ancient.Tpo -c -o test_usage_db_ancient-test-usage-db-ancient.o `test -f 'test-usage-db-ancient.c' || echo '$(srcdir)/'`test-usage-db-ancient.c
@@ -1017,7 +1890,7 @@ check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
-all-am: Makefile
+all-am: Makefile $(LTLIBRARIES)
 installdirs:
 install: install-am
 install-exec: install-exec-am
@@ -1053,7 +1926,7 @@ maintainer-clean-generic:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libtool \
-	mostlyclean-am
+	clean-noinstLTLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -1124,15 +1997,15 @@ uninstall-am:
 .MAKE: check-am install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-TESTS check-am clean \
-	clean-checkPROGRAMS clean-generic clean-libtool ctags \
-	distclean distclean-compile distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	clean-checkPROGRAMS clean-generic clean-libtool \
+	clean-noinstLTLIBRARIES ctags distclean distclean-compile \
+	distclean-generic distclean-libtool distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am
@@ -1142,12 +2015,79 @@ test-distance-test: test-distance Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
 	@echo gtester --verbose -k -o $(DISTANCE_XML_REPORT) $(builddir)/test-distance >> $@
+	@echo gtester2xunit $(DISTANCE_XML_REPORT) >> $@
+	@chmod +x $@
+
+test-hud-item-test: test-hud-item Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(HUD_ITEM_XML_REPORT) $(builddir)/test-hud-item >> $@
+	@echo gtester2xunit $(HUD_ITEM_XML_REPORT) >> $@
 	@chmod +x $@
 
 test-result-highlighting-test: test-result-highlighting Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
-	@echo gtester --verbose -k -o $(DISTANCE_XML_REPORT) $(builddir)/test-result-highlighting >> $@
+	@echo gtester --verbose -k -o $(RESULT_XML_REPORT) $(builddir)/test-result-highlighting >> $@
+	@echo gtester2xunit $(RESULT_XML_REPORT) >> $@
+	@chmod +x $@
+
+test-menu-input-tester: test-menu-input dbusmenu-json-loader test-menu-input-model-simple test-menu-input-model-deep test-menu-input-model-shortcuts Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(MENU_INPUT_XML_REPORT) $(builddir)/test-menu-input >> $@
+	@echo gtester2xunit $(MENU_INPUT_XML_REPORT) >> $@
+	@chmod +x $@
+
+test-keyword-mapping-test: test-keyword-mapping Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo "mkdir -p keyword-mapping/locale/en_FAKELANG/LC_MESSAGES " >> $@
+	@echo "$(MSGFMT) --check --verbose --output-file keyword-mapping/locale/en_FAKELANG/LC_MESSAGES/gnome-terminal.mo keyword-mapping/gnome-terminal-en_FAKELANG.po" >> $@
+	@echo gtester --verbose -k -o $(KEYWORD_XML_REPORT) $(builddir)/test-keyword-mapping >> $@
+	@echo gtester2xunit $(KEYWORD_XML_REPORT) >> $@
+	@chmod +x $@
+
+test-string-list-test: test-string-list Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(STRING_LIST_XML_REPORT) $(builddir)/test-string-list >> $@
+	@echo gtester2xunit $(STRING_LIST_XML_REPORT) >> $@
+	@chmod +x $@
+
+test-pronounce-dict-test: test-pronounce-dict Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(PRONOUNCE_DICT_XML_REPORT) $(builddir)/test-pronounce-dict >> $@
+	@echo gtester2xunit $(PRONOUNCE_DICT_XML_REPORT) >> $@
+	@chmod +x $@
+
+test-source-test: test-source Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(SOURCE_XML_REPORT) $(builddir)/test-source >> $@
+	@echo gtester2xunit $(SOURCE_XML_REPORT) >> $@
+	@chmod +x $@
+
+test-app-indicator-source-test: test-app-indicator-source Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(APP_INDICATOR_SOURCE_XML_REPORT) $(builddir)/test-app-indicator-source >> $@
+	@echo gtester2xunit $(APP_INDICATOR_SOURCE_XML_REPORT) >> $@
+	@chmod +x $@
+
+test-indicator-source-test: test-indicator-source Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(INDICATOR_SOURCE_XML_REPORT) $(builddir)/test-indicator-source >> $@
+	@echo gtester2xunit $(INDICATOR_SOURCE_XML_REPORT) >> $@
+	@chmod +x $@
+
+test-application-list-test: test-application-list Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(APPLICATION_LIST_XML_REPORT) $(builddir)/test-application-list >> $@
+	@echo gtester2xunit $(APPLICATION_LIST_XML_REPORT) >> $@
 	@chmod +x $@
 
 test-usage-db-simple-test: test-usage-db-simple test-usage-db-simple.sql Makefile.am
@@ -1161,6 +2101,7 @@ test-usage-db-simple-test: test-usage-db-simple test-usage-db-simple.sql Makefil
 	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_DB_SIMPLE_XML_REPORT) $(abs_builddir)/test-usage-db-simple >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-simple.dir.\* >> $@
+	@echo gtester2xunit $(abs_builddir)/$(USAGE_DB_SIMPLE_XML_REPORT) >> $@
 	@chmod +x $@
 
 test-usage-db-old-test: test-usage-db-old test-usage-db-old.sql Makefile.am
@@ -1171,9 +2112,10 @@ test-usage-db-old-test: test-usage-db-old test-usage-db-old.sql Makefile.am
 	@echo export HUD_CACHE_DIR=\`pwd\` >> $@
 	@echo export GSETTINGS_BACKEND=memory >> $@
 	@echo export GSETTINGS_SCHEMA_DIR=\`pwd\` >> $@
-	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_DB_SIMPLE_XML_REPORT) $(abs_builddir)/test-usage-db-old >> $@
+	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_DB_OLD_XML_REPORT) $(abs_builddir)/test-usage-db-old >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-old.dir.\* >> $@
+	@echo gtester2xunit $(abs_builddir)/$(USAGE_DB_OLD_XML_REPORT) >> $@
 	@chmod +x $@
 
 test-usage-db-ancient-test: test-usage-db-ancient test-usage-db-ancient.sql test-usage-dump-entries.sql Makefile.am
@@ -1205,6 +2147,7 @@ test-usage-db-testapp-test: test-usage-db-testapp good-app-info/testapp.desktop.
 	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_TESTAPP_XML_REPORT) $(abs_builddir)/test-usage-db-testapp >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-testapp.dir.\* >> $@
+	@echo gtester2xunit $(abs_builddir)/$(USAGE_TESTAPP_XML_REPORT) >> $@
 	@chmod +x $@
 
 test-usage-db-off-test: test-usage-db-testapp good-app-info/testapp.desktop.hud-app-info good-app-info/testapp100.desktop.hud-app-info Makefile.am
@@ -1216,10 +2159,11 @@ test-usage-db-off-test: test-usage-db-testapp good-app-info/testapp.desktop.hud-
 	@echo export HUD_NO_STORE_USAGE_DATA=1 >> $@
 	@echo export GSETTINGS_BACKEND=memory >> $@
 	@echo export GSETTINGS_SCHEMA_DIR=\`pwd\` >> $@
-	@echo gtester --verbose -k -o $(abs_buildir)/$(USAGE_OFF_XML_REPORT) $(abs_builddir)/test-usage-db-testapp >> $@
+	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_OFF_XML_REPORT) $(abs_builddir)/test-usage-db-testapp >> $@
 	@echo test \! -e indicator-appmenu/hud-usage-log.sqlite >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-off.dir.\* >> $@
+	@echo gtester2xunit $(abs_builddir)/$(USAGE_OFF_XML_REPORT) >> $@
 	@chmod +x $@
 
 test-bad-app-info-dual-header: bad-app-info/dual-headers.hud-app-info test-bad-app-info Makefile.am
@@ -1273,10 +2217,18 @@ test-good-app-info-tons-of-entries: good-app-info/tons-of-entries.hud-app-info t
 
 test-dbus-message-count: test-dbus-message-count.in
 	@sed \
+		-e "s|\@indicatordir\@|$(INDICATORDIR)|" \
 		-e "s|\@top_builddir\@|$(top_builddir)|" \
 		-e "s|\@builddir\@|$(builddir)|" \
 		-e "s|\@srcdir\@|$(srcdir)|" \
+		-e "s|\@mockjsonapp\@|$(MOCK_JSON_APP)|" \
 		$< > $@
+	@chmod +x $@
+libhud-client-tester: libhud-client-test Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo . $(abs_top_srcdir)/tests/run-xvfb.sh >> $@
+	@echo gtester --verbose -k -o $(LIBHUD_XML_REPORT) $(abs_builddir)/libhud-client-test >> $@
+	@echo gtester2xunit $(LIBHUD_XML_REPORT) >> $@
 	@chmod +x $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

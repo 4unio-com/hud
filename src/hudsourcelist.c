@@ -17,6 +17,7 @@
  */
 
 #include "hudsourcelist.h"
+#include "application-list.h"
 
 /**
  * SECTION:hudsourcelist
@@ -84,14 +85,83 @@ hud_source_list_unuse (HudSource *source)
 
 static void
 hud_source_list_search (HudSource    *source,
-                        GPtrArray    *results_array,
-                        HudTokenList *search_string)
+                        HudTokenList *search_string,
+                        void        (*append_func) (HudResult * result, gpointer user_data),
+                        gpointer      user_data)
 {
   HudSourceList *list = HUD_SOURCE_LIST (source);
   GSList *node;
 
   for (node = list->list; node; node = node->next)
-    hud_source_search (node->data, results_array, search_string);
+    hud_source_search (node->data, search_string, append_func, user_data);
+}
+
+static void
+hud_source_list_list_applications (HudSource    *source,
+                                   HudTokenList *search_string,
+                                   void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
+                                   gpointer      user_data)
+{
+  HudSourceList *list = HUD_SOURCE_LIST (source);
+  GSList *node;
+
+  for (node = list->list; node; node = node->next)
+    hud_source_list_applications (node->data, search_string, append_func, user_data);
+}
+
+static HudSource *
+hud_source_list_get (HudSource   *source,
+                     const gchar *application_id)
+{
+  HudSourceList *list = HUD_SOURCE_LIST (source);
+  GSList *node;
+
+  for (node = list->list; node; node = node->next) {
+    HudSource *result = hud_source_get (node->data, application_id);
+    if (result != NULL)
+      return result;
+  }
+
+  return NULL;
+}
+
+static void
+hud_source_list_activate_toolbar (HudSource *source, HudClientQueryToolbarItems item, GVariant *platform_data)
+{
+  HudSourceList *list = HUD_SOURCE_LIST (source);
+  GSList *node;
+
+  for (node = list->list; node; node = node->next)
+    hud_source_activate_toolbar (node->data, item, platform_data);
+}
+
+/**
+ * hud_source_list_get_items:
+ * @list: a #HudSourceList
+ *
+ * Find the item collector that is associated with the active window.
+ *
+ * Return Value: (element-type HudItem) (transfer full) A list of #HudItem
+ * objects.  Free with g_list_free_full(g_object_unref)
+ */
+static GList *
+hud_source_list_get_items (HudSource *source)
+{
+  g_return_val_if_fail(HUD_IS_SOURCE_LIST(source), NULL);
+
+  HudSourceList *list = HUD_SOURCE_LIST(source);
+  GList *results = NULL;
+
+  GSList *node;
+  for (node = list->list; node; node = node->next) {
+    if (HUD_IS_SOURCE(node->data))
+    {
+      HudSource * nodesource = HUD_SOURCE(node->data);
+      results = g_list_concat (results, hud_source_get_items (nodesource));
+    }
+  }
+
+  return results;
 }
 
 static void
@@ -117,6 +187,10 @@ hud_source_list_iface_init (HudSourceInterface *iface)
   iface->use = hud_source_list_use;
   iface->unuse = hud_source_list_unuse;
   iface->search = hud_source_list_search;
+  iface->list_applications = hud_source_list_list_applications;
+  iface->get = hud_source_list_get;
+  iface->get_items = hud_source_list_get_items;
+  iface->activate_toolbar = hud_source_list_activate_toolbar;
 }
 
 static void
@@ -162,4 +236,20 @@ hud_source_list_add (HudSourceList *list,
   list->list = g_slist_prepend (list->list, g_object_ref (source));
 
   hud_source_changed (HUD_SOURCE (source));
+}
+
+/**
+ * hud_source_list_get_list:
+ * @list: A #HudSourceList object
+ *
+ * Gets the list so you can look through it.
+ *
+ * Return value: (transfer none): The list of sources.
+ */
+GSList *
+hud_source_list_get_list (HudSourceList * list)
+{
+	g_return_val_if_fail (HUD_IS_SOURCE_LIST (list), NULL);
+
+	return list->list;
 }
