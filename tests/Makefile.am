@@ -1017,3 +1017,5 @@ check_PROGRAMS += libhud-client-test
 #########################
 
 DISTCLEANFILES += $(TESTS)
+EXTRA_DIST += \
+	gobject.suppression
