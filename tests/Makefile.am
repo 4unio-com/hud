@@ -305,6 +305,11 @@ test_keyword_mapping_LDADD = \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
+EXTRA_DIST += \
+	keyword-mapping/gnome-terminal-en_FAKELANG.po \
+	keyword-mapping/hud/keywords/gnome-terminal.xml
+
+
 DISTCLEANFILES += \
 	$(KEYWORD_XML_REPORT) \
 	$(KEYWORD_XML_REPORT:.xml=-xunit.xml)
