@@ -1,3 +1,10 @@
+hud (13.04.0-0ubuntu1~ppa17) quantal; urgency=low
+
+  [ Florian Boucault ]
+  * Support for additional field in struct ubuntu_ui_session_lifecycle_observer.
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Wed, 20 Feb 2013 05:47:29 -0300
+
 hud (13.04.0-0ubuntu1~ppa16) quantal; urgency=low
 
   * Reverse item ordering (LP: #1130050) (LP: #1125656)
