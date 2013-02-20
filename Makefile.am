@@ -51,6 +51,7 @@ dist-hook:
 include $(top_srcdir)/Makefile.am.coverage
 
 EXTRA_DIST = \
+	autogen.sh \
 	Makefile.am.coverage \
 	Makefile.am.enum \
 	Makefile.am.marshal
