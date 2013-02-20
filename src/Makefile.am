@@ -114,6 +114,7 @@ hud_service_CFLAGS = \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
 	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 hud_service_LDADD = \
@@ -136,6 +137,7 @@ hud_julius_listen_CFLAGS = \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
 	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 hud_julius_listen_LDADD = \
