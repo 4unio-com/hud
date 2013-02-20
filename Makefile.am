@@ -20,7 +20,7 @@ tests: src
 
 tools: libhud-client
 
-DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-localinstall --enable-deprecations
+DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-localinstall --enable-deprecations --disable-hybris
 
 dist-hook:
 	@if test -d "$(top_srcdir)/.bzr"; \
