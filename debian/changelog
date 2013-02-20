@@ -1,4 +1,4 @@
-hud (13.04.0-0ubuntu1~ppa1) UNRELEASED; urgency=low
+hud (13.04.0daily13.02.20-0ubuntu1) raring; urgency=low
 
   [ Ted Gould ]
   * First version
@@ -17,4 +17,7 @@ hud (13.04.0-0ubuntu1~ppa1) UNRELEASED; urgency=low
     - Further flesh out long description for the packages.
     - Reorganize Build-Depends for clarity.
 
- -- Ted Gould <ted@ubuntu.com>  Wed, 24 Oct 2012 15:43:27 +0200
+  [ Automatic PS uploader ]
+  * Automatic snapshot from revision 242
+
+ -- Automatic PS uploader <ps-jenkins@lists.canonical.com>  Wed, 20 Feb 2013 02:01:50 +0000
