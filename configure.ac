@@ -325,7 +325,6 @@ tools/hudkeywords/hudkeywords/Makefile
 tests/Makefile
 docs/Makefile
 docs/man/Makefile
-docs/devel/Makefile
 docs/libhud-client/Makefile
 ])
 
