@@ -24,6 +24,7 @@
 #include <julius/juliuslib.h>
 #include <glib/gstdio.h>
 #include <gio/gio.h>
+#include <signal.h>
 
 struct _HudJulius
 {
@@ -34,6 +35,16 @@ struct _HudJulius
   GRegex * alphanumeric_regex;
 
   gchar **query;
+
+  gboolean listen_emitted;
+
+  gboolean heard_something_emitted;
+
+  GMainLoop *mainloop;
+
+  guint timeout_source;
+
+  guint watch_source;
 
   GError **error;
 };
@@ -61,6 +72,8 @@ hud_julius_alphanumeric_regex_new (void)
 
   return alphanumeric_regex;
 }
+
+static void rm_rf(const gchar *path);
 
 typedef GObjectClass HudJuliusClass;
 
@@ -92,218 +105,162 @@ hud_julius_finalize (GObject *object)
     ->finalize (object);
 }
 
-/**
- * Callback to be called when start waiting speech input.
- *
- */
-static void
-status_recready(Recog *recog, void *dummy)
+
+static gboolean
+timeout_quit_func (gpointer user_data)
 {
-  HudJulius *self = HUD_JULIUS(dummy);
-  hud_query_iface_com_canonical_hud_query_emit_voice_query_listening (
-          HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
-  g_debug ("<<< please speak >>>");
+  g_assert(HUD_IS_JULIUS(user_data));
+
+  HudJulius *self = HUD_JULIUS(user_data);
+  g_debug("Query timeout");
+  *self->query = g_strdup("");
+  g_source_remove(self->watch_source);
+  g_main_loop_quit(self->mainloop);
+  return FALSE;
 }
 
-/**
- * Callback to be called when speech input is triggered.
- *
- */
-static void
-status_recstart(Recog *recog, void *dummy)
+static gboolean
+watch_function (GIOChannel *channel, GIOCondition condition,
+    gpointer user_data)
 {
-  HudJulius *self = HUD_JULIUS(dummy);
-  hud_query_iface_com_canonical_hud_query_emit_voice_query_heard_something (
-            HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
-  g_debug ("<<< speech input >>>");
-}
+  g_assert(HUD_IS_JULIUS(user_data));
 
-/**
- * Callback to output final recognition result.
- * This function will be called just after recognition of an input ends
- *
- */
-static void
-output_result(Recog *recog, void *dummy)
-{
-  HudJulius *self = HUD_JULIUS(dummy);
+  HudJulius *self = HUD_JULIUS(user_data);
 
-
-  /* all recognition results are stored at each recognition process
-   instance */
-  RecogProcess *r;
-  for (r = recog->process_list; r; r = r->next)
+  if ((condition & G_IO_IN) != 0)
   {
-    /* skip the process if the process is not alive */
-    if (!r->live)
-      continue;
+    GString *line = g_string_sized_new (100);
+    GIOStatus status;
 
-    /* result are in r->result.  See recog.h for details */
-
-    /* check result status */
-    if (r->result.status < 0)
-    { /* no results obtained */
-      /* outout message according to the status code */
-      gchar *message = NULL;
-
-      switch (r->result.status)
-      {
-      case J_RESULT_STATUS_REJECT_POWER:
-        message = "input rejected by power";
-        break;
-      case J_RESULT_STATUS_TERMINATE:
-        message = "input teminated by request";
-        break;
-      case J_RESULT_STATUS_ONLY_SILENCE:
-        message = "input rejected by decoder (silence input result)";
-        break;
-      case J_RESULT_STATUS_REJECT_GMM:
-        message = "input rejected by GMM";
-        break;
-      case J_RESULT_STATUS_REJECT_SHORT:
-        message = "input rejected by short input";
-        break;
-      case J_RESULT_STATUS_FAIL:
-        /* We are ignoring this message, as it seems to occur erroneously */
-/*        message = "search failed"; */
-        break;
-      }
-
-      if (message)
-      {
-        *self->query = NULL;
-        *self->error = g_error_new_literal(hud_julius_error_quark(), 0, message);
-        j_close_stream(recog);
-        break;
-      }
-
-      continue;
-    }
-
-    /* output results for all the obtained sentences */
-    WORD_INFO *winfo = r->lm->winfo;
-
-    if (r->result.sentnum > 0)
+    do
     {
-      Sentence *s = &(r->result.sent[0]);
-      WORD_ID *seq = s->word;
-      int seqnum = s->word_num;
-
-      GString *result = g_string_sized_new(10);
-
-      int i;
-      /* output word sequence like Julius */
-      for (i = 0; i < seqnum; i++)
+      do
       {
-        gchar *word = winfo->woutput[seq[i]];
+        *self->error = NULL;
+        status = g_io_channel_read_line_string (channel, line, NULL,
+            self->error);
+      }
+      while (status == G_IO_STATUS_AGAIN);
 
-        /* Don't append silence */
-        if (g_strcmp0(word, "<s>") && g_strcmp0(word, "</s>"))
+      if (status != G_IO_STATUS_NORMAL)
+      {
+        if (*self->error)
         {
-          g_string_append(result, word);
-          g_string_append(result, " ");
+          g_warning("IO ERROR(): %s", (*self->error)->message);
+          return FALSE;
         }
       }
 
-      *(self->query) = g_string_free(result, FALSE);
-      *(self->error) = NULL;
-
-      j_close_stream(recog);
-      break;
+      if (g_str_has_prefix (line->str, "<voice-query-listening/>"))
+      {
+        if (!self->listen_emitted)
+        {
+          self->listen_emitted = TRUE;
+          hud_query_iface_com_canonical_hud_query_emit_voice_query_listening (
+              HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel) );
+          g_debug("<<< please speak >>>");
+        }
+      }
+      else if (g_str_has_prefix (line->str, "<voice-query-heard-something/>"))
+      {
+        if (!self->heard_something_emitted)
+        {
+          self->heard_something_emitted = TRUE;
+          hud_query_iface_com_canonical_hud_query_emit_voice_query_heard_something (
+              HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel) );
+          g_debug("<<< speech input >>>");
+        }
+      }
+      else if (g_str_has_prefix (line->str, "<voice-query-finished>"))
+      {
+        gchar *tmp = g_string_free (line, FALSE);
+        GRegex *regex = g_regex_new("<voice-query-finished>|</voice-query-finished>", 0, 0, NULL);
+        *self->query = g_regex_replace_literal(regex, g_strstrip(tmp), -1, 0, "", 0, NULL);
+        g_regex_unref(regex);
+        g_free(tmp);
+        g_source_remove(self->timeout_source);
+        g_main_loop_quit(self->mainloop);
+        return FALSE;
+      }
     }
+    while (g_io_channel_get_buffer_condition (channel) == G_IO_IN);
+    g_string_free (line, TRUE);
+
   }
+
+  if ((condition & G_IO_HUP) != 0)
+  {
+    g_io_channel_shutdown (channel, TRUE, NULL );
+    *self->query = NULL;
+    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "HUD Julius listening daemon failed");
+    g_source_remove(self->timeout_source);
+    g_main_loop_quit(self->mainloop);
+    return FALSE;
+  }
+
+  return TRUE;
 }
 
-/**
- * Main function
- *
- */
-gboolean
-hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
-    const gchar *hlist)
+static void
+hud_julius_kill(GPid pid)
 {
+  kill(pid, SIGTERM);
+}
+
+static gboolean
+hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
+    const gchar *hlist, gchar **query, GError **error)
+{
+  gchar *program = g_build_filename(LIBEXECDIR, "hud", "hud-julius-listen", NULL);
+  g_debug("Julius listening program [%s]", program);
+
   const gchar *argv[] =
-  { "julius", "-input", "alsa", "-gram", gram, "-h", hmm, "-hlist", hlist };
-  const gint argc = 9;
+  { program, "-input", "pulseaudio", "-gram", gram, "-h", hmm, "-hlist", hlist, NULL };
 
-  Jconf *jconf = j_config_load_args_new (argc, (char **)argv);
+  /* These are used inside the callbacks */
+  self->error = error;
+  self->query = query;
+  self->listen_emitted = FALSE;
+  self->heard_something_emitted = FALSE;
 
-  if (jconf == NULL )
+  gint standard_output;
+  GPid pid = 0;
+
+  if (!g_spawn_async_with_pipes (NULL, (gchar **) argv, NULL, 0, NULL, NULL,
+      &pid, NULL, &standard_output, NULL, error))
   {
-    g_warning ("Failed to build Julius configuration");
-    *self->query = NULL;
-    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "Failed to build Julius configuration");
+    g_warning("Failed to to load Julius daemon");
+    *query = NULL;
+    *error = g_error_new_literal (hud_julius_error_quark (), 0,
+        "Failed to load Julius daemon");
+    g_free(program);
     return FALSE;
   }
 
-  /* Create recognition instance according to the jconf */
-  /* it loads models, setup final parameters, build lexicon
-   and set up work area for recognition */
-  Recog *recog = j_create_instance_from_jconf (jconf);
-  if (recog == NULL )
-  {
-    g_warning ("Error in Julius startup");
-    *self->query = NULL;
-    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "Error in Julius startup");
-    return FALSE;
-  }
+  g_free(program);
 
-  /* register result callback functions */
-  callback_add (recog, CALLBACK_EVENT_SPEECH_READY, status_recready, self );
-  callback_add (recog, CALLBACK_EVENT_SPEECH_START, status_recstart, self );
-  callback_add (recog, CALLBACK_RESULT, output_result, self );
+  GIOChannel *channel;
 
-  /* initialize audio input device */
-  /* ad-in thread starts at this time for microphone */
-  if (j_adin_init (recog) == FALSE)
-  {
-    g_warning ("Failed to initialize audio engine");
-    *self->query = NULL;
-    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "Failed to initialize audio engine");
-    return FALSE;
-  }
+  channel = g_io_channel_unix_new (standard_output);
+  g_io_channel_set_flags (channel,
+      g_io_channel_get_flags (channel) | G_IO_FLAG_NONBLOCK, NULL );
+  g_io_channel_set_encoding (channel, NULL, NULL );
 
-  /* inupt from microphone */
-  switch (j_open_stream (recog, NULL ))
-  {
-  case 0: /* succeeded */
-    break;
-  case -1: /* error */
-    g_warning ("error in input stream");
-    *self->query = NULL;
-    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "error in input stream");
-    return FALSE;
-  case -2: /* end of recognition process */
-    g_warning ("failed to begin input stream");
-    *self->query = NULL;
-    *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "failed to begin input stream");
-    return FALSE;
-  }
+  self->watch_source = g_io_add_watch (channel,
+      G_IO_IN | G_IO_HUP | G_IO_ERR | G_IO_NVAL,
+               watch_function,
+               self);
 
-  /* enter main loop to recognize the input stream */
-  /* finish after whole input has been processed and input reaches end */
-  if (j_recognize_stream (recog) == -1)
-  {
-    g_warning("stream recognition failed");
-    if (*self->error == NULL)
-    {
-      *self->error = g_error_new_literal(hud_julius_error_quark(), 0, "stream recognition failed");
-    }
-    return FALSE;
-  }
+  self->mainloop = g_main_loop_new (NULL, FALSE);
+  self->timeout_source = g_timeout_add (HUD_JULIUS_DEFAULT_TIMEOUT / 1000, timeout_quit_func, self);
+  g_main_loop_run (self->mainloop);
+  g_main_loop_unref (self->mainloop);
 
-  /* calling j_close_stream(recog) at any time will terminate
-   recognition and exit j_recognize_stream() */
-  j_close_stream (recog);
-  j_recog_free (recog);
+  g_io_channel_unref (channel);
+  hud_julius_kill(pid);
+  g_spawn_close_pid(pid);
 
-  if (*self->error != NULL)
-  {
-    return FALSE;
-  }
-
-  /* exit program */
-  return TRUE;
+  return (*self->error == NULL);
 }
 
 static void
@@ -319,6 +276,112 @@ static const gchar *VOCA_HEADER = "% NS_B\n"
 "</s>            sil\n"
 "\n";
 
+static void
+hud_julius_write_new_vocabulary_entry(GOutputStream* voca_output, GHashTable *voca, const gint voca_id, GHashTable *pronounciations, const gchar *word)
+{
+  g_hash_table_insert(voca, g_strdup(word), GINT_TO_POINTER(voca_id));
+
+  gchar *voca_id_str = g_strdup_printf("TOKEN_%d", voca_id);
+  gchar **phonetics_list = g_hash_table_lookup(pronounciations, word);
+
+  /* We are writing:
+   *
+   * % <voca_id>:
+   * <word> <phonetics 1>
+   * <word> <phonetics 2>
+   */
+
+  /* we only need to write out the vocab entry for a new token */
+  g_output_stream_write (voca_output, "% ", g_utf8_strlen ("% ", -1),
+                              NULL, NULL );
+  g_output_stream_write (voca_output, voca_id_str,
+                g_utf8_strlen (voca_id_str, -1), NULL, NULL );
+  g_output_stream_write (voca_output, ":\n", g_utf8_strlen (":\n", -1),
+                      NULL, NULL );
+
+  gchar **phonetics = phonetics_list;
+  while (*phonetics)
+  {
+    gchar* lower = g_utf8_strdown(*phonetics, -1);
+
+    g_output_stream_write (voca_output, word,
+            g_utf8_strlen (word, -1), NULL, NULL );
+    g_output_stream_write (voca_output, "\t",
+                    g_utf8_strlen ("\t", -1), NULL, NULL );
+    /* also add the phonetics */
+    g_output_stream_write (voca_output, lower,
+                            g_utf8_strlen (lower, -1), NULL, NULL );
+    g_output_stream_write (voca_output, "\n", g_utf8_strlen ("\n", -1),
+                  NULL, NULL );
+    g_free(lower);
+    phonetics++;
+  }
+
+  g_output_stream_write (voca_output, "\n", g_utf8_strlen ("\n", -1),
+    NULL, NULL );
+
+  g_free(voca_id_str);
+}
+
+/**
+ * This writes a grammar entry for the whole command read out, and individual grammar entries
+ * for each word in the command.
+ */
+static void
+hud_julius_write_command(GOutputStream* grammar_output, GOutputStream* voca_output, GHashTable *voca, gint *voca_id_counter, GHashTable *pronounciations, GPtrArray *command)
+{
+  /* First we write a grammar entry as the complete sequence of words in the command */
+  g_output_stream_write (grammar_output, "S : NS_B ", g_utf8_strlen ("S : NS_B ", -1),
+              NULL, NULL );
+
+  guint i;
+  for (i = 0; i < command->len; ++i)
+  {
+    const gchar *word = g_ptr_array_index(command,  i);
+    gint voca_id = GPOINTER_TO_INT(g_hash_table_lookup(voca, word));
+
+    /* If this a new phonetic */
+    if (voca_id == 0)
+    {
+      voca_id = ++(*voca_id_counter);
+      hud_julius_write_new_vocabulary_entry(voca_output, voca, voca_id, pronounciations, word);
+    }
+
+    gchar *voca_id_str = g_strdup_printf("TOKEN_%d", voca_id);
+
+    g_output_stream_write (grammar_output, voca_id_str,
+        g_utf8_strlen (voca_id_str, -1), NULL, NULL );
+    g_output_stream_write (grammar_output, " ", g_utf8_strlen (" ", -1),
+                  NULL, NULL );
+    g_free(voca_id_str);
+  }
+
+  g_output_stream_write (grammar_output, " NS_E\n",
+            g_utf8_strlen (" NS_E\n", -1), NULL, NULL );
+
+  /* Now we write a separate grammar entry for each word in the command */
+  for (i = 0; i < command->len; ++i)
+  {
+    g_output_stream_write (grammar_output, "S : NS_B ", g_utf8_strlen ("S : NS_B ", -1),
+                  NULL, NULL );
+
+    const gchar *word = g_ptr_array_index(command, i);
+    /* The voca_id will certainly be known as we've already written the while lot out once */
+    gint voca_id = GPOINTER_TO_INT(g_hash_table_lookup(voca, word));
+
+    gchar *voca_id_str = g_strdup_printf("TOKEN_%d", voca_id);
+
+    g_output_stream_write (grammar_output, voca_id_str,
+        g_utf8_strlen (voca_id_str, -1), NULL, NULL );
+    g_output_stream_write (grammar_output, " ", g_utf8_strlen (" ", -1),
+                  NULL, NULL );
+    g_free(voca_id_str);
+
+    g_output_stream_write (grammar_output, " NS_E\n",
+        g_utf8_strlen (" NS_E\n", -1), NULL, NULL );
+  }
+}
+
 static gboolean
 hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GError **error)
 {
@@ -329,15 +392,30 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
     return FALSE;
   }
 
+  PronounceDict *dict = pronounce_dict_get_julius(error);
+  if (dict == NULL)
+  {
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
+    return FALSE;
+  }
+
   /* Get the pronounciations for the items */
   GHashTable *pronounciations = g_hash_table_new_full (g_str_hash, g_str_equal,
       g_free, (GDestroyNotify) g_strfreev);
   GPtrArray *command_list = g_ptr_array_new_with_free_func (free_func);
   HudItemPronunciationData pronounciation_data =
-  { pronounciations, self->alphanumeric_regex, command_list,
-      pronounce_dict_get_julius () };
+  { pronounciations, self->alphanumeric_regex, command_list, dict };
   g_list_foreach (items, (GFunc) hud_item_insert_pronounciation,
       &pronounciation_data);
+
+  if (command_list->len == 0)
+  {
+    *error = g_error_new_literal(hud_julius_error_quark(), 0, "Could not build Julius grammar. Is julius-voxforge installed?");
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
+    return FALSE;
+  }
 
   gint voca_id_counter = 0;
   GHashTable *voca = g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
@@ -345,7 +423,7 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
 
   gchar *voca_path = g_build_filename (*temp_dir, "hud.voca", NULL );
   GFile *voca_file = g_file_new_for_path (voca_path);
-  error = NULL;
+  *error = NULL;
   GOutputStream* voca_output = G_OUTPUT_STREAM(g_file_create (voca_file,
           G_FILE_CREATE_PRIVATE, NULL, error ));
   if (voca_output == NULL )
@@ -358,6 +436,9 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
 
     g_object_unref (voca_output);
     g_object_unref (voca_file);
+
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
 
     return FALSE;
   }
@@ -381,85 +462,21 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
     g_object_unref (grammar_output);
     g_object_unref (grammar_file);
 
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
+
     return FALSE;
   }
 
   g_output_stream_write (voca_output, VOCA_HEADER,
       g_utf8_strlen (VOCA_HEADER, -1), NULL, NULL );
 
-  guint i, j;
+  guint i;
   for (i = 0; i < command_list->len; ++i)
   {
     GPtrArray *command = g_ptr_array_index(command_list, i);
-
-    g_output_stream_write (grammar_output, "S : NS_B ", g_utf8_strlen ("S : NS_B ", -1),
-                NULL, NULL );
-
-      for (j = 0; j < command->len; ++j)
-      {
-        const gchar *word = g_ptr_array_index(command,  j);
-        gint voca_id = GPOINTER_TO_INT(g_hash_table_lookup(voca, word));
-
-        /* If this a new phonetic */
-        if (voca_id == 0)
-        {
-          voca_id = ++voca_id_counter;
-          g_hash_table_insert(voca, g_strdup(word), GINT_TO_POINTER(voca_id));
-
-          gchar *voca_id_str = g_strdup_printf("TOKEN_%d", voca_id);
-          gchar **phonetics_list = g_hash_table_lookup(pronounciations, word);
-
-          /* We are writing:
-           *
-           * % <voca_id>:
-           * <word> <phonetics 1>
-           * <word> <phonetics 2>
-           */
-
-          /* we only need to write out the vocab entry for a new token */
-          g_output_stream_write (voca_output, "% ", g_utf8_strlen ("% ", -1),
-                                      NULL, NULL );
-          g_output_stream_write (voca_output, voca_id_str,
-                        g_utf8_strlen (voca_id_str, -1), NULL, NULL );
-          g_output_stream_write (voca_output, ":\n", g_utf8_strlen (":\n", -1),
-                              NULL, NULL );
-
-          gchar **phonetics = phonetics_list;
-          while (*phonetics)
-          {
-            gchar* lower = g_utf8_strdown(*phonetics, -1);
-
-            g_output_stream_write (voca_output, word,
-                    g_utf8_strlen (word, -1), NULL, NULL );
-            g_output_stream_write (voca_output, "\t",
-                            g_utf8_strlen ("\t", -1), NULL, NULL );
-            /* also add the phonetics */
-            g_output_stream_write (voca_output, lower,
-                                    g_utf8_strlen (lower, -1), NULL, NULL );
-            g_output_stream_write (voca_output, "\n", g_utf8_strlen ("\n", -1),
-                          NULL, NULL );
-            g_free(lower);
-            phonetics++;
-          }
-
-          g_output_stream_write (voca_output, "\n", g_utf8_strlen ("\n", -1),
-            NULL, NULL );
-
-          g_free(voca_id_str);
-        }
-
-        gchar *voca_id_str = g_strdup_printf("TOKEN_%d", voca_id);
-
-        g_output_stream_write (grammar_output, voca_id_str,
-            g_utf8_strlen (voca_id_str, -1), NULL, NULL );
-        g_output_stream_write (grammar_output, " ", g_utf8_strlen (" ", -1),
-                      NULL, NULL );
-        g_free(voca_id_str);
-      }
-
-      g_output_stream_write (grammar_output, " NS_E\n",
-          g_utf8_strlen (" NS_E\n", -1), NULL, NULL );
-    }
+    hud_julius_write_command(grammar_output, voca_output, voca, &voca_id_counter, pronounciations, command);
+  }
 
   g_hash_table_destroy(voca);
   g_hash_table_destroy(pronounciations);
@@ -488,6 +505,10 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
 
     g_free(standard_output);
     g_free(standard_error);
+
+    rm_rf(*temp_dir);
+    g_clear_pointer(temp_dir, g_free);
+
     return FALSE;
   }
 
@@ -510,16 +531,27 @@ static void rm_rf(const gchar *path)
     return;
   }
   const gchar *file_name;
-  while ((file_name = g_dir_read_name(dir)))
+  gboolean remove_error = FALSE;
+  while ((file_name = g_dir_read_name(dir)) && !remove_error)
   {
     gchar *file_path = g_build_filename(path, file_name, NULL);
     g_debug("removing file [%s]", file_path);
-    g_remove(file_path);
+    if (g_remove(file_path) != 0)
+    {
+      g_warning("Unable to remove file [%s]", file_path);
+      remove_error = TRUE;
+    }
     g_free(file_path);
   }
   g_dir_close(dir);
-  g_debug("removing dir [%s]", path);
-  g_rmdir(path);
+  if (!remove_error)
+  {
+    g_debug("removing dir [%s]", path);
+    g_rmdir(path);
+  } else
+  {
+    g_debug("not removing directory [%s]", path);
+  }
 }
 
 gboolean
@@ -541,6 +573,7 @@ hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GErr
   gchar *temp_dir = NULL;
   if (!hud_julius_build_grammar(self, items, &temp_dir, error))
   {
+    g_list_free_full(items, g_object_unref);
     return FALSE;
   }
 
@@ -548,14 +581,11 @@ hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GErr
   gchar *hmm = g_build_filename(JULIUS_DICT_PATH, "hmmdefs", NULL);
   gchar *hlist = g_build_filename(JULIUS_DICT_PATH, "tiedlist", NULL);
 
-  /* These are used inside the callbacks */
-  self->error = error;
-  self->query = result;
-  /* This sets *self->query as its result */
-  gboolean success = hud_julius_listen (self, gram, hmm, hlist);
+  gboolean success = hud_julius_listen (self, gram, hmm, hlist, result, error);
 
   rm_rf(temp_dir);
 
+  g_list_free_full(items, g_object_unref);
   g_free(gram);
   g_free(hmm);
   g_free(hlist);

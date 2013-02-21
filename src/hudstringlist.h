@@ -38,7 +38,8 @@ HudStringList *         hud_string_list_cons_label                      (const g
 HudStringList *         hud_string_list_add_item                        (const gchar *item,
                                                                          HudStringList *tail);
 
-gchar *                 hud_string_list_pretty_print                    (HudStringList *list);
+gchar *                 hud_string_list_pretty_print                    (HudStringList *list,
+                                                                         const gchar * spacer);
 void                    hud_string_list_insert_pronounciation           (HudStringList * list,
                                                                          HudItemPronunciationData * user_data);
 

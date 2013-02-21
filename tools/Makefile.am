@@ -137,6 +137,33 @@ EXTRA_DIST += \
 	$(hud_cli_appstack_SOURCES)
 endif
 
+####################
+# HUD CLI Toolbar
+####################
+
+hud_cli_toolbar_SOURCES = \
+	hud-cli-toolbar.c
+
+hud_cli_toolbar_CFLAGS = \
+	$(HUD_CFLAGS) \
+	-I $(top_srcdir) \
+	-I $(top_srcdir)/libhud-client \
+	-Wall -Werror
+
+hud_cli_toolbar_LDFLAGS = \
+	$(HUD_LIBS)
+
+hud_cli_toolbar_LDADD = \
+	$(top_builddir)/libhud-client/libhud-client.la
+
+if BUILD_CLI
+bin_PROGRAMS += \
+	hud-cli-toolbar
+else
+EXTRA_DIST += \
+	$(hud_cli_toolbar_SOURCES)
+endif
+
 
 
 ####################

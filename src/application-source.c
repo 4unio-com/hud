@@ -30,6 +30,8 @@
 #include "hudsourcelist.h"
 
 struct _HudApplicationSourcePrivate {
+	GDBusConnection * session;
+
 	gchar * app_id;
 	gchar * path;
 	AppIfaceComCanonicalHudApplication * skel;
@@ -43,7 +45,7 @@ struct _HudApplicationSourcePrivate {
 
 	guint32 focused_window;
 
-	HudSource * used_source; /* Not a ref */
+	HudSource * used_source;
 	guint how_used;
 
 	GHashTable * windows;
@@ -72,10 +74,15 @@ static void source_search                     (HudSource *                 hud_s
                                                gpointer                    user_data);
 static void source_list_applications          (HudSource *                 hud_source,
                                                HudTokenList *              search_string,
-                                               void                      (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                               void                      (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                                                gpointer                    user_data);
+static void source_activate_toolbar           (HudSource *                 hud_source,
+                                               HudClientQueryToolbarItems  item,
+                                               GVariant                   *platform_data);
 static HudSource * source_get                 (HudSource *                 hud_source,
                                                const gchar *               application_id);
+static const gchar * source_get_app_id        (HudSource *                 hud_source);
+static const gchar * source_get_app_icon      (HudSource *                 hud_source);
 static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplication * skel,
                                                GDBusMethodInvocation *     invocation,
                                                GVariant *                  actions,
@@ -110,6 +117,9 @@ source_iface_init (HudSourceInterface *iface)
 	iface->list_applications = source_list_applications;
 	iface->get = source_get;
 	iface->get_items = source_get_items;
+	iface->activate_toolbar = source_activate_toolbar;
+	iface->get_app_id = source_get_app_id;
+	iface->get_app_icon = source_get_app_icon;
 
 	return;
 }
@@ -135,6 +145,7 @@ hud_application_source_init (HudApplicationSource *self)
 
 	self->priv->windows = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, g_object_unref);
 	self->priv->connections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, connection_watcher_free);
+	self->priv->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 
 	return;
 }
@@ -147,7 +158,7 @@ hud_application_source_dispose (GObject *object)
 
 	if (self->priv->used_source != NULL) {
 		hud_source_unuse(self->priv->used_source);
-		self->priv->used_source = NULL;
+		g_clear_object(&self->priv->used_source);
 	}
 
 	g_clear_pointer(&self->priv->windows, g_hash_table_unref);
@@ -161,6 +172,7 @@ hud_application_source_dispose (GObject *object)
 #ifdef HAVE_BAMF
 	g_clear_object(&self->priv->bamf_app);
 #endif
+	g_clear_object(&self->priv->session);
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->dispose (object);
 	return;
@@ -210,6 +222,19 @@ get_used_source (HudApplicationSource *app)
   return NULL ;
 }
 
+/* Gets called when the items in a window's sources changes */
+static void
+window_source_changed (HudSource * source, gpointer user_data)
+{
+	HudApplicationSource * self = HUD_APPLICATION_SOURCE(user_data);
+
+	if (get_used_source(self) == source) {
+		hud_source_changed(HUD_SOURCE(self));
+	}
+
+	return;
+}
+
 /* Source interface using this source */
 static void
 source_use (HudSource *hud_source)
@@ -218,6 +243,7 @@ source_use (HudSource *hud_source)
 
 	if (app->priv->used_source == NULL) {
 		app->priv->used_source = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(app->priv->focused_window));
+		g_object_ref(app->priv->used_source);
 		app->priv->how_used = 0;
 	}
 
@@ -250,7 +276,7 @@ source_unuse (HudSource *hud_source)
 
 	if (app->priv->how_used == 0) {
 		hud_source_unuse(app->priv->used_source);
-		app->priv->used_source = NULL;
+		g_clear_object(&app->priv->used_source);
 	}
 
 	return;
@@ -276,7 +302,7 @@ source_search (HudSource *     hud_source,
 static void
 source_list_applications (HudSource *     hud_source,
                           HudTokenList *  search_string,
-                          void           (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                          void           (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                           gpointer        user_data)
 {
   HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
@@ -300,6 +326,31 @@ source_get (HudSource *     hud_source,
 	}
 	
 	return NULL;
+}
+
+static const gchar *
+source_get_app_id (HudSource * hud_source)
+{
+	return hud_application_source_get_id(HUD_APPLICATION_SOURCE(hud_source));
+}
+
+static const gchar *
+source_get_app_icon (HudSource * hud_source)
+{
+	return hud_application_source_get_app_icon(HUD_APPLICATION_SOURCE(hud_source));
+}
+
+static void
+source_activate_toolbar (HudSource * hud_source, HudClientQueryToolbarItems item, GVariant *platform_data)
+{
+  HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+
+  HudSource *source = get_used_source (app);
+
+  if (source != NULL )
+  {
+    hud_source_activate_toolbar (source, item, platform_data);
+  }
 }
 
 /**
@@ -355,7 +406,6 @@ hud_application_source_new_for_id (const gchar * id)
 	source->priv->app_id = g_strdup(id);
 
 	source->priv->skel = app_iface_com_canonical_hud_application_skeleton_new();
-	g_signal_connect(G_OBJECT(source->priv->skel), "handle-add-sources", G_CALLBACK(dbus_add_sources), source);
 
 	gchar * app_id_clean = g_strdup(id);
 	gchar * app_id_cleanp;
@@ -367,13 +417,31 @@ hud_application_source_new_for_id (const gchar * id)
 	source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s", app_id_clean);
 
 	int i = 0;
+	GError * error = NULL;
 	while (!g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(source->priv->skel),
-	                                 g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL),
+	                                 source->priv->session,
 	                                 source->priv->path,
-	                                 NULL)) {
+	                                 &error)) {
+		if (error != NULL) {
+			g_warning("Unable to export application '%s' skeleton on path '%s': %s", id, source->priv->path, error->message);
+
+			gboolean exists_error = g_error_matches(error, G_IO_ERROR, G_IO_ERROR_EXISTS);
+
+			g_error_free(error);
+			error = NULL;
+
+			if (!exists_error) {
+				break;
+			}
+		}
 		g_free(source->priv->path);
+		g_clear_object(&source->priv->skel);
+
 		source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s_%d", app_id_clean, ++i);
+		source->priv->skel = app_iface_com_canonical_hud_application_skeleton_new();
 	}
+
+	g_signal_connect(G_OBJECT(source->priv->skel), "handle-add-sources", G_CALLBACK(dbus_add_sources), source);
 
 	g_debug("Application ('%s') path: %s", id, source->priv->path);
 	g_free(app_id_clean);
@@ -388,6 +456,7 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
 	if (collector_list == NULL) {
 		collector_list = hud_source_list_new();
+		g_signal_connect(collector_list, "changed", G_CALLBACK(window_source_changed), app);
 		g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector_list);
 	}
 
@@ -405,11 +474,12 @@ get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, Hu
 	}
 	if (mm_collector == NULL) {
 		gchar * export_path = g_strdup_printf("%s/window%X", app->priv->path, xid);
-		mm_collector = hud_menu_model_collector_new(appid, NULL, 0, export_path);
+		mm_collector = hud_menu_model_collector_new(appid, NULL, 0, export_path, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
 		g_free(export_path);
 
 		if (mm_collector != NULL) {
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
+			g_object_unref(mm_collector);
 		}
 	}
 
@@ -441,6 +511,10 @@ connection_lost (GDBusConnection * session, const gchar * name, gpointer user_da
 
 	g_hash_table_remove(app->priv->connections, name);
 
+	/* all the items have been removed. When application-list sees this it
+	 * will happily unref us to complete the cleanup.
+	 */
+	hud_source_changed(HUD_SOURCE(app));
 	return;
 }
 
@@ -486,6 +560,10 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	gchar * prefix = NULL;
 	gchar * object = NULL;
 
+	/* NOTE: We are doing actions first as there are cases where
+	   the models need the actions, but it'd be hard to update them
+	   if we add the actions second.  This order is the best.  Don't
+	   change it. */
 	while (g_variant_iter_loop(&action_iter, "(vso)", &id, &prefix, &object)) {
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
 
@@ -503,6 +581,8 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 
 		hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), prefix);
 		add_id_to_connection(app, session, sender, idn);
+
+		g_object_unref(ag);
 	}
 
 	GVariantIter desc_iter;
@@ -524,6 +604,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
 
 		hud_menu_model_collector_add_model(collector, G_MENU_MODEL(model), NULL, 1);
+		g_object_unref(model);
 		add_id_to_connection(app, session, sender, idn);
 	}
 
@@ -675,6 +756,37 @@ hud_application_source_get_id (HudApplicationSource * app)
 	return app->priv->app_id;
 }
 
+/**
+ * hud_application_source_get_app_icon:
+ * @app: A #HudApplicationSource object
+ *
+ * Get the application icon
+ *
+ * Return value: The icon as a string
+ */
+const gchar *
+hud_application_source_get_app_icon (HudApplicationSource * app)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), NULL);
+
+	const gchar * icon = NULL;
+	const gchar * desktop_file = NULL;
+#ifdef HAVE_BAMF
+	desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
+#endif
+#ifdef HAVE_HYBRIS
+	desktop_file = app->priv->desktop_file;
+#endif
+	if (desktop_file != NULL) {
+		GKeyFile * kfile = g_key_file_new();
+		g_key_file_load_from_file(kfile, desktop_file, G_KEY_FILE_NONE, NULL);
+		icon = g_key_file_get_value(kfile, G_KEY_FILE_DESKTOP_GROUP, G_KEY_FILE_DESKTOP_KEY_ICON, NULL);
+		g_key_file_free(kfile);
+	}
+
+	return icon;
+}
+
 typedef struct _window_info_t window_info_t;
 struct _window_info_t {
 	HudApplicationSource * source;  /* Not a ref */
@@ -695,7 +807,7 @@ window_destroyed (gpointer data, GObject * old_address)
 	window_info->window = NULL;
 
 	if (window_info->source->priv->focused_window == window_info->xid) {
-		window_info->source->priv->used_source = NULL;
+		g_clear_object(&window_info->source->priv->used_source);
 	}
 	g_hash_table_remove(window_info->source->priv->windows, GINT_TO_POINTER(window_info->xid));
 	/* NOTE: DO NOT use the window_info after this point as
@@ -769,6 +881,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
 	if (collector_list == NULL) {
 		collector_list = hud_source_list_new();
+		g_signal_connect(collector_list, "changed", G_CALLBACK(window_source_changed), app);
 		g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector_list);
 	}
 
@@ -803,19 +916,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	/* Hybris can't find window icons, so we want to pull it from the desktop file */
 #endif
 	if (icon == NULL) {
-		const gchar * desktop_file = NULL;
-#ifdef HAVE_BAMF
-		desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
-#endif
-#ifdef HAVE_HYBRIS
-		desktop_file = app->priv->desktop_file;
-#endif
-		if (desktop_file != NULL) {
-			GKeyFile * kfile = g_key_file_new();
-			g_key_file_load_from_file(kfile, desktop_file, G_KEY_FILE_NONE, NULL);
-			icon = g_key_file_get_value(kfile, G_KEY_FILE_DESKTOP_GROUP, G_KEY_FILE_DESKTOP_KEY_ICON, NULL);
-			g_key_file_free(kfile);
-		}
+		icon = hud_application_source_get_app_icon(app);
 	}
 
 	if (icon != NULL) {
@@ -824,7 +925,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 
 	if (mm_collector == NULL) {
 		gchar * export_path = g_strdup_printf("%s/window%X", app->priv->path, xid);
-		mm_collector = hud_menu_model_collector_new(app_id, icon, 0, export_path);
+		mm_collector = hud_menu_model_collector_new(app_id, icon, 0, export_path, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
 		g_free(export_path);
 
 		if (mm_collector != NULL) {
@@ -835,14 +936,16 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 			/* We only have GApplication based windows on the desktop, so we don't need this currently */
 #endif
 			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
+			g_object_unref(mm_collector);
 		}
 	}
 
 	if (dm_collector == NULL) {
-		dm_collector = hud_dbusmenu_collector_new_for_window(window, app_id, icon);
+		dm_collector = hud_dbusmenu_collector_new_for_window(window, app_id, icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
 
 		if (dm_collector != NULL) {
 			hud_source_list_add(collector_list, HUD_SOURCE(dm_collector));
+			g_object_unref(dm_collector);
 		}
 	}
 	g_free (app_id);

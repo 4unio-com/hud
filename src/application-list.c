@@ -38,12 +38,13 @@ struct _HudApplicationListPrivate {
 	gulong matcher_view_close_sig;
 #endif
 #ifdef HAVE_HYBRIS
-	HudApplicationSource * last_focused_source; /* Not a reference */
+	HudApplicationSource * last_focused_main_stage_source;
+	HudApplicationSource * last_focused_side_stage_source;
 	ubuntu_ui_session_lifecycle_observer observer_definition;
 #endif
 
 	GHashTable * applications;
-	HudSource * used_source; /* Not a reference */
+	HudSource * used_source;
 };
 
 #define HUD_APPLICATION_LIST_GET_PRIVATE(o) \
@@ -51,6 +52,13 @@ struct _HudApplicationListPrivate {
 
 static void hud_application_list_class_init (HudApplicationListClass * klass);
 static void hud_application_list_init       (HudApplicationList *      self);
+static void hud_application_list_constructed (GObject * object);
+#ifdef HAVE_BAMF
+static void matching_setup_bamf             (HudApplicationList *      self);
+#endif
+#ifdef HAVE_HYBRIS
+static void matching_setup_hybris           (HudApplicationList *      self);
+#endif
 static void hud_application_list_dispose    (GObject *                 object);
 static void hud_application_list_finalize   (GObject *                 object);
 static void source_iface_init               (HudSourceInterface *      iface);
@@ -83,11 +91,13 @@ static void source_search                   (HudSource *               hud_sourc
                                              gpointer                  user_data);
 static void source_list_applications        (HudSource *               hud_source,
                                              HudTokenList *            search_string,
-                                             void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                             void                    (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                                              gpointer                  user_data);
 static HudSource * source_get               (HudSource *               hud_source,
                                              const gchar *             application_id);
-static GList * source_get_items             (HudSource * list);
+static GList * source_get_items             (HudSource *               list);
+static void application_source_changed      (HudSource *               source,
+                                             gpointer                  user_data);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationList, hud_application_list, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -100,8 +110,16 @@ hud_application_list_class_init (HudApplicationListClass *klass)
 
 	g_type_class_add_private (klass, sizeof (HudApplicationListPrivate));
 
+	object_class->constructed = hud_application_list_constructed;
 	object_class->dispose = hud_application_list_dispose;
 	object_class->finalize = hud_application_list_finalize;
+
+#ifdef HAVE_BAMF
+	klass->matching_setup = matching_setup_bamf;
+#endif
+#ifdef HAVE_HYBRIS
+	klass->matching_setup = matching_setup_hybris;
+#endif
 
 	return;
 }
@@ -127,7 +145,27 @@ hud_application_list_init (HudApplicationList *self)
 	self->priv = HUD_APPLICATION_LIST_GET_PRIVATE(self);
 	self->priv->applications = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_object_unref);
 
+	return;
+}
+
+/* Final build steps */
+static void
+hud_application_list_constructed (GObject * object)
+{
+	HudApplicationList * self = HUD_APPLICATION_LIST(object);
+
+	HudApplicationListClass * aclass = HUD_APPLICATION_LIST_GET_CLASS(self);
+	if (aclass->matching_setup != NULL) {
+		aclass->matching_setup(self);
+	}
+
+	return;
+}
+
 #ifdef HAVE_BAMF
+static void
+matching_setup_bamf (HudApplicationList * self)
+{
 	self->priv->matcher = bamf_matcher_get_default();
 	self->priv->matcher_app_sig = g_signal_connect(self->priv->matcher,
 		"active-window-changed",
@@ -135,20 +173,7 @@ hud_application_list_init (HudApplicationList *self)
 	self->priv->matcher_view_open_sig = g_signal_connect(self->priv->matcher,
 		"view-opened",
 		G_CALLBACK(view_opened), self);
-#endif
-#ifdef HAVE_HYBRIS
-	self->priv->observer_definition.on_session_requested = session_requested;
-	self->priv->observer_definition.on_session_born = session_born;
-	self->priv->observer_definition.on_session_unfocused = session_unfocused;
-	self->priv->observer_definition.on_session_focused = session_focused;
-	self->priv->observer_definition.on_session_died = session_died;
-	self->priv->observer_definition.context = self;
 
-	ubuntu_ui_session_install_session_lifecycle_observer(&self->priv->observer_definition);
-#endif
-
-
-#ifdef HAVE_BAMF
 	GList * apps = bamf_matcher_get_applications(self->priv->matcher);
 	GList * app = NULL;
 	for (app = apps; app != NULL; app = g_list_next(app)) {
@@ -164,6 +189,7 @@ hud_application_list_init (HudApplicationList *self)
 		}
 
 		HudApplicationSource * appsource = hud_application_source_new_for_app(bapp);
+		g_signal_connect(appsource, "changed", G_CALLBACK(application_source_changed), self);
 
 		if (!hud_application_source_is_empty(appsource)) {
 			g_hash_table_insert(self->priv->applications, app_id, appsource);
@@ -181,14 +207,26 @@ hud_application_list_init (HudApplicationList *self)
 
 		view_opened(self->priv->matcher, BAMF_VIEW(window->data), self);
 	}
+}
 #endif
+
 #ifdef HAVE_HYBRIS
-	/* Hybris doesn't work like this.  When the observers are registered those
-	   functions are called like the session are just added automatically */
-#endif
+static void
+matching_setup_hybris (HudApplicationList * self)
+{
+	self->priv->observer_definition.on_session_requested = session_requested;
+	self->priv->observer_definition.on_session_born = session_born;
+	self->priv->observer_definition.on_session_unfocused = session_unfocused;
+	self->priv->observer_definition.on_session_focused = session_focused;
+	self->priv->observer_definition.on_session_died = session_died;
+	self->priv->observer_definition.on_keyboard_geometry_changed = NULL;
+	self->priv->observer_definition.context = self;
+
+	ubuntu_ui_session_install_session_lifecycle_observer(&self->priv->observer_definition);
 
 	return;
 }
+#endif
 
 /* Clean up references */
 static void
@@ -198,7 +236,7 @@ hud_application_list_dispose (GObject *object)
 
 	if (self->priv->used_source != NULL) {
 		hud_source_unuse(self->priv->used_source);
-		self->priv->used_source = NULL;
+		g_clear_object(&self->priv->used_source);
 	}
 
 #ifdef HAVE_BAMF
@@ -228,6 +266,8 @@ hud_application_list_dispose (GObject *object)
 
 #ifdef HAVE_HYBRIS
 	/* Nothing to do as Hybris has no way to unregister our observer */
+	g_clear_object(&self->priv->last_focused_main_stage_source);
+	g_clear_object(&self->priv->last_focused_side_stage_source);
 #endif
 
 	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
@@ -257,8 +297,12 @@ bamf_app_to_source (HudApplicationList * list, AbstractApplication * bapp)
 	HudApplicationSource * source = g_hash_table_lookup(list->priv->applications, id);
 	if (source == NULL) {
 		source = hud_application_source_new_for_app(bapp);
+		g_signal_connect(source, "changed", G_CALLBACK(application_source_changed), list);
+
 		g_hash_table_insert(list->priv->applications, id, source);
 		id = NULL; /* We used the malloc in the table */
+
+		hud_source_changed(HUD_SOURCE(list));
 	}
 
 	g_free(id);
@@ -366,13 +410,6 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 
 	hud_application_source_focus(source, new_app, new_win);
 
-	if (list->priv->used_source) {
-		hud_source_unuse(list->priv->used_source);
-	}
-
-  list->priv->used_source = HUD_SOURCE(source);
-  hud_source_use(list->priv->used_source);
-
 	return;
 }
 #endif
@@ -382,8 +419,12 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 static void
 session_focused (ubuntu_ui_session_properties props, void * context)
 {
+	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
+	// Do not care about anything not main or side stage
+	if (stage_hint != MAIN_STAGE_HINT && stage_hint != SIDE_STAGE_HINT)
+		return;
+
 	HudApplicationList * list = HUD_APPLICATION_LIST(context);
-	list->priv->last_focused_source = NULL;
 
 	if (hud_application_list_name_in_ignore_list(&props)) {
 		return;
@@ -402,9 +443,13 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 	   we can't get window IDs anyway. */
 	hud_application_source_focus(source, &props, &props);
 
-	/* Used to track focus for use... unclear about race conditions */
-	g_warn_if_fail(list->priv->last_focused_source == NULL);
-	list->priv->last_focused_source = source;
+	if (stage_hint == MAIN_STAGE_HINT) {
+		g_clear_object(&list->priv->last_focused_main_stage_source);
+		list->priv->last_focused_main_stage_source = g_object_ref(source);
+	} else { /*SIDE_STAGE_HINT*/
+		g_clear_object(&list->priv->last_focused_side_stage_source);
+		list->priv->last_focused_side_stage_source = g_object_ref(source);
+	}
 
 	return;
 }
@@ -414,7 +459,12 @@ static void
 session_unfocused (ubuntu_ui_session_properties props, void * context)
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(context);
-	list->priv->last_focused_source = NULL;
+
+	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
+	if (stage_hint == MAIN_STAGE_HINT)
+		g_clear_object(&list->priv->last_focused_main_stage_source);
+	else if (stage_hint == SIDE_STAGE_HINT)
+		g_clear_object(&list->priv->last_focused_side_stage_source);
 	return;
 }
 
@@ -426,11 +476,38 @@ session_requested (ubuntu_ui_well_known_application app, void * context)
 	return;
 }
 
-/* This function does nothing, but Hybris isn't smart enough to handle
-   NULL pointers, so we need to fill in the structure. */
+/* Finds the application object for the session and unref's it so
+   we'll assume it is gone, gone, gone. */
 static void
 session_died (ubuntu_ui_session_properties props, void * context)
 {
+	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+
+	HudApplicationSource * source = bamf_app_to_source(list, &props);
+	if (source == NULL) {
+		return;
+	}
+
+	gchar * app_id = g_strdup(hud_application_source_get_id(source));
+	g_debug("Source is getting removed: %s", app_id);
+
+	if ((gpointer)source == (gpointer)list->priv->used_source) {
+		hud_source_unuse(HUD_SOURCE(source));
+		g_clear_object(&list->priv->used_source);
+	}
+
+	if ((gpointer)source == (gpointer)list->priv->last_focused_main_stage_source) {
+		g_clear_object(&list->priv->last_focused_main_stage_source);
+	}
+	if ((gpointer)source == (gpointer)list->priv->last_focused_side_stage_source) {
+		g_clear_object(&list->priv->last_focused_side_stage_source);
+	}
+
+	g_hash_table_remove(list->priv->applications, app_id);
+	g_free(app_id);
+
+	hud_source_changed(HUD_SOURCE(list));
+
 	return;
 }
 #endif
@@ -506,7 +583,7 @@ source_use (HudSource *hud_source)
 	   we'll just have to hope we've tracked it perfectly.  Hopefully
 	   there are no races in the API, we can't protect ourselves against
 	   them in any way. */
-	source = list->priv->last_focused_source;
+	source = list->priv->last_focused_main_stage_source;
 #endif
 
 	/* If we weren't able to use BAMF, let's try to find a source
@@ -541,7 +618,12 @@ source_use (HudSource *hud_source)
 		return;
 	}
 
-	list->priv->used_source = HUD_SOURCE(source);
+	if (list->priv->used_source != NULL) {
+		hud_source_unuse(list->priv->used_source);
+		g_clear_object(&list->priv->used_source);
+	}
+
+	list->priv->used_source = g_object_ref(source);
 
 	hud_source_use(HUD_SOURCE(source));
 
@@ -558,7 +640,7 @@ source_unuse (HudSource *hud_source)
 	g_return_if_fail(list->priv->used_source != NULL);
 
 	hud_source_unuse(list->priv->used_source);
-	list->priv->used_source = NULL;
+	g_clear_object(&list->priv->used_source);
 
 	return;
 }
@@ -583,7 +665,7 @@ source_search (HudSource *     hud_source,
 static void
 source_list_applications (HudSource *               hud_source,
                           HudTokenList *            search_string,
-                          void                    (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                          void                    (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                           gpointer                  user_data)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_LIST(hud_source));
@@ -612,6 +694,34 @@ source_get (HudSource *     hud_source,
 	HudApplicationList * list = HUD_APPLICATION_LIST(hud_source);
 
 	return g_hash_table_lookup(list->priv->applications, application_id);
+}
+
+/* An application has signaled that it's items have changed */
+static void
+application_source_changed (HudSource * source, gpointer user_data)
+{
+	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
+	HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(source);
+
+	/* If the application source has become empty it means that it
+	 * the correspongind app has terminated and it's time to do the
+	 * cleanup.
+	 */
+	if (hud_application_source_is_empty (appsource)) {
+		if ((gpointer)appsource == (gpointer)list->priv->used_source) {
+			hud_source_unuse(HUD_SOURCE(appsource));
+			g_clear_object(&list->priv->used_source);
+		}
+
+		gchar * id = g_strdup(hud_application_source_get_id(appsource));
+
+		g_hash_table_remove(list->priv->applications, id);
+		g_free(id);
+	}
+
+	hud_source_changed(HUD_SOURCE(list));
+
+	return;
 }
 
 /**
@@ -651,6 +761,7 @@ hud_application_list_get_source (HudApplicationList * list, const gchar * id)
 	HudApplicationSource * source = HUD_APPLICATION_SOURCE(source_get(HUD_SOURCE(list), id));
 	if (source == NULL) {
 		source = hud_application_source_new_for_id(id);
+		g_signal_connect(source, "changed", G_CALLBACK(application_source_changed), list);
 		g_hash_table_insert(list->priv->applications, g_strdup(id), source);
 	}
 
@@ -669,10 +780,42 @@ HudSource *
 hud_application_list_get_focused_app (HudApplicationList * list)
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
-	
+
+	HudApplicationListClass * aclass = HUD_APPLICATION_LIST_GET_CLASS(list);
+	if (G_UNLIKELY(aclass->get_focused_app != NULL)) {
+		return aclass->get_focused_app(list);
+	}
+
+#ifdef HAVE_BAMF
+	/* TODO: Not sure if BAMF is right here, but not testing that. */
 	return list->priv->used_source;
+#endif
+#ifdef HAVE_HYBRIS
+	return HUD_SOURCE(list->priv->last_focused_main_stage_source);
+#endif
 }
 
+/**
+ * hud_application_list_get_side_stage_focused_app:
+ * @list: A #HudApplicationList object
+ * 
+ * Gets the side stage focused app source
+ *
+ * Return value: (transfer none): The current #HudApplicationSource
+ */
+HudSource *
+hud_application_list_get_side_stage_focused_app (HudApplicationList * list)
+{
+    g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
+
+#ifdef HAVE_BAMF
+    /* TODO: Not sure if BAMF is right here, but not testing that. */
+    return NULL;
+#endif
+#ifdef HAVE_HYBRIS
+    return HUD_SOURCE(list->priv->last_focused_side_stage_source);
+#endif
+}
 /**
  * hud_application_list_get_apps:
  * @list: A #HudApplicationList object

@@ -103,7 +103,7 @@ test_hud_string_list_pretty_print ()
   list = hud_string_list_add_item ("third", list);
   list = hud_string_list_add_item ("fourth", list);
 
-  g_assert_cmpstr(hud_string_list_pretty_print(list), ==,
+  g_assert_cmpstr(hud_string_list_pretty_print(list, " > "), ==,
       "first > second > third > fourth");
 
   hud_string_list_unref (list);
@@ -112,7 +112,7 @@ test_hud_string_list_pretty_print ()
 static void
 test_hud_string_list_pretty_print_null ()
 {
-  g_assert_cmpstr(hud_string_list_pretty_print(NULL), ==, "");
+  g_assert_cmpstr(hud_string_list_pretty_print(NULL, " "), ==, "");
 }
 
 static void

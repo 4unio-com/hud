@@ -1,3 +1,84 @@
+hud (13.10.0-0ubuntu1~ppa1) quantal; urgency=low
+
+  * Upstream release of many, many changes.
+
+ -- Ted Gould <ted@ubuntu.com>  Wed, 20 Feb 2013 09:28:40 -0600
+
+hud (13.04.0-0ubuntu1~ppa17) quantal; urgency=low
+
+  [ Florian Boucault ]
+  * Support for additional field in struct ubuntu_ui_session_lifecycle_observer.
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Wed, 20 Feb 2013 05:47:29 -0300
+
+hud (13.04.0-0ubuntu1~ppa16) quantal; urgency=low
+
+  * Reverse item ordering (LP: #1130050) (LP: #1125656)
+
+ -- Antti Kaijanmäki <antti.kaijanmaki@canonical.com>  Tue, 19 Feb 2013 21:58:39 +0200
+
+hud (13.04.0-0ubuntu1~ppa15) quantal; urgency=low
+
+  * Sidestage support for appstack ordering (LP: #1127653)
+  * Stop crashing on second application start after quit (LP: #1126580)
+  * Usage not getting used in ranking (LP: #1129154) and not tracked
+    for parameterized actions (LP: #1129156)
+  * Fix GMenuModel based indicator actions (LP: #1129170)
+  * Description fixes (LP: #1122171)
+    * Use keywords from menu model for description
+    * Make context look like keywords in description (LP: #1125685)
+    * Show descriptions in results model
+  * Small Coverity fixes
+    * Unchecked return value (LP: #1126462)
+    * Parameter name hidden (LP: #1126448)
+    * Forward NULL (LP: #1126458)
+    * Stray semicolon (LP: #1126459)
+
+ -- Ted Gould <ted@ubuntu.com>  Mon, 18 Feb 2013 10:36:12 -0600
+
+hud (13.04.0-0ubuntu1~ppa14) quantal; urgency=low
+
+  * Bumping version
+
+ -- Ted Gould <ted@ubuntu.com>  Sat, 16 Feb 2013 10:07:38 -0600
+
+hud (13.04.0-0ubuntu1~ppa13) quantal; urgency=low
+
+  * Bumping version
+
+ -- Pete Woods <pete.woods@canonical.com>  Fri, 15 Feb 2013 12:47:58 +0000
+
+hud (13.04.0-0ubuntu1~ppa12) quantal; urgency=low
+
+  * Bumping version
+
+ -- Albert Astals Cid <albert.astals@canonical.com>  Fri, 15 Feb 2013 09:04:51 +0100
+
+hud (13.04.0-0ubuntu1~ppa11) quantal; urgency=low
+
+  * Invoke the correct listening binary and make sure it is correctly killed.
+
+ -- Pete Woods <pete.woods@canonical.com>  Thu, 14 Feb 2013 14:06:27 +0000
+
+hud (13.04.0-0ubuntu1~ppa10) quantal; urgency=low
+
+  * Extract direct interaction with Julius into a command line process
+    - This should isolate us from it misbehaving
+
+ -- Pete Woods <pete.woods@canonical.com>  Wed, 13 Feb 2013 22:37:15 +0000
+
+hud (13.04.0-0ubuntu1~ppa9) quantal; urgency=low
+
+  * Bumping version
+
+ -- Albert Astals Cid <albert.astals@canonical.com>  Wed, 13 Feb 2013 12:25:03 +0100
+
+hud (13.04.0-0ubuntu1~ppa8) quantal; urgency=low
+
+  * Bumping version
+
+ -- Albert Astals Cid <albert.astals@canonical.com>  Tue, 12 Feb 2013 12:20:59 +0100
+
 hud (13.04.0-0ubuntu1~ppa7) quantal; urgency=low
 
   * Bumping version

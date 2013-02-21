@@ -1,5 +1,5 @@
 AC_INIT([hud],
-        [13.04.0],
+        [13.10.0],
         [http://bugs.launchpad.net/hud],
         [hud],
         [http://launchpad.net/hud])
@@ -90,12 +90,22 @@ PKG_CHECK_MODULES([HUD],[
 ])
 
 AC_CHECK_HEADER("julius/julius.h",
-	[has_julius_h="yes"])
+	[has_julius_h="yes"], [AC_MSG_ERROR([Could not find libjulius.h])])
 
 AM_CONDITIONAL([HUD], [test "x$has_julius_h" == "xyes"])
 
 AC_PATH_PROG([LIBJULIUS_CONFIG], [libjulius-config])
 AC_PATH_PROG([LIBSENT_CONFIG], [libsent-config])
+
+if test "$LIBJULIUS_CONFIG" == ""
+then
+	AC_MSG_ERROR([libjulius-config could not be found])
+fi
+
+if test "$LIBSENT_CONFIG" == ""
+then
+	AC_MSG_ERROR([libsent-config could not be found])
+fi
 
 LIBJULIUS_CFLAGS=`$LIBJULIUS_CONFIG --cflags`
 LIBJULIUS_LIBS=`$LIBJULIUS_CONFIG --libs`
@@ -315,7 +325,6 @@ tools/hudkeywords/hudkeywords/Makefile
 tests/Makefile
 docs/Makefile
 docs/man/Makefile
-docs/devel/Makefile
 docs/libhud-client/Makefile
 ])
 

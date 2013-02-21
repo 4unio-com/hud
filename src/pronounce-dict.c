@@ -17,7 +17,7 @@ static void pronounce_dict_class_init (PronounceDictClass *klass);
 static void pronounce_dict_init       (PronounceDict *self);
 static void pronounce_dict_dispose    (GObject *object);
 static void pronounce_dict_finalize   (GObject *object);
-static void load_dict                 (PronounceDict * dict, const gchar *dict_path);
+static gboolean load_dict                 (PronounceDict * dict, const gchar *dict_path, GError **error);
 
 G_DEFINE_TYPE (PronounceDict, pronounce_dict, G_TYPE_OBJECT);
 
@@ -33,6 +33,15 @@ pronounce_dict_class_init (PronounceDictClass *klass)
 	object_class->finalize = pronounce_dict_finalize;
 
 	return;
+}
+
+static GQuark
+hud_pronounce_dict_error_quark(void)
+{
+  static GQuark quark = 0;
+  if (quark == 0)
+    quark = g_quark_from_static_string ("hud-pronounce-dict-error-quark");
+  return quark;
 }
 
 /* We've got a list of strings, let's free it */
@@ -76,12 +85,14 @@ pronounce_dict_finalize (GObject *object)
 }
 
 /* Load the dictionary from a file */
-static void
-load_dict (PronounceDict * dict, const gchar *dict_path)
+static gboolean
+load_dict (PronounceDict *dict, const gchar *dict_path, GError **error)
 {
 	if (!g_file_test(dict_path, G_FILE_TEST_EXISTS)) {
 		g_warning("Unable to find dictionary '%s'!", dict_path);
-		return;
+		if (error != NULL)
+		  *error = g_error_new(hud_pronounce_dict_error_quark (), 0, "Unable to find dictionary [%s]. Is julius-voxforge installed?", dict_path);
+		return FALSE;
 	}
 
 	GFile * dict_file = g_file_new_for_path(dict_path);
@@ -197,7 +208,7 @@ load_dict (PronounceDict * dict, const gchar *dict_path)
 
 	g_free(line);
 
-	return;
+	return TRUE;
 }
 
 /* Puts the results of a lookup into an array.  Assumes the word is already
@@ -236,33 +247,36 @@ pronounce_dict_lookup_word(PronounceDict * dict, gchar * word)
 }
 
 PronounceDict *
-pronounce_dict_new (const gchar *dict_path)
+pronounce_dict_new (const gchar *dict_path, GError **error)
 {
   PronounceDict *dict = g_object_new(PRONOUNCE_DICT_TYPE, NULL);
-  load_dict(dict, dict_path);
+  if (!load_dict(dict, dict_path, error))
+  {
+    g_clear_object(&dict);
+  }
   return dict;
 }
 
 PronounceDict *
-pronounce_dict_get_sphinx (void)
+pronounce_dict_get_sphinx (GError **error)
 {
 	static PronounceDict * global = NULL;
 
 	if (global == NULL) {
-	  global = pronounce_dict_new(DICT_PATH);
+	  global = pronounce_dict_new(DICT_PATH, error);
 	}
 
 	return global;
 }
 
 PronounceDict *
-pronounce_dict_get_julius (void)
+pronounce_dict_get_julius (GError **error)
 {
   static PronounceDict * global = NULL;
 
   if (global == NULL) {
     gchar *dict_path = g_build_filename(JULIUS_DICT_PATH, "dict", NULL);
-    global = pronounce_dict_new(dict_path);
+    global = pronounce_dict_new(dict_path, error);
     g_free(dict_path);
   }
 

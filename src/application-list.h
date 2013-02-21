@@ -38,6 +38,9 @@ typedef struct _HudApplicationListPrivate   HudApplicationListPrivate;
 
 struct _HudApplicationListClass {
 	GObjectClass parent_class;
+
+	void (*matching_setup) (HudApplicationList * list);
+	HudSource * (*get_focused_app) (HudApplicationList * list);
 };
 
 struct _HudApplicationList {
@@ -50,6 +53,7 @@ HudApplicationList *    hud_application_list_new            (void);
 HudApplicationSource *  hud_application_list_get_source     (HudApplicationList * list,
                                                              const gchar *        id);
 HudSource *             hud_application_list_get_focused_app (HudApplicationList * list);
+HudSource *             hud_application_list_get_side_stage_focused_app (HudApplicationList * list);
 GList *                 hud_application_list_get_apps       (HudApplicationList * list);
 
 HudCollector *          hud_application_list_get_active_collector (HudApplicationList * list);

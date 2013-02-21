@@ -35,10 +35,15 @@ main (int argv, char ** argc)
 	gboolean is_application = (argv == 4 && !g_strcmp0(argc[3], "TRUE"));
 
 	GMenu * menu = g_menu_new();
+	GMenuItem * item = NULL;
 	if (is_application)
-	  g_menu_append(menu, "Simple", "app.simple");
+	  item = g_menu_item_new("Simple", "app.simple");
 	else
-	  g_menu_append(menu, "Simple", "simple");
+	  item = g_menu_item_new("Simple", "simple");
+
+	g_menu_item_set_attribute_value(item, "description", g_variant_new_string("A simple description"));
+	g_menu_item_set_attribute_value(item, "keywords", g_variant_new_string("hard;difficult;;challenging;"));
+	g_menu_append_item(menu, item);
 
 	GSimpleActionGroup * ag = g_simple_action_group_new();
 	if (is_application)

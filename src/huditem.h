@@ -73,15 +73,18 @@ gpointer                hud_item_construct                              (GType  
                                                                          const gchar   *shortcut,
                                                                          const gchar   *app_id,
                                                                          const gchar   *app_icon,
+                                                                         const gchar   *description,
                                                                          gboolean       enabled);
 HudItem *               hud_item_new                                    (HudStringList *tokens,
                                                                          HudStringList *keywords,
                                                                          const gchar   *shortcut,
                                                                          const gchar   *app_id,
                                                                          const gchar   *app_icon,
+                                                                         const gchar   *description,
                                                                          gboolean       enabled);
 void                    hud_item_activate                               (HudItem       *item,
                                                                          GVariant      *platform_data);
+void                    hud_item_mark_usage                             (HudItem       *item);
 HudStringList *         hud_item_get_tokens                             (HudItem       *item);
 HudStringList *         hud_item_get_keywords                             (HudItem       *item);
 const gchar *           hud_item_get_app_id                             (HudItem       *item);
@@ -93,7 +96,7 @@ guint64                 hud_item_get_id                                 (HudItem
 HudItem *               hud_item_lookup                                 (guint64        id);
 HudTokenList *          hud_item_get_token_list                         (HudItem       *item);
 const gchar *           hud_item_get_command                            (HudItem       *item);
-gchar *                 hud_item_get_context                            (HudItem       *item);
+const gchar *           hud_item_get_description                        (HudItem       *item);
 const gchar *           hud_item_get_shortcut                           (HudItem       *item);
 void                    hud_item_insert_pronounciation                  (HudItem       * item,
                                                                          HudItemPronunciationData    * user_data);

@@ -34,6 +34,9 @@ typedef struct _HudJulius        HudJulius;
 typedef struct _HudQueryIfaceComCanonicalHudQuery HudQueryIfaceComCanonicalHudQuery;
 typedef struct _HudSource         HudSource;
 
+/* Default timeout in microseconds */
+#define HUD_JULIUS_DEFAULT_TIMEOUT 10000000
+
 /* used by HUD_TYPE_JULIUS */
 GType hud_julius_get_type (void);
 

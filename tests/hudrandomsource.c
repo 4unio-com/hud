@@ -83,7 +83,7 @@ hud_random_source_search (HudSource    *hud_source,
 void
 hud_random_source_list_applications (HudSource    *hud_source,
     HudTokenList *search_tokens,
-    void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+    void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
     gpointer      user_data)
 {
   HudRandomSource *source = (HudRandomSource *) hud_source;
@@ -98,7 +98,7 @@ hud_random_source_list_applications (HudSource    *hud_source,
       result = hud_result_get_if_matched (item, search_tokens, 0);
       if (result)
         {
-          append_func (source->application_id, source->app_icon, user_data);
+          append_func (source->application_id, source->app_icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP, user_data);
           g_object_unref(result);
           break;
         }
@@ -203,7 +203,7 @@ hud_random_source_populate_table (HudRandomSource *self,
         /* At the maximum depth, prevent any items from being submenus. */
         is_submenu = FALSE;
 
-      item = hud_item_new (name, name, "", self->application_id, self->app_icon, !is_submenu);
+      item = hud_item_new (name, name, "", self->application_id, self->app_icon, NULL, !is_submenu);
       g_hash_table_add (self->items, item);
 
       if (is_submenu)

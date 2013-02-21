@@ -33,7 +33,6 @@
 #define DEFAULT_MENU_DEPTH  10
 #define RECURSE_DATA        "hud-menu-model-recurse-level"
 #define EXPORT_PATH         "hud-menu-model-export-path"
-#define EXPORT_ID           "hud-menu-model-export-id"
 #define EXPORT_MENU         "hud-menu-model-export-menu"
 
 /**
@@ -111,6 +110,8 @@ struct _HudMenuModelCollector
   /* This is the export path that we've been given */
   gchar * base_export_path;
   guint muxer_export;
+
+  HudSourceItemType type;
 };
 
 /* Structure for when we're tracking a model, all the info
@@ -142,6 +143,7 @@ struct _HudModelItem {
   gchar *action_name_full;
   gchar *action_path;
   GVariant *target;
+  HudClientQueryToolbarItems toolbar_item;
 
   GMenuModel * submodel;
 };
@@ -154,6 +156,11 @@ static void hud_menu_model_collector_hud_awareness_cb (GObject      *source,
                                                        GAsyncResult *result,
                                                        gpointer      user_data);
 static GList * hud_menu_model_collector_get_items (HudSource * source);
+static void hud_menu_model_collector_activate_toolbar (HudSource *   source,
+                                                       HudClientQueryToolbarItems titem,
+                                                       GVariant  *   platform_data);
+static const gchar * hud_menu_model_collector_get_app_icon (HudSource * collector);
+static const gchar * hud_menu_model_collector_get_app_id (HudSource * collector);
 
 /* Functions */
 static gchar *
@@ -265,6 +272,18 @@ hud_model_item_activate (HudItem  *hud_item,
 }
 
 static void
+hud_model_item_activate_toolbar (HudModelItem  *hud_item,
+                                 HudClientQueryToolbarItems item,
+                                 GVariant *platform_data)
+{
+	if (hud_item->toolbar_item == item) {
+		hud_item_activate(HUD_ITEM(hud_item), platform_data);
+	}
+
+	return;
+}
+
+static void
 hud_model_item_finalize (GObject *object)
 {
   HudModelItem *item = (HudModelItem *) object;
@@ -285,6 +304,7 @@ hud_model_item_finalize (GObject *object)
 static void
 hud_model_item_init (HudModelItem *item)
 {
+  item->toolbar_item = -1;
 }
 
 static void
@@ -297,13 +317,42 @@ hud_model_item_class_init (HudModelItemClass *class)
   class->activate = hud_model_item_activate;
 }
 
+/* Breaks apart the string and adds it to the list */
+static HudStringList *
+append_keywords_string (HudStringList * list, const gchar * string)
+{
+	if (string == NULL) {
+		return list;
+	}
+
+	/* Limiting to 64 keywords.  A bit arbitrary, but we need to ensure
+	   that bad apps can't hurt us. */
+	gchar ** split = g_strsplit(string, ";", 64);
+
+	if (split == NULL) {
+		return list;
+	}
+
+	int i;
+	for (i = 0; split[i] != NULL; i++) {
+		if (split[i][0] != '\0')
+			list = hud_string_list_cons(split[i], list);
+	}
+
+	g_strfreev(split);
+	return list;
+}
+
 static HudItem *
 hud_model_item_new (HudMenuModelCollector *collector,
                     HudMenuModelContext   *context,
                     const gchar           *label,
                     const gchar           *action_name,
                     const gchar           *accel,
-                    GVariant              *target)
+                    const gchar           *description,
+                    const gchar           *keywords_string,
+                    GVariant              *target,
+                    const gchar           *toolbar)
 {
   HudModelItem *item;
   const gchar *stripped_action_name;
@@ -312,6 +361,9 @@ hud_model_item_new (HudMenuModelCollector *collector,
   HudStringList *full_label, *keywords;
 
   prefix = hud_menu_model_context_get_prefix (context, action_name);
+
+  if (prefix[0] == '\0')
+    g_clear_pointer(&prefix, g_free);
 
   group = g_action_muxer_get(collector->muxer, prefix);
 
@@ -322,7 +374,7 @@ hud_model_item_new (HudMenuModelCollector *collector,
     }
 
   /* Kinda silly, think we can do better here */
-  if (g_str_has_prefix(action_name, prefix)) {
+  if (prefix != NULL && g_str_has_prefix(action_name, prefix)) {
     stripped_action_name = action_name + strlen(prefix) + 1;
   } else {
     stripped_action_name = action_name;
@@ -330,12 +382,18 @@ hud_model_item_new (HudMenuModelCollector *collector,
 
   full_label = hud_menu_model_context_get_label (context, label);
   keywords = hud_menu_model_context_get_tokens(label, collector->keyword_mapping);
+  keywords = append_keywords_string(keywords, keywords_string);
 
-  item = hud_item_construct (hud_model_item_get_type (), full_label, keywords, accel, collector->app_id, collector->icon, TRUE);
+  item = hud_item_construct (hud_model_item_get_type (), full_label, keywords, accel, collector->app_id, collector->icon, description, TRUE);
   item->group = g_object_ref (group);
   item->action_name = g_strdup (stripped_action_name);
   item->action_name_full = g_strdup (action_name);
   item->target = target ? g_variant_ref_sink (target) : NULL;
+
+  if (toolbar != NULL)
+    {
+      item->toolbar_item = hud_client_query_toolbar_items_get_value_from_nick(toolbar);
+    }
 
   hud_string_list_unref (full_label);
   hud_string_list_unref (keywords);
@@ -355,6 +413,22 @@ hud_model_item_set_submenu (HudModelItem * item, GMenuModel * submenu, const gch
 	item->action_path = g_strdup(action_path);
 
 	return;
+}
+
+/**
+ * hud_model_item_is_toolbar:
+ * @item: A #HudModelItem to check
+ *
+ * Check to see if an item has a toolbar representation
+ *
+ * Return value: Whether this is in the toolbar
+ */
+gboolean
+hud_model_item_is_toolbar (HudModelItem * item)
+{
+	g_return_val_if_fail(HUD_IS_MODEL_ITEM(item), FALSE);
+
+	return item->toolbar_item != -1;
 }
 
 /**
@@ -403,6 +477,8 @@ hud_model_item_activate_parameterized (HudModelItem * item, guint32 timestamp, c
 	*action_path = item->action_path;
 	*section = 1;
 
+	hud_item_mark_usage(HUD_ITEM(item));
+
 	return;
 }
 
@@ -427,7 +503,8 @@ static void hud_menu_model_collector_add_model_internal  (HudMenuModelCollector 
                                                           HudMenuModelContext   *parent_context,
                                                           const gchar           *action_namespace,
                                                           const gchar           *label,
-                                                          guint                  recurse);
+                                                          guint                  recurse,
+                                                          HudSourceItemType      type);
 
 static void hud_menu_model_collector_disconnect (gpointer               data,
                                                  gpointer               user_data);
@@ -439,7 +516,7 @@ readd_models (gpointer data, gpointer user_data)
 	HudMenuModelCollector *collector = user_data;
 	model_data_t * model_data = data;
 
-    hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label, model_data->recurse);
+    hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label, model_data->recurse, collector->type);
 	return;
 }
 
@@ -559,6 +636,9 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       gchar *action_namespace = NULL;
       gchar *action = NULL;
       gchar *accel = NULL;
+      gchar *toolbar = NULL;
+      gchar *description = NULL;
+      gchar *keywords = NULL;
       HudItem *item = NULL;
 
 
@@ -566,6 +646,9 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_ACTION, "s", &action);
       g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_LABEL, "s", &label);
       g_menu_model_get_item_attribute (model, i, "accel", "s", &accel);
+      g_menu_model_get_item_attribute (model, i, "hud-toolbar-item", "s", &toolbar);
+      g_menu_model_get_item_attribute (model, i, "description", "s", &description);
+      g_menu_model_get_item_attribute (model, i, "keywords", "s", &keywords);
 
       accel = format_accel_for_users(accel);
 
@@ -578,7 +661,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
 
           target = g_menu_model_get_item_attribute_value (model, i, G_MENU_ATTRIBUTE_TARGET, NULL);
 
-          item = hud_model_item_new (collector, context, label, action, accel, target);
+          item = hud_model_item_new (collector, context, label, action, accel, description, keywords, target, toolbar);
 
           if (item)
             g_ptr_array_add (collector->items, item);
@@ -595,13 +678,13 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
        */
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SECTION)))
         {
-          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse);
+          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse, collector->type);
           g_object_unref (link);
         }
 
       if ((link = g_menu_model_get_item_link (model, i, G_MENU_LINK_SUBMENU)))
         {
-          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse - 1);
+          hud_menu_model_collector_add_model_internal (collector, link, NULL, context, action_namespace, label, recurse - 1, collector->type);
           if (item != NULL && recurse <= 1)
             {
               hud_model_item_set_submenu((HudModelItem *)item, link, collector->base_export_path);
@@ -613,6 +696,9 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
       g_free (action);
       g_free (label);
       g_free (accel);
+      g_free (toolbar);
+      g_free (description);
+      g_free (keywords);
     }
 
   if (changed)
@@ -639,9 +725,12 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
                                              HudMenuModelContext   *parent_context,
                                              const gchar           *action_namespace,
                                              const gchar           *label,
-                                             guint                  recurse)
+                                             guint                  recurse,
+                                             HudSourceItemType      type)
 {
   g_return_if_fail(G_IS_MENU_MODEL(model));
+
+  collector->type = type;
 
   /* We don't want to parse this one, just export it so that
      the UI could use it if needed */
@@ -664,7 +753,25 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
 	/* Make sure we're ready to clean up */
     g_object_set_data_full(G_OBJECT(model), EXPORT_PATH, menu_path, g_free);
     g_object_set_data_full(G_OBJECT(model), EXPORT_MENU, export, g_object_unref);
-    g_object_set_data_full(G_OBJECT(model), EXPORT_ID, idt, unexport_menu);
+
+    /* All the callers of this function assume that we take the responsibility
+     * to manage the lifecycle of the model. Or in other words, HudMenuModelCollector
+     * takes the responsibility.
+     *
+     * g_dbus_connection_export_menu_model() increases the reference count of the given
+     * model and the model is not disposed before it's unexported.
+     *
+     * By using g_object_set_data_full() we guarantee that the model gets unexported
+     * and cleaned up when the collector disposes it self.
+     *
+     * menu_path is simply used as a unique key to store the idt in collector GObject.
+     * There is no need to retrieve the idt using g_object_get_data().
+     *
+     * The reason that it can't be on the model is because the model is referenced
+     * by the exported item.  So the model will never be free'd until the export is
+     * first.
+     */
+    g_object_set_data_full(G_OBJECT(collector), menu_path, idt, unexport_menu);
 
     return;
   }
@@ -802,6 +909,11 @@ hud_menu_model_collector_search (HudSource    *source,
       HudItem *item;
 
       item = g_ptr_array_index (items, i);
+
+      if (search_string == NULL && hud_model_item_is_toolbar(HUD_MODEL_ITEM(item))) {
+        continue;
+      }
+
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
       if (result)
         append_func(result, user_data);
@@ -811,7 +923,7 @@ hud_menu_model_collector_search (HudSource    *source,
 static void
 hud_menu_model_collector_list_applications (HudSource    *source,
                                             HudTokenList *search_string,
-                                            void        (*append_func) (const gchar *application_id, const gchar *application_icon, gpointer user_data),
+                                            void        (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                                             gpointer      user_data)
 {
   HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
@@ -828,7 +940,7 @@ hud_menu_model_collector_list_applications (HudSource    *source,
       item = g_ptr_array_index (items, i);
       result = hud_result_get_if_matched (item, search_string, collector->penalty);
       if (result) {
-        append_func(collector->app_id, collector->icon, user_data);
+        append_func(collector->app_id, collector->icon, collector->type, user_data);
         g_object_unref(result);
         break;
       }
@@ -845,6 +957,22 @@ hud_menu_model_collector_get (HudSource   *source,
     return source;
 
   return NULL;
+}
+
+static void
+hud_menu_model_collector_activate_toolbar (HudSource * source,
+                              HudClientQueryToolbarItems titem,
+                              GVariant *platform_data)
+{
+  HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
+
+  gint i;
+  for (i = 0; i < collector->items->len; i++) {
+    HudModelItem * item = g_ptr_array_index(collector->items, i);
+    hud_model_item_activate_toolbar(item, titem, platform_data);
+  }
+
+  return;
 }
 
 /* Free's the model data structure */
@@ -917,6 +1045,9 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->list_applications = hud_menu_model_collector_list_applications;
   iface->get = hud_menu_model_collector_get;
   iface->get_items = hud_menu_model_collector_get_items;
+  iface->activate_toolbar = hud_menu_model_collector_activate_toolbar;
+  iface->get_app_id = hud_menu_model_collector_get_app_id;
+  iface->get_app_icon = hud_menu_model_collector_get_app_icon;
 }
 
 static void
@@ -973,6 +1104,7 @@ hud_menu_model_collector_hud_awareness_cb (GObject      *source,
  * @icon: the icon for the appliction
  * @penalty: the penalty to apply to all results
  * @export_path: the path to export items on dbus
+ * @type: the type of items in this collector
  *
  * Create a new #HudMenuModelCollector object
  *
@@ -982,7 +1114,8 @@ HudMenuModelCollector *
 hud_menu_model_collector_new (const gchar *application_id,
                               const gchar *icon,
                               guint        penalty,
-                              const gchar *export_path)
+                              const gchar *export_path,
+                              HudSourceItemType type)
 {
 	g_return_val_if_fail(application_id != NULL, NULL);
 	g_return_val_if_fail(export_path != NULL, NULL);
@@ -993,6 +1126,7 @@ hud_menu_model_collector_new (const gchar *application_id,
 	collector->icon = g_strdup (icon);
 	collector->penalty = penalty;
 	collector->base_export_path = g_strdup(export_path);
+	collector->type = type;
 
 	collector->keyword_mapping = hud_keyword_mapping_new();
 	hud_keyword_mapping_load(collector->keyword_mapping, collector->app_id, DATADIR, GNOMELOCALEDIR);
@@ -1066,14 +1200,14 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   if (app_menu_object_path)
     {
       app_menu = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, app_menu_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
       g_object_unref(app_menu);
     }
 
   if (menubar_object_path)
     {
       menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, menubar_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
       g_object_unref(menubar);
     }
 
@@ -1150,7 +1284,7 @@ hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuMode
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_MENU_MODEL(model));
 
-	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix, recurse);
+	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix, recurse, collector->type);
 }
 
 /**
@@ -1167,14 +1301,7 @@ hud_menu_model_collector_add_actions (HudMenuModelCollector * collector, GAction
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_ACTION_GROUP(group));
 
-	gchar * local_prefix = NULL;
-	if (prefix == NULL) {
-		local_prefix = g_strdup("");
-	} else {
-		local_prefix = g_strdup(prefix);
-	}
-
-	g_action_muxer_insert(collector->muxer, local_prefix, group);
+	g_action_muxer_insert(collector->muxer, prefix, group);
 
 	return;
 }
@@ -1200,4 +1327,34 @@ hud_menu_model_collector_get_items (HudSource * source)
 	}
 
 	return retval;
+}
+
+/**
+ * hud_menu_model_collector_get_app_id:
+ * @collector: A #HudMenuModelCollector
+ *
+ * The ID of the application here
+ *
+ * Return value: Application ID
+ */
+static const gchar *
+hud_menu_model_collector_get_app_id (HudSource * collector)
+{
+	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector), NULL);
+	return HUD_MENU_MODEL_COLLECTOR(collector)->app_id;
+}
+
+/**
+ * hud_menu_model_collector_get_app_icon:
+ * @collector: A #HudMenuModelCollector
+ *
+ * The icon of the application here
+ *
+ * Return value: Application icon
+ */
+static const gchar *
+hud_menu_model_collector_get_app_icon (HudSource * collector)
+{
+	g_return_val_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector), NULL);
+	return HUD_MENU_MODEL_COLLECTOR(collector)->icon;
 }

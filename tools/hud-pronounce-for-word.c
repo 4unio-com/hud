@@ -12,7 +12,14 @@ main (int argc, char * argv[])
 	g_type_init();
 #endif
 
-	PronounceDict * dict = pronounce_dict_get_sphinx();
+	GError *error = NULL;
+	PronounceDict * dict = pronounce_dict_get_sphinx(&error);
+	if (dict == NULL)
+	{
+	  g_error("%s", error->message);
+	  g_error_free(error);
+	  return 1;
+	}
 
 	gchar ** pronounce = pronounce_dict_lookup_word(dict, argv[1]);
 	gchar * pron = NULL;

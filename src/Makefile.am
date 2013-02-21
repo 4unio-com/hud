@@ -12,7 +12,8 @@ bin_SCRIPTS = \
 	hud-list-applications
 
 pkglibexec_PROGRAMS = \
-	hud-service
+	hud-service \
+	hud-julius-listen
 
 noinst_LTLIBRARIES = \
 	libhud-service-generated.la \
@@ -32,6 +33,8 @@ libhud_service_la_SOURCES = \
 	application-source.c \
 	dump-app-info.h \
 	dump-app-info.c \
+	enum-types.h \
+	enum-types.c \
 	shared-values.h \
 	hudsettings.h		\
 	hudsettings.c		\
@@ -90,8 +93,12 @@ libhud_service_la_CFLAGS = \
 	$(HYBRIS_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
+	-DLIBEXECDIR=\""$(libexecdir)"\" \
 	-DDICT_PATH=\""/usr/share/pocketsphinx/model/lm/en_US/cmu07a.dic"\" \
 	-DJULIUS_DICT_PATH=\""/usr/share/julius-voxforge/acoustic/"\" \
+	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
+	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 
 #######################
@@ -106,6 +113,9 @@ hud_service_CFLAGS = \
 	$(HYBRIS_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
+	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 hud_service_LDADD = \
 	libhud-service.la	\
@@ -114,6 +124,28 @@ hud_service_LDADD = \
 	$(HYBRIS_LIBS) \
 	$(HUD_LIBS)
 
+#######################
+# HUD Listening Daemon
+#######################
+
+hud_julius_listen_SOURCES = hud-julius-listen.c
+
+hud_julius_listen_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	$(HYBRIS_CFLAGS) \
+	$(COVERAGE_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
+	-DHUD_CLIENT_COMPILATION \
+	-Wall -Werror
+hud_julius_listen_LDADD = \
+	libhud-service.la	\
+	$(COVERAGE_LDFLAGS) \
+	$(BAMF_LIBS) \
+	$(HYBRIS_LIBS) \
+	$(HUD_LIBS)
 
 #######################
 # HUD Dump Application
@@ -219,6 +251,16 @@ app-iface.c: $(top_srcdir)/data/com.canonical.hud.Application.xml
 		--c-namespace AppIface \
 		$^
 app-iface.h: app-iface.c
+
+##########################
+# Enum Types
+##########################
+
+include $(top_srcdir)/Makefile.am.enum
+
+glib_enum_h = enum-types.h
+glib_enum_c = enum-types.c
+glib_enum_headers = $(top_srcdir)/libhud-client/query.h
 
 
 CLEANFILES += $(BUILT_SOURCES)
