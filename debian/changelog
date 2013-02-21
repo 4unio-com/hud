@@ -1,3 +1,15 @@
+hud (13.04.0daily13.02.20-0ubuntu2) raring; urgency=low
+
+  * debian/control:
+    - Remove some Build-Depends that aren't in main yet and are used for the
+      test suite.  We'll add tests back very soon as dep8 or without
+      bustle.  This is just a brown-paper-bag release to fix component
+      mismatch.
+  * debian/hud-tools.install:
+    - Don't ship hud-gtk stuff, since that's only built when tests are.
+
+ -- Michael Terry <mterry@ubuntu.com>  Wed, 20 Feb 2013 17:49:47 +0000
+
 hud (13.04.0daily13.02.20-0ubuntu1) raring; urgency=low
 
   [ Ted Gould ]
