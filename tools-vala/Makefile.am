@@ -17,7 +17,7 @@ hud_gtk_SOURCES = \
 hud_gtk_VALAFLAGS = \
 	--pkg gtk+-3.0 \
 	--pkg Dee-1.0 \
-	--pkg HudClient-1 \
+	--pkg HudClient-2 \
 	--vapidir $(top_builddir)/libhud-client
 
 hud_gtk_CFLAGS = \
