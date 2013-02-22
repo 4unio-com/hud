@@ -29,6 +29,7 @@ libhud_client_generated_la_SOURCES = \
 
 libhud_client_generated_la_CFLAGS = \
 	$(HUD_CFLAGS) \
+	-I $(top_srcdir) \
 	-D HUD_CLIENT_COMPILATION \
 	-Wall -Werror
 

@@ -117,14 +117,17 @@ compare_func (gconstpointer a, gconstpointer b, gpointer user_data)
       - hud_result_get_distance ((HudResult *) b, max_usage);
 }
 
-/* Add a HudResult to the list of results.  This is inserted just at the
-   beginning.  We can't sort until we have the max usage, then we can sort
+/* Add a HudResult to the list of results. This is inserted at the
+   end for the moment, until action sort priorities are implemented.
+   We can't sort until we have the max usage, then we can sort
    everything depending on distance and usage.  */
 static void
 results_list_populate (HudResult * result, gpointer user_data)
 {
 	HudQuery * query = (HudQuery *)user_data;
-	g_sequence_insert_before(g_sequence_get_begin_iter(query->results_list), result);
+	// TODO: Change back to prepend after we have action sort priorities
+	// g_sequence_insert_before(g_sequence_get_begin_iter(query->results_list), result);
+	g_sequence_append(query->results_list, result);
 	return;
 }
 

@@ -97,6 +97,7 @@ libhud_service_la_CFLAGS = \
 	-DDICT_PATH=\""/usr/share/pocketsphinx/model/lm/en_US/cmu07a.dic"\" \
 	-DJULIUS_DICT_PATH=\""/usr/share/julius-voxforge/acoustic/"\" \
 	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
 	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 
@@ -113,6 +114,7 @@ hud_service_CFLAGS = \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
 	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 hud_service_LDADD = \
@@ -135,6 +137,7 @@ hud_julius_listen_CFLAGS = \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
 	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 hud_julius_listen_LDADD = \

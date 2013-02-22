@@ -1,8 +1,27 @@
+hud (13.10.0-0ubuntu1~ppa2) quantal; urgency=low
+
+  * Don't spin CPU at 100% when closing share-app (LP: #1131186)
+
+ -- Albert Astals Cid  <albert.astals@canonical.com>  Fri, 22 Feb 2013 12:08:19 +0100
+
+hud (13.10.0-0ubuntu1~ppa1) quantal; urgency=low
+
+  * Upstream release of many, many changes.
+
+ -- Ted Gould <ted@ubuntu.com>  Wed, 20 Feb 2013 09:28:40 -0600
+
+hud (13.04.0-0ubuntu1~ppa17) quantal; urgency=low
+
+  [ Florian Boucault ]
+  * Support for additional field in struct ubuntu_ui_session_lifecycle_observer.
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Wed, 20 Feb 2013 05:47:29 -0300
+
 hud (13.04.0-0ubuntu1~ppa16) quantal; urgency=low
 
   * Don't spin CPU at 100% when closing share-app (LP: #1131186)
 
- -- Albert Astals Cid  <tsdgeos_work@xps>  Fri, 22 Feb 2013 11:52:37 +0100
+ -- Antti Kaijanmäki <antti.kaijanmaki@canonical.com>  Tue, 19 Feb 2013 21:58:39 +0200
 
 hud (13.04.0-0ubuntu1~ppa15) quantal; urgency=low
 
