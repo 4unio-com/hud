@@ -512,9 +512,10 @@ connection_lost (GDBusConnection * session, const gchar * name, gpointer user_da
 	g_hash_table_remove(app->priv->connections, name);
 
 	/* all the items have been removed. When application-list sees this it
-	 * will happily unref us to complete the cleanup.
+	 * will happily unref us to complete the cleanup (missing the last unref)
 	 */
 	hud_source_changed(HUD_SOURCE(app));
+	g_object_unref(app); 
 	return;
 }
 
@@ -527,6 +528,7 @@ add_id_to_connection (HudApplicationSource * app, GDBusConnection * session, con
 	connection_watcher_t * watcher = g_hash_table_lookup(app->priv->connections, sender);
 	if (watcher == NULL) {
 		watcher = g_new0(connection_watcher_t, 1);
+		g_object_ref(app);
 		watcher->watch = g_bus_watch_name_on_connection(session, sender, G_BUS_NAME_WATCHER_FLAGS_NONE, NULL, connection_lost, app, NULL);
 		g_hash_table_insert(app->priv->connections, g_strdup(sender), watcher);
 	}
