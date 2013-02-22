@@ -1,6 +1,6 @@
 hud (13.04.0-0ubuntu1~ppa16) quantal; urgency=low
 
-  * Don't spin CPU at 100% when closing share-app
+  * Don't spin CPU at 100% when closing share-app (LP: #1131186)
 
  -- Albert Astals Cid  <tsdgeos_work@xps>  Fri, 22 Feb 2013 11:52:37 +0100
 
