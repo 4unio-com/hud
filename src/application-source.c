@@ -511,6 +511,9 @@ connection_lost (GDBusConnection * session, const gchar * name, gpointer user_da
 
 	g_hash_table_remove(app->priv->connections, name);
 
+	/* all the items have been removed. When application-list sees this it
+	 * will happily unref us to complete the cleanup (missing the last unref)
+	 */
 	hud_source_changed(HUD_SOURCE(app));
 	g_object_unref(app); 
 	return;
