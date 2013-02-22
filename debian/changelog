@@ -19,7 +19,7 @@ hud (13.04.0-0ubuntu1~ppa17) quantal; urgency=low
 
 hud (13.04.0-0ubuntu1~ppa16) quantal; urgency=low
 
-  * Don't spin CPU at 100% when closing share-app (LP: #1131186)
+  * Reverse item ordering (LP: #1130050) (LP: #1125656)
 
  -- Antti Kaijanmäki <antti.kaijanmaki@canonical.com>  Tue, 19 Feb 2013 21:58:39 +0200
 
