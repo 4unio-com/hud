@@ -112,7 +112,7 @@ bus_method (GDBusConnection       *connection,
             GDBusMethodInvocation *invocation,
             gpointer               user_data)
 {
-	if (g_str_equal (method_name, "StartQuery")) {
+	if (g_str_equal (method_name, "CreateQuery")) {
 		HudSourceList *all_sources = user_data;
 		GVariant * vsearch;
 		const gchar *search_string;
@@ -120,7 +120,7 @@ bus_method (GDBusConnection       *connection,
 
 		vsearch = g_variant_get_child_value (parameters, 0);
 		search_string = g_variant_get_string(vsearch, NULL);
-		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
+		g_debug ("'CreateQuery' from %s: '%s'", sender, search_string);
 
 		query = hud_query_new (HUD_SOURCE(all_sources), application_list, search_string, 10, connection, ++query_count);
 		g_dbus_method_invocation_return_value (invocation, describe_query (query));

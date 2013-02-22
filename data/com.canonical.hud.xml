@@ -6,7 +6,7 @@
 		<property name="Applications" type="a(so)" access="read"/>
 
 <!-- Functions -->
-		<method name="StartQuery">
+		<method name="CreateQuery">
 			<!-- in -->
 			<arg type="s" name="query" direction="in" />
 			<!-- out -->
