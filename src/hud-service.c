@@ -263,6 +263,28 @@ bus_method (GDBusConnection       *connection,
 		g_dbus_method_invocation_return_value (invocation, describe_legacy_query (query));
 
 		g_variant_unref(vsearch);
+	} else if (g_str_equal (method_name, "CloseQuery")) {
+		/* Legacy interface to close a query */
+		GVariant * vquery = g_variant_get_child_value (parameters, 0);
+		guint query_number = g_variant_get_uint32(vquery);
+		g_variant_unref(vquery);
+
+		/* Find the query */
+		int i;
+		HudQuery * query = NULL;
+		for (i = 0; i < query_list->len; i++) {
+			if (hud_query_get_number(g_ptr_array_index(query_list, i)) == query_number) {
+				query = g_ptr_array_index(query_list, i);
+				break;
+			}
+		}
+
+		if (query != NULL) {
+			hud_query_close(query);
+			g_dbus_method_invocation_return_value (invocation, NULL);
+		} else {
+			g_dbus_method_invocation_return_error_literal(invocation, error(), 2, "Unable to find Query");
+		}
 	} else if (g_str_equal (method_name, "RegisterApplication")) {
 		GVariant * vid = g_variant_get_child_value (parameters, 0);
 

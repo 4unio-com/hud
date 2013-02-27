@@ -664,6 +664,16 @@ handle_execute_toolbar (HudQueryIfaceComCanonicalHudQuery *object, GDBusMethodIn
 	return TRUE;
 }
 
+/* Really this is just an unref, but let's put it in a nice function
+   so that it's easier to change later if we need to. */
+void
+hud_query_close (HudQuery * query)
+{
+	g_return_if_fail(HUD_IS_QUERY(query));
+	g_object_unref(query);
+	return;
+}
+
 /* Handle the DBus function CloseQuery */
 static gboolean
 handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
@@ -671,8 +681,8 @@ handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
 	HudQuery * query = HUD_QUERY(user_data);
 
-	/* Unref the query */
-	g_object_unref(query);
+	/* Close the query */
+	hud_query_close(query);
 
 	/* NOTE: Don't use the query after this, it may not exist */
 	query = NULL;
