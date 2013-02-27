@@ -222,6 +222,22 @@ build_query (HudSourceList * all_sources, HudApplicationList * app_list, GDBusCo
 	return query;
 }
 
+/* Make the time platform data thingy */
+static GVariant *
+unpack_platform_data (GVariant *parameters)
+{
+  GVariant *platform_data;
+  gchar *startup_id;
+  guint32 timestamp;
+
+  g_variant_get_child (parameters, 1, "u", &timestamp);
+  startup_id = g_strdup_printf ("_TIME%u", timestamp);
+  platform_data = g_variant_new_parsed ("{'desktop-startup-id': < %s >}", startup_id);
+  g_free (startup_id);
+
+  return g_variant_ref_sink (platform_data);
+}
+
 /* Take a method call from DBus */
 static void
 bus_method (GDBusConnection       *connection,
@@ -285,6 +301,40 @@ bus_method (GDBusConnection       *connection,
 		} else {
 			g_dbus_method_invocation_return_error_literal(invocation, error(), 2, "Unable to find Query");
 		}
+	} else if (g_str_equal (method_name, "ExecuteQuery")) {
+		/* Legacy interface to execute a query */
+		GVariant *platform_data;
+		GVariant *item_key;
+		guint64 key_value;
+		HudItem *item;
+
+		g_variant_get_child (parameters, 0, "v", &item_key);
+
+		if (!g_variant_is_of_type (item_key, G_VARIANT_TYPE_UINT64)) {
+			g_debug ("'ExecuteQuery' from %s: incorrect item key (not uint64)", sender);
+			g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS,
+			                                       "item key has invalid format");
+			g_variant_unref (item_key);
+			return;
+		}
+
+		key_value = g_variant_get_uint64 (item_key);
+		g_variant_unref (item_key);
+
+		item = hud_item_lookup (key_value);
+		g_debug ("'ExecuteQuery' from %s, item #%"G_GUINT64_FORMAT": %p", sender, key_value, item);
+
+		if (item == NULL) {
+			g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS,
+			                                       "item specified by item key does not exist");
+			return;
+		}
+
+		platform_data = unpack_platform_data (parameters);
+		hud_item_activate (item, platform_data);
+		g_variant_unref (platform_data);
+
+		g_dbus_method_invocation_return_value (invocation, NULL);
 	} else if (g_str_equal (method_name, "RegisterApplication")) {
 		GVariant * vid = g_variant_get_child_value (parameters, 0);
 
