@@ -281,9 +281,13 @@ bus_method (GDBusConnection       *connection,
 		g_variant_unref(vsearch);
 	} else if (g_str_equal (method_name, "CloseQuery")) {
 		/* Legacy interface to close a query */
-		GVariant * vquery = g_variant_get_child_value (parameters, 0);
+		GVariant * vvvquery = g_variant_get_child_value (parameters, 0);
+		GVariant * vvquery = g_variant_get_variant(vvvquery);
+		GVariant * vquery = g_variant_get_variant(vvquery);
 		guint query_number = g_variant_get_uint32(vquery);
 		g_variant_unref(vquery);
+		g_variant_unref(vvquery);
+		g_variant_unref(vvvquery);
 
 		/* Find the query */
 		int i;
