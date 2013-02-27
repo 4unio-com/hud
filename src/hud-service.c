@@ -176,6 +176,30 @@ describe_legacy_query (HudQuery * query)
 	return g_variant_builder_end(&builder);
 }
 
+/* Respond to the query being updated and send a signal on
+   DBus for it */
+static void
+legacy_update (HudQuery * query, gpointer user_data)
+{
+	GDBusConnection * connection = G_DBUS_CONNECTION(user_data);
+	GError * error = NULL;
+
+	g_dbus_connection_emit_signal(connection,
+		NULL, /* destination */
+		"/com/canonical/hud",
+		"com.canonical.hud",
+		"UpdatedQuery",
+		describe_legacy_query(query),
+		&error);
+
+	if (error != NULL) {
+		g_warning("Unable to signal a query update: %s", error->message);
+		g_error_free(error);
+	}
+
+	return;
+}
+
 /* Respond to the query being destroyed by removing it from
    the list */
 static void
@@ -235,6 +259,7 @@ bus_method (GDBusConnection       *connection,
 		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
 
 		query = build_query (all_sources, application_list, connection, search_string);
+		g_signal_connect(query, "changed", G_CALLBACK(legacy_update), connection);
 		g_dbus_method_invocation_return_value (invocation, describe_legacy_query (query));
 
 		g_variant_unref(vsearch);
