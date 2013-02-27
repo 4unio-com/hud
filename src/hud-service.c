@@ -94,12 +94,86 @@ describe_query (HudQuery *query)
   return g_variant_builder_end (&builder);
 }
 
+/* Builds a single line pango formated description for
+   the legacy HUD UI */
+static gchar *
+build_legacy_description (DeeModel * model, DeeModelIter * iter)
+{
+	const gchar * command_name = dee_model_get_string(model, iter, 1);
+
+	/* TODO: Insert description as well, column 3 */
+
+	return g_markup_escape_text(command_name, -1);
+}
+
 /* Describe the legacy query */
 GVariant *
 describe_legacy_query (HudQuery * query)
 {
+	GVariantBuilder builder;
+	g_variant_builder_init(&builder, G_VARIANT_TYPE_TUPLE);
 
-	return NULL;
+	g_variant_builder_add_value(&builder, g_variant_new_string(hud_query_get_query(query)));
+
+	DeeModel * results = hud_query_get_results_model(query);
+	if (dee_model_get_n_rows(results) != 0) {
+		/* Get the application icon from the appstack */
+		DeeModel * appstack = hud_query_get_appstack_model(query);
+		GVariant * app_icon = NULL;
+
+		if (appstack != NULL && dee_model_get_n_rows(appstack) > 0) {
+			app_icon = dee_model_get_value(appstack, dee_model_get_first_iter(appstack), 1);
+		}
+
+		if (app_icon == NULL) {
+			app_icon = g_variant_new_string("");
+		}
+
+		/* Setup loop */
+		DeeModelIter * iter = dee_model_get_first_iter(results);
+		int i;
+
+		/* Open the builder to put in the array */
+		g_variant_builder_open(&builder, G_VARIANT_TYPE_ARRAY);
+
+		/* Parse through either the first five results or the full list */
+		for (i = 0; i < 5 && dee_model_is_last(results, iter); i++, iter = dee_model_next(results, iter)) {
+			/* Don't show parameterized actions */
+			if (dee_model_get_bool(results, iter, 7)) {
+				i--;
+				continue;
+			}
+
+			g_variant_builder_open(&builder, G_VARIANT_TYPE_TUPLE);
+
+			/* Description */
+			gchar * desc = build_legacy_description(results, iter);
+			g_variant_builder_add_value(&builder, g_variant_new_string(desc));
+			g_free(desc);
+
+			/* Icon */
+			g_variant_builder_add_value(&builder, app_icon);
+
+			/* 3 Blanks */
+			GVariant * blank = g_variant_new_string("");
+			g_variant_builder_add_value(&builder, blank);
+			g_variant_builder_add_value(&builder, blank);
+			g_variant_builder_add_value(&builder, blank);
+
+			/* ID */
+			g_variant_builder_add_value(&builder, dee_model_get_value(results, iter, 0));
+
+			g_variant_builder_close(&builder);
+		}
+
+		g_variant_builder_close(&builder);
+	} else {
+		g_variant_builder_add_value(&builder, g_variant_new_array(G_VARIANT_TYPE("(sssssv)"), NULL, 0));
+	}
+
+	g_variant_builder_add_value(&builder, g_variant_new_variant(g_variant_new_uint32(hud_query_get_number(query))));
+
+	return g_variant_builder_end(&builder);
 }
 
 /* Respond to the query being destroyed by removing it from

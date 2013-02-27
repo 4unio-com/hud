@@ -867,3 +867,18 @@ hud_query_get_appstack_model(HudQuery *self)
 
 }
 
+const gchar *
+hud_query_get_query (HudQuery * query)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(query), NULL);
+
+	return query->search_string;
+}
+
+guint
+hud_query_get_number (HudQuery * query)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(query), 0);
+
+	return query->querynumber;
+}
