@@ -94,6 +94,16 @@ describe_query (HudQuery *query)
   return g_variant_builder_end (&builder);
 }
 
+/* Describe the legacy query */
+GVariant *
+describe_legacy_query (HudQuery * query)
+{
+
+	return NULL;
+}
+
+/* Respond to the query being destroyed by removing it from
+   the list */
 static void
 query_destroyed (gpointer data, GObject * old_object)
 {
@@ -102,6 +112,19 @@ query_destroyed (gpointer data, GObject * old_object)
 	return;
 }
 
+/* Build a query and put it into the query list */
+static HudQuery *
+build_query (HudSourceList * all_sources, HudApplicationList * app_list, GDBusConnection * connection, const gchar * search_string)
+{
+	HudQuery * query = hud_query_new (HUD_SOURCE(all_sources), application_list, search_string, 10, connection, ++query_count);
+
+	g_ptr_array_add(query_list, query);
+	g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
+
+	return query;
+}
+
+/* Take a method call from DBus */
 static void
 bus_method (GDBusConnection       *connection,
             const gchar           *sender,
@@ -122,11 +145,23 @@ bus_method (GDBusConnection       *connection,
 		search_string = g_variant_get_string(vsearch, NULL);
 		g_debug ("'CreateQuery' from %s: '%s'", sender, search_string);
 
-		query = hud_query_new (HUD_SOURCE(all_sources), application_list, search_string, 10, connection, ++query_count);
+		query = build_query (all_sources, application_list, connection, search_string);
 		g_dbus_method_invocation_return_value (invocation, describe_query (query));
 
-		g_ptr_array_add(query_list, query);
-		g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
+		g_variant_unref(vsearch);
+	} else if (g_str_equal (method_name, "StartQuery")) {
+		HudSourceList *all_sources = user_data;
+		GVariant * vsearch;
+		const gchar *search_string;
+		HudQuery *query;
+
+		/* Legacy inteface for Compiz-based Unity */
+		vsearch = g_variant_get_child_value (parameters, 0);
+		search_string = g_variant_get_string(vsearch, NULL);
+		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
+
+		query = build_query (all_sources, application_list, connection, search_string);
+		g_dbus_method_invocation_return_value (invocation, describe_legacy_query (query));
 
 		g_variant_unref(vsearch);
 	} else if (g_str_equal (method_name, "RegisterApplication")) {
