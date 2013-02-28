@@ -419,10 +419,12 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
   GHashTable *pronounciations = g_hash_table_new_full (g_str_hash, g_str_equal,
       g_free, (GDestroyNotify) g_strfreev);
   GPtrArray *command_list = g_ptr_array_new_with_free_func (free_func);
+  GHashTable *unique_commands = g_hash_table_new(g_str_hash, g_str_equal);
   HudItemPronunciationData pronounciation_data =
-  { pronounciations, self->alphanumeric_regex, command_list, dict };
+  { pronounciations, self->alphanumeric_regex, command_list, dict, unique_commands };
   g_list_foreach (items, (GFunc) hud_item_insert_pronounciation,
       &pronounciation_data);
+  g_hash_table_destroy(unique_commands);
 
   if (command_list->len == 0)
   {
