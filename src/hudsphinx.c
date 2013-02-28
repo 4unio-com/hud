@@ -128,7 +128,7 @@ hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery *skel, GError **error)
 
   if (self->config == NULL) {
     g_warning("Sphinx command line arguments failed to initialize");
-    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
+    g_set_error_literal (error, hud_sphinx_error_quark (), 0,
         "Sphinx command line arguments failed to initialize");
     return NULL;
   }
@@ -136,7 +136,7 @@ hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery *skel, GError **error)
   self->ps = ps_init(self->config);
   if (self->ps == NULL) {
     g_warning("Unable to initialize Sphinx decoder");
-    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
+    g_set_error_literal (error, hud_sphinx_error_quark (), 0,
         "Unable to initialize Sphinx decoder");
     return NULL;
   }
@@ -181,7 +181,7 @@ hud_sphinx_utterance_loop(HudSphinx *self, gchar **result, GError **error)
   {
     g_warning("Failed to open audio device");
     *result = NULL;
-    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
+    g_set_error_literal (error, hud_sphinx_error_quark (), 0,
         "Failed to open audio device");
     return FALSE;
   }
@@ -191,7 +191,7 @@ hud_sphinx_utterance_loop(HudSphinx *self, gchar **result, GError **error)
   {
     g_warning("Failed to initialize voice activity detection");
     *result = NULL;
-    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
+    g_set_error_literal (error, hud_sphinx_error_quark (), 0,
         "Failed to initialize voice activity detection");
     return FALSE;
   }
@@ -199,7 +199,7 @@ hud_sphinx_utterance_loop(HudSphinx *self, gchar **result, GError **error)
   {
     g_warning("Failed to start recording");
     *result = NULL;
-    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
+    g_set_error_literal (error, hud_sphinx_error_quark (), 0,
         "Failed to start recording");
     return FALSE;
   }
@@ -217,7 +217,7 @@ hud_sphinx_utterance_loop(HudSphinx *self, gchar **result, GError **error)
   {
     g_warning("Failed to read audio");
     *result = NULL;
-    *error = g_error_new_literal (hud_sphinx_error_quark (), 0,
+    g_set_error_literal (error, hud_sphinx_error_quark (), 0,
         "Failed to read audio");
     return FALSE;
   }
@@ -415,7 +415,7 @@ hud_sphinx_build_grammar (HudSphinx *self, GList *items,
 
   if (command_list->len == 0)
   {
-    *error = g_error_new_literal(hud_sphinx_error_quark(), 0, "Could not build Sphinx grammar. Is sphinx-voxforge installed?");
+    g_set_error_literal (error, hud_sphinx_error_quark(), 0, "Could not build Sphinx grammar. Is sphinx-voxforge installed?");
     g_clear_pointer(&pronounciations, g_hash_table_destroy);
     g_ptr_array_free (command_list, TRUE);
     return FALSE;
@@ -459,7 +459,7 @@ hud_sphinx_voice_query (HudVoice *voice, HudSource *source, gchar **result, GErr
   if (source == NULL) {
     /* No active window, that's fine, but we'll just move on */
     *result = NULL;
-    *error = g_error_new_literal(hud_sphinx_error_quark(), 0, "Active source is null");
+    g_set_error_literal (error, hud_sphinx_error_quark(), 0, "Active source is null");
     return FALSE;
   }
 
