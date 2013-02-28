@@ -787,8 +787,33 @@ hud_application_list_get_focused_app (HudApplicationList * list)
 	}
 
 #ifdef HAVE_BAMF
-	/* TODO: Not sure if BAMF is right here, but not testing that. */
-	return list->priv->used_source;
+	BamfApplication * bapp = bamf_matcher_get_active_application(list->priv->matcher);
+	if (bapp != NULL) {
+		HudSource * source = HUD_SOURCE(bamf_app_to_source(list, bapp));
+
+		/* If we can't get something from the BAMF App, try to use
+		   the active window and XID */
+		if (source == NULL) {
+			BamfWindow * window = bamf_matcher_get_active_window(list->priv->matcher);
+			guint32 xid = bamf_window_get_xid(window);
+			GList * sources = g_hash_table_get_values(list->priv->applications);
+			GList * lsource = NULL;
+
+			for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
+				HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
+				if (appsource == NULL) continue;
+
+				if (hud_application_source_has_xid(appsource, xid)) {
+					source = HUD_SOURCE(appsource);
+					break;
+				}
+			}
+		}
+
+		return source;
+	} else {
+		return NULL;
+	}
 #endif
 #ifdef HAVE_HYBRIS
 	return HUD_SOURCE(list->priv->last_focused_main_stage_source);
