@@ -48,8 +48,13 @@ HudVoice * hud_voice_new(HudQueryIfaceComCanonicalHudQuery *skel)
 /**
  * hud_voice_query:
  * @voice: a #HudVoice
+ * @source: a #HudSource to interrogate #HudItem s from
+ * @result: the text result of the voice query will be returned here
+ * @error: if the method returns FALSE, an error will be provdided here
  *
- * Foo
+ * Run a voice query against the given source.
+ * 
+ * It is your resposibility to free the returned result and error.
  **/
 gboolean
 hud_voice_query (HudVoice *self, HudSource *source, gchar **result,
