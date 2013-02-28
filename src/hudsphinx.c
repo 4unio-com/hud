@@ -421,7 +421,7 @@ hud_sphinx_build_grammar (HudSphinx *self, GList *items,
     return FALSE;
   }
 
-  gint number_of_states = hud_sphinx_number_of_states(command_list) + 2;
+  gint number_of_states = hud_sphinx_number_of_states(command_list);
   gfloat command_probability = 1.0f / command_list->len;
 
   g_debug("Number of states [%d]", number_of_states);
