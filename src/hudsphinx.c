@@ -16,6 +16,7 @@
 
 #define G_LOG_DOMAIN "hudsphinx"
 
+#include "hudvoice.h"
 #include "hudsphinx.h"
 #include "hud-query-iface.h"
 #include "hudsource.h"
@@ -65,7 +66,18 @@ typedef GObjectClass HudSphinxClass;
 
 static void hud_sphinx_finalize (GObject *object);
 
-G_DEFINE_TYPE(HudSphinx, hud_sphinx, G_TYPE_OBJECT);
+static gboolean hud_sphinx_voice_query (HudVoice *self, HudSource *source,
+    gchar **result, GError **error);
+
+static void hud_sphinx_iface_init (HudVoiceInterface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (HudSphinx, hud_sphinx, G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (HUD_TYPE_VOICE, hud_sphinx_iface_init))
+
+static void hud_sphinx_iface_init (HudVoiceInterface *iface)
+{
+  iface->query = hud_sphinx_voice_query;
+}
 
 static void
 hud_sphinx_class_init (GObjectClass *klass)
@@ -316,9 +328,13 @@ free_func (gpointer data)
 }
 
 /* Function to try and get a query from voice */
-gboolean
-hud_sphinx_voice_query (HudSphinx *self, HudSource *source, gchar **result, GError **error)
+static gboolean
+hud_sphinx_voice_query (HudVoice *voice, HudSource *source,
+    gchar **result, GError **error)
 {
+  g_return_val_if_fail(HUD_IS_SPHINX(voice), FALSE);
+  HudSphinx *self = HUD_SPHINX(voice);
+
   if (source == NULL) {
     /* No active window, that's fine, but we'll just move on */
     *result = NULL;

@@ -26,8 +26,7 @@
 #include "hudresult.h"
 #include "hudmenumodelcollector.h"
 #include "huddbusmenucollector.h"
-#include "hudsphinx.h"
-#include "hudjulius.h"
+#include "hudvoice.h"
 #include "application-source.h"
 #include "application-list.h"
 
@@ -80,6 +79,8 @@ struct _HudQuery
 
   GSequence * results_list; /* Should almost always be NULL except when refreshing the query */
   guint max_usage; /* Used to make the GList search easier */
+
+  HudVoice *voice;
 };
 
 typedef GObjectClass HudQueryClass;
@@ -413,6 +414,8 @@ hud_query_finalize (GObject *object)
   g_clear_pointer(&query->results_name, g_free);
   g_clear_pointer(&query->appstack_name, g_free);
 
+  g_clear_object(&query->voice);
+
   G_OBJECT_CLASS (hud_query_parent_class)
     ->finalize (object);
 }
@@ -429,22 +432,19 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
       HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (skel));
   gchar *voice_result;
   GError *error = NULL;
-  HudJulius *julius = hud_julius_new (skel);
 
   HudSource * search_source = query->current_source;
   if (search_source == NULL) {
     search_source = hud_application_list_get_focused_app(query->app_list);
   }
 
-  if (!hud_julius_voice_query (julius,
-          search_source, &voice_result, &error))
+  if (!hud_voice_query (query->voice, search_source, &voice_result, &error))
   {
     g_dbus_method_invocation_return_error_literal(invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, error->message);
     g_error_free(error);
-    g_object_unref(julius);
     return FALSE;
   }
-  g_object_unref(julius);
+
   g_debug("Voice query is finished");
 
   if (voice_result == NULL)
@@ -729,6 +729,8 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint q
                NULL);
 
   g_dbus_interface_skeleton_flush(G_DBUS_INTERFACE_SKELETON(query->skel));
+
+  query->voice = hud_voice_new(query->skel);
 }
 
 static void
