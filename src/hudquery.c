@@ -708,6 +708,7 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint q
                                    &error))
   {
     g_warning ("%s %s\n", "g_dbus_interface_skeleton_export failed:", error->message);
+    g_error_free(error);
   }
 
   GDBusInterfaceInfo* info = g_dbus_interface_skeleton_get_info (
@@ -730,7 +731,13 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint q
 
   g_dbus_interface_skeleton_flush(G_DBUS_INTERFACE_SKELETON(query->skel));
 
-  query->voice = hud_voice_new(query->skel);
+  error = NULL;
+  query->voice = hud_voice_new(query->skel,&error);
+  if (!query->voice)
+  {
+    g_warning ("%s %s\n", "Voice engine failed to initialize:", error->message);
+    g_error_free(error);
+  }
 }
 
 static void

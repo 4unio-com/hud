@@ -36,12 +36,13 @@ hud_voice_default_init (HudVoiceInterface *iface)
 {
 }
 
-HudVoice * hud_voice_new(HudQueryIfaceComCanonicalHudQuery *skel)
+HudVoice *
+hud_voice_new(HudQueryIfaceComCanonicalHudQuery *skel, GError **error)
 {
   if (hud_julius_is_installed())
     return HUD_VOICE(hud_julius_new (skel));
 
-  return HUD_VOICE(hud_sphinx_new (skel));
+  return HUD_VOICE(hud_sphinx_new (skel, error));
 }
 
 
