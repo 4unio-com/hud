@@ -1,27 +1,28 @@
-
-gsettings_in_files = \
-    com.canonical.indicator.appmenu.gschema.xml.in \
-    com.canonical.indicator.appmenu.hud.gschema.xml.in \
-    com.canonical.indicator.appmenu.hud.search.gschema.xml.in
-
 gsettings_SCHEMAS = \
-	$(gsettings_in_files:.xml.in=.xml)
+    com.canonical.indicator.appmenu.hud.gschema.xml \
+    com.canonical.indicator.appmenu.hud.search.gschema.xml
 
-@INTLTOOL_XML_NOMERGE_RULE@
 @GSETTINGS_RULES@
 
 dbus_servicesdir = $(DBUSSERVICEDIR)
 dbus_services_DATA = com.canonical.hud.service
 
 %.service: %.service.in
-	sed -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@
+	sed -e "s|\@pkglibexecdir\@|$(pkglibexecdir)|" $< > $@
+
+dbus_interfacesdir = $(DBUSIFACEDIR)
+dbus_interfaces_DATA = \
+	com.canonical.hud.query.xml \
+	com.canonical.hud.xml
 
 EXTRA_DIST = \
+	$(dbus_interfaces_DATA) \
+	com.canonical.hud.Application.xml \
 	$(dbus_services_DATA:.service=.service.in) \
-	$(gsettings_in_files)
+	$(gsettings_SCHEMAS) \
+	$(pkgdata_DATA)
 
 CLEANFILES = \
-	$(dbus_services_DATA) \
-	$(gsettings_SCHEMAS:.xml=.valid) \
-	$(gsettings_SCHEMAS)
+	$(dbus_services_DATA)
 
+pkgdata_DATA = 

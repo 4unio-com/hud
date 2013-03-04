@@ -22,13 +22,14 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib.h>
 #include <glib-object.h>
 
-#define DUMP_MATRIX 1
+#include "hudsettings.h"
 #include "load-app-info.h"
-#include "load-app-info.c"
 #include "usage-tracker.h"
-#include "usage-tracker.c"
 #include "shared-values.h"
-#include "utils.c"
+
+HudSettings hud_settings = {
+  .store_usage_data = TRUE
+};
 
 static void
 test_usage_testapp (void)
@@ -70,8 +71,9 @@ test_usage_testapp_suite (void)
 gint
 main (gint argc, gchar * argv[])
 {
-	//gtk_init(&argc, &argv);
+#ifndef GLIB_VERSION_2_36
 	g_type_init();
+#endif
 
 	g_test_init(&argc, &argv, NULL);
 

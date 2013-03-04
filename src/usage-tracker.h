@@ -23,7 +23,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __USAGE_TRACKER_H__
 #define __USAGE_TRACKER_H__
 
-#include <glib.h>
 #include <glib-object.h>
 
 G_BEGIN_DECLS
@@ -53,6 +52,7 @@ GType usage_tracker_get_type (void);
 UsageTracker * usage_tracker_new (void);
 void usage_tracker_mark_usage (UsageTracker * self, const gchar * application, const gchar * entry);
 guint usage_tracker_get_usage (UsageTracker * self, const gchar * application, const gchar * entry);
+UsageTracker * usage_tracker_get_instance (void);
 
 G_END_DECLS
 

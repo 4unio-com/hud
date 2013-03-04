@@ -24,7 +24,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib/gstdio.h>
 #include <glib-object.h>
 #include "load-app-info.h"
-#include "load-app-info.c"
 
 static void
 build_db (sqlite3 * db)
@@ -54,7 +53,9 @@ main (int argv, char * argc[])
 		return 1;
 	}
 
+#ifndef GLIB_VERSION_2_36
 	g_type_init();
+#endif
 
 	gchar * filename = argc[1];
 

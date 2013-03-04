@@ -26,7 +26,7 @@ int
 main (int argv, char * argc[])
 {
 	if (argv != 2 && argv != 3) {
-		g_error("Usage: %s <desktop file path> [gettext domain]\n", argc[0]);
+		g_printerr("Usage: %s <desktop file path> [gettext domain]\n", argc[0]);
 		return 1;
 	}
 
@@ -35,7 +35,7 @@ main (int argv, char * argc[])
 		basecachedir = g_get_user_cache_dir();
 	}
 
-	gchar * cachedir = g_build_filename(basecachedir, "hud", NULL);
+	gchar * cachedir = g_build_filename(basecachedir, "indicator-appmenu", NULL);
 	if (!g_file_test(cachedir, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)) {
 		g_warning("Cache directory '%s' doesn't exist", cachedir);
 		return 1;

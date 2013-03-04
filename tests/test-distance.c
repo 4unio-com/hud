@@ -22,10 +22,66 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib.h>
 #include <glib-object.h>
 
-#define DUMP_MATRIX 1
-#include "distance.h"
-#include "distance.c"
-#include "utils.c"
+#include "hudsettings.h"
+#include "hudtoken.h"
+
+/* hardcode some parameters so the test doesn't fail if the user
+ * has bogus things in GSettings.
+ */
+HudSettings hud_settings = {
+	.indicator_penalty = 50,
+	.add_penalty = 10,
+	.drop_penalty = 10,
+	.end_drop_penalty = 1,
+	.swap_penalty = 15,
+	.max_distance = 30
+};
+
+static guint
+calculate_distance (const gchar *search, GStrv teststrings, gchar ***matches)
+{
+	HudStringList *list = NULL;
+	HudTokenList *haystack;
+	HudTokenList *needle;
+	guint distance;
+	gint i;
+
+	if (search == NULL || teststrings == NULL) {
+		return G_MAXINT;
+	}
+
+	for (i = 0; teststrings[i]; i++) {
+		HudStringList *tmp;
+
+		tmp = hud_string_list_cons (teststrings[i], list);
+		hud_string_list_unref (list);
+		list = tmp;
+	}
+
+	haystack = hud_token_list_new_from_string_list (list, NULL);
+	hud_string_list_unref (list);
+
+	needle = hud_token_list_new_from_string (search);
+	distance = hud_token_list_distance (haystack, needle, (const HudToken ***) matches);
+
+	if (matches) {
+		/* These are owned by the tokenlists, so make copies
+		 * before freeing.
+		 */
+		for (i = 0; (*matches)[i]; i++) {
+			const gchar *matchstr;
+			guint matchlen;
+
+			matchstr = hud_token_get_original ((HudToken *) (*matches)[i], &matchlen);
+			(*matches)[i] = g_strndup (matchstr, matchlen);
+		}
+	}
+
+	hud_token_list_free (haystack);
+	hud_token_list_free (needle);
+
+	return distance;
+}
 
 /* Ensure the base calculation works */
 static void
@@ -137,6 +193,24 @@ test_distance_variety (void)
 	return;
 }
 
+/* A variety of strings that should have predictable results */
+static void
+test_distance_french_pref (void)
+{
+	GStrv teststrings[3];
+	gchar * teststrings0[] = {"Fichier", "aperçu avant impression", NULL}; teststrings[0] = teststrings0;
+	gchar * teststrings1[] = {"Connexion au réseau...", NULL}; teststrings[1] = teststrings1;
+	gchar * teststrings2[] = {"Edition", "préférences", NULL}; teststrings[2] = teststrings2;
+
+	test_set(teststrings, 3, "préférences", 2);
+	test_set(teststrings, 3, "pré", 2);
+	test_set(teststrings, 3, "préf", 2);
+	test_set(teststrings, 3, "préfé", 2);
+	test_set(teststrings, 3, "pref", 2);
+
+	return;
+}
+
 /* Check to make sure the returned hits are not dups and the
    proper number */
 static void
@@ -154,6 +228,18 @@ test_distance_dups (void)
 	return;
 }
 
+/* Check to make sure 'Save' matches better than 'Save As...' for "save" */
+static void
+test_distance_extra_terms (void)
+{
+  const gchar *save_as[] = { "File", "Save", "As...", NULL };
+  const gchar *save[] = { "File", "Save", NULL };
+
+  g_assert_cmpint (calculate_distance ("save", (GStrv) save, NULL),
+                   <,
+                   calculate_distance ("save", (GStrv) save_as, NULL));
+}
+
 /* Build the test suite */
 static void
 test_distance_suite (void)
@@ -164,14 +250,17 @@ test_distance_suite (void)
 	g_test_add_func ("/hud/distance/print_issues",  test_distance_print_issues);
 	g_test_add_func ("/hud/distance/duplicates",    test_distance_dups);
 	g_test_add_func ("/hud/distance/variety",       test_distance_variety);
+	g_test_add_func ("/hud/distance/french_pref",   test_distance_french_pref);
+	g_test_add_func ("/hud/distance/extra_terms",   test_distance_extra_terms);
 	return;
 }
 
 gint
 main (gint argc, gchar * argv[])
 {
-	//gtk_init(&argc, &argv);
-	g_type_init();
+#ifndef GLIB_VERSION_2_36
+	g_type_init ();
+#endif
 
 	g_test_init(&argc, &argv, NULL);
 

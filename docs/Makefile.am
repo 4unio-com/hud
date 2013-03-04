@@ -1,1 +1,3 @@
-SUBDIRS = man
+SUBDIRS = \
+	libhud-client \
+	man

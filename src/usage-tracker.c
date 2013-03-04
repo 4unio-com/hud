@@ -20,23 +20,26 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define G_LOG_DOMAIN "usagetracker"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include "usage-tracker.h"
 
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <gio/gio.h>
 #include <sqlite3.h>
-#include "usage-tracker.h"
 #include "load-app-info.h"
-#include "utils.h"
+#include "create-db.h"
+#include "hudsettings.h"
 
 struct _UsageTrackerPrivate {
 	gchar * cachefile;
 	sqlite3 * db;
 	guint drop_timer;
-	GSettings * settings;
 
 	/* SQL Statements */
 	sqlite3_stmt * insert_entry;
@@ -56,14 +59,11 @@ typedef enum {
 #define USAGE_TRACKER_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), USAGE_TRACKER_TYPE, UsageTrackerPrivate))
 
-static void usage_tracker_class_init (UsageTrackerClass *klass);
-static void usage_tracker_init       (UsageTracker *self);
 static void usage_tracker_dispose    (GObject *object);
 static void usage_tracker_finalize   (GObject *object);
 static void cleanup_db               (UsageTracker * self);
 static void configure_db             (UsageTracker * self);
 static void prepare_statements       (UsageTracker * self);
-static void usage_setting_changed    (GSettings * settings, const gchar * key, gpointer user_data);
 static void build_db                 (UsageTracker * self);
 static gboolean drop_entries         (gpointer user_data);
 static void check_app_init (UsageTracker * self, const gchar * application);
@@ -91,17 +91,11 @@ usage_tracker_init (UsageTracker *self)
 	self->priv->cachefile = NULL;
 	self->priv->db = NULL;
 	self->priv->drop_timer = 0;
-	self->priv->settings = NULL;
 
 	self->priv->insert_entry = NULL;
 	self->priv->entry_count = NULL;
 	self->priv->delete_aged = NULL;
 	self->priv->application_count = NULL;
-
-	if (settings_schema_exists("com.canonical.indicator.appmenu.hud")) {
-		self->priv->settings = g_settings_new("com.canonical.indicator.appmenu.hud");
-		g_signal_connect(self->priv->settings, "changed::store-usage-data", G_CALLBACK(usage_setting_changed), self);
-	}
 
 	configure_db(self);
 
@@ -121,11 +115,6 @@ usage_tracker_dispose (GObject *object)
 	if (self->priv->drop_timer != 0) {
 		g_source_remove(self->priv->drop_timer);
 		self->priv->drop_timer = 0;
-	}
-
-	if (self->priv->settings != NULL) {
-		g_object_unref(self->priv->settings);
-		self->priv->settings = NULL;
 	}
 
 	G_OBJECT_CLASS (usage_tracker_parent_class)->dispose (object);
@@ -185,18 +174,6 @@ usage_tracker_new (void)
 	return g_object_new(USAGE_TRACKER_TYPE, NULL);
 }
 
-/* Checking if the setting for tracking the usage data has changed
-   value.  We'll rebuild the DB */
-static void
-usage_setting_changed (GSettings * settings, const gchar * key, gpointer user_data)
-{
-	g_return_if_fail(IS_USAGE_TRACKER(user_data));
-	UsageTracker * self = USAGE_TRACKER(user_data);
-
-	configure_db(self);
-	return;
-}
-
 /* Configure which database we should be using */
 static void
 configure_db (UsageTracker * self)
@@ -210,10 +187,7 @@ configure_db (UsageTracker * self)
 	}
 	
 	/* Determine where his database should be built */
-	gboolean usage_data = TRUE;
-	if (self->priv->settings != NULL) {
-		usage_data = g_settings_get_boolean(self->priv->settings, "store-usage-data");
-	}
+	gboolean usage_data = hud_settings.store_usage_data;
 
 	if (g_getenv("HUD_NO_STORE_USAGE_DATA") != NULL) {
 		usage_data = FALSE;
@@ -235,20 +209,30 @@ configure_db (UsageTracker * self)
 			basecachedir = g_get_user_cache_dir();
 		}
 
+		gint abletomkdir = 0;
 		gchar * cachedir = g_build_filename(basecachedir, "indicator-appmenu", NULL);
 		if (!g_file_test(cachedir, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)) {
-			g_mkdir(cachedir, 1 << 6 | 1 << 7 | 1 << 8); // 700
+			abletomkdir = g_mkdir_with_parents(cachedir, 1 << 6 | 1 << 7 | 1 << 8); // 700
+			if (abletomkdir != 0) {
+				g_warning("Unable to create cache directory");
+			}
 		}
 		g_free(cachedir);
 
-		self->priv->cachefile = g_build_filename(basecachedir, "indicator-appmenu", "hud-usage-log.sqlite", NULL);
-		db_exists = g_file_test(self->priv->cachefile, G_FILE_TEST_EXISTS);
-		int open_status = sqlite3_open(self->priv->cachefile, &self->priv->db); 
+		int open_status = SQLITE_ERROR;
+		if (abletomkdir == 0) {
+			self->priv->cachefile = g_build_filename(basecachedir, "indicator-appmenu", "hud-usage-log.sqlite", NULL);
+			db_exists = g_file_test(self->priv->cachefile, G_FILE_TEST_EXISTS);
+			open_status = sqlite3_open(self->priv->cachefile, &self->priv->db); 
+		}
 
 		if (open_status != SQLITE_OK) {
 			g_warning("Error building LRU DB");
-			sqlite3_close(self->priv->db);
-			self->priv->db = NULL;
+
+			if (self->priv->db != NULL) {
+				sqlite3_close(self->priv->db);
+				self->priv->db = NULL;
+			}
 		}
 	} else {
 		/* If we're not storing it, let's make an in memory database
@@ -353,13 +337,11 @@ build_db (UsageTracker * self)
 	int exec_status = SQLITE_OK;
 	gchar * failstring = NULL;
 	exec_status = sqlite3_exec(self->priv->db,
-	                           "create table usage (application text, entry text, timestamp datetime);",
+	                           create_db,
 	                           NULL, NULL, &failstring);
 	if (exec_status != SQLITE_OK) {
 		g_warning("Unable to create table: %s", failstring);
 	}
-
-	/* Import data from the system */
 
 	return;
 }
@@ -368,6 +350,10 @@ void
 usage_tracker_mark_usage (UsageTracker * self, const gchar * application, const gchar * entry)
 {
 	g_return_if_fail(IS_USAGE_TRACKER(self));
+	g_return_if_fail(self->priv->db != NULL);
+
+	g_debug ("Marking %s %s", application, entry);
+
 	check_app_init(self, application);
 
 	sqlite3_reset(self->priv->insert_entry);
@@ -401,6 +387,8 @@ guint
 usage_tracker_get_usage (UsageTracker * self, const gchar * application, const gchar * entry)
 {
 	g_return_val_if_fail(IS_USAGE_TRACKER(self), 0);
+	g_return_val_if_fail(self->priv->db != NULL, 0);
+
 	check_app_init(self, application);
 
 	sqlite3_reset(self->priv->entry_count);
@@ -485,7 +473,6 @@ check_app_init (UsageTracker * self, const gchar * application)
 		return;
 	}
 
-	g_debug("Initializing application: %s", application);
 	gchar * basename = g_path_get_basename(application);
 
 	gchar * app_info_path = NULL;
@@ -511,4 +498,15 @@ check_app_init (UsageTracker * self, const gchar * application)
 	g_free(basename);
 
 	return;
+}
+
+UsageTracker *
+usage_tracker_get_instance (void)
+{
+  static UsageTracker *usage_tracker_instance;
+
+  if (usage_tracker_instance == NULL)
+    usage_tracker_instance = usage_tracker_new ();
+
+  return usage_tracker_instance;
 }
