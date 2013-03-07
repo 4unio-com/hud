@@ -466,6 +466,8 @@ hud_sphinx_voice_query (HudVoice *voice, HudSource *source, gchar **result, GErr
   GList *items = hud_source_get_items(source);
   if (items == NULL) {
     /* The active window doesn't have items, that's cool.  We'll move on. */
+    g_debug("EMPTY SOURCE");
+    *result = NULL;
     return TRUE;
   }
 

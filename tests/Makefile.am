@@ -310,6 +310,51 @@ DISTCLEANFILES += \
 	$(KEYWORD_XML_REPORT:.xml=-xunit.xml)
 
 ######################
+# Test Voice
+######################
+
+TESTS += \
+	test-voice-test
+
+check_PROGRAMS += \
+	test-voice
+
+VOICE_XML_REPORT = test-voice.xml
+
+test-voice-test: test-voice Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(VOICE_XML_REPORT) $(builddir)/test-voice >> $@
+	@echo gtester2xunit $(VOICE_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_voice_SOURCES = \
+	test-voice.c
+
+test_voice_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	$(DBUSTEST_CFLAGS) \
+	-DDATADIR=\""$(datadir)"\" \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-I$(top_srcdir)/libhud-client \
+	-I$(top_srcdir) \
+	-DHUD_CLIENT_COMPILATION \
+	-Wall -Werror
+
+test_voice_LDADD = \
+	$(top_builddir)/src/libhud-service.la \
+	$(DBUSTEST_LIBS) \
+	libhud-tests.la \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+DISTCLEANFILES += \
+	$(VOICE_XML_REPORT) \
+	$(VOICE_XML_REPORT:.xml=-xunit.xml)
+
+######################
 # Test String List
 ######################
 

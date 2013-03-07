@@ -135,6 +135,22 @@ hud_manual_source_get_app_icon (HudSource * hud_source)
 }
 
 static void
+hud_manual_source_copy_item (gpointer data, gpointer user_data)
+{
+  GList **result = (GList **) user_data;
+  *result = g_list_append(*result, g_object_ref(data));
+}
+
+static GList *
+hud_manual_source_get_items (HudSource *source)
+{
+  HudManualSource *self = HUD_MANUAL_SOURCE (source);
+  GList *result = NULL;
+  g_ptr_array_foreach(self->items, hud_manual_source_copy_item, &result);
+  return result;
+}
+
+static void
 hud_manual_source_finalize (GObject *object)
 {
   HudManualSource *self = HUD_MANUAL_SOURCE (object);
@@ -164,6 +180,7 @@ hud_manual_source_iface_init (HudSourceInterface *iface)
   iface->get = hud_manual_source_get;
   iface->get_app_id = hud_manual_source_get_app_id;
   iface->get_app_icon = hud_manual_source_get_app_icon;
+  iface->get_items = hud_manual_source_get_items;
 }
 
 static void
