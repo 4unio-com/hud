@@ -333,8 +333,7 @@ test_voice_SOURCES = \
 
 test_voice_CFLAGS = \
 	$(HUD_CFLAGS) \
-	$(BAMF_CFLAGS) \
-	$(DBUSTEST_CFLAGS) \
+	$(VOICETEST_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -345,10 +344,9 @@ test_voice_CFLAGS = \
 
 test_voice_LDADD = \
 	$(top_builddir)/src/libhud-service.la \
-	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
 	$(HUD_LIBS) \
-	$(BAMF_LIBS)
+	$(VOICETEST_LIBS)
 
 DISTCLEANFILES += \
 	$(VOICE_XML_REPORT) \

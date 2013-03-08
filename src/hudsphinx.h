@@ -41,6 +41,7 @@ GType hud_sphinx_get_type (void);
  * Method definitions.
  */
 
-HudSphinx * hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery *skel, GError **error);
+HudSphinx * hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery *skel,
+    const gchar *device, GError **error);
 
 #endif /* HUDSPHINX_H_ */

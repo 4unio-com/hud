@@ -162,6 +162,10 @@ AC_ARG_ENABLE([tests],
 	[enable_tests=auto])
 
 if test x"$enable_tests" != x"no" ; then
+   PKG_CHECK_MODULES(VOICETEST,
+     libpulse
+     libpulse-mainloop-glib
+   )
    PKG_CHECK_MODULES(INDICATORTEST,
                      dbusmenu-jsonloader-0.4 >= $DBUSMENU_JSONLOADER_REQUIRED_VERSION
                      appindicator3-0.1 >= $LIBAPPINDICATOR_REQUIRED_VERSION,
