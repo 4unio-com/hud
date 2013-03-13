@@ -362,9 +362,7 @@ disconnect_handler (gpointer data,
  * and target value as @description then it will be replaced.
  *
  * You should only use this API for situations like recent documents and
- * bookmarks.  Most actions in an application are more static in nature
- * and are better handled with
- * hud_action_publisher_add_descriptions_from_file().
+ * bookmarks.
  */
 void
 hud_action_publisher_add_description (HudActionPublisher   *publisher,
@@ -1044,48 +1042,6 @@ end_element (GMarkupParseContext  *context,
       g_variant_builder_add (state->widget, "{sv}", "label", g_variant_new_string (str));
       g_free (str);
     }
-}
-
-/**
- * hud_action_publisher_add_descriptions_from_file:
- * @publisher: the #HudActionPublisher
- * @filename: the filename of the XML file describing the actions
- *
- * Adds action descriptions from an XML file.
- *
- * If any error occurs while attempting to open or parse the file, the
- * program will abort.
- **/
-void
-hud_action_publisher_add_descriptions_from_file (HudActionPublisher *publisher,
-                                                 const gchar        *filename)
-{
-  GMarkupParser parser = {
-    start_element,
-    end_element,
-    backport_g_markup_parser_reject_text
-  };
-  ParserState state = {
-    publisher
-  };
-  GMarkupParseContext *context;
-  GError *error = NULL;
-  gchar *contents;
-  gsize size;
-
-  if (!g_file_get_contents (filename, &contents, &size, &error))
-    g_error ("Failed to open file %s: %s", filename, error->message);
-
-  context = g_markup_parse_context_new (&parser, 0, &state, NULL);
-  if (!g_markup_parse_context_parse (context, contents, size, &error) ||
-      !g_markup_parse_context_end_parse (context, &error))
-    g_error ("Failed to parse action description XML from %s: %s", filename, error->message);
-  g_markup_parse_context_free (context);
-  g_free (contents);
-
-  /* We know that everything has been cleaned up properly because
-   * otherwise we would have hit the g_error() above.
-   */
 }
 
 /**
