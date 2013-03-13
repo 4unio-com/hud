@@ -26,8 +26,11 @@ libhud_la_SOURCES = \
 	manager.h		\
 	manager.c		\
 	operation-private.h	\
+	operation.h		\
 	operation.c		\
+	action.h		\
 	action.c		\
+	action-publisher.h \
 	action-publisher.c
 
 libhud_la_CFLAGS = \
@@ -103,6 +106,64 @@ BUILT_SOURCES += \
 	app-iface.c \
 	service-iface.h \
 	service-iface.c
+
+##########################
+# Introspection
+##########################
+
+include $(INTROSPECTION_MAKEFILE)
+INTROSPECTION_GIRS =
+INTROSPECTION_SCANNER_ARGS = \
+	--add-include-path=$(top_srcdir) \
+	--add-include-path=$(srcdir) \
+	-I $(top_srcdir) -I $(srcdir)
+INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir) --includedir=$(srcdir)
+
+if HAVE_INTROSPECTION
+
+# NOTE: 1 here is $API_VERSION
+
+Hud-1.gir: libhud.la
+
+Hud_1_gir_INCLUDES = Dee-1.0
+Hud_1_gir_CFLAGS = \
+	-D HUD_COMPILATION \
+	$(HUD_CFLAGS)
+Hud_1_gir_LIBS = $(builddir)/libhud.la
+Hud_1_gir_EXPORT_PACKAGES = hud-$(API_VERSION)
+Hud_1_gir_SCANNERFLAGS = --c-include "hud.h"
+Hud_1_gir_FILES = $(libhud_la_SOURCES)
+
+INTROSPECTION_GIRS += Hud-1.gir
+
+endif
+
+girdir = $(datadir)/gir-1.0
+gir_DATA = $(INTROSPECTION_GIRS)
+
+typelibdir = $(libdir)/girepository-1.0
+typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
+
+CLEANFILES += $(gir_DATA) $(typelib_DATA)
+
+##########################
+# Vapi
+##########################
+
+if HAVE_VALA
+if HAVE_INTROSPECTION
+
+vapidir = $(datadir)/vala/vapi
+vapi_DATA = Hud-1.vapi
+
+Hud-1.vapi: Hud-1.gir
+	$(VALA_API_GEN) --pkg gio-2.0 --library=Hud-1 $<
+
+CLEANFILES += $(vapi_DATA)
+
+endif
+endif
+
 
 #################################
 # Package Config
