@@ -28,7 +28,6 @@ libhud_la_SOURCES = \
 	operation-private.h	\
 	operation.h		\
 	operation.c		\
-	action.h		\
 	action.c		\
 	action-publisher.h \
 	action-publisher.c
