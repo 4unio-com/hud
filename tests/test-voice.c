@@ -127,7 +127,10 @@ drain (pa_context *context)
 static void
 index_callback (pa_context *c, uint32_t idx, void *userdata)
 {
-  g_assert(idx != PA_INVALID_INDEX);
+  if (idx != PA_INVALID_INDEX)
+  {
+    g_error("Pulse error: [%s]", pa_strerror(pa_context_errno(c)));
+  }
 
   HudTestVoice *test_voice = (HudTestVoice *) userdata;
   g_debug("index_callback: loaded module with index [%d]", idx);
