@@ -164,6 +164,7 @@ context_state_callback_load_module (pa_context *context,
   case PA_CONTEXT_CONNECTING:
   case PA_CONTEXT_AUTHORIZING:
   case PA_CONTEXT_SETTING_NAME:
+    g_debug("PA_CONTEXT_CONNECTING");
     break;
 
   case PA_CONTEXT_READY:
@@ -178,11 +179,13 @@ context_state_callback_load_module (pa_context *context,
     break;
 
   case PA_CONTEXT_TERMINATED:
+    g_debug("PA_CONTEXT_TERMINATED");
     quit (0, test_voice->api);
     break;
 
   case PA_CONTEXT_FAILED:
   default:
+    g_debug("PA_CONTEXT_FAILED");
     quit (1, test_voice->api);
     break;
   }
@@ -199,6 +202,7 @@ context_state_callback_unload_module (pa_context *context,
   case PA_CONTEXT_CONNECTING:
   case PA_CONTEXT_AUTHORIZING:
   case PA_CONTEXT_SETTING_NAME:
+    g_debug("PA_CONTEXT_CONNECTING");
     break;
 
   case PA_CONTEXT_READY:
@@ -209,11 +213,13 @@ context_state_callback_unload_module (pa_context *context,
     break;
 
   case PA_CONTEXT_TERMINATED:
+    g_debug("PA_CONTEXT_TERMINATED");
     quit (0, test_voice->api);
     break;
 
   case PA_CONTEXT_FAILED:
   default:
+    g_debug("PA_CONTEXT_FAILED");
     quit (1, test_voice->api);
     break;
   }
