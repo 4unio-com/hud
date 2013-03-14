@@ -185,7 +185,7 @@ context_state_callback_load_module (pa_context *context,
 
   case PA_CONTEXT_FAILED:
   default:
-    g_debug("PA_CONTEXT_FAILED");
+    g_error("PA_CONTEXT_FAILED: [%s]", pa_strerror(pa_context_errno(context)));
     quit (1, test_voice->api);
     break;
   }
@@ -219,7 +219,7 @@ context_state_callback_unload_module (pa_context *context,
 
   case PA_CONTEXT_FAILED:
   default:
-    g_debug("PA_CONTEXT_FAILED");
+    g_error("PA_CONTEXT_FAILED: [%s]", pa_strerror(pa_context_errno(context)));
     quit (1, test_voice->api);
     break;
   }
