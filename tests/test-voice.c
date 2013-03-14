@@ -127,7 +127,7 @@ drain (pa_context *context)
 static void
 index_callback (pa_context *c, uint32_t idx, void *userdata)
 {
-  if (idx != PA_INVALID_INDEX)
+  if (idx == PA_INVALID_INDEX)
   {
     g_error("Pulse error: [%s]", pa_strerror(pa_context_errno(c)));
   }
