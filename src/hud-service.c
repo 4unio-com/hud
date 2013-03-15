@@ -115,8 +115,9 @@ describe_legacy_query (HudQuery * query)
 
 	g_variant_builder_add_value(&builder, g_variant_new_string(hud_query_get_query(query)));
 
+	gboolean item_added = FALSE;
 	DeeModel * results = hud_query_get_results_model(query);
-	if (dee_model_get_n_rows(results) != 0) {
+	if (dee_model_get_n_rows(results) > 0) {
 		/* Get the application icon from the appstack */
 		DeeModel * appstack = hud_query_get_appstack_model(query);
 		GVariant * app_icon = NULL;
@@ -133,15 +134,18 @@ describe_legacy_query (HudQuery * query)
 		DeeModelIter * iter = dee_model_get_first_iter(results);
 		int i;
 
-		/* Open the builder to put in the array */
-		g_variant_builder_open(&builder, G_VARIANT_TYPE_ARRAY);
-
 		/* Parse through either the first five results or the full list */
 		for (i = 0; i < 5 && dee_model_is_last(results, iter); i++, iter = dee_model_next(results, iter)) {
 			/* Don't show parameterized actions */
 			if (dee_model_get_bool(results, iter, 7)) {
 				i--;
 				continue;
+			}
+
+			if (!item_added) {
+				/* Open the builder to put in the array */
+				g_variant_builder_open(&builder, G_VARIANT_TYPE_ARRAY);
+				item_added = TRUE;
 			}
 
 			g_variant_builder_open(&builder, G_VARIANT_TYPE_TUPLE);
@@ -166,8 +170,12 @@ describe_legacy_query (HudQuery * query)
 			g_variant_builder_close(&builder);
 		}
 
-		g_variant_builder_close(&builder);
-	} else {
+		if (item_added) {
+			g_variant_builder_close(&builder);
+		}
+	}
+	
+	if (!item_added) {
 		g_variant_builder_add_value(&builder, g_variant_new_array(G_VARIANT_TYPE("(sssssv)"), NULL, 0));
 	}
 
