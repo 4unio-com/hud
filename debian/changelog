@@ -1,8 +1,38 @@
+hud (13.10.0-0ubuntu1~ppa2) quantal; urgency=low
+
+  * Don't spin CPU at 100% when closing share-app (LP: #1131186)
+
+ -- Albert Astals Cid  <albert.astals@canonical.com>  Fri, 22 Feb 2013 12:08:19 +0100
+
 hud (13.10.0-0ubuntu1~ppa1) quantal; urgency=low
 
   * Upstream release of many, many changes.
 
  -- Ted Gould <ted@ubuntu.com>  Wed, 20 Feb 2013 09:28:40 -0600
+
+hud (13.04.0daily13.02.20-0ubuntu1) raring; urgency=low
+
+  [ Ted Gould ]
+  * First version
+    * Now independent of indicator-appmenu
+
+  [ Michael Terry ]
+  * Switch to dh9
+  * Update copyright to DEP-5
+  * Use valac-0.18 instead of valac-0.16
+  * Require raring's version of bustle for the --count argument
+
+  [ Mathieu Trudel-Lapierre ]
+  * Automatic snapshot from revision 237 (bootstrap).
+  * debian/control:
+    - update Maintainer.
+    - Further flesh out long description for the packages.
+    - Reorganize Build-Depends for clarity.
+
+  [ Automatic PS uploader ]
+  * Automatic snapshot from revision 242
+
+ -- Automatic PS uploader <ps-jenkins@lists.canonical.com>  Wed, 20 Feb 2013 02:01:50 +0000
 
 hud (13.04.0-0ubuntu1~ppa17) quantal; urgency=low
 
@@ -128,6 +158,13 @@ hud (13.04.0-0ubuntu1~ppa1) quantal; urgency=low
   * Update copyright to DEP-5
   * Use valac-0.18 instead of valac-0.16
   * Require raring's version of bustle for the --count argument
+
+  [ Mathieu Trudel-Lapierre ]
+  * Automatic snapshot from revision 237 (bootstrap).
+  * debian/control:
+    - update Maintainer.
+    - Further flesh out long description for the packages.
+    - Reorganize Build-Depends for clarity.
 
  -- Ted Gould <ted@ubuntu.com>  Wed, 24 Oct 2012 15:43:27 +0200
 

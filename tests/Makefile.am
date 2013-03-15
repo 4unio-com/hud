@@ -305,6 +305,11 @@ test_keyword_mapping_LDADD = \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
+EXTRA_DIST += \
+	keyword-mapping/gnome-terminal-en_FAKELANG.po \
+	keyword-mapping/hud/keywords/gnome-terminal.xml
+
+
 DISTCLEANFILES += \
 	$(KEYWORD_XML_REPORT) \
 	$(KEYWORD_XML_REPORT:.xml=-xunit.xml)
@@ -382,6 +387,12 @@ test_pronounce_dict_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
+
+EXTRA_DIST += \
+	test-pronounce-dict-hashes.dic \
+	test-pronounce-dict-htk.dic \
+	test-pronounce-dict-lowercase.dic \
+	test-pronounce-dict-semicolon.dic
 
 DISTCLEANFILES += \
 	$(PRONOUNCE_DICT_XML_REPORT) \
@@ -476,6 +487,15 @@ test_app_indicator_source_LDADD = \
 	libhud-tests.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
+
+EXTRA_DIST += \
+	test-app-indicator-source-one.json \
+	test-app-indicator-source-two.json \
+	test-indicator-source-datetime.json \
+	test-indicator-source-messages.json \
+	test-indicator-source-session.json \
+	test-indicator-source-sound.json \
+	test-indicator-source-users.json
 
 DISTCLEANFILES += \
 	$(APP_INDICATOR_SOURCE_XML_REPORT) \
@@ -1002,3 +1022,5 @@ check_PROGRAMS += libhud-client-test
 #########################
 
 DISTCLEANFILES += $(TESTS)
+EXTRA_DIST += \
+	gobject.suppression

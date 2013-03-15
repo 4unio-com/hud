@@ -41,8 +41,6 @@ GType hud_sphinx_get_type (void);
  * Method definitions.
  */
 
-HudSphinx * hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery * skel);
-
-gboolean hud_sphinx_voice_query (HudSphinx *self, HudSource *source, gchar **result, GError **error);
+HudSphinx * hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery *skel, GError **error);
 
 #endif /* HUDSPHINX_H_ */

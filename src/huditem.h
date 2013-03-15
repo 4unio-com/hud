@@ -63,6 +63,7 @@ struct _HudItemPronunciationData
   GRegex *regex;
   GPtrArray *list;
   PronounceDict *dict;
+  GHashTable *unique_commands;
 };
 
 GType                   hud_item_get_type                               (void);

@@ -21,7 +21,6 @@
 #include "pronounce-dict.h"
 #include "hud-query-iface.h"
 
-#include <julius/juliuslib.h>
 #include <glib/gstdio.h>
 #include <gio/gio.h>
 #include <signal.h>
@@ -79,7 +78,18 @@ typedef GObjectClass HudJuliusClass;
 
 static void hud_julius_finalize (GObject *object);
 
-G_DEFINE_TYPE(HudJulius, hud_julius, G_TYPE_OBJECT);
+static gboolean hud_julius_voice_query (HudVoice *self, HudSource *source,
+    gchar **result, GError **error);
+
+static void hud_julius_iface_init (HudVoiceInterface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (HudJulius, hud_julius, G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (HUD_TYPE_VOICE, hud_julius_iface_init))
+
+static void hud_julius_iface_init (HudVoiceInterface *iface)
+{
+  iface->query = hud_julius_voice_query;
+}
 
 static void
 hud_julius_class_init (HudJuliusClass *klass)
@@ -105,6 +115,11 @@ hud_julius_finalize (GObject *object)
     ->finalize (object);
 }
 
+static gchar *
+hud_julius_get_daemon_path ()
+{
+  return g_build_filename (LIBEXECDIR, "hud", "hud-julius-listen", NULL );
+}
 
 static gboolean
 timeout_quit_func (gpointer user_data)
@@ -211,7 +226,7 @@ static gboolean
 hud_julius_listen (HudJulius *self, const gchar *gram, const gchar *hmm,
     const gchar *hlist, gchar **query, GError **error)
 {
-  gchar *program = g_build_filename(LIBEXECDIR, "hud", "hud-julius-listen", NULL);
+  gchar *program = hud_julius_get_daemon_path ();
   g_debug("Julius listening program [%s]", program);
 
   const gchar *argv[] =
@@ -404,10 +419,12 @@ hud_julius_build_grammar (HudJulius *self, GList *items, gchar **temp_dir, GErro
   GHashTable *pronounciations = g_hash_table_new_full (g_str_hash, g_str_equal,
       g_free, (GDestroyNotify) g_strfreev);
   GPtrArray *command_list = g_ptr_array_new_with_free_func (free_func);
+  GHashTable *unique_commands = g_hash_table_new(g_str_hash, g_str_equal);
   HudItemPronunciationData pronounciation_data =
-  { pronounciations, self->alphanumeric_regex, command_list, dict };
+  { pronounciations, self->alphanumeric_regex, command_list, dict, unique_commands };
   g_list_foreach (items, (GFunc) hud_item_insert_pronounciation,
       &pronounciation_data);
+  g_hash_table_destroy(unique_commands);
 
   if (command_list->len == 0)
   {
@@ -554,9 +571,12 @@ static void rm_rf(const gchar *path)
   }
 }
 
-gboolean
-hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GError **error)
+static gboolean
+hud_julius_voice_query (HudVoice *voice, HudSource *source, gchar **result, GError **error)
 {
+  g_return_val_if_fail(HUD_IS_JULIUS(voice), FALSE);
+  HudJulius *self = HUD_JULIUS(voice);
+
   if (source == NULL) {
     /* No active window, that's fine, but we'll just move on */
     *result = NULL;
@@ -592,6 +612,15 @@ hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GErr
   g_free(temp_dir);
 
   return success;
+}
+
+gboolean
+hud_julius_is_installed()
+{
+  gchar *filename = hud_julius_get_daemon_path();
+  gboolean result = g_file_test(filename, G_FILE_TEST_EXISTS);
+  g_free(filename);
+  return result;
 }
 
 HudJulius *

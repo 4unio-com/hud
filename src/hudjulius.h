@@ -17,7 +17,7 @@
 #ifndef HUDJULIUS_H_
 #define HUDJULIUS_H_
 
-#include <glib-object.h>
+#include <hudvoice.h>
 
 /*
  * Type macros.
@@ -32,7 +32,6 @@
 typedef struct _HudJulius        HudJulius;
 
 typedef struct _HudQueryIfaceComCanonicalHudQuery HudQueryIfaceComCanonicalHudQuery;
-typedef struct _HudSource         HudSource;
 
 /* Default timeout in microseconds */
 #define HUD_JULIUS_DEFAULT_TIMEOUT 10000000
@@ -44,8 +43,8 @@ GType hud_julius_get_type (void);
  * Method definitions.
  */
 
-HudJulius * hud_julius_new(HudQueryIfaceComCanonicalHudQuery * skel);
+gboolean hud_julius_is_installed();
 
-gboolean hud_julius_voice_query (HudJulius *self, HudSource *source, gchar **result, GError **error);
+HudJulius * hud_julius_new(HudQueryIfaceComCanonicalHudQuery * skel);
 
 #endif /* HUDJULIUS_H_ */

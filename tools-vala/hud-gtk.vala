@@ -17,6 +17,7 @@ namespace HudGtk {
 		Gtk.Label voice_label;
 		Gtk.ListStore model;
 		Gtk.ListStore appstack_model;
+		Gtk.Entry entry;
 		HudClient.Query query;
 		
 		void results_row_added (Dee.Model results, Dee.ModelIter result_iter) {
@@ -65,7 +66,6 @@ namespace HudGtk {
 		}
 
 		void entry_text_changed (Object object, ParamSpec pspec) {
-			var entry = object as Gtk.Entry;
 			query.set_query(entry.text);
 		}
 
@@ -110,6 +110,7 @@ namespace HudGtk {
 		void voice_query_finished (HudClient.Query proxy, string query) {
 			debug("Voice query is finished, query=[%s]", query);
 			voice_label.label = "Idle";
+			entry.text = query;
 		}
 
 		void appstack_view_activated (Gtk.TreeView view, Gtk.TreePath path, Gtk.TreeViewColumn column) {
@@ -150,8 +151,9 @@ namespace HudGtk {
 			appstack_results.row_added.connect (appstack_results_row_added);
 			appstack_results.row_removed.connect (appstack_results_row_removed);
 
+			entry = builder.get_object ("entry") as Gtk.Entry;
 			model = builder.get_object ("liststore") as Gtk.ListStore;
-			builder.get_object ("entry").notify["text"].connect (entry_text_changed);
+			entry.notify["text"].connect (entry_text_changed);
 			(builder.get_object ("voice") as Gtk.Button).clicked.connect (voice_pressed);
 			(builder.get_object ("treeview") as Gtk.TreeView).row_activated.connect (view_activated);
 			add (builder.get_object ("grid") as Gtk.Widget);

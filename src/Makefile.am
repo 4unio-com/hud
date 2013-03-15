@@ -12,8 +12,7 @@ bin_SCRIPTS = \
 	hud-list-applications
 
 pkglibexec_PROGRAMS = \
-	hud-service \
-	hud-julius-listen
+	hud-service
 
 noinst_LTLIBRARIES = \
 	libhud-service-generated.la \
@@ -62,6 +61,8 @@ libhud_service_la_SOURCES = \
 	hudquery.c		\
 	hudstringlist.h		\
 	hudstringlist.c		\
+	hudvoice.h		\
+	hudvoice.c		\
 	hudsphinx.h		\
 	hudsphinx.c		\
 	hudjulius.h		\
@@ -81,15 +82,11 @@ libhud_service_la_SOURCES = \
 
 libhud_service_la_LDFLAGS = \
 	$(COVERAGE_LDFLAGS) \
-	$(LIBJULIUS_LIBS) \
-	$(LIBSENT_LIBS) \
 	libhud-service-generated.la
 
 libhud_service_la_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(BAMF_CFLAGS) \
-	$(LIBJULIUS_CFLAGS) \
-	$(LIBSENT_CFLAGS) \
 	$(HYBRIS_CFLAGS) \
 	$(COVERAGE_CFLAGS) \
 	-DDATADIR=\""$(datadir)"\" \
@@ -118,29 +115,6 @@ hud_service_CFLAGS = \
 	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 hud_service_LDADD = \
-	libhud-service.la	\
-	$(COVERAGE_LDFLAGS) \
-	$(BAMF_LIBS) \
-	$(HYBRIS_LIBS) \
-	$(HUD_LIBS)
-
-#######################
-# HUD Listening Daemon
-#######################
-
-hud_julius_listen_SOURCES = hud-julius-listen.c
-
-hud_julius_listen_CFLAGS = \
-	$(HUD_CFLAGS) \
-	$(BAMF_CFLAGS) \
-	$(HYBRIS_CFLAGS) \
-	$(COVERAGE_CFLAGS) \
-	-DDATADIR=\""$(datadir)"\" \
-	-I$(top_srcdir)/libhud-client \
-	-I$(top_srcdir) \
-	-DHUD_CLIENT_COMPILATION \
-	-Wall -Werror
-hud_julius_listen_LDADD = \
 	libhud-service.la	\
 	$(COVERAGE_LDFLAGS) \
 	$(BAMF_LIBS) \

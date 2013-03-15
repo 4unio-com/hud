@@ -1,6 +1,5 @@
 debian/hud-crashdb.conf /etc/apport/crashdb.conf.d
 debian/source_hud.py /usr/share/apport/package-hooks
 usr/lib/*/hud/hud-service
-usr/lib/*/hud/hud-julius-listen
 usr/share/dbus-1
 usr/share/glib-2.0
