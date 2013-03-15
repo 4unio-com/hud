@@ -1,7 +1,7 @@
 Source: hud
 Section: gnome
 Priority: optional
-Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
 Build-Depends: bamfdaemon,
                bustle,
                dbus-test-runner,
@@ -55,6 +55,10 @@ Depends: ${misc:Depends},
 Recommends: julius-voxforge (>= 0.1.1~daily20130206),
 Conflicts: indicator-appmenu (<< 13),
 Description: Backend for the Unity HUD
+ Unity HUD is a heads-up-display interface for controlling the behavior of
+ applications as well as Unity via typed-in commands. It provides access to
+ all applications menu via a single central interface, in order to simplify
+ application usage and make menus more accessible.
  .
  This package provides a service for Unity's HUD
 
@@ -66,8 +70,12 @@ Depends: ${misc:Depends},
          sqlite3,
 Conflicts: indicator-appmenu-tools (<< 13),
 Description: Tools for debugging the Unity HUD.
+ Unity HUD is a heads-up-display interface for controlling the behavior of
+ applications as well as Unity via typed-in commands. It provides access to
+ all applications menu via a single central interface, in order to simplify
+ application usage and make menus more accessible.
  .
- This package provides tools for working with HUD.
+ This package provides tools for working with Unity's HUD.
 
 Package: libhud1
 Section: libs
