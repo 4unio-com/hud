@@ -1,7 +1,7 @@
 Source: hud
 Section: gnome
 Priority: optional
-Maintainer: Ubuntu Desktop Team <ubuntu-desktop@lists.ubuntu.com>
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
 Build-Depends: bamfdaemon,
                bustle,
                dbus-test-runner,
@@ -34,11 +34,10 @@ Build-Depends: bamfdaemon,
                valac-0.18,
                xvfb,
                python3-dbusmock,
-               libpocketsphinx-dev,
-               libsphinxbase-dev,
-               julius (>= 4.2.2-0ubuntu3),
-               libjulius-dev (>= 4.2.2-0ubuntu3),
-               libubuntu-platform-api1-dev,
+               libpocketsphinx-dev (>= 0.8),
+               libsphinxbase-dev (>= 0.8),
+               pocketsphinx-hmm-en-hub4wsj (>= 0.8),
+               pocketsphinx-lm-en-hub4 (>= 0.8),
 Standards-Version: 3.9.4
 Homepage: http://launchpad.net/hud
 # If you aren't a member of ~indicator-applet-developers but need to upload
@@ -51,13 +50,15 @@ Package: hud
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         pocketsphinx-hmm-en-hub4wsj (>= 0.8.0),
-         pocketsphinx-lm-en-hub4 (>= 0.8.0),
-         irstlm,
-         julius (>= 4.2.2-0ubuntu3),
-         julius-voxforge (>= 0.1.1~daily20130206),
+         pocketsphinx-hmm-en-hub4wsj (>= 0.8),
+         pocketsphinx-lm-en-hub4 (>= 0.8)
+Recommends: julius-voxforge (>= 0.1.1~daily20130206),
 Conflicts: indicator-appmenu (<< 13),
 Description: Backend for the Unity HUD
+ Unity HUD is a heads-up-display interface for controlling the behavior of
+ applications as well as Unity via typed-in commands. It provides access to
+ all applications menu via a single central interface, in order to simplify
+ application usage and make menus more accessible.
  .
  This package provides a service for Unity's HUD
 
@@ -69,8 +70,12 @@ Depends: ${misc:Depends},
          sqlite3,
 Conflicts: indicator-appmenu-tools (<< 13),
 Description: Tools for debugging the Unity HUD.
+ Unity HUD is a heads-up-display interface for controlling the behavior of
+ applications as well as Unity via typed-in commands. It provides access to
+ all applications menu via a single central interface, in order to simplify
+ application usage and make menus more accessible.
  .
- This package provides tools for working with HUD.
+ This package provides tools for working with Unity's HUD.
 
 Package: libhud1
 Section: libs
@@ -99,6 +104,22 @@ Description: library for exporting items to the Unity HUD
  menubar or other parsed GUI elements.
  .
  This package contains files that are needed to build applications.
+
+Package: gir1.2-hud-1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libhud1 (= ${binary:Version}),
+         ${gir:Depends},
+Pre-Depends: ${misc:Pre-Depends}
+Recommends: hud (= ${binary:Version})
+Description: typelib file for libhud1
+ Allows applications to add items into the HUD without requiring a
+ menubar or other parsed GUI elements.
+ .
+ This package can be used by other packages using the GIRepository format to
+ generate dynamic bindings for libdbusmenu-gtk4.
 
 Package: libhud-gtk1
 Section: libs

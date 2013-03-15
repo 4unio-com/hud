@@ -257,44 +257,56 @@ hud_string_list_insert_pronounciation (HudStringList * list, HudItemPronunciatio
 	GRegex *regex = user_data->regex;
 	GPtrArray *command_list = user_data->list;
 	PronounceDict *dict = user_data->dict;
+  GHashTable *unique_commands = user_data->unique_commands;
 
-	gchar * upper = g_utf8_strup(list->head, -1);
-	gchar ** splitted = g_strsplit(upper, " ", -1);
-	g_free(upper);
+  do
+  {
+    // Skip duplicate commands
+    if (g_hash_table_contains(unique_commands, list->head))
+      continue;
+    else
+      g_hash_table_insert(unique_commands, list->head, GINT_TO_POINTER(1));
 
-	GPtrArray *command = g_ptr_array_new_with_free_func(g_free);
-	int i;
-	for (i = 0; splitted[i] != NULL; i++) {
-    GError *error = NULL;
-    gchar *filtered = g_regex_replace (regex, splitted[i], -1, 0, "", 0,
-        &error);
-    if (filtered == NULL) {
-      g_error("Regex replace failed: [%s]", error->message);
-      g_error_free(error);
+    gchar * upper = g_utf8_strup (list->head, -1);
+    gchar ** splitted = g_strsplit (upper, " ", -1);
+    g_free (upper);
+
+    GPtrArray *command = g_ptr_array_new_with_free_func (g_free);
+    int i;
+    for (i = 0; splitted[i] != NULL ; i++)
+    {
+      GError *error = NULL;
+      gchar *filtered = g_regex_replace (regex, splitted[i], -1, 0, "", 0,
+          &error);
+      if (filtered == NULL )
+      {
+        g_error("Regex replace failed: [%s]", error->message);
+        g_error_free (error);
+      }
+
+      if (g_hash_table_lookup (table, filtered) == NULL )
+      {
+        gchar** pronounce = pronounce_dict_lookup_word (dict, filtered);
+        g_hash_table_insert (table, g_strdup (filtered), pronounce);
+      }
+
+      gchar **pronounce = g_hash_table_lookup (table, filtered);
+      if (g_strv_length (pronounce) > 0)
+        g_ptr_array_add (command, g_strdup (filtered));
+
+      g_free (filtered);
     }
 
-		if (g_hash_table_lookup(table, filtered) == NULL) {
-      gchar** pronounce = pronounce_dict_lookup_word (dict, filtered);
-      g_hash_table_insert (table, g_strdup (filtered), pronounce);
-		}
+    if (command->len > 0)
+    {
+      g_ptr_array_add (command_list, command);
+    }
+    else
+    {
+      g_ptr_array_free (command, TRUE);
+    }
 
-		gchar **pronounce = g_hash_table_lookup(table, filtered);
-		if (g_strv_length(pronounce) > 0)
-		  g_ptr_array_add(command, g_strdup(filtered));
-
-    g_free(filtered);
-	}
-
-	if (command->len > 0)
-	{
-	  g_ptr_array_add(command_list, command);
-	}
-	else
-	{
-	  g_ptr_array_free(command, TRUE);
-	}
-
-	g_strfreev(splitted);
-
-	return hud_string_list_insert_pronounciation(list->tail, user_data);
+    g_strfreev (splitted);
+  }
+  while ((list = list->tail) != NULL );
 }
