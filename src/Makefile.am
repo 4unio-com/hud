@@ -81,8 +81,7 @@ libhud_service_la_SOURCES = \
 	usage-tracker.c
 
 libhud_service_la_LDFLAGS = \
-	$(COVERAGE_LDFLAGS) \
-	libhud-service-generated.la
+	$(COVERAGE_LDFLAGS)
 
 libhud_service_la_CFLAGS = \
 	$(HUD_CFLAGS) \
@@ -114,8 +113,10 @@ hud_service_CFLAGS = \
 	-I$(top_srcdir) \
 	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
+
 hud_service_LDADD = \
 	libhud-service.la	\
+	libhud-service-generated.la \
 	$(COVERAGE_LDFLAGS) \
 	$(BAMF_LIBS) \
 	$(HYBRIS_LIBS) \
