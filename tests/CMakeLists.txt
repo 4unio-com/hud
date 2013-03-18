@@ -1,16 +1,144 @@
-macro(hudtest tname tfilename)
+
+include_directories(${HUD_SERVICE_INCLUDE_DIRS})
+include_directories(${HUD_CLIENT_INCLUDE_DIRS})
+
+#MOCK_JSON_APP=/usr/lib/indicator-appmenu/mock-json-app
+
+#######################
+# Dbus JSON Loader
+#######################
+
+add_definitions(-DDBUSMENU_JSON_LOADER="${CMAKE_CURRENT_BINARY_DIR}/dbusmenu-json-loader")
+
+add_executable(dbusmenu-json-loader dbusmenu-json-loader.c)
+target_link_libraries(dbusmenu-json-loader
+${DBUSMENU_JSONLOADER_LIBRARIES}
+)
+
+#######################
+# Menu input model deep
+#######################
+
+add_executable(test-menu-input-model-deep test-menu-input-model-deep.c)
+target_link_libraries(test-menu-input-model-deep
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
+#########################
+# Menu input model simple
+#########################
+
+add_executable(test-menu-input-model-simple test-menu-input-model-simple.c)
+target_link_libraries(test-menu-input-model-simple
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
+############################
+# Menu input model shortcuts
+############################
+
+add_executable(test-menu-input-model-shortcuts test-menu-input-model-shortcuts.c)
+target_link_libraries(test-menu-input-model-shortcuts
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
+#EXTRA_DIST += \
+#	test-menu-input-simple.json \
+#	test-menu-input-shortcuts.json
+
+#######################
+# TEST MACRO
+#######################
+
+macro(hudtest tname tfilename rfilename)
   add_executable(${tname} ${tfilename})
-  target_link_libraries(${tname} hud-service)
-  add_test(${tname} ${tname})
+  target_link_libraries(${tname}
+    hud-service
+    hud-test
+    ${DBUSTEST_LIBRARIES}
+  )
+  add_test(${tname}
+    "${CMAKE_CURRENT_SOURCE_DIR}/test-runner.sh"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/${tname}"
+    "${CMAKE_CURRENT_BINARY_DIR}/${rfilename}"
+  )
 endmacro()
 
-hudtest(string-list test-string-list.c)
+#######################
+# HUD Test Common Code
+#######################
 
-#add_executable(lev_scalability LevScalabilityTest.cc)
-#target_link_libraries(lev_scalability ${COL_LIB_BASENAME})
-#if(${enable_scalability_tests})
-#  add_test(lev_scalability lev_scalability /usr/share/dict/words)
-#endif()
+set(HUD_TEST_HEADERS
+app-list-dummy.h
+word-list.h
+hudrandomsource.h
+hudmanualsource.h
+hudtestutils.h
+)
 
-#add_executable(create_performance CreatePerformanceTest.cc)
-#target_link_libraries(create_performance ${COL_LIB_BASENAME})
+set(HUD_TEST_SOURCES
+app-list-dummy.c
+hudrandomsource.c
+hudmanualsource.c
+hudtestutils.c
+)
+
+add_library(hud-test STATIC ${HUD_TEST_SOURCES})
+
+target_link_libraries(hud-test
+hud-service
+)
+	
+#######################
+# HUD Test Suite
+#######################
+
+hudtest(test-distance test-distance.c test-distance.xml)
+hudtest(test-hud-item test-huditem.c test-hud-item.xml)
+hudtest(test-result-highlighting test-result-highlighting.c test-result-highlighting.xml)
+#test-menu-input.xml
+hudtest(test-keyword-mapping test-keyword-mapping.c test-keyword-mapping.xml)
+hudtest(test-string-list test-string-list.c test-string-list.xml)
+hudtest(test-pronounce-dict test-pronounce-dict.c test-pronounce-dict.xml)
+#hudtest(test-source test-source.c test-source.xml)
+hudtest(test-app-indicator-source test-app-indicator-source.c test-app-indicator-source.xml)
+hudtest(test-indicator-source test-indicator-source.c test-indicator-source.xml)
+#hudtest(test-application-list test-application-list.c test-application-list.xml)
+#test-usage-db-simple.xml
+#test-usage-db-old.xml
+#test-usage-db-testapp.xml
+#test-usage-db-off.xml
+#test-bad-app-info-dual-header
+#test-bad-app-info-item-no-count
+#test-bad-app-info-item-no-name
+#test-bad-app-info-menu-no-name
+#test-bad-app-info-missing-desktop
+#test-bad-app-info-missing-menus
+#test-bad-app-info-multiple-menus
+#test-good-app-info-tons-of-entries
+#test-dbus-message-count
+
+#######################
+# Slow test
+#######################
+
+add_executable(hud-performance hud-performance.c)
+target_link_libraries(hud-performance
+  hud-service
+  hud-test
+  ${DBUSTEST_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+if(${enable_scalability_tests})
+  add_test(hud-performance
+    "${CMAKE_CURRENT_SOURCE_DIR}/test-runner.sh"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/hud-performance"
+    "${CMAKE_CURRENT_BINARY_DIR}/hud-performance.xml"
+  )
+endif()
+

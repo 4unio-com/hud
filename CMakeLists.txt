@@ -10,7 +10,7 @@ if(PROJECT_BINARY_DIR STREQUAL PROJECT_SOURCE_DIR)
    message(FATAL_ERROR "In-tree build attempt detected, aborting. Set your build dir outside your source dir, delete CMakeCache.txt from source root and try again.")
 endif()
 
-option(enable_tests "Enable tests." OFF)
+option(enable_tests "Enable tests." ON)
 option(enable_scalability_tests "Additional scalability tests that are potentially very slow to run." OFF)
 option(full_warnings "Full compiler warnings." OFF)
 option(debug_messages "Print debug messages.")
@@ -111,5 +111,12 @@ add_subdirectory(src)
 
 if(${enable_tests})
   enable_testing()
+  
+  pkg_check_modules(DBUSTEST REQUIRED dbustest-1)
+  include_directories(${DBUSTEST_INCLUDE_DIRS})
+  
+  pkg_check_modules(DBUSMENU_JSONLOADER REQUIRED dbusmenu-jsonloader-0.4)
+  include_directories(${DBUSMENU_JSONLOADER_INCLUDE_DIRS})
+  
   add_subdirectory(tests)
 endif()
