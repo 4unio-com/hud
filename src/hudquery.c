@@ -29,6 +29,7 @@
 #include "hudvoice.h"
 #include "application-source.h"
 #include "application-list.h"
+#include "query-columns.h"
 
 /**
  * SECTION:hudquery
@@ -91,7 +92,7 @@ static guint hud_query_changed_signal;
 
 /* Schema that is used in the DeeModel representing
    the results */
-static const gchar * results_model_schema[] = {
+static const gchar * results_model_schema[HUD_QUERY_RESULTS_COUNT] = {
 	"v", /* Command ID */
 	"s", /* Command Name */
 	"a(ii)", /* Highlights in command name */
@@ -104,7 +105,7 @@ static const gchar * results_model_schema[] = {
 
 /* Schema that is used in the DeeModel representing
    the appstack */
-static const gchar * appstack_model_schema[] = {
+static const gchar * appstack_model_schema[HUD_QUERY_APPSTACK_COUNT] = {
 	"s", /* Application ID */
 	"s", /* Icon Name */
 	"i", /* Item Type */
