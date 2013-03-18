@@ -118,6 +118,12 @@ void               hud_client_query_execute_toolbar_item  (HudClientQuery *     
                                                            HudClientQueryToolbarItems  item,
                                                            guint                   timestamp);
 
+/* Appstack Accessors */
+const gchar *      hud_client_query_appstack_get_app_id   (HudClientQuery *        cquery,
+                                                           DeeModelIter *          row);
+const gchar *      hud_client_query_appstack_get_app_icon (HudClientQuery *        cquery,
+                                                           DeeModelIter *          row);
+
 /**
 	SECTION:query
 	@short_description: Query the HUD service for entries
