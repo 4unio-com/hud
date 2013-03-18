@@ -24,6 +24,7 @@
 /.settings
 /.project
 /.cproject
+/build
 
 # In any location
 Makefile

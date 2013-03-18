@@ -1,17 +1,21 @@
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+set(HUD_SERVICE_INCLUDE_DIRS
+${CMAKE_CURRENT_SOURCE_DIR}
+${CMAKE_CURRENT_BINARY_DIR}
+)
 
+set(HUD_SERVICE_INCLUDE_DIRS
+${HUD_SERVICE_INCLUDE_DIRS}
+PARENT_SCOPE
+)
+
+include_directories(${HUD_SERVICE_INCLUDE_DIRS})
 include_directories(${HUD_CLIENT_INCLUDE_DIRS})
-#include_directories(${HUD_INCLUDE_DIRS})
-#message(STATUS "SRC INCLUDING: ${HUD_CLIENT_INCLUDE_DIRS}")
-#message(STATUS "SRC INCLUDING: ${HUD_INCLUDE_DIRS}")
 
 ###########################
 # Generated Lib Hud Service
 ###########################
 
-#create-db.h
 set(HUD_SERVICE_GENERATED_HEADERS
 app-iface.h
 hud-iface.h
@@ -45,7 +49,7 @@ ${HUD_APP_XML}
 add_constant_template(HUD_SERVICE_GENERATED_SOURCES
 create-db
 create_db
-create-db.sql
+"${CMAKE_CURRENT_SOURCE_DIR}/create-db.sql"
 )
 
 add_library(hud-service-generated STATIC ${HUD_SERVICE_GENERATED_SOURCES})
