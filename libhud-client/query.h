@@ -124,6 +124,22 @@ const gchar *      hud_client_query_appstack_get_app_id   (HudClientQuery *     
 const gchar *      hud_client_query_appstack_get_app_icon (HudClientQuery *        cquery,
                                                            DeeModelIter *          row);
 
+/* Results Accessors */
+GVariant *         hud_client_query_results_get_command_id (HudClientQuery *       cquery,
+                                                            DeeModelIter *         row);
+const gchar *      hud_client_query_results_get_command_name (HudClientQuery *     cquery,
+                                                            DeeModelIter *         row);
+GVariant *         hud_client_query_results_get_command_highlights (HudClientQuery * cquery,
+                                                            DeeModelIter *         row);
+const gchar *      hud_client_query_results_get_description (HudClientQuery *      cquery,
+                                                            DeeModelIter *         row);
+GVariant *         hud_client_query_results_get_description_highlights (HudClientQuery * cquery,
+                                                            DeeModelIter *         row);
+const gchar *      hud_client_query_results_get_shortcut   (HudClientQuery *       cquery,
+                                                            DeeModelIter *         row);
+gboolean           hud_client_query_results_is_parameterized (HudClientQuery *     cquery,
+                                                            DeeModelIter *         row);
+
 /**
 	SECTION:query
 	@short_description: Query the HUD service for entries
