@@ -599,3 +599,39 @@ hud_client_query_execute_toolbar_item (HudClientQuery * cquery, HudClientQueryTo
 
 	return;
 }
+
+/**
+ * hud_client_query_appstack_get_app_id:
+ * @cquery: A #HudClientQuery
+ * @row: Which row in the table to grab the ID from
+ *
+ * Get the application ID for a given row in the appstack table.
+ *
+ * Return value: The application ID
+ */
+const gchar *
+hud_client_query_appstack_get_app_id (HudClientQuery * cquery, DeeModelIter * row)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+	g_return_val_if_fail(row != NULL, NULL);
+
+	return dee_model_get_string(cquery->priv->appstack, row, HUD_QUERY_APPSTACK_APPLICATION_ID);
+}
+
+/**
+ * hud_client_query_appstack_get_app_icon:
+ * @cquery: A #HudClientQuery
+ * @row: Which row in the table to grab the icon from
+ *
+ * Get the application icon for a given row in the appstack table.
+ *
+ * Return value: The application icon
+ */
+const gchar *
+hud_client_query_appstack_get_app_icon (HudClientQuery * cquery, DeeModelIter * row)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+	g_return_val_if_fail(row != NULL, NULL);
+
+	return dee_model_get_string(cquery->priv->appstack, row, HUD_QUERY_APPSTACK_ICON_NAME);
+}
