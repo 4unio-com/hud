@@ -45,10 +45,6 @@ target_link_libraries(test-menu-input-model-shortcuts
   ${GIO2_LIBRARIES}
 )
 
-#EXTRA_DIST += \
-#	test-menu-input-simple.json \
-#	test-menu-input-shortcuts.json
-
 #######################
 # TEST MACRO
 #######################
@@ -62,7 +58,7 @@ macro(hudtest tname tfilename rfilename)
   )
   add_test(${tname}
     "${CMAKE_CURRENT_SOURCE_DIR}/test-runner.sh"
-    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}" # PROBABLY DON'T WANT THIS ANY MORE - ABSOLUTE PATHS TO TEST FIXTURES
     "${CMAKE_CURRENT_BINARY_DIR}/${tname}"
     "${CMAKE_CURRENT_BINARY_DIR}/${rfilename}"
   )
