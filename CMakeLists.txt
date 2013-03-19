@@ -17,23 +17,23 @@ option(debug_messages "Print debug messages.")
 option(full_unicode "Enable full Unicode support (takes lots of memory).")
 
 find_package(PkgConfig REQUIRED)
+include(GNUInstallDirs)
 include(CheckIncludeFile)
+include(CheckFunctionExists)
 include(coverage)
 include(GLibHelpers)
 include(GdbusCodegen)
 include(ConstantBuilder)
 
-#if(${full_warnings})
-#  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pedantic")
-#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic")
-#endif()
+if(${full_warnings})
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pedantic")
+endif()
 
 if(${debug_messages})
   add_definitions(-DDEBUG_MESSAGES)
 endif()
 
 # Symbol visibility
-add_definitions(-DBUILDING_HUD)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 
 set(SO_VERSION_MAJOR "0")
@@ -55,13 +55,10 @@ set(HUD_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 # http://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html#AEN135
 set(ABI_VERSION 0)
 
-# Set as cache variable so packaging can override.
-set(LIBDIR "lib" CACHE PATH "Destination install dir for the library")
-
-add_definitions( -DDATADIR="${DATADIR}" )
-add_definitions( -DGNOMELOCALEDIR="${DATADIR}/locale" )
+add_definitions( -DDATADIR="${CMAKE_INSTALL_FULL_DATADIR}" )
+add_definitions( -DGNOMELOCALEDIR="${CMAKE_INSTALL_FULL_DATADIR}/locale" )
 add_definitions( -DGETTEXT_PACKAGE="${GETTEXT_PACKAGE}" )
-add_definitions( -DLIBEXECDIR="${LIBEXECDIR}" )
+add_definitions( -DLIBEXECDIR="${CMAKE_INSTALL_FULL_LIBEXECDIR}" )
 add_definitions( -DDICT_PATH="/usr/share/pocketsphinx/model/lm/en_US/cmu07a.dic" )
 add_definitions( -DJULIUS_DICT_PATH="/usr/share/julius-voxforge/acoustic/" )
 
@@ -89,7 +86,11 @@ include_directories(${DBUSMENU_GLIB_INCLUDE_DIRS})
 pkg_check_modules(POCKETSPHINX REQUIRED pocketsphinx)
 include_directories(${POCKETSPHINX_INCLUDE_DIRS})
 
-check_include_file(signal.h HAVE_SIGNAL_H)
+check_include_file("signal.h" HAVE_SIGNAL_H)
+if(HAVE_SIGNAL_H)
+  set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} "signal.h")
+  check_function_exists(kill HAVE_KILL)
+endif()
 
 pkg_search_module(BAMF libbamf3)
 if(BAMF_FOUND)
