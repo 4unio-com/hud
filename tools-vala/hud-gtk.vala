@@ -31,7 +31,7 @@ namespace HudGtk {
 			model.set(iter, 2, query.results_get_shortcut(result_iter));
 			/* Distance isn't in the API because it's internal, but this
 			   is a debugging tool so we're leavinging here */
-			model.set(iter, 3, results.get_string(result_iter, 6));
+			model.set(iter, 3, results.get_uint32(result_iter, 6));
 			model.set(iter, 4, query.results_get_command_id(result_iter));
 		}
 
