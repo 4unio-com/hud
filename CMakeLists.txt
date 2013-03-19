@@ -13,8 +13,8 @@ endif()
 option(enable_tests "Enable tests." ON)
 option(enable_scalability_tests "Additional scalability tests that are potentially very slow to run." OFF)
 option(full_warnings "Full compiler warnings." OFF)
-option(debug_messages "Print debug messages.")
-option(full_unicode "Enable full Unicode support (takes lots of memory).")
+option(debug_messages "Print debug messages." OFF)
+option(local_install "Support local installation." OFF)
 
 find_package(PkgConfig REQUIRED)
 include(GNUInstallDirs)
@@ -24,6 +24,7 @@ include(coverage)
 include(GLibHelpers)
 include(GdbusCodegen)
 include(ConstantBuilder)
+include(GSettings)
 
 if(${full_warnings})
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pedantic")
@@ -85,11 +86,24 @@ endif()
 
 pkg_search_module(GTK3 gtk+-3.0)
 
+if(${local_install})
+  set(DBUSSERVICEDIR "${CMAKE_INSTALL_DATADIR}/dbus-1/services/")
+else()
+  EXEC_PROGRAM(${PKG_CONFIG_EXECUTABLE} ARGS dbus-1 --variable session_bus_services_dir OUTPUT_VARIABLE DBUSSERVICEDIR )
+endif()
+
+if(${local_install})
+  set(DBUSIFACEDIR "${CMAKE_INSTALL_DATADIR}/dbus-1/interfaces/")
+else()
+  EXEC_PROGRAM(${PKG_CONFIG_EXECUTABLE} ARGS dbus-1 --variable interfaces_dir OUTPUT_VARIABLE DBUSIFACEDIR )
+endif()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -fPIC")
 
+add_subdirectory(data)
 add_subdirectory(libhud-client)
 add_subdirectory(libhud)
 add_subdirectory(src)
