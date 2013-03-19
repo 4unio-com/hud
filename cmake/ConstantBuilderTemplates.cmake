@@ -1,4 +1,3 @@
-  message(STATUS, "Creating ${file_target} from ${input}")
   file(READ "${input}" input_contents)
   string(REGEX REPLACE "\n" " " input_on_one_line "${input_contents}") 
   set(new_contents
