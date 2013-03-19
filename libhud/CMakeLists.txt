@@ -23,8 +23,6 @@ add_definitions( -DHUD_COMPILATION=1 )
 set(API_VERSION 1)
 set(ABI_VERSION 1)
 
-#libhud_include_basedir = $(includedir)/libhud-$(API_VERSION)/
-
 ###########################
 # Generated Lib Hud
 ###########################
@@ -63,11 +61,16 @@ add_library(hud-generated STATIC ${HUD_GENERATED_SOURCES})
 target_link_libraries(hud-generated
 ${GLIB2_LIBRARIES}
 ${GOBJECT2_LIBRARIES}
+${GIO2_LIBRARIES}
 )
 
 ###########################
 # Lib Hud
 ###########################
+
+set(HUD_MAIN_HEADERS
+hud.h
+)
 
 set(HUD_HEADERS
 manager.h
@@ -84,9 +87,9 @@ action.c
 action-publisher.c
 )
 
-add_library(hud STATIC ${HUD_SOURCES})
+add_library(hud SHARED ${HUD_SOURCES})
 
-set_target_properties(hud PROPERTIES VERSION ${API_VERSION} SOVERSION ${ABI_VERSION})
+set_target_properties(hud PROPERTIES VERSION ${API_VERSION}.0.0 SOVERSION ${ABI_VERSION})
 
 target_link_libraries(hud
 hud-generated
@@ -104,15 +107,29 @@ set(apiversion "${API_VERSION}")
 set(libdir "${CMAKE_INSTALL_FULL_LIBDIR}")
 set(includedir "${CMAKE_INSTALL_FULL_INCLUDEDIR}")
 set(VERSION "${ABI_VERSION}")
+
 configure_file("hud.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/${HUD_PC}" @ONLY)
 
 ###########################
 # Installation
 ###########################
 
-#install(
-#  TARGETS ${HUD_LIB_BASENAME}
-#  ARCHIVE DESTINATION ${LIBDIR}
-#  RUNTIME DESTINATION bin
-#  LIBRARY DESTINATION ${LIBDIR}
-#)
+install(
+  FILES ${HUD_MAIN_HEADERS}
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libhud-${API_VERSION}"
+)
+
+install(
+  FILES ${HUD_HEADERS}
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libhud-${API_VERSION}/libhud"
+)
+
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/${HUD_PC}"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+)
+
+install(
+  TARGETS hud
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)

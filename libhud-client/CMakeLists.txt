@@ -23,8 +23,6 @@ add_definitions( -DHUD_CLIENT_COMPILATION=1 )
 set(API_VERSION 1)
 set(ABI_VERSION 1)
 
-#libhud_client_include_basedir = $(includedir)/libhud-client-$(API_VERSION)/
-
 ###########################
 # Generated Hud Client
 ###########################
@@ -56,6 +54,7 @@ add_library(hud-client-generated STATIC ${HUD_CLIENT_GENERATED_SOURCES})
 target_link_libraries(hud-client-generated
 ${GLIB2_LIBRARIES}
 ${GOBJECT2_LIBRARIES}
+${GIO2_LIBRARIES}
 ${DEE_LIBRARIES}
 )
 
@@ -63,6 +62,9 @@ ${DEE_LIBRARIES}
 # Hud Client
 ###########################
 
+set(HUD_CLIENT_MAIN_HEADERS
+hud-client.h
+)
 
 set(HUD_CLIENT_HEADERS
 connection.h
@@ -83,9 +85,9 @@ enum-types.c.in
 ${HUD_CLIENT_HEADERS}
 )
 
-add_library(hud-client STATIC ${HUD_CLIENT_SOURCES})
+add_library(hud-client SHARED ${HUD_CLIENT_SOURCES})
 
-set_target_properties(hud-client PROPERTIES VERSION ${API_VERSION} SOVERSION ${ABI_VERSION})
+set_target_properties(hud-client PROPERTIES VERSION ${API_VERSION}.0.0 SOVERSION ${ABI_VERSION})
 
 target_link_libraries(hud-client
 hud-client-generated
@@ -95,9 +97,9 @@ ${GOBJECT2_LIBRARIES}
 #--export-symbols-regex='^[^_].*'
 )
 
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--foo")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--foo")
-set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--foo")
+#set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--foo")
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--foo")
+#set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--foo")
 
 ###########################
 # Pkg Config
@@ -114,9 +116,22 @@ configure_file("hud-client.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/${HUD_CLIENT_PC}"
 # Installation
 ###########################
 
-#install(
-#  TARGETS ${HUD_LIB_BASENAME}
-#  ARCHIVE DESTINATION ${LIBDIR}
-#  RUNTIME DESTINATION bin
-#  LIBRARY DESTINATION ${LIBDIR}
-#)
+install(
+  FILES ${HUD_CLIENT_MAIN_HEADERS}
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libhud-client-${API_VERSION}"
+)
+
+install(
+  FILES ${HUD_CLIENT_HEADERS}
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libhud-client-${API_VERSION}/libhud-client"
+)
+
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/${HUD_CLIENT_PC}"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+)
+
+install(
+  TARGETS hud-client
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
