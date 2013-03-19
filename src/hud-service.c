@@ -100,10 +100,15 @@ static gchar *
 build_legacy_description (DeeModel * model, DeeModelIter * iter)
 {
 	const gchar * command_name = dee_model_get_string(model, iter, 1);
+	const gchar * description = dee_model_get_string(model, iter, 3);
 
-	/* TODO: Insert description as well, column 3 */
+	gchar * combined = g_strdup_printf("%s (%s)", command_name, description);
 
-	return g_markup_escape_text(command_name, -1);
+	gchar * retval = g_markup_escape_text(combined, -1);
+
+	/* TODO: Highlights */
+
+	return retval;
 }
 
 /* Describe the legacy query */
