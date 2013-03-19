@@ -574,6 +574,7 @@ test_application_list_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(BAMF_CFLAGS) \
 	$(DBUSTEST_CFLAGS) \
+	-DMODEL_SIMPLE=\"$(builddir)/test-menu-input-model-simple\" \
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \

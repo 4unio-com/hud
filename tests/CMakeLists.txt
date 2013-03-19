@@ -19,6 +19,8 @@ ${DBUSMENU_JSONLOADER_LIBRARIES}
 # Menu input model deep
 #######################
 
+add_definitions(-DMODEL_DEEP="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-deep")
+
 add_executable(test-menu-input-model-deep test-menu-input-model-deep.c)
 target_link_libraries(test-menu-input-model-deep
   ${GOBJECT2_LIBRARIES}
@@ -40,6 +42,8 @@ target_link_libraries(test-menu-input-model-simple
 ############################
 # Menu input model shortcuts
 ############################
+
+add_definitions(-DMODEL_SHORTCUTS="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-shortcuts")
 
 add_executable(test-menu-input-model-shortcuts test-menu-input-model-shortcuts.c)
 target_link_libraries(test-menu-input-model-shortcuts
@@ -93,6 +97,13 @@ ${DBUSTEST_LIBRARIES}
 )
 
 #######################
+# Test Fixtures
+#######################
+
+add_definitions(-DJSON_SIMPLE="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-simple.json")
+add_definitions(-DJSON_SHORTCUTS="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-shortcuts.json")
+
+#######################
 # Generated test fixtures
 #######################
 
@@ -122,15 +133,15 @@ add_custom_target(keyword-files DEPENDS "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_ME
 hudtest(test-distance test-distance.c test-distance.xml)
 hudtest(test-hud-item test-huditem.c test-hud-item.xml)
 hudtest(test-result-highlighting test-result-highlighting.c test-result-highlighting.xml)
-#test-menu-input.xml
+hudtest(test-menu-input test-menu-input.c test-menu-input.xml)
 hudtest(test-keyword-mapping test-keyword-mapping.c test-keyword-mapping.xml)
 add_dependencies(test-keyword-mapping keyword-files)
 hudtest(test-string-list test-string-list.c test-string-list.xml)
 hudtest(test-pronounce-dict test-pronounce-dict.c test-pronounce-dict.xml)
-#hudtest(test-source test-source.c test-source.xml)
+hudtest(test-source test-source.c test-source.xml)
 hudtest(test-app-indicator-source test-app-indicator-source.c test-app-indicator-source.xml)
 hudtest(test-indicator-source test-indicator-source.c test-indicator-source.xml)
-#hudtest(test-application-list test-application-list.c test-application-list.xml)
+hudtest(test-application-list test-application-list.c test-application-list.xml)
 #test-usage-db-simple.xml
 #test-usage-db-old.xml
 #test-usage-db-testapp.xml
