@@ -33,6 +33,7 @@
 #include "hudsourcelist.h"
 #include "hudsettings.h"
 #include "application-list.h"
+#include "query-columns.h"
 
 #include "hud-iface.h"
 #include "shared-values.h"
@@ -99,8 +100,8 @@ describe_query (HudQuery *query)
 static gchar *
 build_legacy_description (DeeModel * model, DeeModelIter * iter)
 {
-	const gchar * command_name = dee_model_get_string(model, iter, 1);
-	const gchar * description = dee_model_get_string(model, iter, 3);
+	const gchar * command_name = dee_model_get_string(model, iter, HUD_QUERY_RESULTS_COMMAND_NAME);
+	const gchar * description = dee_model_get_string(model, iter, HUD_QUERY_RESULTS_DESCRIPTION);
 
 	gchar * combined = g_strdup_printf("%s (%s)", command_name, description);
 
