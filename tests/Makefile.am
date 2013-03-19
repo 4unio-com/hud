@@ -295,6 +295,7 @@ test_keyword_mapping_SOURCES = \
 test_keyword_mapping_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(BAMF_CFLAGS) \
+	-DKEYWORD_LOCALE_DIR="./keyword-mapping/locale"\
 	-DDATADIR=\""$(datadir)"\" \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
@@ -478,6 +479,7 @@ test_app_indicator_source_CFLAGS = \
 	-I$(top_builddir)/src \
 	-I$(top_srcdir)/libhud-client \
 	-I$(top_srcdir) \
+	-D MODEL_SIMPLE=\"$(builddir)/test-menu-input-model-simple\" \
 	-DHUD_CLIENT_COMPILATION \
 	-Wall -Werror
 

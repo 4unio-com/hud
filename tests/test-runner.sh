@@ -1,7 +1,8 @@
 #!/bin/bash
 DIR="$1"
-TEST_CASE="$2"
-REPORT_FILE="$3"
+export PATH="$2:$PATH"
+TEST_CASE="$3"
+REPORT_FILE="$4"
 . run-xvfb.sh
 cd "${DIR}"
 gtester --verbose -k -o "${REPORT_FILE}" "${TEST_CASE}"

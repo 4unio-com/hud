@@ -29,6 +29,8 @@ target_link_libraries(test-menu-input-model-deep
 # Menu input model simple
 #########################
 
+add_definitions(-DMODEL_SIMPLE="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-simple")
+
 add_executable(test-menu-input-model-simple test-menu-input-model-simple.c)
 target_link_libraries(test-menu-input-model-simple
   ${GOBJECT2_LIBRARIES}
@@ -54,11 +56,11 @@ macro(hudtest tname tfilename rfilename)
   target_link_libraries(${tname}
     hud-service
     hud-test
-    ${DBUSTEST_LIBRARIES}
   )
   add_test(${tname}
     "${CMAKE_CURRENT_SOURCE_DIR}/test-runner.sh"
     "${CMAKE_CURRENT_SOURCE_DIR}" # PROBABLY DON'T WANT THIS ANY MORE - ABSOLUTE PATHS TO TEST FIXTURES
+    "${CMAKE_CURRENT_BINARY_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}/${tname}"
     "${CMAKE_CURRENT_BINARY_DIR}/${rfilename}"
   )
@@ -83,11 +85,35 @@ hudmanualsource.c
 hudtestutils.c
 )
 
-add_library(hud-test STATIC ${HUD_TEST_SOURCES})
+add_library(hud-test SHARED ${HUD_TEST_SOURCES})
 
 target_link_libraries(hud-test
 hud-service
+${DBUSTEST_LIBRARIES}
 )
+
+#######################
+# Generated test fixtures
+#######################
+
+find_package(Gettext)
+
+set(KEYWORD_LOCALE_DIR "${CMAKE_CURRENT_BINARY_DIR}/keyword-mapping/locale")
+add_definitions(-DKEYWORD_LOCALE_DIR="${KEYWORD_LOCALE_DIR}")
+add_custom_command(
+  OUTPUT
+    "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_MESSAGES"
+    "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_MESSAGES/gnome-terminal.mo"
+  COMMAND
+    mkdir -p "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_MESSAGES"
+  COMMAND
+	"${GETTEXT_MSGFMT_EXECUTABLE}"
+	--check
+	--output-file "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_MESSAGES/gnome-terminal.mo"
+	"${CMAKE_CURRENT_SOURCE_DIR}/keyword-mapping/gnome-terminal-en_FAKELANG.po"
+  VERBATIM
+)
+add_custom_target(keyword-files DEPENDS "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_MESSAGES/gnome-terminal.mo")
 	
 #######################
 # HUD Test Suite
@@ -98,6 +124,7 @@ hudtest(test-hud-item test-huditem.c test-hud-item.xml)
 hudtest(test-result-highlighting test-result-highlighting.c test-result-highlighting.xml)
 #test-menu-input.xml
 hudtest(test-keyword-mapping test-keyword-mapping.c test-keyword-mapping.xml)
+add_dependencies(test-keyword-mapping keyword-files)
 hudtest(test-string-list test-string-list.c test-string-list.xml)
 hudtest(test-pronounce-dict test-pronounce-dict.c test-pronounce-dict.xml)
 #hudtest(test-source test-source.c test-source.xml)
@@ -126,7 +153,6 @@ add_executable(hud-performance hud-performance.c)
 target_link_libraries(hud-performance
   hud-service
   hud-test
-  ${DBUSTEST_LIBRARIES}
   ${GIO2_LIBRARIES}
 )
 if(${enable_scalability_tests})
