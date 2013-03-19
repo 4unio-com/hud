@@ -32,7 +32,8 @@ namespace HudGtk {
 			/* Distance isn't in the API because it's internal, but this
 			   is a debugging tool so we're leavinging here */
 			model.set(iter, 3, results.get_uint32(result_iter, 6));
-			model.set(iter, 4, query.results_get_command_id(result_iter));
+			model.set(iter, 4, Markup.escape_text(query.results_get_command_id(result_iter).print(true)));
+			model.set(iter, 5, query.results_get_command_id(result_iter));
 		}
 
 		void results_row_removed (Dee.Model results, Dee.ModelIter result_iter) {
@@ -80,7 +81,7 @@ namespace HudGtk {
 			Variant key;
 
 			model.get_iter (out iter, path);
-			model.get (iter, 4, out key);
+			model.get (iter, 5, out key);
 
 			query.execute_command(key, 0);
 		}
