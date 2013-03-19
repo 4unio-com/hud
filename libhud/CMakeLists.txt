@@ -88,13 +88,11 @@ add_library(hud STATIC ${HUD_SOURCES})
 
 set_target_properties(hud PROPERTIES VERSION ${API_VERSION} SOVERSION ${ABI_VERSION})
 
-#	-no-undefined \
-#	-export-symbols-regex "^[^_].*"
-
 target_link_libraries(hud
 hud-generated
 ${GLIB2_LIBRARIES}
 ${GOBJECT2_LIBRARIES}
+-Wl,--no-undefined
 )
 
 ###########################

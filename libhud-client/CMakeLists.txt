@@ -63,6 +63,7 @@ ${DEE_LIBRARIES}
 # Hud Client
 ###########################
 
+
 set(HUD_CLIENT_HEADERS
 connection.h
 param.h
@@ -86,14 +87,17 @@ add_library(hud-client STATIC ${HUD_CLIENT_SOURCES})
 
 set_target_properties(hud-client PROPERTIES VERSION ${API_VERSION} SOVERSION ${ABI_VERSION})
 
-#	-no-undefined \
-#	-export-symbols-regex "^[^_].*"
-
 target_link_libraries(hud-client
 hud-client-generated
 ${GLIB2_LIBRARIES}
 ${GOBJECT2_LIBRARIES}
+-Wl,--no-undefined
+#--export-symbols-regex='^[^_].*'
 )
+
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--foo")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--foo")
+set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--foo")
 
 ###########################
 # Pkg Config
