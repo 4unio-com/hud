@@ -89,7 +89,11 @@ action-publisher.c
 
 add_library(hud SHARED ${HUD_SOURCES})
 
-set_target_properties(hud PROPERTIES VERSION ${API_VERSION}.0.0 SOVERSION ${ABI_VERSION})
+set_target_properties(hud PROPERTIES
+  VERSION ${API_VERSION}.0.0
+  SOVERSION ${ABI_VERSION}
+  OUTPUT_NAME "hud"
+)
 
 target_link_libraries(hud
 hud-generated

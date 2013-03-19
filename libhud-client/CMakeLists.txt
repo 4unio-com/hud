@@ -87,19 +87,18 @@ ${HUD_CLIENT_HEADERS}
 
 add_library(hud-client SHARED ${HUD_CLIENT_SOURCES})
 
-set_target_properties(hud-client PROPERTIES VERSION ${API_VERSION}.0.0 SOVERSION ${ABI_VERSION})
+set_target_properties(hud-client PROPERTIES
+  VERSION ${API_VERSION}.0.0
+  SOVERSION ${ABI_VERSION}
+  OUTPUT_NAME "hud-client"
+)
 
 target_link_libraries(hud-client
 hud-client-generated
 ${GLIB2_LIBRARIES}
 ${GOBJECT2_LIBRARIES}
 -Wl,--no-undefined
-#--export-symbols-regex='^[^_].*'
 )
-
-#set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--foo")
-#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--foo")
-#set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--foo")
 
 ###########################
 # Pkg Config
