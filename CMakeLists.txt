@@ -36,24 +36,12 @@ endif()
 # Symbol visibility
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 
-set(SO_VERSION_MAJOR "0")
-set(SO_VERSION_MINOR "4")
-set(SO_VERSION_PATCH "0")
-
-set(SO_VERSION "${SO_VERSION_MAJOR}.${SO_VERSION_MINOR}.${SO_VERSION_PATCH}")
-
-set(HUD_LIB_BASENAME "hud${SO_VERSION_MAJOR}")
-
 set(HUD_QUERY_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.query.xml)
 set(HUD_SERVICE_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.xml)
 set(HUD_APP_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.Application.xml)
 
 set(HUD_TOP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(HUD_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-
-# Increment this manually whenever breaking ABI.
-# http://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html#AEN135
-set(ABI_VERSION 0)
+set(HUD_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 add_definitions( -DDATADIR="${CMAKE_INSTALL_FULL_DATADIR}" )
 add_definitions( -DGNOMELOCALEDIR="${CMAKE_INSTALL_FULL_DATADIR}/locale" )

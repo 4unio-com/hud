@@ -17,6 +17,15 @@ include_directories(${HUD_SRC_DIR})
 add_definitions( -DHUD_COMPILATION=1 )
 
 ###########################
+# Version Information
+###########################
+
+set(API_VERSION 1)
+set(ABI_VERSION 1)
+
+#libhud_include_basedir = $(includedir)/libhud-$(API_VERSION)/
+
+###########################
 # Generated Lib Hud
 ###########################
 
@@ -77,11 +86,31 @@ action-publisher.c
 
 add_library(hud STATIC ${HUD_SOURCES})
 
+set_target_properties(hud PROPERTIES VERSION ${API_VERSION} SOVERSION ${ABI_VERSION})
+
+#	-no-undefined \
+#	-export-symbols-regex "^[^_].*"
+
 target_link_libraries(hud
 hud-generated
 ${GLIB2_LIBRARIES}
 ${GOBJECT2_LIBRARIES}
 )
+
+###########################
+# Pkg Config
+###########################
+
+set(HUD_PC "hud-${API_VERSION}.pc")
+set(apiversion "${API_VERSION}")
+set(libdir "${CMAKE_INSTALL_FULL_LIBDIR}")
+set(includedir "${CMAKE_INSTALL_FULL_INCLUDEDIR}")
+set(VERSION "${ABI_VERSION}")
+configure_file("hud.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/${HUD_PC}" @ONLY)
+
+###########################
+# Installation
+###########################
 
 #install(
 #  TARGETS ${HUD_LIB_BASENAME}
