@@ -73,19 +73,27 @@ include_directories(${DBUSMENU_GLIB_INCLUDE_DIRS})
 pkg_check_modules(POCKETSPHINX REQUIRED pocketsphinx)
 include_directories(${POCKETSPHINX_INCLUDE_DIRS})
 
+pkg_search_module(GTK3 REQUIRED gtk+-3.0)
+include_directories(${GTK3_INCLUDE_DIRS})
+
 check_include_file("signal.h" HAVE_SIGNAL_H)
 if(HAVE_SIGNAL_H)
   set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} "signal.h")
   check_function_exists(kill HAVE_KILL)
 endif()
 
+find_package(Curses)
+check_include_file("readline/readline.h" READLINE_FOUND)
+check_include_file("readline/history.h" READLINE_HISTORY_FOUND)
+find_library(READLINE_LIBRARIES NAMES readline)
+
+pkg_search_module(PANGO REQUIRED pango)
+
 pkg_search_module(BAMF libbamf3)
 if(BAMF_FOUND)
   add_definitions( -DHAVE_BAMF=1 )
   include_directories(${BAMF_INCLUDE_DIRS})
 endif()
-
-pkg_search_module(GTK3 gtk+-3.0)
 
 if(${local_install})
   set(DBUSSERVICEDIR "${CMAKE_INSTALL_DATADIR}/dbus-1/services/")
@@ -108,7 +116,7 @@ add_subdirectory(data)
 add_subdirectory(libhud-client)
 add_subdirectory(libhud)
 add_subdirectory(src)
-#add_subdirectory(tools)
+add_subdirectory(tools)
 #add_subdirectory(tools-vala)
 add_subdirectory(docs)
 
