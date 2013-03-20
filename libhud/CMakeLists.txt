@@ -68,6 +68,8 @@ ${GIO2_LIBRARIES}
 # Lib Hud
 ###########################
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
+
 set(HUD_MAIN_HEADERS
 hud.h
 )
@@ -100,6 +102,7 @@ hud-generated
 ${GLIB2_LIBRARIES}
 ${GOBJECT2_LIBRARIES}
 -Wl,--no-undefined
+-Wl,--exclude-libs hud-generated
 )
 
 ###########################

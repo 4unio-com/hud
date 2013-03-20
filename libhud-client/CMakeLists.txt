@@ -56,11 +56,14 @@ ${GLIB2_LIBRARIES}
 ${GOBJECT2_LIBRARIES}
 ${GIO2_LIBRARIES}
 ${DEE_LIBRARIES}
+-fvisibility=hidden
 )
 
 ###########################
 # Hud Client
 ###########################
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 
 set(HUD_CLIENT_MAIN_HEADERS
 hud-client.h

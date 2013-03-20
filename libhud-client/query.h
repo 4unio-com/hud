@@ -23,6 +23,8 @@
 #ifndef __HUD_CLIENT_QUERY_H__
 #define __HUD_CLIENT_QUERY_H__
 
+#pragma GCC visibility push(default)
+
 #include <glib-object.h>
 #include <dee.h>
 #include <libhud-client/connection.h>
@@ -135,5 +137,7 @@ void               hud_client_query_execute_toolbar_item  (HudClientQuery *     
 */
 
 G_END_DECLS
+
+#pragma GCC visibility pop
 
 #endif

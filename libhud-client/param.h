@@ -23,6 +23,8 @@
 #ifndef __HUD_CLIENT_PARAM_H__
 #define __HUD_CLIENT_PARAM_H__
 
+#pragma GCC visibility push(default)
+
 #include <glib.h>
 #include <glib-object.h>
 #include <gio/gio.h>
@@ -95,5 +97,7 @@ void                   hud_client_param_send_commit   (HudClientParam * param);
 */
 
 G_END_DECLS
+
+#pragma GCC visibility pop
 
 #endif
