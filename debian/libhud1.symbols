@@ -1,5 +1,4 @@
 libhud.so.1 libhud1 #MINVER#
- hud_action_description_changed_signal@Base 13.04.0
  hud_action_description_get_action_name@Base 13.04.0
  hud_action_description_get_action_target@Base 13.04.0
  hud_action_description_get_type@Base 13.04.0
@@ -18,12 +17,8 @@ libhud.so.1 libhud1 #MINVER#
  hud_action_publisher_get_description_path@Base 13.04.0-0ubuntu1~ppa2
  hud_action_publisher_get_id@Base 13.04.0-0ubuntu1~ppa2
  hud_action_publisher_get_type@Base 13.04.0
- hud_action_publisher_new_for_application@Base 13.04.0
  hud_action_publisher_new_for_id@Base 13.04.0-0ubuntu1~ppa2
  hud_action_publisher_remove_action_group@Base 13.04.0
- hud_action_publisher_remove_description@Base 13.04.0
- hud_action_publisher_remove_descriptions@Base 13.04.0
- hud_action_publisher_signals@Base 13.04.0
  hud_action_set_enabled@Base 13.04.0
  hud_action_set_operation@Base 13.04.0
  hud_action_signals@Base 13.04.0
