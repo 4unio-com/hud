@@ -33,6 +33,7 @@
 #include "hudsourcelist.h"
 #include "hudsettings.h"
 #include "application-list.h"
+#include "query-columns.h"
 
 #include "hud-iface.h"
 #include "shared-values.h"
@@ -94,6 +95,129 @@ describe_query (HudQuery *query)
   return g_variant_builder_end (&builder);
 }
 
+/* Builds a single line pango formated description for
+   the legacy HUD UI */
+static gchar *
+build_legacy_description (DeeModel * model, DeeModelIter * iter)
+{
+	const gchar * command_name = dee_model_get_string(model, iter, HUD_QUERY_RESULTS_COMMAND_NAME);
+	const gchar * description = dee_model_get_string(model, iter, HUD_QUERY_RESULTS_DESCRIPTION);
+
+	gchar * combined = g_strdup_printf("%s\xE2\x80\x82(%s)", command_name, description);
+
+	gchar * retval = g_markup_escape_text(combined, -1);
+
+	/* TODO: Highlights */
+
+	return retval;
+}
+
+/* Describe the legacy query */
+GVariant *
+describe_legacy_query (HudQuery * query)
+{
+	GVariantBuilder builder;
+	g_variant_builder_init(&builder, G_VARIANT_TYPE_TUPLE);
+
+	g_variant_builder_add_value(&builder, g_variant_new_string(hud_query_get_query(query)));
+
+	gboolean item_added = FALSE;
+	DeeModel * results = hud_query_get_results_model(query);
+	if (dee_model_get_n_rows(results) > 0) {
+		/* Get the application icon from the appstack */
+		DeeModel * appstack = hud_query_get_appstack_model(query);
+		GVariant * app_icon = NULL;
+
+		if (appstack != NULL && dee_model_get_n_rows(appstack) > 0) {
+			app_icon = dee_model_get_value(appstack, dee_model_get_first_iter(appstack), 1);
+		}
+
+		if (app_icon == NULL) {
+			app_icon = g_variant_new_string("");
+		}
+
+		/* Setup loop */
+		DeeModelIter * iter = dee_model_get_first_iter(results);
+		int i;
+
+		/* Parse through either the first five results or the full list */
+		for (i = 0; i < 5 && iter != NULL; i++, iter = dee_model_next(results, iter)) {
+			/* Don't show parameterized actions */
+			if (dee_model_get_bool(results, iter, 7)) {
+				i--;
+				continue;
+			}
+
+			if (!item_added) {
+				/* Open the builder to put in the array */
+				g_variant_builder_open(&builder, G_VARIANT_TYPE_ARRAY);
+				item_added = TRUE;
+			}
+
+			g_variant_builder_open(&builder, G_VARIANT_TYPE_TUPLE);
+
+			/* Description */
+			gchar * desc = build_legacy_description(results, iter);
+			g_variant_builder_add_value(&builder, g_variant_new_string(desc));
+			g_free(desc);
+
+			/* Icon */
+			g_variant_builder_add_value(&builder, app_icon);
+
+			/* 3 Blanks */
+			GVariant * blank = g_variant_new_string("");
+			g_variant_builder_add_value(&builder, blank);
+			g_variant_builder_add_value(&builder, blank);
+			g_variant_builder_add_value(&builder, blank);
+
+			/* ID */
+			g_variant_builder_add_value(&builder, dee_model_get_value(results, iter, 0));
+
+			g_variant_builder_close(&builder);
+		}
+
+		if (item_added) {
+			g_variant_builder_close(&builder);
+		}
+	} else {
+		g_debug("Dee Results Model is empty");
+	}
+	
+	if (!item_added) {
+		g_variant_builder_add_value(&builder, g_variant_new_array(G_VARIANT_TYPE("(sssssv)"), NULL, 0));
+	}
+
+	g_variant_builder_add_value(&builder, g_variant_new_variant(g_variant_new_uint32(hud_query_get_number(query))));
+
+	return g_variant_builder_end(&builder);
+}
+
+/* Respond to the query being updated and send a signal on
+   DBus for it */
+static void
+legacy_update (HudQuery * query, gpointer user_data)
+{
+	GDBusConnection * connection = G_DBUS_CONNECTION(user_data);
+	GError * error = NULL;
+
+	g_dbus_connection_emit_signal(connection,
+		NULL, /* destination */
+		"/com/canonical/hud",
+		"com.canonical.hud",
+		"UpdatedQuery",
+		describe_legacy_query(query),
+		&error);
+
+	if (error != NULL) {
+		g_warning("Unable to signal a query update: %s", error->message);
+		g_error_free(error);
+	}
+
+	return;
+}
+
+/* Respond to the query being destroyed by removing it from
+   the list */
 static void
 query_destroyed (gpointer data, GObject * old_object)
 {
@@ -102,6 +226,35 @@ query_destroyed (gpointer data, GObject * old_object)
 	return;
 }
 
+/* Build a query and put it into the query list */
+static HudQuery *
+build_query (HudSourceList * all_sources, HudApplicationList * app_list, GDBusConnection * connection, const gchar * search_string)
+{
+	HudQuery * query = hud_query_new (HUD_SOURCE(all_sources), application_list, search_string, 10, connection, ++query_count);
+
+	g_ptr_array_add(query_list, query);
+	g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
+
+	return query;
+}
+
+/* Make the time platform data thingy */
+static GVariant *
+unpack_platform_data (GVariant *parameters)
+{
+  GVariant *platform_data;
+  gchar *startup_id;
+  guint32 timestamp;
+
+  g_variant_get_child (parameters, 1, "u", &timestamp);
+  startup_id = g_strdup_printf ("_TIME%u", timestamp);
+  platform_data = g_variant_new_parsed ("{'desktop-startup-id': < %s >}", startup_id);
+  g_free (startup_id);
+
+  return g_variant_ref_sink (platform_data);
+}
+
+/* Take a method call from DBus */
 static void
 bus_method (GDBusConnection       *connection,
             const gchar           *sender,
@@ -112,7 +265,7 @@ bus_method (GDBusConnection       *connection,
             GDBusMethodInvocation *invocation,
             gpointer               user_data)
 {
-	if (g_str_equal (method_name, "StartQuery")) {
+	if (g_str_equal (method_name, "CreateQuery")) {
 		HudSourceList *all_sources = user_data;
 		GVariant * vsearch;
 		const gchar *search_string;
@@ -120,15 +273,88 @@ bus_method (GDBusConnection       *connection,
 
 		vsearch = g_variant_get_child_value (parameters, 0);
 		search_string = g_variant_get_string(vsearch, NULL);
-		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
+		g_debug ("'CreateQuery' from %s: '%s'", sender, search_string);
 
-		query = hud_query_new (HUD_SOURCE(all_sources), application_list, search_string, 10, connection, ++query_count);
+		query = build_query (all_sources, application_list, connection, search_string);
 		g_dbus_method_invocation_return_value (invocation, describe_query (query));
 
-		g_ptr_array_add(query_list, query);
-		g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
+		g_variant_unref(vsearch);
+	} else if (g_str_equal (method_name, "StartQuery")) {
+		HudSourceList *all_sources = user_data;
+		GVariant * vsearch;
+		const gchar *search_string;
+		HudQuery *query;
+
+		/* Legacy inteface for Compiz-based Unity */
+		vsearch = g_variant_get_child_value (parameters, 0);
+		search_string = g_variant_get_string(vsearch, NULL);
+		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
+
+		query = build_query (all_sources, application_list, connection, search_string);
+		g_signal_connect(query, "changed", G_CALLBACK(legacy_update), connection);
+		g_dbus_method_invocation_return_value (invocation, describe_legacy_query (query));
 
 		g_variant_unref(vsearch);
+	} else if (g_str_equal (method_name, "CloseQuery")) {
+		/* Legacy interface to close a query */
+		GVariant * vvvquery = g_variant_get_child_value (parameters, 0);
+		GVariant * vvquery = g_variant_get_variant(vvvquery);
+		GVariant * vquery = g_variant_get_variant(vvquery);
+		guint query_number = g_variant_get_uint32(vquery);
+		g_variant_unref(vquery);
+		g_variant_unref(vvquery);
+		g_variant_unref(vvvquery);
+
+		/* Find the query */
+		int i;
+		HudQuery * query = NULL;
+		for (i = 0; i < query_list->len; i++) {
+			if (hud_query_get_number(g_ptr_array_index(query_list, i)) == query_number) {
+				query = g_ptr_array_index(query_list, i);
+				break;
+			}
+		}
+
+		if (query != NULL) {
+			hud_query_close(query);
+			g_dbus_method_invocation_return_value (invocation, NULL);
+		} else {
+			g_dbus_method_invocation_return_error_literal(invocation, error(), 2, "Unable to find Query");
+		}
+	} else if (g_str_equal (method_name, "ExecuteQuery")) {
+		/* Legacy interface to execute a query */
+		GVariant *platform_data;
+		GVariant *item_key;
+		guint64 key_value;
+		HudItem *item;
+
+		g_variant_get_child (parameters, 0, "v", &item_key);
+
+		if (!g_variant_is_of_type (item_key, G_VARIANT_TYPE_UINT64)) {
+			g_debug ("'ExecuteQuery' from %s: incorrect item key (not uint64)", sender);
+			g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS,
+			                                       "item key has invalid format");
+			g_variant_unref (item_key);
+			return;
+		}
+
+		key_value = g_variant_get_uint64 (item_key);
+		g_variant_unref (item_key);
+
+		item = hud_item_lookup (key_value);
+		g_debug ("'ExecuteQuery' from %s, item #%"G_GUINT64_FORMAT": %p", sender, key_value, item);
+
+		if (item == NULL) {
+			g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS,
+			                                       "item specified by item key does not exist");
+			return;
+		}
+
+		platform_data = unpack_platform_data (parameters);
+		hud_item_activate (item, platform_data);
+		g_variant_unref (platform_data);
+
+		g_dbus_method_invocation_return_value (invocation, NULL);
 	} else if (g_str_equal (method_name, "RegisterApplication")) {
 		GVariant * vid = g_variant_get_child_value (parameters, 0);
 

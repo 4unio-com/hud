@@ -29,6 +29,7 @@
 #include "hudvoice.h"
 #include "application-source.h"
 #include "application-list.h"
+#include "query-columns.h"
 
 /**
  * SECTION:hudquery
@@ -91,7 +92,7 @@ static guint hud_query_changed_signal;
 
 /* Schema that is used in the DeeModel representing
    the results */
-static const gchar * results_model_schema[] = {
+static const gchar * results_model_schema[HUD_QUERY_RESULTS_COUNT] = {
 	"v", /* Command ID */
 	"s", /* Command Name */
 	"a(ii)", /* Highlights in command name */
@@ -104,7 +105,7 @@ static const gchar * results_model_schema[] = {
 
 /* Schema that is used in the DeeModel representing
    the appstack */
-static const gchar * appstack_model_schema[] = {
+static const gchar * appstack_model_schema[HUD_QUERY_APPSTACK_COUNT] = {
 	"s", /* Application ID */
 	"s", /* Icon Name */
 	"i", /* Item Type */
@@ -157,13 +158,13 @@ appstack_item_free (gpointer user_data)
 static gint
 appstack_sort (GVariant ** row1, GVariant ** row2, gpointer user_data)
 {
-	gint32 type1 = g_variant_get_int32(row1[2]);
-	gint32 type2 = g_variant_get_int32(row2[2]);
+	gint32 type1 = g_variant_get_int32(row1[HUD_QUERY_APPSTACK_ITEM_TYPE]);
+	gint32 type2 = g_variant_get_int32(row2[HUD_QUERY_APPSTACK_ITEM_TYPE]);
 
 	/* If the types are the same, we'll alphabetize by ID */
 	if (type1 == type2) {
-		const gchar * app_id1 = g_variant_get_string(row1[0], NULL);
-		const gchar * app_id2 = g_variant_get_string(row2[0], NULL);
+		const gchar * app_id1 = g_variant_get_string(row1[HUD_QUERY_APPSTACK_APPLICATION_ID], NULL);
+		const gchar * app_id2 = g_variant_get_string(row2[HUD_QUERY_APPSTACK_APPLICATION_ID], NULL);
 
 		return g_strcmp0(app_id1, app_id2);
 	}
@@ -181,11 +182,11 @@ appstack_hash_to_model (GHashTable * hash, DeeModel * model)
 	for (value = values; value != NULL; value = g_list_next(value)) {
 		appstack_item_t * item = (appstack_item_t *)value->data;
 
-		GVariant * columns[G_N_ELEMENTS(appstack_model_schema) + 1];
-		columns[0] = g_variant_new_string(item->app_id ? item->app_id : "");
-		columns[1] = g_variant_new_string(item->app_icon ? item->app_icon : "");
-		columns[2] = g_variant_new_int32(item->type);
-		columns[3] = NULL;
+		GVariant * columns[HUD_QUERY_APPSTACK_COUNT + 1];
+		columns[HUD_QUERY_APPSTACK_APPLICATION_ID] = g_variant_new_string(item->app_id ? item->app_id : "");
+		columns[HUD_QUERY_APPSTACK_ICON_NAME]      = g_variant_new_string(item->app_icon ? item->app_icon : "");
+		columns[HUD_QUERY_APPSTACK_ITEM_TYPE]      = g_variant_new_int32(item->type);
+		columns[HUD_QUERY_APPSTACK_COUNT]          = NULL;
 
 		dee_model_insert_row_sorted(model, columns, appstack_sort, NULL);
 	}
@@ -260,16 +261,16 @@ results_list_to_model (gpointer data, gpointer user_data)
 	HudQuery * query = (HudQuery *)user_data;
 	HudItem * item = hud_result_get_item(result);
 
-	GVariant * columns[G_N_ELEMENTS(results_model_schema) + 1];
-	columns[0] = g_variant_new_variant(g_variant_new_uint64(hud_item_get_id(item)));
-	columns[1] = g_variant_new_string(hud_item_get_command(item));
-	columns[2] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
-	columns[3] = g_variant_new_string(hud_item_get_description(item));
-	columns[4] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
-	columns[5] = g_variant_new_string(hud_item_get_shortcut(item));
-	columns[6] = g_variant_new_uint32(hud_result_get_distance(result, query->max_usage));
-	columns[7] = g_variant_new_boolean(HUD_IS_MODEL_ITEM(item) ? hud_model_item_is_parameterized(HUD_MODEL_ITEM(item)) : FALSE);
-	columns[8] = NULL;
+	GVariant * columns[HUD_QUERY_RESULTS_COUNT + 1];
+	columns[HUD_QUERY_RESULTS_COMMAND_ID]             = g_variant_new_variant(g_variant_new_uint64(hud_item_get_id(item)));
+	columns[HUD_QUERY_RESULTS_COMMAND_NAME]           = g_variant_new_string(hud_item_get_command(item));
+	columns[HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS]     = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+	columns[HUD_QUERY_RESULTS_DESCRIPTION]            = g_variant_new_string(hud_item_get_description(item));
+	columns[HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+	columns[HUD_QUERY_RESULTS_SHORTCUT]               = g_variant_new_string(hud_item_get_shortcut(item));
+	columns[HUD_QUERY_RESULTS_DISTANCE]               = g_variant_new_uint32(hud_result_get_distance(result, query->max_usage));
+	columns[HUD_QUERY_RESULTS_PARAMETERIZED]          = g_variant_new_boolean(HUD_IS_MODEL_ITEM(item) ? hud_model_item_is_parameterized(HUD_MODEL_ITEM(item)) : FALSE);
+	columns[HUD_QUERY_RESULTS_COUNT] = NULL;
 
 	DeeModelIter * iter = dee_model_append_row(query->results_model,
 	                                                  columns /* variants */);
@@ -432,6 +433,18 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
       HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (skel));
   gchar *voice_result;
   GError *error = NULL;
+
+  if (query->voice == NULL)
+  {
+    query->voice = hud_voice_new(query->skel,&error);
+    if (!query->voice)
+    {
+      g_warning ("%s %s\n", "Voice engine failed to initialize:", error->message);
+      g_dbus_method_invocation_return_error_literal(invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, error->message);
+      g_error_free(error);
+      return FALSE;
+    }
+  }
 
   HudSource * search_source = query->current_source;
   if (search_source == NULL) {
@@ -664,6 +677,16 @@ handle_execute_toolbar (HudQueryIfaceComCanonicalHudQuery *object, GDBusMethodIn
 	return TRUE;
 }
 
+/* Really this is just an unref, but let's put it in a nice function
+   so that it's easier to change later if we need to. */
+void
+hud_query_close (HudQuery * query)
+{
+	g_return_if_fail(HUD_IS_QUERY(query));
+	g_object_unref(query);
+	return;
+}
+
 /* Handle the DBus function CloseQuery */
 static gboolean
 handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
@@ -671,8 +694,8 @@ handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
 	HudQuery * query = HUD_QUERY(user_data);
 
-	/* Unref the query */
-	g_object_unref(query);
+	/* Close the query */
+	hud_query_close(query);
 
 	/* NOTE: Don't use the query after this, it may not exist */
 	query = NULL;
@@ -730,14 +753,6 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint q
                NULL);
 
   g_dbus_interface_skeleton_flush(G_DBUS_INTERFACE_SKELETON(query->skel));
-
-  error = NULL;
-  query->voice = hud_voice_new(query->skel,&error);
-  if (!query->voice)
-  {
-    g_warning ("%s %s\n", "Voice engine failed to initialize:", error->message);
-    g_error_free(error);
-  }
 }
 
 static void
@@ -876,3 +891,18 @@ hud_query_get_appstack_model(HudQuery *self)
 
 }
 
+const gchar *
+hud_query_get_query (HudQuery * query)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(query), NULL);
+
+	return query->search_string;
+}
+
+guint
+hud_query_get_number (HudQuery * query)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(query), 0);
+
+	return query->querynumber;
+}
