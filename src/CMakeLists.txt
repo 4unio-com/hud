@@ -161,5 +161,5 @@ target_link_libraries(hud-service-exec hud-service)
 
 install(
   TARGETS hud-service-exec
-  RUNTIME DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}/hud"
+  RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_LIBEXECDIR}/hud"
 )

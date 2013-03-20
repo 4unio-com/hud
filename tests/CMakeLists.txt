@@ -89,7 +89,7 @@ hudmanualsource.c
 hudtestutils.c
 )
 
-add_library(hud-test SHARED ${HUD_TEST_SOURCES})
+add_library(hud-test STATIC ${HUD_TEST_SOURCES})
 
 target_link_libraries(hud-test
 hud-service

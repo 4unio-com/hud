@@ -26,6 +26,13 @@ include(GdbusCodegen)
 include(ConstantBuilder)
 include(GSettings)
 include(FindGtkDoc)
+include(GenerateExportHeader)
+
+# Workaround for libexecdir on debian
+if (EXISTS "/etc/debian_version") 
+  set(CMAKE_INSTALL_LIBEXECDIR ${CMAKE_INSTALL_LIBDIR})
+  set(CMAKE_INSTALL_FULL_LIBEXECDIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}")
+endif()
 
 if(${full_warnings})
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pedantic")

@@ -18,7 +18,7 @@ set(HUD_SERVICE
 "${CMAKE_CURRENT_BINARY_DIR}/com.canonical.hud.service"
 )
 
-set(pkglibexecdir ${CMAKE_INSTALL_LIBEXECDIR})
+set(pkglibexecdir "${CMAKE_INSTALL_FULL_LIBEXECDIR}/hud")
 configure_file("com.canonical.hud.service.in"
   "${HUD_SERVICE}"
   @ONLY
