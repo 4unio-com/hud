@@ -62,6 +62,8 @@ wait_for_sync_notify (GObject * object, GParamSpec * pspec, gpointer user_data)
 static gboolean
 wait_for_sync (DeeModel * model)
 {
+	g_return_val_if_fail(DEE_IS_SHARED_MODEL(model), FALSE);
+
 	if (dee_shared_model_is_synchronized(DEE_SHARED_MODEL(model))) {
 		return TRUE;
 	}
