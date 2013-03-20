@@ -1,12 +1,14 @@
 
-find_package(LibXslt REQUIRED)
+find_program(XSLTPROC_EXECUTABLE xsltproc)
+
+message(${XSLTPROC_EXECUTABLE})
 
 macro(add_manpage name)
   add_custom_command(
     OUTPUT
       "${CMAKE_CURRENT_BINARY_DIR}/${name}.1"
     COMMAND
-      ${LIBXSLT_XSLTPROC_EXECUTABLE}
+      ${XSLTPROC_EXECUTABLE}
       -nonet http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl
       "${CMAKE_CURRENT_SOURCE_DIR}/${name}.xml"
     DEPENDS
