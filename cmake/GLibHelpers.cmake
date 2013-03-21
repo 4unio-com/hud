@@ -49,7 +49,7 @@ macro(add_glib_enumtypes_t outfiles name htemplate ctemplate)
   list(APPEND ${outfiles} "${CMAKE_CURRENT_BINARY_DIR}/${name}.c")
 endmacro(add_glib_enumtypes_t)
 
-macro(add_glib_enumtypes outfiles name includeguard)
+macro(add_glib_enumtypes outfiles name namespace includeguard)
   set(htemplate "${CMAKE_CURRENT_BINARY_DIR}/${name}.h.template")
   set(ctemplate "${CMAKE_CURRENT_BINARY_DIR}/${name}.c.template")
 
@@ -60,6 +60,7 @@ macro(add_glib_enumtypes outfiles name includeguard)
         "-Dctemplate=${ctemplate}"
         "-Dhtemplate=${htemplate}"
         "-Dname=${name}"
+        "-Dnamespace=${namespace}"
         "-Dincludeguard=${includeguard}"
         "\"-Dheaders=${ARGN}\""
         -P "${CMAKE_SOURCE_DIR}/cmake/MakeGLibEnumTemplates.cmake"

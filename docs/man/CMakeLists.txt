@@ -1,8 +1,6 @@
 
 find_program(XSLTPROC_EXECUTABLE xsltproc)
 
-message(${XSLTPROC_EXECUTABLE})
-
 macro(add_manpage name)
   add_custom_command(
     OUTPUT

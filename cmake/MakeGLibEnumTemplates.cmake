@@ -15,7 +15,7 @@ G_BEGIN_DECLS
 /*** END file-production ***/
 /*** BEGIN value-header ***/
 GType @enum_name@_get_type (void);
-#define GST_TYPE_@ENUMSHORT@ (@enum_name@_get_type())
+#define ${namespace}_TYPE_@ENUMSHORT@ (@enum_name@_get_type())
 
 /*** END value-header ***/
 /*** BEGIN file-tail ***/

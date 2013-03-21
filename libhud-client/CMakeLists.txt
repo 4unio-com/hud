@@ -115,6 +115,35 @@ set(VERSION "${ABI_VERSION}")
 configure_file("hud-client.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/${HUD_CLIENT_PC}" @ONLY)
 
 ###########################
+# GObject Introspection
+###########################
+
+if(${INTROSPECTION_FOUND})
+  include(GObjectIntrospectionMacros)
+  set(INTROSPECTION_GIRS)
+
+  set(_introspection_files ${HUD_CLIENT_SOURCES} ${HUD_CLIENT_HEADERS})
+  set(HudClient_1_gir "hud-client")
+  set(HudClient_1_gir_INCLUDES GObject-2.0 Dee-1.0)
+  
+  gir_get_cflags(_cflags)
+  set(HudClient_1_gir_CFLAGS ${_cflags})
+  
+  set(HudClient_1_gir_LIBS hud-client)
+  
+  list_make_absolute(_abs_introspection_files _introspection_files "${CMAKE_CURRENT_SOURCE_DIR}/")
+  set(HudClient_1_gir_FILES ${_abs_introspection_files})
+  set(HudClient_1_gir_SCANNERFLAGS --c-include "hud-client.h")
+  set(HudClient_1_gir_EXPORT_PACKAGES "hud-client-${API_VERSION}")
+
+  list(APPEND INTROSPECTION_GIRS HudClient-1.gir)
+  gir_add_introspections(INTROSPECTION_GIRS)
+else()
+  message("Not performing GIR as required tools not found")
+endif()
+
+
+###########################
 # Installation
 ###########################
 
