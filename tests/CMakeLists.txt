@@ -1,8 +1,5 @@
-
 include_directories(${HUD_SERVICE_INCLUDE_DIRS})
 include_directories(${HUD_CLIENT_INCLUDE_DIRS})
-
-#MOCK_JSON_APP=/usr/lib/indicator-appmenu/mock-json-app
 
 #######################
 # Dbus JSON Loader
@@ -63,7 +60,7 @@ macro(hudtest tname tfilename rfilename)
   )
   add_test(${tname}
     "${CMAKE_CURRENT_SOURCE_DIR}/test-runner.sh"
-    "${CMAKE_CURRENT_SOURCE_DIR}" # PROBABLY DON'T WANT THIS ANY MORE - ABSOLUTE PATHS TO TEST FIXTURES
+    "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}/${tname}"
     "${CMAKE_CURRENT_BINARY_DIR}/${rfilename}"
