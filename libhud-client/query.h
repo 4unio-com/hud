@@ -39,6 +39,11 @@ G_BEGIN_DECLS
 #define HUD_CLIENT_IS_QUERY_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HUD_CLIENT_TYPE_QUERY))
 #define HUD_CLIENT_QUERY_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_CLIENT_TYPE_QUERY, HudClientQueryClass))
 
+/**
+ * HUD_CLIENT_QUERY_SIGNAL_TOOLBAR_UPDATED
+ *
+ * Signal to indicate when the toolbar has been updated
+ */
 #define HUD_CLIENT_QUERY_SIGNAL_TOOLBAR_UPDATED   "toolbar-updated"
 
 typedef struct _HudClientQuery         HudClientQuery;
@@ -68,7 +73,7 @@ struct _HudClientQuery {
 };
 
 /**
- * HudClientQueryToolbar:
+ * HudClientQueryToolbarItems:
  * @HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN: Make the application fullscreen
  * @HUD_CLIENT_QUERY_TOOLBAR_HELP: Help the user use the application
  * @HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES: Configure the application

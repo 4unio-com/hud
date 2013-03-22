@@ -10,6 +10,7 @@ if(GTKDOC_FOUND)
     SUFFIXES
       h c
     IGNOREHEADERS
+      hud-client.h
       query-iface.h
       service-iface.h
     LDFLAGS
@@ -25,6 +26,7 @@ if(GTKDOC_FOUND)
     DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/libhud-client/html/"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/gtk-doc/html/libhud-client" 
   )
+  
 else()
   message(STATUS "gtkdoc was not found.")
 endif()

@@ -130,7 +130,6 @@ add_subdirectory(libhud)
 add_subdirectory(src)
 add_subdirectory(tools)
 #add_subdirectory(tools-vala)
-add_subdirectory(docs)
 
 if(${enable_tests})
   enable_testing()
@@ -143,3 +142,5 @@ if(${enable_tests})
   
   add_subdirectory(tests)
 endif()
+
+add_subdirectory(docs)

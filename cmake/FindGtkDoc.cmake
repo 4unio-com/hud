@@ -58,5 +58,11 @@ if(NOT GTKDOC_FIXXREF_EXE)
     set(GTKDOC_FOUND 0)
 endif(NOT GTKDOC_FIXXREF_EXE)
 
+find_program(GTKDOC_CHECK_EXE gtkdoc-check PATH "${GLIB_PREFIX}/bin")
+if(NOT GTKDOC_CHECK_EXE)
+	message(STATUS "gtkdoc-check not found")
+    set(GTKDOC_FOUND 0)
+endif(NOT GTKDOC_CHECK_EXE)
+
 # vim:sw=4:ts=4:et:autoindent
 

@@ -113,8 +113,6 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
             WORKING_DIRECTORY "${_output_dir}"
             VERBATIM)
 
-        message("################################################# Should depend on ${_depends}")
-
         # add a command to scan the input via gtkdoc-scangobj
         # This is such a disgusting hack!
         add_custom_command(
@@ -175,8 +173,11 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
                 "${_default_xml_file}"
             DEPENDS
                 "${_output_tmpl_stamp}"
+                "${_output_unused}"
+                "${_output_undeclared}"
+                "${_output_undocumented}"
                 ${_depends}
-            ${_remove_xml_if_needed}
+                ${_remove_xml_if_needed}
             COMMAND ${CMAKE_COMMAND} -E remove_directory ${_output_xml_dir}
             COMMAND ${GTKDOC_MKDB_EXE}
                 "--module=${_doc_prefix}"
@@ -221,7 +222,7 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
                 "--module=${_doc_prefix}"
                 "--module-dir=."
                 ${_fixxref_opts}
-            ${_remove_xml_if_needed}
+            #${_remove_xml_if_needed}
             WORKING_DIRECTORY "${_output_dir}"
             VERBATIM)
 
@@ -229,5 +230,10 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
             DEPENDS
                 "${_doc_prefix}-gtxdoc-fixxref"
                 ${_depends})
+
+        add_test(doc-${_doc_prefix}-check ${GTKDOC_CHECK_EXE})
+        set_tests_properties(doc-${_doc_prefix}-check PROPERTIES
+          ENVIRONMENT "DOC_MODULE=${_doc_prefix};DOC_MAIN_SGML_FILE=${_doc_prefix}-docs.xml;SRCDIR=${_doc_sourcedir};BUILDDIR=${_output_dir}"
+        )
     endif(_opts_valid)
 endmacro(gtk_doc_add_module)
