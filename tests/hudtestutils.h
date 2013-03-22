@@ -2,6 +2,8 @@
 #define HUDTESTUTILS_H_
 
 #include <glib.h>
+#include <dee.h>
+#include "hud-query-iface.h"
 
 typedef struct _HudStringList HudStringList;
 typedef struct _GDBusConnection GDBusConnection;
@@ -93,5 +95,18 @@ void hud_test_utils_source_assert_result (GPtrArray* results, const guint index,
     const gchar* value);
 
 void hud_test_utils_ignore_dbus_null_connection();
+
+void hud_test_utils_add_result (DeeModel *results_model, guint64 id,
+    const gchar *command, const gchar *description, const gchar *shortcut,
+    guint32 distance, gboolean parameterized);
+
+void hud_test_utils_start_hud_service (DbusTestService **service,
+    GDBusConnection **connection,
+    HudQueryIfaceComCanonicalHudQuery **query_skel, DeeModel **results_model,
+    DeeModel **appstack_model);
+
+void hud_test_utils_stop_hud_service (DbusTestService *service,
+    GDBusConnection *connection, HudQueryIfaceComCanonicalHudQuery *query_skel,
+    DeeModel *results_model, DeeModel *appstack_model);
 
 #endif /* HUDTESTUTILS_H_ */

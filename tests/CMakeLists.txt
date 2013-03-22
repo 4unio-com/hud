@@ -153,6 +153,12 @@ hudtest(test-application-list test-application-list.c test-application-list.xml)
 #test-good-app-info-tons-of-entries
 #test-dbus-message-count
 
+#####################################
+# libhud-client test suite
+#####################################
+
+hudtest(test-hud-client test-hud-client.c test-hud-client.xml)
+
 #######################
 # Slow test
 #######################

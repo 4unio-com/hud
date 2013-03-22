@@ -2,6 +2,7 @@
 #include "hudtestutils.h"
 #include "hudstringlist.h"
 #include "hudresult.h"
+#include "shared-values.h"
 
 #include <libdbustest/dbus-test.h>
 #include <gio/gio.h>
@@ -406,4 +407,89 @@ void
 hud_test_utils_ignore_dbus_null_connection()
 {
   g_test_log_set_fatal_handler(hud_test_utils_ignore_dbus_null_connection_callback, NULL);
+}
+
+static const gchar *QUERY_PATH = "/com/canonical/hud/query0";
+
+const gchar * results_model_schema[] = {
+  "v", /* Command ID */
+  "s", /* Command Name */
+  "a(ii)", /* Highlights in command name */
+  "s", /* Description */
+  "a(ii)", /* Highlights in description */
+  "s", /* Shortcut */
+  "u", /* Distance */
+  "b", /* Parameterized */
+};
+
+const gchar * appstack_model_schema[] = {
+  "s", /* Application ID */
+  "s", /* Icon Name */
+  "i", /* Item Type */
+};
+
+void
+hud_test_utils_add_result (DeeModel *results_model, guint64 id,
+    const gchar *command, const gchar *description, const gchar *shortcut,
+    guint32 distance, gboolean parameterized)
+{
+  GVariant * columns[G_N_ELEMENTS(results_model_schema) + 1];
+  columns[0] = g_variant_new_variant(g_variant_new_uint64(id));
+  columns[1] = g_variant_new_string(command);
+  columns[2] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+  columns[3] = g_variant_new_string(description);
+  columns[4] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+  columns[5] = g_variant_new_string(shortcut);
+  columns[6] = g_variant_new_uint32(distance);
+  columns[7] = g_variant_new_boolean(parameterized);
+  columns[8] = NULL;
+
+  DeeModelIter *iter = dee_model_append_row (results_model,
+      columns);
+
+//dee_model_set_tag(query->results_model, iter, query->results_tag, result);
+}
+
+void
+hud_test_utils_start_hud_service (DbusTestService **service,
+    GDBusConnection **connection,
+    HudQueryIfaceComCanonicalHudQuery **query_skel, DeeModel **results_model,
+    DeeModel **appstack_model)
+{
+  *service = dbus_test_service_new (NULL );
+  hud_test_utils_dbus_mock_start (*service, DBUS_NAME, DBUS_PATH, DBUS_IFACE);
+  *connection = hud_test_utils_mock_dbus_connection_new (*service, DBUS_NAME,
+      NULL );
+  hud_test_utils_process_mainloop (300);
+
+  GError *error = NULL;
+  *query_skel = hud_query_iface_com_canonical_hud_query_skeleton_new ();
+  g_assert(
+      g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON(*query_skel), *connection, QUERY_PATH, &error));
+
+  *results_model = dee_shared_model_new("com.canonical.hud.query0.results");
+  dee_model_set_schema_full(*results_model, results_model_schema, G_N_ELEMENTS(results_model_schema));
+
+
+  *appstack_model = dee_shared_model_new("com.canonical.hud.query0.appstack");
+  dee_model_set_schema_full(*appstack_model, appstack_model_schema, G_N_ELEMENTS(appstack_model_schema));
+
+  /* query */
+  dbus_mock_add_method (*connection, DBUS_NAME, DBUS_PATH, DBUS_IFACE,
+      "StartQuery", "s", "ossi",
+      "ret = ('/com/canonical/hud/query0', 'com.canonical.hud.query0.results', 'com.canonical.hud.query0.appstack', dbus.Int32(0))");
+
+  hud_test_utils_process_mainloop (100);
+}
+
+void
+hud_test_utils_stop_hud_service (DbusTestService *service,
+    GDBusConnection *connection, HudQueryIfaceComCanonicalHudQuery *query_skel,
+    DeeModel *results_model, DeeModel *appstack_model)
+{
+  g_object_unref(query_skel);
+  g_object_unref(results_model);
+  g_object_unref(appstack_model);
+  g_object_unref(service);
+  hud_test_utils_wait_for_connection_close(connection);
 }
