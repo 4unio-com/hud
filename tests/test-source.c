@@ -203,7 +203,7 @@ test_hud_query_sequence ()
   DbusTestService * service = NULL;
   GDBusConnection * session = NULL;
 
-  hud_test_utils_start_dbusmenu_mock_app (&service, &session, JSON_INPUT);
+  hud_test_utils_start_dbusmenu_mock_app (&service, &session, "test-source.json");
 
   HudDbusmenuCollector *collector = hud_dbusmenu_collector_new_for_endpoint (
       "test-id", "Prefix", "no-icon", 0, /* penalty */
@@ -391,7 +391,7 @@ test_hud_query_sequence_counter_increment ()
   DbusTestService * service = NULL;
   GDBusConnection * session = NULL;
 
-  hud_test_utils_start_dbusmenu_mock_app (&service, &session, JSON_INPUT);
+  hud_test_utils_start_dbusmenu_mock_app (&service, &session, "test-source.json");
 
   HudDbusmenuCollector *collector = hud_dbusmenu_collector_new_for_endpoint (
       "test-id", "Prefix", "no-icon", 0, /* penalty */

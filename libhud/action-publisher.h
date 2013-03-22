@@ -29,6 +29,8 @@
 #ifndef __HUD_ACTION_PUBLISHER_H__
 #define __HUD_ACTION_PUBLISHER_H__
 
+#pragma GCC visibility push(default)
+
 #include <gio/gio.h>
 
 G_BEGIN_DECLS
@@ -41,6 +43,8 @@ G_BEGIN_DECLS
 
 #define HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_ADDED      "action-group-added"
 #define HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_REMOVED    "action-group-removed"
+
+GType hud_action_description_get_type (void);
 
 #define HUD_TYPE_ACTION_DESCRIPTION                         (hud_action_description_get_type ())
 #define HUD_ACTION_DESCRIPTION(inst)                        (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
@@ -63,9 +67,6 @@ HudActionPublisher *    hud_action_publisher_new_for_id                 (GVarian
 
 void                    hud_action_publisher_add_description            (HudActionPublisher    *publisher,
                                                                          HudActionDescription  *description);
-
-void                    hud_action_publisher_add_descriptions_from_file (HudActionPublisher    *publisher,
-                                                                         const gchar           *filename);
 
 void                    hud_action_publisher_add_action_group           (HudActionPublisher    *publisher,
                                                                          const gchar           *prefix,
@@ -95,5 +96,7 @@ void                    hud_action_description_set_parameterized        (HudActi
                                                                          GMenuModel            *child);
 
 G_END_DECLS
+
+#pragma GCC visibility pop
 
 #endif /* __HUD_ACTION_PUBLISHER_H__ */

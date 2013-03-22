@@ -1,0 +1,174 @@
+include_directories(${HUD_SERVICE_INCLUDE_DIRS})
+include_directories(${HUD_CLIENT_INCLUDE_DIRS})
+
+#######################
+# Dbus JSON Loader
+#######################
+
+add_definitions(-DDBUSMENU_JSON_LOADER="${CMAKE_CURRENT_BINARY_DIR}/dbusmenu-json-loader")
+
+add_executable(dbusmenu-json-loader dbusmenu-json-loader.c)
+target_link_libraries(dbusmenu-json-loader
+${DBUSMENU_JSONLOADER_LIBRARIES}
+)
+
+#######################
+# Menu input model deep
+#######################
+
+add_definitions(-DMODEL_DEEP="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-deep")
+
+add_executable(test-menu-input-model-deep test-menu-input-model-deep.c)
+target_link_libraries(test-menu-input-model-deep
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
+#########################
+# Menu input model simple
+#########################
+
+add_definitions(-DMODEL_SIMPLE="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-simple")
+
+add_executable(test-menu-input-model-simple test-menu-input-model-simple.c)
+target_link_libraries(test-menu-input-model-simple
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
+############################
+# Menu input model shortcuts
+############################
+
+add_definitions(-DMODEL_SHORTCUTS="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-shortcuts")
+
+add_executable(test-menu-input-model-shortcuts test-menu-input-model-shortcuts.c)
+target_link_libraries(test-menu-input-model-shortcuts
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
+#######################
+# TEST MACRO
+#######################
+
+macro(hudtest tname tfilename rfilename)
+  add_executable(${tname} ${tfilename})
+  target_link_libraries(${tname}
+    hud-service
+    hud-test
+  )
+  add_test(${tname}
+    "${CMAKE_CURRENT_SOURCE_DIR}/test-runner.sh"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/${tname}"
+    "${CMAKE_CURRENT_BINARY_DIR}/${rfilename}"
+  )
+endmacro()
+
+#######################
+# HUD Test Common Code
+#######################
+
+set(HUD_TEST_HEADERS
+app-list-dummy.h
+word-list.h
+hudrandomsource.h
+hudmanualsource.h
+hudtestutils.h
+)
+
+set(HUD_TEST_SOURCES
+app-list-dummy.c
+hudrandomsource.c
+hudmanualsource.c
+hudtestutils.c
+)
+
+add_library(hud-test STATIC ${HUD_TEST_SOURCES})
+
+target_link_libraries(hud-test
+hud-service
+${DBUSTEST_LIBRARIES}
+)
+
+#######################
+# Test Fixtures
+#######################
+
+add_definitions(-DJSON_SIMPLE="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-simple.json")
+add_definitions(-DJSON_SHORTCUTS="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-shortcuts.json")
+
+#######################
+# Generated test fixtures
+#######################
+
+find_package(Gettext)
+
+set(KEYWORD_LOCALE_DIR "${CMAKE_CURRENT_BINARY_DIR}/keyword-mapping/locale")
+add_definitions(-DKEYWORD_LOCALE_DIR="${KEYWORD_LOCALE_DIR}")
+add_custom_command(
+  OUTPUT
+    "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_MESSAGES"
+    "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_MESSAGES/gnome-terminal.mo"
+  COMMAND
+    mkdir -p "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_MESSAGES"
+  COMMAND
+	"${GETTEXT_MSGFMT_EXECUTABLE}"
+	--check
+	--output-file "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_MESSAGES/gnome-terminal.mo"
+	"${CMAKE_CURRENT_SOURCE_DIR}/keyword-mapping/gnome-terminal-en_FAKELANG.po"
+  VERBATIM
+)
+add_custom_target(keyword-files DEPENDS "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_MESSAGES/gnome-terminal.mo")
+	
+#######################
+# HUD Test Suite
+#######################
+
+hudtest(test-distance test-distance.c test-distance.xml)
+hudtest(test-hud-item test-huditem.c test-hud-item.xml)
+hudtest(test-result-highlighting test-result-highlighting.c test-result-highlighting.xml)
+hudtest(test-menu-input test-menu-input.c test-menu-input.xml)
+hudtest(test-keyword-mapping test-keyword-mapping.c test-keyword-mapping.xml)
+add_dependencies(test-keyword-mapping keyword-files)
+hudtest(test-string-list test-string-list.c test-string-list.xml)
+hudtest(test-pronounce-dict test-pronounce-dict.c test-pronounce-dict.xml)
+hudtest(test-source test-source.c test-source.xml)
+hudtest(test-app-indicator-source test-app-indicator-source.c test-app-indicator-source.xml)
+hudtest(test-indicator-source test-indicator-source.c test-indicator-source.xml)
+hudtest(test-application-list test-application-list.c test-application-list.xml)
+#test-usage-db-simple.xml
+#test-usage-db-old.xml
+#test-usage-db-testapp.xml
+#test-usage-db-off.xml
+#test-bad-app-info-dual-header
+#test-bad-app-info-item-no-count
+#test-bad-app-info-item-no-name
+#test-bad-app-info-menu-no-name
+#test-bad-app-info-missing-desktop
+#test-bad-app-info-missing-menus
+#test-bad-app-info-multiple-menus
+#test-good-app-info-tons-of-entries
+#test-dbus-message-count
+
+#######################
+# Slow test
+#######################
+
+add_executable(hud-performance hud-performance.c)
+target_link_libraries(hud-performance
+  hud-service
+  hud-test
+  ${GIO2_LIBRARIES}
+)
+if(${enable_scalability_tests})
+  add_test(hud-performance
+    "${CMAKE_CURRENT_SOURCE_DIR}/test-runner.sh"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/hud-performance"
+    "${CMAKE_CURRENT_BINARY_DIR}/hud-performance.xml"
+  )
+endif()
+

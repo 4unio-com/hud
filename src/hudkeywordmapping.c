@@ -21,7 +21,6 @@
 #include <glib/gi18n.h>
 
 #include "hudkeywordmapping.h"
-#include "config.h"
 
 /**
  * SECTION:hudkeywordmapping

@@ -29,6 +29,8 @@
 #ifndef __HUD_OPERATION_H__
 #define __HUD_OPERATION_H__
 
+#pragma GCC visibility push(default)
+
 #include <gio/gio.h>
 
 G_BEGIN_DECLS
@@ -84,5 +86,7 @@ gdouble                 hud_operation_get_double                        (HudOper
                                                                          const gchar  *action_name);
 
 G_END_DECLS
+
+#pragma GCC visibility push(default)
 
 #endif /* __HUD_OPERATION_H__ */
