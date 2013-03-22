@@ -18,7 +18,7 @@ if(GTKDOC_FOUND)
     LDPATH 
       ${CMAKE_CURRENT_BINARY_DIR}/../../libhud-client
     DEPENDS
-      libhud-client
+      hud-client
   )
 
   install(

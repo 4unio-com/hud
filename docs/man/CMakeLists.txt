@@ -20,7 +20,7 @@ macro(add_manpage name)
   )
 endmacro()
 
-add_custom_target(man-pages)
+add_custom_target(man-pages ALL)
 
 add_manpage(hud-cli)
 add_manpage(hud-dump-application)

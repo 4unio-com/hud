@@ -35,7 +35,7 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
         set(_doc_source_suffixes "h")
     endif(_suffixes)
 
-    # set(_do_all ALL)
+    set(_do_all ALL)
 
     set(_opts_valid 1)
     if(NOT _xml_file_length LESS 2)
@@ -113,6 +113,8 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
             WORKING_DIRECTORY "${_output_dir}"
             VERBATIM)
 
+        message("################################################# Should depend on ${_depends}")
+
         # add a command to scan the input via gtkdoc-scangobj
         # This is such a disgusting hack!
         add_custom_command(
@@ -120,6 +122,7 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
                 "${_output_signals}"
             DEPENDS
                 "${_output_types}"
+                "${_depends}"
             COMMAND ${CMAKE_COMMAND} 
                 -D "GTKDOC_SCANGOBJ_EXE:STRING=${GTKDOC_SCANGOBJ_EXE}"
                 -D "doc_prefix:STRING=${_doc_prefix}"
@@ -213,6 +216,7 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
         add_custom_target("${_doc_prefix}-gtxdoc-fixxref" 
             DEPENDS
                 "${_output_html_stamp}"
+                ${_depends}
             COMMAND ${GTKDOC_FIXXREF_EXE}
                 "--module=${_doc_prefix}"
                 "--module-dir=."
@@ -222,6 +226,8 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
             VERBATIM)
 
         add_custom_target(doc-${_doc_prefix} ${_do_all} 
-            DEPENDS "${_doc_prefix}-gtxdoc-fixxref")
+            DEPENDS
+                "${_doc_prefix}-gtxdoc-fixxref"
+                ${_depends})
     endif(_opts_valid)
 endmacro(gtk_doc_add_module)

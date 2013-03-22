@@ -56,7 +56,6 @@ ${GLIB2_LIBRARIES}
 ${GOBJECT2_LIBRARIES}
 ${GIO2_LIBRARIES}
 ${DEE_LIBRARIES}
--fvisibility=hidden
 )
 
 ###########################
