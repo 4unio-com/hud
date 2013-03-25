@@ -819,11 +819,14 @@ hud_query_new (HudSource   *all_sources,
 
   query = g_object_new (HUD_TYPE_QUERY, NULL);
   hud_query_init_real(query, connection, query_count);
-  query->watchdog = g_object_ref (watchdog);
   query->all_sources = g_object_ref (all_sources);
   query->app_list = g_object_ref (application_list);
   query->search_string = g_strdup (search_string);
   query->token_list = NULL;
+
+  if (watchdog != NULL) {
+    query->watchdog = g_object_ref(watchdog);
+  }
   
   if (query->search_string[0] != '\0') {
     query->token_list = hud_token_list_new_from_string (query->search_string);
