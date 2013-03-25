@@ -28,6 +28,7 @@ typedef struct _HudWatchdogPrivate HudWatchdogPrivate;
 struct _HudWatchdogPrivate {
 	guint timeout;
 	gulong timer;
+	GMainLoop * loop;
 };
 
 #define HUD_WATCHDOG_GET_PRIVATE(o) \
@@ -37,6 +38,7 @@ static void hud_watchdog_class_init (HudWatchdogClass *klass);
 static void hud_watchdog_init       (HudWatchdog *self);
 static void hud_watchdog_dispose    (GObject *object);
 static void hud_watchdog_finalize   (GObject *object);
+static gboolean fire_watchdog       (gpointer user_data);
 
 G_DEFINE_TYPE (HudWatchdog, hud_watchdog, G_TYPE_OBJECT);
 
@@ -65,7 +67,7 @@ hud_watchdog_init (HudWatchdog *self)
 		self->priv->timeout = atoi(envvar);
 	}
 
-	//g_timeout_add_seconds(self->priv->timeout, fire_watchdog, self);
+	self->priv->timer = g_timeout_add_seconds(self->priv->timeout, fire_watchdog, self);
 
 	return;
 }
@@ -73,6 +75,12 @@ hud_watchdog_init (HudWatchdog *self)
 static void
 hud_watchdog_dispose (GObject *object)
 {
+	HudWatchdog * self = HUD_WATCHDOG(object);
+
+	if (self->priv->timer != 0) {
+		g_source_remove(self->priv->timer);
+		self->priv->timer = 0;
+	}
 
 	G_OBJECT_CLASS (hud_watchdog_parent_class)->dispose (object);
 	return;
@@ -84,4 +92,20 @@ hud_watchdog_finalize (GObject *object)
 
 	G_OBJECT_CLASS (hud_watchdog_parent_class)->finalize (object);
 	return;
+}
+
+/* Oh noes!  It's our time to go!  Do this!  */
+static gboolean
+fire_watchdog (gpointer user_data)
+{
+	g_return_val_if_fail(IS_HUD_WATCHDOG(user_data), TRUE);
+	HudWatchdog * self = HUD_WATCHDOG(user_data);
+
+	g_debug("Firing Watchdog");
+
+	if (self->priv->loop != NULL) {
+		g_main_loop_quit(self->priv->loop);
+	}
+
+	return FALSE;
 }
