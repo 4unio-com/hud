@@ -74,12 +74,12 @@ configure_file("hud-gtk.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/${HUD_GTK_PC}" @ONLY
 ###########################
 
 install(
-  FILES ${HUD_MAIN_HEADERS}
+  FILES ${HUD_GTK_MAIN_HEADERS}
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libhud-gtk-${API_VERSION}"
 )
 
 install(
-  FILES ${HUD_HEADERS}
+  FILES ${HUD_GTK_HEADERS}
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libhud-gtk-${API_VERSION}/libhud-gtk"
 )
 
