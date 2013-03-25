@@ -63,7 +63,7 @@ test-distance-test: test-distance Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
 	@echo gtester --verbose -k -o $(DISTANCE_XML_REPORT) $(builddir)/test-distance >> $@
-	@echo gtester2xunit $(DISTANCE_XML_REPORT) >> $@
+	@echo "if which gtester2xunit; then gtester2xunit $(DISTANCE_XML_REPORT); fi" >> $@
 	@chmod +x $@
 
 test_distance_SOURCES = \
@@ -141,7 +141,7 @@ test-result-highlighting-test: test-result-highlighting Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
 	@echo gtester --verbose -k -o $(RESULT_XML_REPORT) $(builddir)/test-result-highlighting >> $@
-	@echo gtester2xunit $(RESULT_XML_REPORT) >> $@
+	@echo "if which gtester2xunit; then gtester2xunit $(RESULT_XML_REPORT); fi" >> $@
 	@chmod +x $@
 
 test_result_highlighting_SOURCES = \
@@ -624,7 +624,7 @@ test-usage-db-simple-test: test-usage-db-simple test-usage-db-simple.sql Makefil
 	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_DB_SIMPLE_XML_REPORT) $(abs_builddir)/test-usage-db-simple >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-simple.dir.\* >> $@
-	@echo gtester2xunit $(abs_builddir)/$(USAGE_DB_SIMPLE_XML_REPORT) >> $@
+	@echo "if which gtester2xunit; then gtester2xunit $(abs_builddir)/$(USAGE_DB_SIMPLE_XML_REPORT); fi" >> $@
 	@chmod +x $@
 
 test_usage_db_simple_SOURCES = \
@@ -673,7 +673,7 @@ test-usage-db-old-test: test-usage-db-old test-usage-db-old.sql Makefile.am
 	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_DB_OLD_XML_REPORT) $(abs_builddir)/test-usage-db-old >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-old.dir.\* >> $@
-	@echo gtester2xunit $(abs_builddir)/$(USAGE_DB_OLD_XML_REPORT) >> $@
+	@echo "if which gtester2xunit; then gtester2xunit $(abs_builddir)/$(USAGE_DB_OLD_XML_REPORT); fi" >> $@
 	@chmod +x $@
 
 test_usage_db_old_SOURCES = \
@@ -771,7 +771,7 @@ test-usage-db-testapp-test: test-usage-db-testapp good-app-info/testapp.desktop.
 	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_TESTAPP_XML_REPORT) $(abs_builddir)/test-usage-db-testapp >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-testapp.dir.\* >> $@
-	@echo gtester2xunit $(abs_builddir)/$(USAGE_TESTAPP_XML_REPORT) >> $@
+	@echo "if which gtester2xunit; then gtester2xunit $(abs_builddir)/$(USAGE_TESTAPP_XML_REPORT); fi" >> $@
 	@chmod +x $@
 
 test_usage_db_testapp_SOURCES = \
@@ -821,7 +821,7 @@ test-usage-db-off-test: test-usage-db-testapp good-app-info/testapp.desktop.hud-
 	@echo test \! -e indicator-appmenu/hud-usage-log.sqlite >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-off.dir.\* >> $@
-	@echo gtester2xunit $(abs_builddir)/$(USAGE_OFF_XML_REPORT) >> $@
+	@echo "if which gtester2xunit; then gtester2xunit $(abs_builddir)/$(USAGE_OFF_XML_REPORT); fi" >> $@
 	@chmod +x $@
 
 DISTCLEANFILES += \
