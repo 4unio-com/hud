@@ -27,6 +27,23 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 static void
 test_watchdog_create (void)
 {
+	/* Try with NULL */
+	HudWatchdog * doggie = hud_watchdog_new(NULL);
+
+	g_assert(IS_HUD_WATCHDOG(doggie));
+	g_assert(hud_watchdog_get_timeout(doggie) == 600);
+
+	g_clear_object(&doggie);
+
+	/* Give it a loop */
+	GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+	doggie = hud_watchdog_new(loop);
+
+	g_assert(IS_HUD_WATCHDOG(doggie));
+	g_assert(hud_watchdog_get_timeout(doggie) == 600);
+
+	g_clear_object(&doggie);
+	g_main_loop_unref(loop);
 
 	return;
 }
