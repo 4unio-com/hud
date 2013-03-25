@@ -12,6 +12,8 @@ libhud-client.so.2 libhud-client2 #MINVER#
  hud_client_param_send_cancel@Base 13.04.0-0ubuntu1~ppa3
  hud_client_param_send_commit@Base 13.04.0-0ubuntu1~ppa6
  hud_client_param_send_reset@Base 13.04.0-0ubuntu1~ppa3
+ hud_client_query_appstack_get_app_icon@Base 13.10.0-0ubuntu1~ppa2
+ hud_client_query_appstack_get_app_id@Base 13.10.0-0ubuntu1~ppa2
  hud_client_query_execute_command@Base 13.04.0
  hud_client_query_get_appstack_model@Base 13.04.0
  hud_client_query_execute_param_command@Base 13.04.0-0ubuntu1~ppa3
@@ -22,6 +24,13 @@ libhud-client.so.2 libhud-client2 #MINVER#
  hud_client_query_get_type@Base 13.04.0
  hud_client_query_new@Base 13.04.0
  hud_client_query_new_for_connection@Base 13.04.0
+ hud_client_query_results_get_command_highlights@Base 13.10.0-0ubuntu1~ppa2
+ hud_client_query_results_get_command_id@Base 13.10.0-0ubuntu1~ppa2
+ hud_client_query_results_get_command_name@Base 13.10.0-0ubuntu1~ppa2
+ hud_client_query_results_get_description@Base 13.10.0-0ubuntu1~ppa2
+ hud_client_query_results_get_description_highlights@Base 13.10.0-0ubuntu1~ppa2
+ hud_client_query_results_get_shortcut@Base 13.10.0-0ubuntu1~ppa2
+ hud_client_query_results_is_parameterized@Base 13.10.0-0ubuntu1~ppa2
  hud_client_query_set_appstack_app@Base 13.04.0-0ubuntu1~ppa2
  hud_client_query_set_query@Base 13.04.0
  hud_client_query_toolbar_item_active@Base 13.04.0-0ubuntu1~ppa7

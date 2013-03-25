@@ -183,18 +183,18 @@ models_ready (HudClientQuery * client_query, gpointer user_data)
 	DeeModelIter * iter = NULL;
 	int i = 0;
 	for (iter = dee_model_get_first_iter(model); !dee_model_is_last(model, iter); iter = dee_model_next(model, iter), i++) {
-		if (!dee_model_get_bool(model, iter, 7)) {
+		if (!hud_client_query_results_is_parameterized(client_query, iter)) {
 			/* Only want parameterized */
 			continue;
 		}
 
-		const gchar * suggestion = dee_model_get_string(model, iter, 1);
+		const gchar * suggestion = hud_client_query_results_get_command_name(client_query, iter);
 		gchar * clean_line = NULL;
 		pango_parse_markup(suggestion, -1, 0, NULL, &clean_line, NULL, NULL);
 		printf("\t%s\n", clean_line);
 		free(clean_line);
 
-		HudClientParam * param = hud_client_query_execute_param_command(client_query, dee_model_get_value(model, iter, 0), 0);
+		HudClientParam * param = hud_client_query_execute_param_command(client_query, hud_client_query_results_get_command_id(client_query, iter), 0);
 		g_return_if_fail(param != NULL);
 
 		GMenuModel * model = hud_client_param_get_model(param);

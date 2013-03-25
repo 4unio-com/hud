@@ -41,6 +41,7 @@ libhud_client_la_SOURCES = \
 	connection.c \
 	param.h \
 	param.c \
+	$(top_srcdir)/src/query-columns.h \
 	query.h \
 	query.c \
 	hud-client.h

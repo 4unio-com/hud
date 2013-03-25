@@ -320,13 +320,13 @@ new_query_complete (GObject * object, GAsyncResult * res, gpointer user_data)
 	gint revision = 0;
 	GError * error = NULL;
 
-	_hud_service_com_canonical_hud_call_start_query_finish((_HudServiceComCanonicalHud *)object,
-	                                                       &query_object,
-	                                                       &results_name,
-	                                                       &appstack_name,
-	                                                       &revision,
-	                                                       res,
-	                                                       &error);
+	_hud_service_com_canonical_hud_call_create_query_finish((_HudServiceComCanonicalHud *)object,
+	                                                        &query_object,
+	                                                        &results_name,
+	                                                        &appstack_name,
+	                                                        &revision,
+	                                                        res,
+	                                                        &error);
 
 	if (error != NULL) {
 		if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) && 
@@ -363,7 +363,7 @@ hud_client_connection_new_query (HudClientConnection * connection, const gchar *
 	data->cb = cb;
 	data->user_data = user_data;
 
-	return _hud_service_com_canonical_hud_call_start_query(connection->priv->proxy,
+	return _hud_service_com_canonical_hud_call_create_query(connection->priv->proxy,
 		query,
 		connection->priv->cancellable,
 		new_query_complete,

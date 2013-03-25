@@ -31,7 +31,6 @@ libhud_tests_la_SOURCES = \
 	hudtestutils.c
 
 libhud_tests_la_LDFLAGS = \
-	$(top_builddir)/src/libhud-service.la \
 	$(DBUSTEST_LIBS) \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
@@ -79,6 +78,7 @@ test_distance_CFLAGS = \
 
 test_distance_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -117,6 +117,7 @@ test_hud_item_CFLAGS = \
 
 test_hud_item_LDADD = \
 	$(top_builddir)/src/libhud-service.la \
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -155,6 +156,7 @@ test_result_highlighting_CFLAGS = \
 
 test_result_highlighting_LDADD = \
 	$(top_builddir)/src/libhud-service.la \
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -207,6 +209,7 @@ test_menu_input_CFLAGS = \
 
 test_menu_input_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	libhud-tests.la \
 	$(DBUSTEST_LIBS) \
 	$(HUD_LIBS) \
@@ -302,6 +305,7 @@ test_keyword_mapping_CFLAGS = \
 
 test_keyword_mapping_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -346,6 +350,7 @@ test_string_list_CFLAGS = \
 
 test_string_list_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -385,6 +390,7 @@ test_pronounce_dict_CFLAGS = \
 
 test_pronounce_dict_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -435,6 +441,7 @@ test_source_CFLAGS = \
 
 test_source_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
 	$(HUD_LIBS) \
@@ -483,6 +490,7 @@ test_app_indicator_source_CFLAGS = \
 
 test_app_indicator_source_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
 	$(HUD_LIBS) \
@@ -537,6 +545,7 @@ test_indicator_source_CFLAGS = \
 
 test_indicator_source_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
 	$(HUD_LIBS) \
@@ -582,6 +591,7 @@ test_application_list_CFLAGS = \
 
 test_application_list_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
 	$(HUD_LIBS) \
@@ -630,6 +640,7 @@ test_usage_db_simple_CFLAGS = \
 
 test_usage_db_simple_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -678,6 +689,7 @@ test_usage_db_old_CFLAGS = \
 
 test_usage_db_old_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -727,6 +739,7 @@ test_usage_db_ancient_CFLAGS = \
 
 test_usage_db_ancient_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -774,6 +787,7 @@ test_usage_db_testapp_CFLAGS = \
 
 test_usage_db_testapp_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -886,6 +900,7 @@ test_bad_app_info_CFLAGS = \
 
 test_bad_app_info_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -911,6 +926,7 @@ test_load_app_info_CFLAGS = \
 
 test_load_app_info_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -973,6 +989,7 @@ hud_performance_CFLAGS = \
 	$(BAMF_CFLAGS)
 hud_performance_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	libhud-tests.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
@@ -1001,6 +1018,7 @@ DISTCLEANFILES += \
 
 libhud_client_test_SOURCES = \
 	hud-client-test.c
+
 libhud_client_test_CFLAGS = \
 	-D HUD_SERVICE="\"$(top_builddir)/src/hud-service\"" \
 	-I $(top_srcdir) \
@@ -1008,9 +1026,12 @@ libhud_client_test_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(DBUSTEST_CFLAGS) \
 	$(TEST_CFLAGS)
+
 libhud_client_test_LDADD = \
 	$(top_builddir)/libhud-client/libhud-client.la \
 	libhud-tests.la \
+	$(top_builddir)/src/libhud-service.la \
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(DBUSTEST_LIBS) \
 	$(TEST_LIBS)

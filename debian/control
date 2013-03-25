@@ -26,8 +26,6 @@ Build-Depends: bamfdaemon,
                libdee-dev,
                libgirepository1.0-dev,
                libgtk-3-dev,
-               libncurses5-dev,
-               libreadline-dev,
                libsqlite3-dev,
                metacity,
                sqlite3,
@@ -142,7 +140,7 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
          libhud-gtk1 (= ${binary:Version}),
          libhud1-dev (= ${binary:Version}),
-         libglib2.0-dev
+         libgtk-3-dev,
 Multi-Arch: same
 Description: GTK helpers for exporting items to the Unity HUD
  Allows applications to add items into the HUD without requiring a
