@@ -79,7 +79,9 @@ libhud_service_la_SOURCES = \
 	pronounce-dict.h \
 	query-columns.h \
 	usage-tracker.h \
-	usage-tracker.c
+	usage-tracker.c \
+	watchdog.h \
+	watchdog.c
 
 libhud_service_la_LDFLAGS = \
 	$(COVERAGE_LDFLAGS)
