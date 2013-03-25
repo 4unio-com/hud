@@ -27,6 +27,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 static void
 test_watchdog_create (void)
 {
+	g_unsetenv("HUD_SERVICE_TIMEOUT");
+
 	/* Try with NULL */
 	HudWatchdog * doggie = hud_watchdog_new(NULL);
 
@@ -44,6 +46,16 @@ test_watchdog_create (void)
 
 	g_clear_object(&doggie);
 	g_main_loop_unref(loop);
+
+	/* Set the environment variable */
+	g_setenv("HUD_SERVICE_TIMEOUT", "1000", TRUE);
+
+	doggie = hud_watchdog_new(NULL);
+
+	g_assert(IS_HUD_WATCHDOG(doggie));
+	g_assert(hud_watchdog_get_timeout(doggie) == 1000);
+
+	g_clear_object(&doggie);
 
 	return;
 }
