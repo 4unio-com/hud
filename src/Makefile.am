@@ -77,6 +77,7 @@ libhud_service_la_SOURCES = \
 	load-app-info.c \
 	pronounce-dict.c \
 	pronounce-dict.h \
+	query-columns.h \
 	usage-tracker.h \
 	usage-tracker.c
 

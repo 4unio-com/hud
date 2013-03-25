@@ -26,11 +26,14 @@ namespace HudGtk {
 			Gtk.TreeIter iter;
 			model.insert(out iter, (int)pos);
 
-			model.set(iter, 0, results.get_string(result_iter, 1)); /* Command */
-			model.set(iter, 1, results.get_string(result_iter, 3)); /* Description */
-			model.set(iter, 2, results.get_string(result_iter, 5)); /* Shortcut */
-			model.set(iter, 3, results.get_string(result_iter, 6)); /* Distance */
-			model.set(iter, 4, results.get_value(result_iter, 0)); /* Key */
+			model.set(iter, 0, query.results_get_command_name(result_iter));
+			model.set(iter, 1, query.results_get_description(result_iter));
+			model.set(iter, 2, query.results_get_shortcut(result_iter));
+			/* Distance isn't in the API because it's internal, but this
+			   is a debugging tool so we're leavinging here */
+			model.set(iter, 3, results.get_uint32(result_iter, 6));
+			model.set(iter, 4, Markup.escape_text(query.results_get_command_id(result_iter).print(true)));
+			model.set(iter, 5, query.results_get_command_id(result_iter));
 		}
 
 		void results_row_removed (Dee.Model results, Dee.ModelIter result_iter) {
@@ -50,8 +53,8 @@ namespace HudGtk {
 			Gtk.TreeIter iter;
 			appstack_model.insert(out iter, (int)pos);
 
-			appstack_model.set(iter, 0, results.get_string(result_iter, 0));
-			appstack_model.set(iter, 1, results.get_string(result_iter, 1));
+			appstack_model.set(iter, 0, query.appstack_get_app_id(result_iter));
+			appstack_model.set(iter, 1, query.appstack_get_app_icon(result_iter));
 		}
 
 		void appstack_results_row_removed (Dee.Model results, Dee.ModelIter result_iter) {
@@ -78,7 +81,7 @@ namespace HudGtk {
 			Variant key;
 
 			model.get_iter (out iter, path);
-			model.get (iter, 4, out key);
+			model.get (iter, 5, out key);
 
 			query.execute_command(key, 0);
 		}
