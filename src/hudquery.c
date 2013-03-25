@@ -434,6 +434,18 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   gchar *voice_result;
   GError *error = NULL;
 
+  if (query->voice == NULL)
+  {
+    query->voice = hud_voice_new(query->skel,&error);
+    if (!query->voice)
+    {
+      g_warning ("%s %s\n", "Voice engine failed to initialize:", error->message);
+      g_dbus_method_invocation_return_error_literal(invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, error->message);
+      g_error_free(error);
+      return FALSE;
+    }
+  }
+
   HudSource * search_source = query->current_source;
   if (search_source == NULL) {
     search_source = hud_application_list_get_focused_app(query->app_list);
@@ -665,6 +677,16 @@ handle_execute_toolbar (HudQueryIfaceComCanonicalHudQuery *object, GDBusMethodIn
 	return TRUE;
 }
 
+/* Really this is just an unref, but let's put it in a nice function
+   so that it's easier to change later if we need to. */
+void
+hud_query_close (HudQuery * query)
+{
+	g_return_if_fail(HUD_IS_QUERY(query));
+	g_object_unref(query);
+	return;
+}
+
 /* Handle the DBus function CloseQuery */
 static gboolean
 handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
@@ -672,8 +694,8 @@ handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
 	HudQuery * query = HUD_QUERY(user_data);
 
-	/* Unref the query */
-	g_object_unref(query);
+	/* Close the query */
+	hud_query_close(query);
 
 	/* NOTE: Don't use the query after this, it may not exist */
 	query = NULL;
@@ -731,14 +753,6 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint q
                NULL);
 
   g_dbus_interface_skeleton_flush(G_DBUS_INTERFACE_SKELETON(query->skel));
-
-  error = NULL;
-  query->voice = hud_voice_new(query->skel,&error);
-  if (!query->voice)
-  {
-    g_warning ("%s %s\n", "Voice engine failed to initialize:", error->message);
-    g_error_free(error);
-  }
 }
 
 static void
@@ -877,3 +891,18 @@ hud_query_get_appstack_model(HudQuery *self)
 
 }
 
+const gchar *
+hud_query_get_query (HudQuery * query)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(query), NULL);
+
+	return query->search_string;
+}
+
+guint
+hud_query_get_number (HudQuery * query)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(query), 0);
+
+	return query->querynumber;
+}
