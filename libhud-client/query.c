@@ -294,7 +294,7 @@ new_query_cb (HudClientConnection * connection, const gchar * path, const gchar 
 	);
 
 	if (cquery->priv->proxy == NULL) {
-		g_warning("Unable to get proxy after getting query path: %s", error->message);
+		g_debug("Unable to get proxy after getting query path: %s", error->message);
 		g_error_free(error);
 		g_object_unref(cquery);
 		return;
