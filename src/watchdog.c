@@ -160,3 +160,19 @@ hud_watchdog_ping (HudWatchdog * watchdog)
 	}
 	return;
 }
+
+/**
+ * hud_watchdog_get_timeout:
+ * @watchdog: Watchdog to interegate
+ *
+ * Get the timeout of this watchdog.
+ *
+ * Return value: The number of seconds before it goes off
+ */
+guint
+hud_watchdog_get_timeout (HudWatchdog * watchdog)
+{
+	g_return_val_if_fail(IS_HUD_WATCHDOG(watchdog), 0);
+
+	return watchdog->priv->timeout;
+}

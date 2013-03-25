@@ -46,6 +46,7 @@ GType hud_watchdog_get_type (void);
 
 HudWatchdog * hud_watchdog_new  (GMainLoop * loop);
 void          hud_watchdog_ping (HudWatchdog * watchdog);
+guint         hud_watchdog_get_timeout (HudWatchdog * watchdog);
 
 G_END_DECLS
 
