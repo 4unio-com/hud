@@ -38,6 +38,7 @@
 #include "hud-iface.h"
 #include "shared-values.h"
 #include "hudquery.h"
+#include "watchdog.h"
 
 /* Prototypes */
 static void            bus_method         (GDBusConnection       *connection,
@@ -67,6 +68,7 @@ static GDBusInterfaceVTable vtable = {
 	.set_property = NULL
 };
 static HudApplicationList * application_list = NULL;
+static HudWatchdog * watchdog = NULL;
 
 /* Get our error domain */
 GQuark
@@ -534,8 +536,12 @@ main (int argc, char **argv)
 
   signal(SIGTERM, sigterm_graceful_exit);
   
+  watchdog = hud_watchdog_new(mainloop);
+
   g_main_loop_run (mainloop);
   g_main_loop_unref (mainloop);
+
+  g_clear_object(&watchdog);
 
   g_object_unref (application_list);
   g_object_unref (source_list);
