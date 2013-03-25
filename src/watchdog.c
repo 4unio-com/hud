@@ -67,7 +67,9 @@ hud_watchdog_init (HudWatchdog *self)
 		self->priv->timeout = atoi(envvar);
 	}
 
-	self->priv->timer = g_timeout_add_seconds(self->priv->timeout, fire_watchdog, self);
+	if (self->priv->timeout != 0) {
+		self->priv->timer = g_timeout_add_seconds(self->priv->timeout, fire_watchdog, self);
+	}
 
 	return;
 }
@@ -108,4 +110,46 @@ fire_watchdog (gpointer user_data)
 	}
 
 	return FALSE;
+}
+
+/**
+ * hud_watchdog_new:
+ * @loop: Mainloop to quit if we timeout
+ *
+ * Sets up a watchdog that will quit on the main loop if it
+ * doesn't get enough attention.  Reminds of an girlfriend
+ * I had once...
+ *
+ * Return value: (transfer full): A new #HudWatchdog object
+ */
+HudWatchdog *
+hud_watchdog_new (GMainLoop * loop)
+{
+	HudWatchdog * watchdog = g_object_new(HUD_WATCHDOG_TYPE, NULL);
+
+	watchdog->priv->loop = loop;
+
+	return watchdog;
+}
+
+/**
+ * hud_watchdog_ping:
+ * @watchdog: Watchdog to give attention to
+ *
+ * Makes sure to startover and not timeout.
+ */
+void
+hud_watchdog_ping (HudWatchdog * watchdog)
+{
+	g_return_if_fail(IS_HUD_WATCHDOG(watchdog));
+
+	if (watchdog->priv->timer != 0) {
+		g_source_remove(watchdog->priv->timer);
+		watchdog->priv->timer = 0;
+	}
+
+	if (watchdog->priv->timeout != 0) {
+		watchdog->priv->timer = g_timeout_add_seconds(watchdog->priv->timeout, fire_watchdog, watchdog);
+	}
+	return;
 }
