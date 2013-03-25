@@ -5,7 +5,7 @@ libhud.so.1 libhud1 #MINVER#
  hud_action_description_new@Base 13.04.0
  hud_action_description_set_attribute@Base 13.04.0
  hud_action_description_set_attribute_value@Base 13.04.0
- hud_action_description_set_parameterized@Base 13.04.0-0ubuntu1~ppa3
+ hud_action_description_set_parameterized@Base 13.04.0
  hud_action_entries_install@Base 13.04.0
  hud_action_get_is_active@Base 13.04.0
  hud_action_get_operation@Base 13.04.0
@@ -13,19 +13,19 @@ libhud.so.1 libhud1 #MINVER#
  hud_action_new@Base 13.04.0
  hud_action_publisher_add_action_group@Base 13.04.0
  hud_action_publisher_add_description@Base 13.04.0
- hud_action_publisher_get_action_groups@Base 13.04.0-0ubuntu1~ppa2
- hud_action_publisher_get_description_path@Base 13.04.0-0ubuntu1~ppa2
- hud_action_publisher_get_id@Base 13.04.0-0ubuntu1~ppa2
+ hud_action_publisher_get_action_groups@Base 13.04.0
+ hud_action_publisher_get_description_path@Base 13.04.0
+ hud_action_publisher_get_id@Base 13.04.0
  hud_action_publisher_get_type@Base 13.04.0
- hud_action_publisher_new_for_id@Base 13.04.0-0ubuntu1~ppa2
+ hud_action_publisher_new_for_id@Base 13.04.0
  hud_action_publisher_remove_action_group@Base 13.04.0
  hud_action_set_enabled@Base 13.04.0
  hud_action_set_operation@Base 13.04.0
  hud_action_signals@Base 13.04.0
  hud_manager_add_actions@Base 13.04.0
- hud_manager_get_type@Base 13.04.0-0ubuntu1~ppa2
- hud_manager_new@Base 13.04.0-0ubuntu1~ppa2
- hud_manager_new_for_application@Base 13.04.0-0ubuntu1~ppa2
+ hud_manager_get_type@Base 13.04.0
+ hud_manager_new@Base 13.04.0
+ hud_manager_new_for_application@Base 13.04.0
  hud_manager_remove_actions@Base 13.04.0
  hud_operation_ended@Base 13.04.0
  hud_operation_get_boolean@Base 13.04.0
