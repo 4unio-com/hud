@@ -29,8 +29,9 @@ G_BEGIN_DECLS
 #define IS_HUD_WATCHDOG_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HUD_WATCHDOG_TYPE))
 #define HUD_WATCHDOG_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_WATCHDOG_TYPE, HudWatchdogClass))
 
-typedef struct _HudWatchdog      HudWatchdog;
-typedef struct _HudWatchdogClass HudWatchdogClass;
+typedef struct _HudWatchdog        HudWatchdog;
+typedef struct _HudWatchdogClass   HudWatchdogClass;
+typedef struct _HudWatchdogPrivate HudWatchdogPrivate;
 
 struct _HudWatchdogClass {
 	GObjectClass parent_class;
@@ -38,6 +39,7 @@ struct _HudWatchdogClass {
 
 struct _HudWatchdog {
 	GObject parent;
+	HudWatchdogPrivate * priv;
 };
 
 GType hud_watchdog_get_type (void);

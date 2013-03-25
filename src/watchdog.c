@@ -19,10 +19,14 @@
 #include "config.h"
 #endif
 
+#include <stdlib.h>
 #include "watchdog.h"
+
+#define DEFAULT_TIMEOUT  600 /* seconds, or 10 minutes */
 
 typedef struct _HudWatchdogPrivate HudWatchdogPrivate;
 struct _HudWatchdogPrivate {
+	guint timeout;
 	gulong timer;
 };
 
@@ -52,6 +56,16 @@ hud_watchdog_class_init (HudWatchdogClass *klass)
 static void
 hud_watchdog_init (HudWatchdog *self)
 {
+	self->priv = HUD_WATCHDOG_GET_PRIVATE(self);
+
+	const gchar * envvar = g_getenv("HUD_SERVICE_TIMEOUT");
+	if (envvar == NULL) {
+		self->priv->timeout = DEFAULT_TIMEOUT;
+	} else {
+		self->priv->timeout = atoi(envvar);
+	}
+
+	//g_timeout_add_seconds(self->priv->timeout, fire_watchdog, self);
 
 	return;
 }
