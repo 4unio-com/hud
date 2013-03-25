@@ -232,7 +232,7 @@ query_destroyed (gpointer data, GObject * old_object)
 static HudQuery *
 build_query (HudSourceList * all_sources, HudApplicationList * app_list, GDBusConnection * connection, const gchar * search_string)
 {
-	HudQuery * query = hud_query_new (HUD_SOURCE(all_sources), application_list, search_string, 10, connection, ++query_count);
+	HudQuery * query = hud_query_new (HUD_SOURCE(all_sources), watchdog, application_list, search_string, 10, connection, ++query_count);
 
 	g_ptr_array_add(query_list, query);
 	g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);

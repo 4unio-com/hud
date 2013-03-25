@@ -30,6 +30,7 @@
 #include "application-source.h"
 #include "application-list.h"
 #include "query-columns.h"
+#include "watchdog.h"
 
 /**
  * SECTION:hudquery
@@ -58,6 +59,7 @@ struct _HudQuery
 {
   GObject parent_instance;
 
+  HudWatchdog * watchdog;
   HudSource *all_sources;
   HudApplicationList *app_list;
   HudSource *current_source;
@@ -416,6 +418,7 @@ hud_query_finalize (GObject *object)
   g_clear_pointer(&query->appstack_name, g_free);
 
   g_clear_object(&query->voice);
+  g_clear_object(&query->watchdog);
 
   G_OBJECT_CLASS (hud_query_parent_class)
     ->finalize (object);
@@ -795,6 +798,7 @@ hud_query_class_init (HudQueryClass *class)
  **/
 HudQuery *
 hud_query_new (HudSource   *all_sources,
+               HudWatchdog *watchdog,
                HudApplicationList *application_list,
                const gchar *search_string,
                gint         num_results,
@@ -807,6 +811,7 @@ hud_query_new (HudSource   *all_sources,
 
   query = g_object_new (HUD_TYPE_QUERY, NULL);
   hud_query_init_real(query, connection, query_count);
+  query->watchdog = g_object_ref (watchdog);
   query->all_sources = g_object_ref (all_sources);
   query->app_list = g_object_ref (application_list);
   query->search_string = g_strdup (search_string);
