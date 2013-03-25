@@ -29,13 +29,8 @@ hud_pronounce_for_word_LDFLAGS = \
 	$(COVERAGE_LDFLAGS) \
 	$(HUD_LIBS)
 
-if BUILD_CLI
 bin_PROGRAMS += \
 	hud-pronounce-for-word
-else
-EXTRA_DIST += \
-	$(hud_pronounce_for_word_SOURCES)
-endif
 
 ####################
 # HUD CLI
@@ -56,20 +51,14 @@ hud_cli_CFLAGS = \
 hud_cli_LDFLAGS = \
 	$(HUD_LIBS) \
 	$(COVERAGE_LDFLAGS) \
-	$(gtk_LIBS) \
-	-lreadline -lcurses
+	$(gtk_LIBS)
 
 hud_cli_LDADD = \
 	$(gtk_LIBS) \
 	$(top_builddir)/libhud-client/libhud-client.la
 
-if BUILD_CLI
 bin_PROGRAMS += \
 	hud-cli
-else
-EXTRA_DIST += \
-	$(hud_cli_SOURCES)
-endif
 
 ####################
 # HUD CLI Param
@@ -96,13 +85,8 @@ hud_cli_param_LDADD = \
 	$(gtk_LIBS) \
 	$(top_builddir)/libhud-client/libhud-client.la
 
-if BUILD_CLI
 bin_PROGRAMS += \
 	hud-cli-param
-else
-EXTRA_DIST += \
-	$(hud_cli_param_SOURCES)
-endif
 
 ####################
 # HUD CLI Appstack
@@ -129,13 +113,8 @@ hud_cli_appstack_LDADD = \
 	$(gtk_LIBS) \
 	$(top_builddir)/libhud-client/libhud-client.la
 
-if BUILD_CLI
 bin_PROGRAMS += \
 	hud-cli-appstack
-else
-EXTRA_DIST += \
-	$(hud_cli_appstack_SOURCES)
-endif
 
 ####################
 # HUD CLI Toolbar
@@ -156,13 +135,8 @@ hud_cli_toolbar_LDFLAGS = \
 hud_cli_toolbar_LDADD = \
 	$(top_builddir)/libhud-client/libhud-client.la
 
-if BUILD_CLI
 bin_PROGRAMS += \
 	hud-cli-toolbar
-else
-EXTRA_DIST += \
-	$(hud_cli_toolbar_SOURCES)
-endif
 
 
 
