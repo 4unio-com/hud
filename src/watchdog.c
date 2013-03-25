@@ -141,6 +141,13 @@ hud_watchdog_new (GMainLoop * loop)
 void
 hud_watchdog_ping (HudWatchdog * watchdog)
 {
+	/* Doing a silent fail on NULL so that our tests can not worry about
+	   setting up dummy watchdogs when just testing the query.  They have
+	   their own timeouts */
+	if (watchdog == NULL) {
+		return;
+	}
+
 	g_return_if_fail(IS_HUD_WATCHDOG(watchdog));
 
 	if (watchdog->priv->timer != 0) {
