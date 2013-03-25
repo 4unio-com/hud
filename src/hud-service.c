@@ -267,6 +267,8 @@ bus_method (GDBusConnection       *connection,
             GDBusMethodInvocation *invocation,
             gpointer               user_data)
 {
+	hud_watchdog_ping(watchdog);
+
 	if (g_str_equal (method_name, "CreateQuery")) {
 		HudSourceList *all_sources = user_data;
 		GVariant * vsearch;
@@ -389,6 +391,7 @@ bus_method (GDBusConnection       *connection,
 static GVariant *
 bus_get_prop (GDBusConnection * connection, const gchar * sender, const gchar * object_path, const gchar * interface_name, const gchar * property_name, GError ** error, gpointer user_data)
 {
+	hud_watchdog_ping(watchdog);
 	// HudSource *source = user_data;
 
 	if (g_str_equal(property_name, "OpenQueries")) {
