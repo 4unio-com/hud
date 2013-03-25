@@ -87,6 +87,45 @@ DISTCLEANFILES += \
 	$(DISTANCE_XML_REPORT:.xml=-xunit.xml)
 
 ######################
+# Test Watchdog
+######################
+
+TESTS += \
+	test-watchdog-test
+
+check_PROGRAMS += \
+	test-watchdog
+
+WATCHDOG_XML_REPORT = test-watchdog.xml
+
+test-watchdog-test: test-watchdog Makefile.am
+	@echo "#!/bin/bash" > $@
+	@echo $(XVFB_RUN) >> $@
+	@echo gtester --verbose -k -o $(WATCHDOG_XML_REPORT) $(builddir)/test-watchdog >> $@
+	@echo gtester2xunit $(WATCHDOG_XML_REPORT) >> $@
+	@chmod +x $@
+
+test_watchdog_SOURCES = \
+	test-watchdog.c
+
+test_watchdog_CFLAGS = \
+	$(HUD_CFLAGS) \
+	$(BAMF_CFLAGS) \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
+	-Wall -Werror
+
+test_watchdog_LDADD = \
+	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
+	$(HUD_LIBS) \
+	$(BAMF_LIBS)
+
+DISTCLEANFILES += \
+	$(WATCHDOG_XML_REPORT) \
+	$(WATCHDOG_XML_REPORT:.xml=-xunit.xml)
+
+######################
 # Test Hud Item
 ######################
 

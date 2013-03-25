@@ -244,3 +244,7 @@ Makefile.in.in
 /tests/test-usage-db-testapp.xml
 /tests/keyword-mapping/locale/en_FAKELANG/LC_MESSAGES/gnome-terminal.mo
 
+test-watchdog
+test-watchdog-test
+test-watchdog-xunit.xml
+test-watchdog.xml
