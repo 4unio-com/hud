@@ -26,6 +26,7 @@
 #include "connection.h"
 #include "query-iface.h"
 #include "enum-types.h"
+#include "query-columns.h"
 
 struct _HudClientQueryPrivate {
 	_HudQueryComCanonicalHudQuery * proxy;
@@ -608,4 +609,168 @@ hud_client_query_execute_toolbar_item (HudClientQuery * cquery, HudClientQueryTo
 	_hud_query_com_canonical_hud_query_call_execute_toolbar_sync(cquery->priv->proxy, hud_client_query_toolbar_items_get_nick(item), timestamp, NULL, NULL);
 
 	return;
+}
+
+/**
+ * hud_client_query_appstack_get_app_id:
+ * @cquery: A #HudClientQuery
+ * @row: Which row in the table to grab the ID from
+ *
+ * Get the application ID for a given row in the appstack table.
+ *
+ * Return value: The application ID
+ */
+const gchar *
+hud_client_query_appstack_get_app_id (HudClientQuery * cquery, DeeModelIter * row)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+	g_return_val_if_fail(row != NULL, NULL);
+
+	return dee_model_get_string(cquery->priv->appstack, row, HUD_QUERY_APPSTACK_APPLICATION_ID);
+}
+
+/**
+ * hud_client_query_appstack_get_app_icon:
+ * @cquery: A #HudClientQuery
+ * @row: Which row in the table to grab the icon from
+ *
+ * Get the application icon for a given row in the appstack table.
+ *
+ * Return value: The application icon
+ */
+const gchar *
+hud_client_query_appstack_get_app_icon (HudClientQuery * cquery, DeeModelIter * row)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+	g_return_val_if_fail(row != NULL, NULL);
+
+	return dee_model_get_string(cquery->priv->appstack, row, HUD_QUERY_APPSTACK_ICON_NAME);
+}
+
+/**
+ * hud_client_query_results_get_command_id:
+ * @cquery: A #HudClientQuery
+ * @row: Which row in the table to grab the ID from
+ *
+ * Get the command ID for a given row in the results table.
+ *
+ * Return value: (transfer full): The command ID
+ */
+GVariant *
+hud_client_query_results_get_command_id (HudClientQuery * cquery, DeeModelIter * row)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+	g_return_val_if_fail(row != NULL, NULL);
+
+	return dee_model_get_value(cquery->priv->results, row, HUD_QUERY_RESULTS_COMMAND_ID);
+}
+
+/**
+ * hud_client_query_results_get_command_name:
+ * @cquery: A #HudClientQuery
+ * @row: Which row in the table to grab the name from
+ *
+ * Get the human readable command name for a given row in the results table.
+ *
+ * Return value: The command name
+ */
+const gchar *
+hud_client_query_results_get_command_name (HudClientQuery * cquery, DeeModelIter * row)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+	g_return_val_if_fail(row != NULL, NULL);
+
+	return dee_model_get_string(cquery->priv->results, row, HUD_QUERY_RESULTS_COMMAND_NAME);
+}
+
+/**
+ * hud_client_query_results_get_command_highlights:
+ * @cquery: A #HudClientQuery
+ * @row: Which row in the table to grab the highlights from
+ *
+ * Get the command highlights for a row in the table with start and
+ * stop characters in an array.
+ *
+ * Return value: (transfer full): The command highlights as a variant of type "a(ii)"
+ */
+GVariant *
+hud_client_query_results_get_command_highlights (HudClientQuery * cquery, DeeModelIter * row)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+	g_return_val_if_fail(row != NULL, NULL);
+
+	return dee_model_get_value(cquery->priv->results, row, HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS);
+}
+
+/**
+ * hud_client_query_results_get_description:
+ * @cquery: A #HudClientQuery
+ * @row: Which row in the table to grab the description from
+ *
+ * Get the human readable description for the command in the given row in the results table.
+ *
+ * Return value: The description
+ */
+const gchar *
+hud_client_query_results_get_description (HudClientQuery * cquery, DeeModelIter * row)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+	g_return_val_if_fail(row != NULL, NULL);
+
+	return dee_model_get_string(cquery->priv->results, row, HUD_QUERY_RESULTS_DESCRIPTION);
+}
+
+/**
+ * hud_client_query_results_get_description_highlights:
+ * @cquery: A #HudClientQuery
+ * @row: Which row in the table to grab the highlights from
+ *
+ * Get the description highlights for a row in the table with start and
+ * stop characters in an array.
+ *
+ * Return value: (transfer full): The description highlights as a variant of type "a(ii)"
+ */
+GVariant *
+hud_client_query_results_get_description_highlights (HudClientQuery * cquery, DeeModelIter * row)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+	g_return_val_if_fail(row != NULL, NULL);
+
+	return dee_model_get_value(cquery->priv->results, row, HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS);
+}
+
+/**
+ * hud_client_query_results_get_shortcut:
+ * @cquery: A #HudClientQuery
+ * @row: Which row in the table to grab the shortcut from
+ *
+ * Get the human readable shortcut for the command in the given row in the results table.
+ *
+ * Return value: The shortcut
+ */
+const gchar *
+hud_client_query_results_get_shortcut (HudClientQuery * cquery, DeeModelIter * row)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
+	g_return_val_if_fail(row != NULL, NULL);
+
+	return dee_model_get_string(cquery->priv->results, row, HUD_QUERY_RESULTS_SHORTCUT);
+}
+
+/**
+ * hud_client_query_results_is_parameterized:
+ * @cquery: A #HudClientQuery
+ * @row: Which row in the table to check if the command is parameterized
+ *
+ * Check to see if the given command is parameterized
+ *
+ * Return value: Whether the command in the row is parameterized
+ */
+gboolean
+hud_client_query_results_is_parameterized (HudClientQuery * cquery, DeeModelIter * row)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), FALSE);
+	g_return_val_if_fail(row != NULL, FALSE);
+
+	return dee_model_get_bool(cquery->priv->results, row, HUD_QUERY_RESULTS_PARAMETERIZED);
 }

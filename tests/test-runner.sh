@@ -7,5 +7,5 @@ cd "${DIR}"
 . run-xvfb.sh
 gtester --verbose -k -o "${REPORT_FILE}" "${TEST_CASE}"
 RESULT=$?
-gtester2xunit "${REPORT_FILE}"
+which gtester2xunit && gtester2xunit "${REPORT_FILE}"
 exit $RESULT

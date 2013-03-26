@@ -246,7 +246,7 @@ hud_client_connection_new_query (HudClientConnection * connection, const gchar *
 	gint modelrev = 0;
 
 	GError *error = NULL;
-	gboolean success = _hud_service_com_canonical_hud_call_start_query_sync(connection->priv->proxy,
+	gboolean success = _hud_service_com_canonical_hud_call_create_query_sync(connection->priv->proxy,
 		query,
 		query_path,
 		results_name,

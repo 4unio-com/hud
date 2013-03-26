@@ -91,6 +91,7 @@ hudkeywordmapping.h
 hudresult.h
 load-app-info.h
 pronounce-dict.h
+query-columns.h
 usage-tracker.h
 )
 
