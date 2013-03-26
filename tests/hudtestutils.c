@@ -539,7 +539,7 @@ hud_test_utils_start_hud_service (DbusTestService **service,
 
   /* query */
   dbus_mock_add_method (*connection, DBUS_NAME, DBUS_PATH, DBUS_IFACE,
-      "StartQuery", "s", "ossi",
+      "CreateQuery", "s", "ossi",
       "ret = ('/com/canonical/hud/query0', 'com.canonical.hud.query0.results', 'com.canonical.hud.query0.appstack', dbus.Int32(0))");
 
   hud_test_utils_process_mainloop (100);
