@@ -7,7 +7,8 @@ EXTRA_DIST = \
 	$(CHARTS)
 
 CHARTS = \
-	libhud-communication.msc
+	libhud-communication.msc \
+	libhud-client.msc
 
 charts: $(CHARTS:.msc=.png)
 
