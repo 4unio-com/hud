@@ -31,6 +31,8 @@
 typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
 
 struct _HudApplicationListPrivate {
+	HudApplicationSource * last_focused_main_stage_source;
+
 #ifdef HAVE_BAMF
 	BamfMatcher * matcher;
 	gulong matcher_app_sig;
@@ -38,7 +40,6 @@ struct _HudApplicationListPrivate {
 	gulong matcher_view_close_sig;
 #endif
 #ifdef HAVE_HYBRIS
-	HudApplicationSource * last_focused_main_stage_source;
 	HudApplicationSource * last_focused_side_stage_source;
 	ubuntu_ui_session_lifecycle_observer observer_definition;
 #endif
@@ -239,6 +240,8 @@ hud_application_list_dispose (GObject *object)
 		g_clear_object(&self->priv->used_source);
 	}
 
+	g_clear_object(&self->priv->last_focused_main_stage_source);
+
 #ifdef HAVE_BAMF
 	if (self->priv->matcher_app_sig != 0 && self->priv->matcher != NULL) {
 		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_app_sig);
@@ -266,7 +269,6 @@ hud_application_list_dispose (GObject *object)
 
 #ifdef HAVE_HYBRIS
 	/* Nothing to do as Hybris has no way to unregister our observer */
-	g_clear_object(&self->priv->last_focused_main_stage_source);
 	g_clear_object(&self->priv->last_focused_side_stage_source);
 #endif
 
@@ -365,11 +367,7 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 
 	/* We care where we're going, not where we've been */
 	if (new_win == NULL) {
-    /* IGNORING CHANGE TO NULL WINDOW FOR NOW
-		if (list->priv->used_source != NULL) {
-			hud_source_unuse(list->priv->used_source);
-			list->priv->used_source = NULL;
-		}*/
+		g_clear_object(&list->priv->last_focused_main_stage_source);
 		return;
 	}
 
@@ -407,6 +405,9 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 		g_warning("Unable to find source for window");
 		return;
 	}
+
+	g_clear_object(&list->priv->last_focused_main_stage_source);
+	list->priv->last_focused_main_stage_source = g_object_ref(source);
 
 	hud_application_source_focus(source, new_app, new_win);
 
@@ -786,13 +787,7 @@ hud_application_list_get_focused_app (HudApplicationList * list)
 		return aclass->get_focused_app(list);
 	}
 
-#ifdef HAVE_BAMF
-	/* TODO: Not sure if BAMF is right here, but not testing that. */
-	return list->priv->used_source;
-#endif
-#ifdef HAVE_HYBRIS
 	return HUD_SOURCE(list->priv->last_focused_main_stage_source);
-#endif
 }
 
 /**
@@ -809,7 +804,6 @@ hud_application_list_get_side_stage_focused_app (HudApplicationList * list)
     g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 
 #ifdef HAVE_BAMF
-    /* TODO: Not sure if BAMF is right here, but not testing that. */
     return NULL;
 #endif
 #ifdef HAVE_HYBRIS

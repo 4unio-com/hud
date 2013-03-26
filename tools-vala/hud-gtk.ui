@@ -210,7 +210,9 @@
       <!-- column-name guint -->
       <column type="guint"/>
       <!-- column-name gvariant -->
-      <column type="GVariant"/>
+      <column type="gchararray"/>
+      <!-- column-name gvariant -->
+      <column type="GVariant" visible="0"/>
     </columns>
   </object>
 </interface>
