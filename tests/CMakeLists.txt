@@ -99,6 +99,8 @@ ${DBUSTEST_LIBRARIES}
 
 add_definitions(-DJSON_SIMPLE="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-simple.json")
 add_definitions(-DJSON_SHORTCUTS="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-shortcuts.json")
+add_definitions(-DJSON_SOURCE_ONE="${CMAKE_CURRENT_SOURCE_DIR}/test-app-indicator-source-one.json")
+add_definitions(-DJSON_SOURCE_TWO="${CMAKE_CURRENT_SOURCE_DIR}/test-app-indicator-source-two.json")
 
 #######################
 # Generated test fixtures

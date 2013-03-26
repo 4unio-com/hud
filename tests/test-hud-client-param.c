@@ -8,46 +8,51 @@
 static void
 test_param_create (void)
 {
-	g_test_log_set_fatal_handler(no_dee_add_match, NULL);
 
-	DbusTestService *service = NULL;
-	GDBusConnection *connection = NULL;
-	DeeModel *results_model = NULL;
-  DeeModel *appstack_model = NULL;
+  DbusTestService *service = dbus_test_service_new (NULL );
+    hud_test_utils_dbus_mock_start (service, DBUS_NAME, DBUS_PATH, DBUS_IFACE);
+  GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (
+      service, DBUS_NAME, NULL );
+  hud_test_utils_process_mainloop (300);
 
-  hud_test_utils_start_hud_service (&service, &connection, &results_model,
-      &appstack_model);
+  HudClientParam* param = hud_client_param_new ("app.dbus.name", "base_action", "/action/path",
+      "/model/path", 1);
 
-	/* Create a query */
-	HudClientQuery * query = hud_client_query_new("test");
+  g_object_unref(param);
+  g_object_unref(service);
 
-	g_assert(DEE_IS_MODEL(hud_client_query_get_results_model(query)));
-	g_assert(DEE_IS_MODEL(hud_client_query_get_appstack_model(query)));
+  hud_test_utils_wait_for_connection_close(connection);
+}
 
-	g_assert(g_strcmp0("test", hud_client_query_get_query(query)) == 0);
+static void
+test_param_get_actions (void)
+{
 
-	HudClientConnection * client_connection = NULL;
-	gchar * search = NULL;
+  DbusTestService *service = dbus_test_service_new (NULL );
+    hud_test_utils_dbus_mock_start (service, DBUS_NAME, DBUS_PATH, DBUS_IFACE);
+  hud_test_utils_json_loader_start_full (service, "app.dbus.name", "/menu",
+      JSON_SOURCE_ONE);
+  GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (
+      service, DBUS_NAME, "app.dbus.name", NULL );
+    hud_test_utils_process_mainloop (300);
 
-	g_object_get(G_OBJECT(query), "query", &search, "connection", &client_connection, NULL);
+  HudClientParam* param = hud_client_param_new ("app.dbus.name", "base_action", "/action/path",
+      "/model/path", 1);
 
-	g_assert(g_strcmp0("test", search) == 0);
-	g_assert(HUD_CLIENT_IS_CONNECTION(client_connection));
-	
-	g_free(search);
+  GActionGroup *action_group = hud_client_param_get_actions(param);
+  g_assert(action_group);
 
-	g_object_unref(query);
+  g_object_unref(param);
+  g_object_unref(service);
 
-	g_object_unref(client_connection);
-
-  hud_test_utils_stop_hud_service (service, connection, results_model,
-      appstack_model);
+  hud_test_utils_wait_for_connection_close(connection);
 }
 
 static void
 test_suite (void)
 {
   g_test_add_func ("/hud/client/param/create", test_param_create);
+  g_test_add_func ("/hud/client/param/get_actions", test_param_get_actions);
 }
 
 int
