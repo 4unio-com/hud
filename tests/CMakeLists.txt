@@ -155,14 +155,6 @@ hudtest(test-application-list test-application-list.c test-application-list.xml)
 #test-good-app-info-tons-of-entries
 #test-dbus-message-count
 
-#####################################
-# libhud-client test suite
-#####################################
-
-hudtest(test-hud-client-connection test-hud-client-connection.c test-hud-client-connection.xml)
-hudtest(test-hud-client-query test-hud-client-query.c test-hud-client-query.xml)
-hudtest(test-hud-client-param test-hud-client-param.c test-hud-client-param.xml)
-
 #######################
 # Slow test
 #######################
@@ -182,3 +174,10 @@ if(${enable_scalability_tests})
   )
 endif()
 
+#####################################
+# libhud-client test suite
+#####################################
+
+hudtest(test-hud-client-connection test-hud-client-connection.c test-hud-client-connection.xml)
+hudtest(test-hud-client-query test-hud-client-query.c test-hud-client-query.xml)
+hudtest(test-hud-client-param test-hud-client-param.c test-hud-client-param.xml)
