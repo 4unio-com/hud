@@ -121,7 +121,7 @@ hud_manager_constructed (GObject * object)
 	HudManager * manager = HUD_MANAGER(object);
 
 	if (manager->priv->application) {
-		manager->priv->app_pub = hud_action_publisher_new_for_id(NULL);
+		manager->priv->app_pub = hud_action_publisher_new(HUD_ACTION_PUBLISHER_ALL_WINDOWS, HUD_ACTION_PUBLISHER_NO_CONTEXT);
 
 		hud_action_publisher_add_action_group(manager->priv->app_pub, "app", g_application_get_dbus_object_path (manager->priv->application));
 		hud_manager_add_actions(manager, manager->priv->app_pub);
@@ -534,7 +534,7 @@ hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 	/* TODO */
 
 	/* Send the current groups out */
-	GVariant * id = hud_action_publisher_get_id(pub);
+	GVariant * id = hud_action_publisher_build_id(pub);
 	GList * ags_list = hud_action_publisher_get_action_groups(pub);
 
 	/* Build the variant builder if it doesn't exist */

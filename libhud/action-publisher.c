@@ -50,9 +50,11 @@ struct _HudActionPublisher
 {
   GObject parent_instance;
 
+  guint window_id;
+  gchar * context_id;
+
   GDBusConnection *bus;
   GApplication *application;
-  GVariant * id;
   gint export_id;
   gchar *path;
 
@@ -168,7 +170,7 @@ static void
 hud_action_publisher_finalize (GObject *object)
 {
   g_error ("g_object_unref() called on internally-owned ref of HudActionPublisher");
-  g_clear_pointer(&HUD_ACTION_PUBLISHER(object)->id, g_variant_unref);
+  g_clear_pointer (&HUD_ACTION_PUBLISHER(object)->context_id, g_free);
 }
 
 static void
@@ -284,13 +286,17 @@ hud_action_publisher_new_for_application (GApplication *application)
 }
 
 HudActionPublisher *
-hud_action_publisher_new_for_id (GVariant * id)
+hud_action_publisher_new (guint window_id, const gchar * context_id)
 {
-	g_return_val_if_fail(id != NULL, NULL);
-
 	HudActionPublisher * publisher;
 	publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
-	publisher->id = g_variant_ref_sink(id);
+	publisher->window_id = window_id;
+
+	if (context_id != NULL) {
+		publisher->context_id = g_strdup(context_id);
+	} else {
+		publisher->context_id = g_strdup("");
+	}
 
 	return publisher;
 }
@@ -525,18 +531,25 @@ hud_action_publisher_remove_action_group (HudActionPublisher *publisher,
 }
 
 /**
- * hud_action_publisher_get_id:
+ * hud_action_publisher_build_id:
  * @publisher: A #HudActionPublisher object
  *
- * Grabs the ID for this publisher
+ * Builds the ID variant for this publisher
  *
- * Return value: (transfer none): The ID this publisher was created with
+ * Return value: (transfer full): The ID this publisher should be identified as
  */
 GVariant *
-hud_action_publisher_get_id (HudActionPublisher    *publisher)
+hud_action_publisher_build_id (HudActionPublisher    *publisher)
 {
 	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
-	return publisher->id;
+
+	GVariantBuilder tuple;
+	g_variant_builder_init(&tuple, G_VARIANT_TYPE_TUPLE);
+
+	g_variant_builder_add_value(&tuple, g_variant_new_uint32(publisher->window_id));
+	g_variant_builder_add_value(&tuple, g_variant_new_string(publisher->context_id));
+
+	return g_variant_builder_end(&tuple);
 }
 
 /**

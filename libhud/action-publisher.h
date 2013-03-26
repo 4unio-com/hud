@@ -48,6 +48,9 @@ G_BEGIN_DECLS
 #define HUD_IS_ACTION_DESCRIPTION(inst)                     (G_TYPE_CHECK_INSTANCE_TYPE ((inst),                     \
                                                              HUD_TYPE_ACTION_DESCRIPTION))
 
+#define HUD_ACTION_PUBLISHER_NO_CONTEXT                     (NULL)
+#define HUD_ACTION_PUBLISHER_ALL_WINDOWS                    (0)
+
 typedef struct _HudActionDescription                        HudActionDescription;
 typedef struct _HudActionPublisher                          HudActionPublisher;
 typedef struct _HudActionPublisherActionGroupSet            HudActionPublisherActionGroupSet;
@@ -59,7 +62,8 @@ struct _HudActionPublisherActionGroupSet {
 
 GType                   hud_action_publisher_get_type                   (void) G_GNUC_CONST;
 
-HudActionPublisher *    hud_action_publisher_new_for_id                 (GVariant              *id);
+HudActionPublisher *    hud_action_publisher_new                        (guint                  window_id,
+                                                                         const gchar *          context_id);
 
 void                    hud_action_publisher_add_description            (HudActionPublisher    *publisher,
                                                                          HudActionDescription  *description);
@@ -70,7 +74,7 @@ void                    hud_action_publisher_add_action_group           (HudActi
 void                    hud_action_publisher_remove_action_group        (HudActionPublisher    *publisher,
                                                                          const gchar           *prefix,
                                                                          GVariant              *identifier);
-GVariant *              hud_action_publisher_get_id                     (HudActionPublisher    *publisher);
+GVariant *              hud_action_publisher_build_id                   (HudActionPublisher    *publisher);
 GList *                 hud_action_publisher_get_action_groups          (HudActionPublisher    *publisher);
 const gchar *           hud_action_publisher_get_description_path       (HudActionPublisher    *publisher);
 
