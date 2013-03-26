@@ -60,11 +60,41 @@ test_watchdog_create (void)
 	return;
 }
 
+static gboolean
+final_fail (gpointer ploop)
+{
+	g_error("Timeout not via the watchdog.  It didn't work.");
+	g_main_loop_quit((GMainLoop *)ploop);
+	return FALSE;
+}
+
+static void
+test_watchdog_timing (void)
+{
+	HudWatchdog * doggie = NULL;
+	GMainLoop * loop = NULL;
+
+	g_setenv("HUD_SERVICE_TIMEOUT", "1", TRUE);
+
+	loop = g_main_loop_new(NULL, FALSE);
+	doggie = hud_watchdog_new(loop);
+
+	glong final = g_timeout_add_seconds(5, final_fail, loop);
+	g_main_loop_run(loop);
+	g_source_remove(final);
+
+	g_main_loop_unref(loop);
+	g_clear_object(&doggie);
+
+	return;
+}
+
 /* Build the test suite */
 static void
 test_watchdog_suite (void)
 {
 	g_test_add_func ("/hud/watchdog/create",   test_watchdog_create);
+	g_test_add_func ("/hud/watchdog/timing",   test_watchdog_timing);
 	return;
 }
 
