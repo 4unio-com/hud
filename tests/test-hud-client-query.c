@@ -225,14 +225,104 @@ test_query_execute_command (void)
 }
 
 static void
+test_query_execute_parameterized (void)
+{
+  g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
+  DbusTestService *service = NULL;
+  GDBusConnection *connection = NULL;
+  DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+  /* Create a query */
+  HudClientQuery *query = hud_client_query_new("test");
+  g_assert(HUD_CLIENT_IS_QUERY(query));
+
+  HudClientParam *param = hud_client_query_execute_param_command (query,
+      g_variant_new_variant (g_variant_new_uint64 (4321)), 1234);
+
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteParameterized", "\\(\\[\\(\\d+, \\[<uint64 4321>, <uint32 1234>\\]\\)\\],\\)");
+
+  g_object_unref(param);
+  g_object_unref(query);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
+test_query_execute_toolbar (void)
+{
+  g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
+  DbusTestService *service = NULL;
+  GDBusConnection *connection = NULL;
+  DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+  /* Create a query */
+  HudClientQuery *query = hud_client_query_new("test");
+  g_assert(HUD_CLIENT_IS_QUERY(query));
+
+  hud_client_query_execute_toolbar_item (query,
+      HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN, 12345);
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteToolbar",
+      "\\(\\[\\(\\d+, \\[<'fullscreen'>, <uint32 12345>\\]\\)\\],\\)");
+  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
+
+  hud_client_query_execute_toolbar_item (query,
+      HUD_CLIENT_QUERY_TOOLBAR_HELP, 12);
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteToolbar",
+      "\\(\\[\\(\\d+, \\[<'help'>, <uint32 12>\\]\\)\\],\\)");
+  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
+
+  hud_client_query_execute_toolbar_item (query,
+      HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES, 312);
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteToolbar",
+      "\\(\\[\\(\\d+, \\[<'preferences'>, <uint32 312>\\]\\)\\],\\)");
+  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
+
+  hud_client_query_execute_toolbar_item (query,
+      HUD_CLIENT_QUERY_TOOLBAR_QUIT, 3312);
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteToolbar",
+      "\\(\\[\\(\\d+, \\[<'quit'>, <uint32 3312>\\]\\)\\],\\)");
+  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
+
+  hud_client_query_execute_toolbar_item (query,
+      HUD_CLIENT_QUERY_TOOLBAR_UNDO, 53312);
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteToolbar",
+      "\\(\\[\\(\\d+, \\[<'undo'>, <uint32 53312>\\]\\)\\],\\)");
+  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
+
+  g_object_unref(query);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
 test_suite (void)
 {
-//  g_test_add_func ("/hud/client/query/create", test_query_create);
-//  g_test_add_func ("/hud/client/query/custom", test_query_custom);
+  g_test_add_func ("/hud/client/query/create", test_query_create);
+  g_test_add_func ("/hud/client/query/custom", test_query_custom);
   g_test_add_func ("/hud/client/query/update", test_query_update);
   g_test_add_func ("/hud/client/query/voice", test_query_voice);
   g_test_add_func ("/hud/client/query/update_app", test_query_update_app);
   g_test_add_func ("/hud/client/query/execute_command", test_query_execute_command);
+  g_test_add_func ("/hud/client/query/execute_command_parameterized", test_query_execute_parameterized);
+  g_test_add_func ("/hud/client/query/execute_command_toolbar", test_query_execute_toolbar);
 }
 
 int
