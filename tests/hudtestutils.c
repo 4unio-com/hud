@@ -131,6 +131,58 @@ dbus_mock_add_method (GDBusConnection *connection,
   }
 }
 
+void
+dbus_mock_get_method_calls (GDBusConnection *connection,
+    const gchar *bus_name, const gchar *path, const gchar *method_name,
+    GVariant **response)
+{
+  GError *error;
+
+  /* interface, name, in_sig, out_sig, code */
+  error = NULL;
+  *response = g_dbus_connection_call_sync (connection, bus_name, path,
+      "org.freedesktop.DBus.Mock", "GetMethodCalls",
+      g_variant_new ("(s)", method_name), G_VARIANT_TYPE("(a(tav))"),
+      G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+  if (error)
+  {
+    g_warning("%s %s\n", "The request failed:", error->message);
+    g_error_free (error);
+  }
+}
+
+void
+dbus_mock_clear_method_calls (GDBusConnection *connection,
+    const gchar *bus_name, const gchar *path)
+{
+  GError *error;
+
+  /* interface, name, in_sig, out_sig, code */
+  error = NULL;
+  g_dbus_connection_call_sync (connection, bus_name, path,
+      "org.freedesktop.DBus.Mock", "ClearCalls", NULL, NULL,
+      G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+  if (error)
+  {
+    g_warning("%s %s\n", "The request failed:", error->message);
+    g_error_free (error);
+  }
+}
+
+void
+dbus_mock_assert_method_call_results (GDBusConnection *connection,
+    const gchar *name, const gchar *path, const gchar* method_name,
+    const gchar *regex)
+{
+  GVariant *response = NULL;
+  dbus_mock_get_method_calls (connection, name, path, method_name, &response);
+  gchar *response_string = g_variant_print (response, FALSE);
+  g_debug("Response: [%s]", response_string);
+  g_assert( g_regex_match_simple(regex, response_string, 0, 0));
+  g_free (response_string);
+  g_variant_unref (response);
+}
+
 DBusMockSignalArgs *
 dbus_mock_new_signal_args()
 {
@@ -409,7 +461,7 @@ hud_test_utils_ignore_dbus_null_connection()
   g_test_log_set_fatal_handler(hud_test_utils_ignore_dbus_null_connection_callback, NULL);
 }
 
-static const gchar *QUERY_PATH = "/com/canonical/hud/query0";
+const gchar *QUERY_PATH = "/com/canonical/hud/query0";
 
 const gchar * results_model_schema[] = {
   "v", /* Command ID */
@@ -452,8 +504,7 @@ hud_test_utils_add_result (DeeModel *results_model, guint64 id,
 
 void
 hud_test_utils_start_hud_service (DbusTestService **service,
-    GDBusConnection **connection,
-    HudQueryIfaceComCanonicalHudQuery **query_skel, DeeModel **results_model,
+    GDBusConnection **connection, DeeModel **results_model,
     DeeModel **appstack_model)
 {
   *service = dbus_test_service_new (NULL );
@@ -462,14 +513,26 @@ hud_test_utils_start_hud_service (DbusTestService **service,
       NULL );
   hud_test_utils_process_mainloop (300);
 
-  GError *error = NULL;
-  *query_skel = hud_query_iface_com_canonical_hud_query_skeleton_new ();
-  g_assert(
-      g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON(*query_skel), *connection, QUERY_PATH, &error));
+  {
+    DBusMockProperties* properties = dbus_mock_new_properties ();
+    dbus_mock_property_append (properties, "ResultsModel",
+        g_variant_new_string ("com.canonical.hud.query0.results"));
+    dbus_mock_property_append (properties, "AppstackModel",
+        g_variant_new_string ("com.canonical.hud.query0.appstack"));
+    DBusMockMethods* methods = dbus_mock_new_methods ();
+    dbus_mock_methods_append (methods, "UpdateQuery", "s", "i", "ret = 1");
+    dbus_mock_methods_append (methods, "VoiceQuery", "", "is", "ret = (1, 'voice query')");
+    dbus_mock_methods_append (methods, "UpdateApp", "s", "i", "ret = 1");
+    dbus_mock_methods_append (methods, "CloseQuery", "", "", "");
+    dbus_mock_methods_append (methods, "ExecuteCommand", "vu", "", "");
+    dbus_mock_methods_append (methods, "ExecuteParameterized", "vu", "sooi", "ret = ('action', '/action/path', '/model/path', 1)");
+    dbus_mock_methods_append (methods, "ExecuteToolbar", "su", "", "");
+    dbus_mock_add_object (*connection, DBUS_NAME, DBUS_PATH, QUERY_PATH,
+        "com.canonical.hud.query", properties, methods);
+  }
 
   *results_model = dee_shared_model_new("com.canonical.hud.query0.results");
   dee_model_set_schema_full(*results_model, results_model_schema, G_N_ELEMENTS(results_model_schema));
-
 
   *appstack_model = dee_shared_model_new("com.canonical.hud.query0.appstack");
   dee_model_set_schema_full(*appstack_model, appstack_model_schema, G_N_ELEMENTS(appstack_model_schema));
@@ -484,12 +547,33 @@ hud_test_utils_start_hud_service (DbusTestService **service,
 
 void
 hud_test_utils_stop_hud_service (DbusTestService *service,
-    GDBusConnection *connection, HudQueryIfaceComCanonicalHudQuery *query_skel,
-    DeeModel *results_model, DeeModel *appstack_model)
+    GDBusConnection *connection, DeeModel *results_model,
+    DeeModel *appstack_model)
 {
-  g_object_unref(query_skel);
   g_object_unref(results_model);
   g_object_unref(appstack_model);
   g_object_unref(service);
   hud_test_utils_wait_for_connection_close(connection);
+}
+
+gboolean
+no_dee_add_match (const gchar * log_domain, GLogLevelFlags level,
+    const gchar * message, gpointer user_data)
+{
+  if (g_strcmp0(log_domain, "GLib-GIO") == 0 &&
+      g_str_has_prefix(message, "Error while sending AddMatch()")) {
+    return FALSE;
+  }
+
+  if (g_strcmp0(log_domain, "GLib-GIO") == 0 &&
+      g_str_has_prefix(message, "g_dbus_connection_call_finish_internal: assertion 'G_IS_DBUS_CONNECTION")) {
+    return FALSE;
+  }
+
+  if (g_strcmp0(log_domain, "GLib-GIO") == 0 &&
+      g_str_has_prefix(message, "g_dbus_connection_call_finish_internal: assertion `G_IS_DBUS_CONNECTION")) {
+    return FALSE;
+  }
+
+  return TRUE;
 }
