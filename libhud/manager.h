@@ -66,6 +66,10 @@ void                    hud_manager_add_actions                         (HudMana
 void                    hud_manager_remove_actions                      (HudManager * manager,
                                                                          HudActionPublisher * pub);
 
+void                    hud_manager_switch_window_context               (HudManager * manager,
+                                                                         guint windowid,
+                                                                         const gchar * new_context);
+
 G_END_DECLS
 
 #endif /* __HUD_MANAGER_H__ */
