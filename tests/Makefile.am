@@ -31,7 +31,6 @@ libhud_tests_la_SOURCES = \
 	hudtestutils.c
 
 libhud_tests_la_LDFLAGS = \
-	$(top_builddir)/src/libhud-service.la \
 	$(DBUSTEST_LIBS) \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
@@ -64,7 +63,7 @@ test-distance-test: test-distance Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
 	@echo gtester --verbose -k -o $(DISTANCE_XML_REPORT) $(builddir)/test-distance >> $@
-	@echo gtester2xunit $(DISTANCE_XML_REPORT) >> $@
+	@echo "if which gtester2xunit; then gtester2xunit $(DISTANCE_XML_REPORT); fi" >> $@
 	@chmod +x $@
 
 test_distance_SOURCES = \
@@ -79,6 +78,7 @@ test_distance_CFLAGS = \
 
 test_distance_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -117,6 +117,7 @@ test_hud_item_CFLAGS = \
 
 test_hud_item_LDADD = \
 	$(top_builddir)/src/libhud-service.la \
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -140,7 +141,7 @@ test-result-highlighting-test: test-result-highlighting Makefile.am
 	@echo "#!/bin/bash" > $@
 	@echo $(XVFB_RUN) >> $@
 	@echo gtester --verbose -k -o $(RESULT_XML_REPORT) $(builddir)/test-result-highlighting >> $@
-	@echo gtester2xunit $(RESULT_XML_REPORT) >> $@
+	@echo "if which gtester2xunit; then gtester2xunit $(RESULT_XML_REPORT); fi" >> $@
 	@chmod +x $@
 
 test_result_highlighting_SOURCES = \
@@ -155,6 +156,7 @@ test_result_highlighting_CFLAGS = \
 
 test_result_highlighting_LDADD = \
 	$(top_builddir)/src/libhud-service.la \
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -207,6 +209,7 @@ test_menu_input_CFLAGS = \
 
 test_menu_input_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	libhud-tests.la \
 	$(DBUSTEST_LIBS) \
 	$(HUD_LIBS) \
@@ -302,8 +305,14 @@ test_keyword_mapping_CFLAGS = \
 
 test_keyword_mapping_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
+
+EXTRA_DIST += \
+	keyword-mapping/gnome-terminal-en_FAKELANG.po \
+	keyword-mapping/hud/keywords/gnome-terminal.xml
+
 
 DISTCLEANFILES += \
 	$(KEYWORD_XML_REPORT) \
@@ -341,6 +350,7 @@ test_string_list_CFLAGS = \
 
 test_string_list_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -380,8 +390,15 @@ test_pronounce_dict_CFLAGS = \
 
 test_pronounce_dict_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
+
+EXTRA_DIST += \
+	test-pronounce-dict-hashes.dic \
+	test-pronounce-dict-htk.dic \
+	test-pronounce-dict-lowercase.dic \
+	test-pronounce-dict-semicolon.dic
 
 DISTCLEANFILES += \
 	$(PRONOUNCE_DICT_XML_REPORT) \
@@ -424,6 +441,7 @@ test_source_CFLAGS = \
 
 test_source_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
 	$(HUD_LIBS) \
@@ -472,10 +490,20 @@ test_app_indicator_source_CFLAGS = \
 
 test_app_indicator_source_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
+
+EXTRA_DIST += \
+	test-app-indicator-source-one.json \
+	test-app-indicator-source-two.json \
+	test-indicator-source-datetime.json \
+	test-indicator-source-messages.json \
+	test-indicator-source-session.json \
+	test-indicator-source-sound.json \
+	test-indicator-source-users.json
 
 DISTCLEANFILES += \
 	$(APP_INDICATOR_SOURCE_XML_REPORT) \
@@ -517,6 +545,7 @@ test_indicator_source_CFLAGS = \
 
 test_indicator_source_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
 	$(HUD_LIBS) \
@@ -562,6 +591,7 @@ test_application_list_CFLAGS = \
 
 test_application_list_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(DBUSTEST_LIBS) \
 	libhud-tests.la \
 	$(HUD_LIBS) \
@@ -594,7 +624,7 @@ test-usage-db-simple-test: test-usage-db-simple test-usage-db-simple.sql Makefil
 	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_DB_SIMPLE_XML_REPORT) $(abs_builddir)/test-usage-db-simple >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-simple.dir.\* >> $@
-	@echo gtester2xunit $(abs_builddir)/$(USAGE_DB_SIMPLE_XML_REPORT) >> $@
+	@echo "if which gtester2xunit; then gtester2xunit $(abs_builddir)/$(USAGE_DB_SIMPLE_XML_REPORT); fi" >> $@
 	@chmod +x $@
 
 test_usage_db_simple_SOURCES = \
@@ -610,6 +640,7 @@ test_usage_db_simple_CFLAGS = \
 
 test_usage_db_simple_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -642,7 +673,7 @@ test-usage-db-old-test: test-usage-db-old test-usage-db-old.sql Makefile.am
 	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_DB_OLD_XML_REPORT) $(abs_builddir)/test-usage-db-old >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-old.dir.\* >> $@
-	@echo gtester2xunit $(abs_builddir)/$(USAGE_DB_OLD_XML_REPORT) >> $@
+	@echo "if which gtester2xunit; then gtester2xunit $(abs_builddir)/$(USAGE_DB_OLD_XML_REPORT); fi" >> $@
 	@chmod +x $@
 
 test_usage_db_old_SOURCES = \
@@ -658,6 +689,7 @@ test_usage_db_old_CFLAGS = \
 
 test_usage_db_old_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -707,6 +739,7 @@ test_usage_db_ancient_CFLAGS = \
 
 test_usage_db_ancient_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -738,7 +771,7 @@ test-usage-db-testapp-test: test-usage-db-testapp good-app-info/testapp.desktop.
 	@echo gtester --verbose -k -o $(abs_builddir)/$(USAGE_TESTAPP_XML_REPORT) $(abs_builddir)/test-usage-db-testapp >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-testapp.dir.\* >> $@
-	@echo gtester2xunit $(abs_builddir)/$(USAGE_TESTAPP_XML_REPORT) >> $@
+	@echo "if which gtester2xunit; then gtester2xunit $(abs_builddir)/$(USAGE_TESTAPP_XML_REPORT); fi" >> $@
 	@chmod +x $@
 
 test_usage_db_testapp_SOURCES = \
@@ -754,6 +787,7 @@ test_usage_db_testapp_CFLAGS = \
 
 test_usage_db_testapp_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -787,7 +821,7 @@ test-usage-db-off-test: test-usage-db-testapp good-app-info/testapp.desktop.hud-
 	@echo test \! -e indicator-appmenu/hud-usage-log.sqlite >> $@
 	@echo cd .. >> $@
 	@echo rm -rf test-usage-db-off.dir.\* >> $@
-	@echo gtester2xunit $(abs_builddir)/$(USAGE_OFF_XML_REPORT) >> $@
+	@echo "if which gtester2xunit; then gtester2xunit $(abs_builddir)/$(USAGE_OFF_XML_REPORT); fi" >> $@
 	@chmod +x $@
 
 DISTCLEANFILES += \
@@ -866,6 +900,7 @@ test_bad_app_info_CFLAGS = \
 
 test_bad_app_info_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -891,6 +926,7 @@ test_load_app_info_CFLAGS = \
 
 test_load_app_info_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
 
@@ -953,6 +989,7 @@ hud_performance_CFLAGS = \
 	$(BAMF_CFLAGS)
 hud_performance_LDADD = \
 	$(top_builddir)/src/libhud-service.la		\
+	$(top_builddir)/src/libhud-service-generated.la \
 	libhud-tests.la \
 	$(HUD_LIBS) \
 	$(BAMF_LIBS)
@@ -981,6 +1018,7 @@ DISTCLEANFILES += \
 
 libhud_client_test_SOURCES = \
 	hud-client-test.c
+
 libhud_client_test_CFLAGS = \
 	-D HUD_SERVICE="\"$(top_builddir)/src/hud-service\"" \
 	-I $(top_srcdir) \
@@ -988,9 +1026,12 @@ libhud_client_test_CFLAGS = \
 	$(HUD_CFLAGS) \
 	$(DBUSTEST_CFLAGS) \
 	$(TEST_CFLAGS)
+
 libhud_client_test_LDADD = \
 	$(top_builddir)/libhud-client/libhud-client.la \
 	libhud-tests.la \
+	$(top_builddir)/src/libhud-service.la \
+	$(top_builddir)/src/libhud-service-generated.la \
 	$(HUD_LIBS) \
 	$(DBUSTEST_LIBS) \
 	$(TEST_LIBS)
@@ -1002,3 +1043,5 @@ check_PROGRAMS += libhud-client-test
 #########################
 
 DISTCLEANFILES += $(TESTS)
+EXTRA_DIST += \
+	gobject.suppression

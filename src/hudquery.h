@@ -42,9 +42,13 @@ HudQuery *              hud_query_new                                   (HudSour
                                                                          GDBusConnection *connection,
                                                                          const guint  query_count);
 
+void                    hud_query_close                                 (HudQuery    *query);
+
 const gchar *           hud_query_get_path                              (HudQuery    *query);
 const gchar *           hud_query_get_results_name                      (HudQuery    *query);
 const gchar *           hud_query_get_appstack_name                     (HudQuery    *query);
+const gchar *           hud_query_get_query                             (HudQuery    *query);
+guint                   hud_query_get_number                            (HudQuery    *query);
 DeeModel    *           hud_query_get_results_model                     (HudQuery    *query);
 DeeModel    *           hud_query_get_appstack_model                    (HudQuery    *query);
 

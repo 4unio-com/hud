@@ -1,3 +1,11 @@
+hud (13.10.0-0ubuntu1) UNRELEASED; urgency=low
+
+  * debian/control:
+    - Update Vcs-Bzr and Vcs-Browser to point to the correct branches for
+      phablet.
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Mon, 25 Mar 2013 15:13:48 -0400
+
 hud (13.10.0-0ubuntu1~ppa2) quantal; urgency=low
 
   * Don't spin CPU at 100% when closing share-app (LP: #1131186)
@@ -9,6 +17,42 @@ hud (13.10.0-0ubuntu1~ppa1) quantal; urgency=low
   * Upstream release of many, many changes.
 
  -- Ted Gould <ted@ubuntu.com>  Wed, 20 Feb 2013 09:28:40 -0600
+
+hud (13.04.0daily13.02.20-0ubuntu2) raring; urgency=low
+
+  * debian/control:
+    - Remove some Build-Depends that aren't in main yet and are used for the
+      test suite.  We'll add tests back very soon as dep8 or without
+      bustle.  This is just a brown-paper-bag release to fix component
+      mismatch.
+  * debian/hud-tools.install:
+    - Don't ship hud-gtk stuff, since that's only built when tests are.
+
+ -- Michael Terry <mterry@ubuntu.com>  Wed, 20 Feb 2013 17:49:47 +0000
+
+hud (13.04.0daily13.02.20-0ubuntu1) raring; urgency=low
+
+  [ Ted Gould ]
+  * First version
+    * Now independent of indicator-appmenu
+
+  [ Michael Terry ]
+  * Switch to dh9
+  * Update copyright to DEP-5
+  * Use valac-0.18 instead of valac-0.16
+  * Require raring's version of bustle for the --count argument
+
+  [ Mathieu Trudel-Lapierre ]
+  * Automatic snapshot from revision 237 (bootstrap).
+  * debian/control:
+    - update Maintainer.
+    - Further flesh out long description for the packages.
+    - Reorganize Build-Depends for clarity.
+
+  [ Automatic PS uploader ]
+  * Automatic snapshot from revision 242
+
+ -- Automatic PS uploader <ps-jenkins@lists.canonical.com>  Wed, 20 Feb 2013 02:01:50 +0000
 
 hud (13.04.0-0ubuntu1~ppa17) quantal; urgency=low
 
@@ -134,6 +178,13 @@ hud (13.04.0-0ubuntu1~ppa1) quantal; urgency=low
   * Update copyright to DEP-5
   * Use valac-0.18 instead of valac-0.16
   * Require raring's version of bustle for the --count argument
+
+  [ Mathieu Trudel-Lapierre ]
+  * Automatic snapshot from revision 237 (bootstrap).
+  * debian/control:
+    - update Maintainer.
+    - Further flesh out long description for the packages.
+    - Reorganize Build-Depends for clarity.
 
  -- Ted Gould <ted@ubuntu.com>  Wed, 24 Oct 2012 15:43:27 +0200
 

@@ -97,8 +97,8 @@ print_suggestions (const char *query)
 	DeeModelIter * iter = NULL;
 	int i = 0;
 	for (iter = dee_model_get_first_iter(model); !dee_model_is_last(model, iter); iter = dee_model_next(model, iter), i++) {
-		const gchar * id = dee_model_get_string(model, iter, 0);
-		const gchar * icon = dee_model_get_string(model, iter, 1);
+		const gchar * id = hud_client_query_appstack_get_app_id(client_query, iter);
+		const gchar * icon = hud_client_query_appstack_get_app_icon(client_query, iter);
 
 		g_print("\t%s\t%s\n", id, icon);
 	}

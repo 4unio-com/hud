@@ -64,9 +64,6 @@ HudActionPublisher *    hud_action_publisher_new_for_id                 (GVarian
 void                    hud_action_publisher_add_description            (HudActionPublisher    *publisher,
                                                                          HudActionDescription  *description);
 
-void                    hud_action_publisher_add_descriptions_from_file (HudActionPublisher    *publisher,
-                                                                         const gchar           *filename);
-
 void                    hud_action_publisher_add_action_group           (HudActionPublisher    *publisher,
                                                                          const gchar           *prefix,
                                                                          const gchar           *object_path);

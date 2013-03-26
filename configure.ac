@@ -79,10 +79,13 @@ AM_CONDITIONAL([HAVE_VALA], [test -n "$VALA_API_GEN"])
 # Dependencies
 ###########################
 
+GLIB_REQUIRED_VERSION=2.34.0
 DBUSMENU_GLIB_REQUIRED_VERSION=0.4.0
 SQLITE_REQUIRED_VERSION=0.0
 
 PKG_CHECK_MODULES([HUD],[
+		glib-2.0 >= $GLIB_REQUIRED_VERSION
+		gio-unix-2.0 >= $GLIB_REQUIRED_VERSION
 		dbusmenu-glib-0.4 >= $DBUSMENU_GLIB_REQUIRED_VERSION
 		sqlite3 >= $SQLITE_REQUIRED_VERSION
 		dee-1.0
@@ -136,19 +139,6 @@ AC_SUBST([HYBRIS_LIBS])
 AS_IF([test "x$enable_hybris" == "x$enable_bamf"],[
 AC_MSG_ERROR([Invalid to use hybris and bamf together or neither of them])
 ])
-
-###########################
-# CLI Dependencies
-###########################
-
-AC_CHECK_HEADER("readline/readline.h",
-	[has_readline_h="yes"])
-AC_CHECK_HEADER("readline/history.h",
-	[has_history_h="yes"])
-AC_CHECK_HEADER("curses.h",
-	[has_curses_h="yes"])
-
-AM_CONDITIONAL([BUILD_CLI], [test "x$has_readline_h" == "xyes" && test "x$has_history_h" == "xyes" && test "x$has_curses_h" == "xyes"])
 
 ###########################
 # Test Dependencies
