@@ -72,6 +72,7 @@ set(HUD_CLIENT_HEADERS
 connection.h
 param.h
 query.h
+${CMAKE_SOURCE_DIR}/src/query-columns.h
 )
 
 set(HUD_CLIENT_SOURCES
