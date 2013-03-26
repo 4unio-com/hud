@@ -27,6 +27,7 @@
 #include "hud-query-iface.h"
 #include "hudtestutils.h"
 #include "app-list-dummy.h"
+#include "query-columns.h"
 
 #include <glib-object.h>
 #include <dee.h>
@@ -150,13 +151,13 @@ test_source_make_assertions (HudQuery* query, const gchar *appstack,
   {
     DeeModelIter* iter = dee_model_get_iter_at_row (model, row);
 
-    g_debug("Result: %s", dee_model_get_string(model, iter, 1));
+    g_debug("Result: %s", dee_model_get_string(model, iter, HUD_QUERY_RESULTS_COMMAND_NAME));
     g_debug("Expected: %s", expected_rows[row]);
-    g_debug("Distance: %d", dee_model_get_uint32(model, iter, 6));
+    g_debug("Distance: %d", dee_model_get_uint32(model, iter, HUD_QUERY_RESULTS_DISTANCE));
     g_debug("Exp Distance: %d", expected_distances[row]);
 
-    g_assert_cmpstr(dee_model_get_string(model, iter, 1), ==, expected_rows[row]);
-    g_assert_cmpint(dee_model_get_uint32(model, iter, 6), ==, expected_distances[row]);
+    g_assert_cmpstr(dee_model_get_string(model, iter, HUD_QUERY_RESULTS_COMMAND_NAME), ==, expected_rows[row]);
+    g_assert_cmpint(dee_model_get_uint32(model, iter, HUD_QUERY_RESULTS_DISTANCE), ==, expected_distances[row]);
   }
 }
 
@@ -177,13 +178,13 @@ test_source_make_assertions_ext (HudQuery* query, const gchar *appstack,
   {
     DeeModelIter* iter = dee_model_get_iter_at_row (model, row);
 
-    g_debug("Id: %s", dee_model_get_string(model, iter, 0));
+    g_debug("Id: %s", dee_model_get_string(model, iter, HUD_QUERY_APPSTACK_APPLICATION_ID));
     g_debug("Expected Id: %s", expected_appstack_ids[row]);
-    g_debug("Icon: %s", dee_model_get_string(model, iter, 1));
+    g_debug("Icon: %s", dee_model_get_string(model, iter, HUD_QUERY_APPSTACK_ICON_NAME));
     g_debug("Exp Icon: %s", expected_appstack_icons[row]);
 
-    g_assert_cmpstr(dee_model_get_string(model, iter, 0), ==, expected_appstack_ids[row]);
-    g_assert_cmpstr(dee_model_get_string(model, iter, 1), ==, expected_appstack_icons[row]);
+    g_assert_cmpstr(dee_model_get_string(model, iter, HUD_QUERY_APPSTACK_APPLICATION_ID), ==, expected_appstack_ids[row]);
+    g_assert_cmpstr(dee_model_get_string(model, iter, HUD_QUERY_APPSTACK_ICON_NAME), ==, expected_appstack_icons[row]);
   }
 }
 
