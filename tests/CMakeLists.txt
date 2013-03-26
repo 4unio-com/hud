@@ -139,7 +139,6 @@ hudtest(test-source test-source.c test-source.xml)
 hudtest(test-app-indicator-source test-app-indicator-source.c test-app-indicator-source.xml)
 hudtest(test-indicator-source test-indicator-source.c test-indicator-source.xml)
 hudtest(test-application-list test-application-list.c test-application-list.xml)
-hudtest(test-voice test-voice.c test-voice.xml)
 #test-usage-db-simple.xml
 #test-usage-db-old.xml
 #test-usage-db-testapp.xml
@@ -153,6 +152,14 @@ hudtest(test-voice test-voice.c test-voice.xml)
 #test-bad-app-info-multiple-menus
 #test-good-app-info-tons-of-entries
 #test-dbus-message-count
+
+####################################
+# Voice tests (needs working pulse)
+####################################
+
+if(${enable_voice_tests})
+  hudtest(test-voice test-voice.c test-voice.xml)
+endif()
 
 #######################
 # Slow test
