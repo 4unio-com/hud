@@ -749,6 +749,7 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint q
     g_warning ("%s %s\n", "Voice engine failed to initialize:", error->message);
     g_error_free(error);
   }
+}
 
 static void
 hud_query_init (HudQuery *query)
