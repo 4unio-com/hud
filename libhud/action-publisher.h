@@ -65,6 +65,8 @@ GType                   hud_action_publisher_get_type                   (void) G
 
 HudActionPublisher *    hud_action_publisher_new_for_id                 (GVariant              *id);
 
+HudActionPublisher *    hud_action_publisher_new_for_application        (GApplication          *application);
+
 void                    hud_action_publisher_add_description            (HudActionPublisher    *publisher,
                                                                          HudActionDescription  *description);
 

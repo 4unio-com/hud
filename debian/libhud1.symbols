@@ -18,6 +18,7 @@ libhud.so.1 libhud1 #MINVER#
  hud_action_publisher_get_id@Base 13.04.0-0ubuntu1~ppa2
  hud_action_publisher_get_type@Base 13.04.0
  hud_action_publisher_new_for_id@Base 13.04.0-0ubuntu1~ppa2
+ hud_action_publisher_new_for_application@Base 13.04.0
  hud_action_publisher_remove_action_group@Base 13.04.0
  hud_action_set_enabled@Base 13.04.0
  hud_action_set_operation@Base 13.04.0
