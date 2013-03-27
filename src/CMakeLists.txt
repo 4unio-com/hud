@@ -157,8 +157,39 @@ set_target_properties(hud-service-exec PROPERTIES OUTPUT_NAME "hud-service")
 target_link_libraries(hud-service-exec hud-service)
 
 ###########################
+# Hud Dump Application
+###########################
+
+add_executable(hud-dump-application hud-dump-application.c)
+
+target_link_libraries(hud-dump-application hud-service)
+
+###########################
+# Hud Verify App Info
+###########################
+
+add_executable(hud-verify-app-info hud-verify-app-info.c)
+
+target_link_libraries(hud-verify-app-info hud-service)
+
+###########################
 # Installation
 ###########################
+
+install(
+  PROGRAMS
+    hud-list-applications
+  DESTINATION
+    ${CMAKE_INSTALL_BINDIR}
+)
+
+install(
+  TARGETS
+    hud-dump-application
+    hud-verify-app-info
+  RUNTIME DESTINATION
+    ${CMAKE_INSTALL_BINDIR}
+)
 
 install(
   TARGETS hud-service-exec
