@@ -87,6 +87,7 @@ enum-types.h.in
 enum-types.c.in
 ${HUD_CLIENT_HEADERS}
 )
+list(APPEND HUD_CLIENT_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/enum-types.h)
 
 add_library(hud-client SHARED ${HUD_CLIENT_SOURCES})
 
@@ -140,6 +141,32 @@ if(${INTROSPECTION_FOUND})
   gir_add_introspections(INTROSPECTION_GIRS)
 else()
   message("Not performing GIR as required tools not found")
+endif()
+
+###########################
+# libhud-client Vala
+###########################
+
+if(${VALA_FOUND})
+if(${INTROSPECTION_FOUND})
+
+vapi_gen(hud-client-vapi
+  INPUT
+  	HudClient-1.gir
+  PACKAGES
+    gio-2.0
+  LIBRARY
+    HudClient-1
+)
+
+install(
+  FILES
+    ${hud-client-vapi_OUTPUT}
+  DESTINATION
+    "${CMAKE_INSTALL_DATADIR}/vala/vapi"
+)
+
+endif()
 endif()
 
 

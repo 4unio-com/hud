@@ -10,6 +10,7 @@
 #     [PACKAGES package...]    - Package dependencies
 #     [OPTIONS option...]      - Extra valac options
 #     [CUSTOM_VAPIS file...])  - Custom vapi files to include in the build
+#     [DEPENDS targets...])    - Extra dependencies for code generation
 #
 # initializes a single precompilation unit using the given arguments.
 # You can put files into it via the following function:
@@ -56,7 +57,7 @@ find_package (Vala 0.11 REQUIRED)
 include (CMakeParseArguments)
 
 function (vala_init id)
-	set (_multi_value PACKAGES OPTIONS CUSTOM_VAPIS)
+	set (_multi_value PACKAGES OPTIONS CUSTOM_VAPIS DEPENDS)
 	cmake_parse_arguments (arg "" "DIRECTORY" "${_multi_value}" ${ARGN})
 
 	if (arg_DIRECTORY)
@@ -76,6 +77,8 @@ function (vala_init id)
 	set (VALA_${id}_DIR "${directory}" PARENT_SCOPE)
 	set (VALA_${id}_ARGS ${pkg_opts} ${arg_OPTIONS}
 		${arg_CUSTOM_VAPIS} PARENT_SCOPE)
+	set (VALA_${id}_DEPENDS ${arg_DEPENDS}
+		PARENT_SCOPE)
 
 	set (VALA_${id}_SOURCES "" PARENT_SCOPE)
 	set (VALA_${id}_OUTPUTS "" PARENT_SCOPE)
@@ -116,7 +119,7 @@ function (vala_add id file)
 	add_custom_command (OUTPUT "${output_base}.c"
 		COMMAND ${VALA_COMPILER} "${file}" -C ${vapi_opts} ${VALA_${id}_ARGS}
 		COMMAND ${CMAKE_COMMAND} -E touch "${output_base}.c"
-		DEPENDS "${file}" ${vapi_depends}
+		DEPENDS "${file}" ${vapi_depends} ${VALA_${id}_DEPENDS}
 		WORKING_DIRECTORY "${VALA_${id}_DIR}"
 		COMMENT "Precompiling ${output_name}" VERBATIM)
 
@@ -202,4 +205,37 @@ function (vala_finish id)
 	endif (outputs)
 endfunction (vala_finish id)
 
+
+function (vapi_gen id)
+	set (_one_value LIBRARY INPUT)
+	set (_multi_value PACKAGES)
+	cmake_parse_arguments (arg "" "${_one_value}" "${_multi_value}" ${ARGN})
+
+	set(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${id}.vapi")
+	if (arg_LIBRARY)
+		set (OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${arg_LIBRARY}.vapi")
+	endif (arg_LIBRARY)
+	
+	set("${id}_OUTPUT" ${OUTPUT} PARENT_SCOPE)
+	
+	set(PACKAGE_LIST)
+	foreach(PACKAGE ${arg_PACKAGES})
+		list(APPEND PACKAGE_LIST "--pkg" ${PACKAGE})
+	endforeach()
+	
+	add_custom_command(
+		OUTPUT
+			${OUTPUT}
+		COMMAND
+			${VAPI_GEN}
+			${PACKAGE_LIST}
+			--library=${arg_LIBRARY}
+			${arg_INPUT}
+		DEPENDS
+			${arg_INPUT}
+		VERBATIM
+	)
+	
+	add_custom_target(${id} ALL DEPENDS ${OUTPUT})
+endfunction (vapi_gen id)
 

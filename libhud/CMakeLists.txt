@@ -129,7 +129,6 @@ if(${INTROSPECTION_FOUND})
   set(Hud_1_gir_INCLUDES GObject-2.0)
   
   gir_get_cflags(_cflags)
-  #list(APPEND _cflags "-L${CMAKE_CURRENT_BINARY_DIR}/../libhud-client")
   set(Hud_1_gir_CFLAGS ${_cflags})
   
   set(Hud_1_gir_LIBS hud)
@@ -143,6 +142,32 @@ if(${INTROSPECTION_FOUND})
   gir_add_introspections(INTROSPECTION_GIRS)
 else()
   message("Not performing GIR as required tools not found")
+endif()
+
+###########################
+# libhud Vala
+###########################
+
+if(${VALA_FOUND})
+if(${INTROSPECTION_FOUND})
+
+vapi_gen(hud-vapi
+  INPUT
+  	Hud-1.gir
+  PACKAGES
+    gio-2.0
+  LIBRARY
+    Hud-1
+)
+
+install(
+  FILES
+    ${hud-vapi_OUTPUT}
+  DESTINATION
+    "${CMAKE_INSTALL_DATADIR}/vala/vapi"
+)
+
+endif()
 endif()
 
 ###########################

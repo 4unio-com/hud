@@ -4,6 +4,8 @@
 #    VALA_FOUND
 #    VALA_COMPILER
 #    VALA_VERSION
+#    VAPI_GEN
+#    VAPI_GEN_VERSION
 
 #=============================================================================
 # Copyright Přemysl Janouch 2011
@@ -38,10 +40,18 @@ if (VALA_COMPILER)
 	string (REGEX MATCH "[.0-9]+" VALA_VERSION "${VALA_VERSION}")
 endif (VALA_COMPILER)
 
+find_program (VAPI_GEN "vapigen")
+
+if (VAPI_GEN)
+	execute_process (COMMAND ${VAPI_GEN} --version
+		OUTPUT_VARIABLE VAPI_GEN_VERSION)
+	string (REGEX MATCH "[.0-9]+" VAPI_GEN_VERSION "${VAPI_GEN_VERSION}")
+endif (VAPI_GEN)
+
 include (FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS (Vala
 	REQUIRED_VARS VALA_COMPILER
 	VERSION_VAR VALA_VERSION)
 
-mark_as_advanced (VALA_COMPILER VALA_VERSION)
+mark_as_advanced (VALA_COMPILER VALA_VERSION VAPI_GEN)
 
