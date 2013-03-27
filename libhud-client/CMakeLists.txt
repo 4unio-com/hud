@@ -35,18 +35,20 @@ query-iface.h
 set(HUD_CLIENT_GENERATED_SOURCES
 )
 
-add_gdbus_codegen(HUD_CLIENT_GENERATED_SOURCES
-service-iface
-com.canonical.hud.
-_HudService
-${HUD_SERVICE_XML}
+add_gdbus_codegen(
+OUTFILES HUD_CLIENT_GENERATED_SOURCES
+NAME service-iface
+PREFIX com.canonical.hud.
+NAMESPACE _HudService
+SERVICE_XML ${HUD_SERVICE_XML}
 )
 
-add_gdbus_codegen(HUD_CLIENT_GENERATED_SOURCES
-query-iface
-com.canonical.hud.query.
-_HudQuery
-${HUD_QUERY_XML}
+add_gdbus_codegen(
+OUTFILES HUD_CLIENT_GENERATED_SOURCES
+NAME query-iface
+PREFIX com.canonical.hud.query.
+NAMESPACE _HudQuery
+SERVICE_XML ${HUD_QUERY_XML}
 )
 
 add_library(hud-client-generated STATIC ${HUD_CLIENT_GENERATED_SOURCES})
@@ -120,7 +122,7 @@ configure_file("hud-client.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/${HUD_CLIENT_PC}"
 ###########################
 
 if(${INTROSPECTION_FOUND})
-  include(GObjectIntrospectionMacros)
+  include(UseGObjectIntrospection)
   set(INTROSPECTION_GIRS)
 
   set(_introspection_files ${HUD_CLIENT_SOURCES} ${HUD_CLIENT_HEADERS})

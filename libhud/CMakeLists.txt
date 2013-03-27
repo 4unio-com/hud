@@ -36,18 +36,20 @@ marshal.h
 set(HUD_GENERATED_SOURCES
 )
 
-add_gdbus_codegen(HUD_GENERATED_SOURCES
-service-iface
-com.canonical.hud.
-_HudServiceIface
-${HUD_SERVICE_XML}
+add_gdbus_codegen(
+OUTFILES HUD_GENERATED_SOURCES
+NAME service-iface
+PREFIX com.canonical.hud.
+NAMESPACE _HudServiceIface
+SERVICE_XML ${HUD_SERVICE_XML}
 )
 
-add_gdbus_codegen(HUD_GENERATED_SOURCES
-app-iface
-com.canonical.hud.Application.
-_HudAppIface
-${HUD_APP_XML}
+add_gdbus_codegen(
+OUTFILES HUD_GENERATED_SOURCES
+NAME app-iface
+PREFIX com.canonical.hud.Application.
+NAMESPACE _HudAppIface
+SERVICE_XML ${HUD_APP_XML}
 )
 
 add_glib_marshal(HUD_GENERATED_SOURCES
@@ -121,7 +123,7 @@ configure_file("hud.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/${HUD_PC}" @ONLY)
 ###########################
 
 if(${INTROSPECTION_FOUND})
-  include(GObjectIntrospectionMacros)
+  include(UseGObjectIntrospection)
   set(INTROSPECTION_GIRS)
 
   set(_introspection_files ${HUD_SOURCES} ${HUD_HEADERS})
