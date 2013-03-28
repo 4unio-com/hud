@@ -63,8 +63,8 @@ macro(add_glib_enumtypes outfiles name namespace includeguard)
         "-Dnamespace=${namespace}"
         "-Dincludeguard=${includeguard}"
         "\"-Dheaders=${ARGN}\""
-        -P "${CMAKE_SOURCE_DIR}/cmake/MakeGLibEnumTemplates.cmake"
-    DEPENDS "${CMAKE_SOURCE_DIR}/cmake/MakeGLibEnumTemplates.cmake" ${headers}
+        -P "${CMAKE_SOURCE_DIR}/cmake/GlibGenerationTemplates.cmake"
+    DEPENDS "${CMAKE_SOURCE_DIR}/cmake/GlibGenerationTemplates.cmake" ${headers}
   )
 
   add_glib_enumtypes_t(${outfiles} ${name} ${htemplate} ${ctemplate} ${ARGN})
