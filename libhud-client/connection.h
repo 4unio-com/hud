@@ -36,11 +36,27 @@ G_BEGIN_DECLS
 #define HUD_CLIENT_IS_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HUD_CLIENT_TYPE_CONNECTION))
 #define HUD_CLIENT_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_CLIENT_TYPE_CONNECTION, HudClientConnectionClass))
 
+/**
+ * HUD_CLIENT_CONNECTION_SIGNAL_CONNECTION_STATUS:
+ *
+ * Signal to notify on a change in the connection status
+ */
 #define HUD_CLIENT_CONNECTION_SIGNAL_CONNECTION_STATUS   "connection-status"
 
 typedef struct _HudClientConnection         HudClientConnection;
 typedef struct _HudClientConnectionClass    HudClientConnectionClass;
 typedef struct _HudClientConnectionPrivate  HudClientConnectionPrivate ;
+
+/**
+ * HudClientConnectionNewQueryCallback:
+ * @connection: #HudClientConnection for the request
+ * @query_path: Path to the query object on DBus
+ * @results_name: DBus name for the results
+ * @appstack_name: DBus name for the appstack
+ * @user_data: Passed in user data
+ *
+ * Callback for the async call to create a new query
+ */
 typedef void  (*HudClientConnectionNewQueryCallback) (HudClientConnection *   connection,
                                                       const gchar *           query_path,
                                                       const gchar *           results_name,
