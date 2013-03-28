@@ -15,19 +15,17 @@ option(enable_scalability_tests "Additional scalability tests that are potential
 option(full_warnings "Full compiler warnings." OFF)
 option(debug_messages "Print debug messages." OFF)
 option(local_install "Support local installation." OFF)
-set(GSETTINGS_LOCALINSTALL ${local_install})
 
 find_package(PkgConfig REQUIRED)
 include(GNUInstallDirs)
 include(CheckIncludeFile)
 include(CheckFunctionExists)
-include(coverage)
-include(GLibHelpers)
-include(GdbusCodegen)
-include(ConstantBuilder)
-include(GSettings)
-include(FindGtkDoc)
-include(GenerateExportHeader)
+include(Coverage)
+include(UseGlibGeneration)
+include(UseGdbusCodegen)
+include(UseConstantBuilder)
+include(UseGSettings)
+include(UseVala)
 
 # Workaround for libexecdir on debian
 if (EXISTS "/etc/debian_version") 
@@ -84,6 +82,8 @@ include_directories(${POCKETSPHINX_INCLUDE_DIRS})
 pkg_search_module(GTK3 REQUIRED gtk+-3.0)
 include_directories(${GTK3_INCLUDE_DIRS})
 
+find_package(Vala 0.12)
+
 find_package(GObjectIntrospection 0.9.12)
 
 check_include_file("signal.h" HAVE_SIGNAL_H)
@@ -130,7 +130,6 @@ add_subdirectory(libhud)
 add_subdirectory(libhud-gtk)
 add_subdirectory(src)
 add_subdirectory(tools)
-#add_subdirectory(tools-vala)
 
 if(${enable_tests})
   enable_testing()
@@ -144,4 +143,5 @@ if(${enable_tests})
   add_subdirectory(tests)
 endif()
 
+add_subdirectory(tools-vala)
 add_subdirectory(docs)

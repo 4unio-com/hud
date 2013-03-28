@@ -1,4 +1,6 @@
 
+add_subdirectory(hudkeywords)
+
 include_directories(${HUD_CLIENT_INCLUDE_DIRS})
 include_directories(${HUD_SERVICE_INCLUDE_DIRS})
 

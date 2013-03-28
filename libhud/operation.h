@@ -87,6 +87,6 @@ gdouble                 hud_operation_get_double                        (HudOper
 
 G_END_DECLS
 
-#pragma GCC visibility push(default)
+#pragma GCC visibility pop
 
 #endif /* __HUD_OPERATION_H__ */

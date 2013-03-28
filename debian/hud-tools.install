@@ -1,4 +1,4 @@
 usr/bin
-#usr/share/hud-gtk
+usr/share/hud-gtk
 usr/share/man
-#usr/lib/python2.7/dist-packages/hudkeywords/*
+usr/lib/python*

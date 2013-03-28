@@ -2,4 +2,4 @@ debian/tmp/usr/include/libhud-1/*
 debian/tmp/usr/lib/*/libhud.so
 debian/tmp/usr/lib/*/pkgconfig/hud-1.pc
 debian/tmp/usr/share/gir-1.0/Hud-1.gir
-#debian/tmp/usr/share/vala/vapi/Hud-1.vapi
+debian/tmp/usr/share/vala/vapi/Hud-1.vapi
