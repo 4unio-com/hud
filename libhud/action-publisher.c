@@ -285,6 +285,8 @@ hud_action_publisher_new_for_application (GApplication *application)
   return publisher;
 }
 
+static guint context_count = 0;
+
 HudActionPublisher *
 hud_action_publisher_new (guint window_id, const gchar * context_id)
 {
@@ -295,7 +297,7 @@ hud_action_publisher_new (guint window_id, const gchar * context_id)
 	if (context_id != NULL) {
 		publisher->context_id = g_strdup(context_id);
 	} else {
-		publisher->context_id = g_strdup("");
+		publisher->context_id = g_strdup_printf("action-publisher-context-%d", context_count++);
 	}
 
 	return publisher;
