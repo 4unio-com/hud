@@ -2,20 +2,13 @@
 
 export DPKG_GENSYMBOLS_CHECK_LEVEL = 4
 export G_MESSAGES_DEBUG=all
+export DEBIAN_TARGET_DIR="${CURDIR}/debian/tmp"
 
 %:
-	dh $@ --with autoreconf,gir
-
-override_dh_autoreconf:
-	NOCONFIGURE=1 dh_autoreconf ./autogen.sh
-
-DEB_HOST_ARCH_CPU := $(shell dpkg-architecture -qDEB_HOST_ARCH_CPU)
+	dh $@ --parallel
 
 override_dh_auto_configure:
-	dh_auto_configure -- VALAC=/usr/bin/valac-0.18 --enable-gtk-doc --disable-hybris
+	dh_auto_configure -- -DDEBIAN_TARGET_DIR="${DEBIAN_TARGET_DIR}"
 
 override_dh_install:
-	rm debian/tmp/usr/lib/*/*.la
-	rm debian/tmp/usr/lib/*/*.a
-	rm -rf debian/tmp/usr/share/gtk-doc/html/hud/
 	dh_install --fail-missing

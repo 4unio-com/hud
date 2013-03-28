@@ -24,7 +24,6 @@
 #include "hudresult.h"
 #include "huditem.h"
 #include "hudkeywordmapping.h"
-#include "config.h"
 #include "action-muxer.h"
 
 #include <gio/gio.h>

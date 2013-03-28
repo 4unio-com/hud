@@ -72,7 +72,7 @@ test_window_source_menu_model ()
   hud_test_utils_dbus_mock_start (service, REGISTRAR_BUS_NAME,
       REGISTRAR_OBJECT_PATH, REGISTRAR_INTERFACE_NAME);
   hud_test_utils_start_menu_model_full (service,
-      "./test-menu-input-model-simple", app_dbus_name, app_dbus_menu_path,
+      MODEL_SIMPLE, app_dbus_name, app_dbus_menu_path,
       TRUE);
   hud_test_utils_json_loader_start_full(service, "app.dbus.name.two", "/menu", "./test-menu-input-shortcuts.json");
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
