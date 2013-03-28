@@ -1,6 +1,5 @@
 # CMake macros to use the GtkDoc documentation system
 
-include(StandardOptionParsing)
 find_package(GtkDoc)
 
 # gtk_doc_add_module(doc_prefix sourcedir 
@@ -12,28 +11,24 @@ find_package(GtkDoc)
 # sourcedir must be the *full* path to the source directory.
 #
 # If omitted, sgmlfile defaults to the auto generated ${doc_prefix}/${doc_prefix}-docs.xml.
-macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
-    set(_list_names "DEPENDS" "XML" "FIXXREFOPTS" "IGNOREHEADERS" 
-        "CFLAGS" "LDFLAGS" "LDPATH" "SUFFIXES")
-    set(_list_variables "_depends" "_xml_file" "_fixxref_opts" "_ignore_headers"
-        "_extra_cflags" "_extra_ldflags" "_extra_ldpath" "_suffixes")
-    parse_options(_list_names _list_variables ${ARGN})
-    
-    list(LENGTH _xml_file _xml_file_length)
+function(gtk_doc_add_module _doc_prefix _doc_sourcedir)
+	set (_multi_value DEPENDS XML FIXXREFOPTS IGNOREHEADERS CFLAGS LDFLAGS LDPATH SUFFIXES)
+	cmake_parse_arguments (ARG "" "" "${_multi_value}" ${ARGN})
 
+    list(LENGTH ARG_XML _xml_file_length)
 
-    if(_suffixes)
+    if(ARG_SUFFIXES)
         set(_doc_source_suffixes "")
-        foreach(_suffix ${_suffixes})
+        foreach(_suffix ${ARG_SUFFIXES})
             if(_doc_source_suffixes)
                 set(_doc_source_suffixes "${_doc_source_suffixes},${_suffix}")
             else(_doc_source_suffixes)
                 set(_doc_source_suffixes "${_suffix}")
             endif(_doc_source_suffixes)
         endforeach(_suffix)
-    else(_suffixes)
+    else(ARG_SUFFIXES)
         set(_doc_source_suffixes "h")
-    endif(_suffixes)
+    endif(ARG_SUFFIXES)
 
     set(_do_all ALL)
 
@@ -84,12 +79,12 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
             VERBATIM)
 
         set(_ignore_headers_opt "")
-        if(_ignore_headers)
+        if(ARG_IGNOREHEADERS)
             set(_ignore_headers_opt "--ignore-headers=")
-            foreach(_header ${_ignore_headers})
+            foreach(_header ${ARG_IGNOREHEADERS})
                 set(_ignore_headers_opt "${_ignore_headers_opt}${_header} ")
-            endforeach(_header ${_ignore_headers})
-        endif(_ignore_headers)
+            endforeach(_header ${ARG_IGNOREHEADERS})
+        endif(ARG_IGNOREHEADERS)
 
         # add a command to scan the input
         add_custom_command(
@@ -103,7 +98,7 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
                 "${_output_types}.bak"
             DEPENDS
                 "${_output_dir}"
-                ${_depends}
+                ${ARG_DEPENDS}
             COMMAND ${GTKDOC_SCAN_EXE}
                 "--module=${_doc_prefix}"
                 "${_ignore_headers_opt}"
@@ -120,15 +115,15 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
                 "${_output_signals}"
             DEPENDS
                 "${_output_types}"
-                "${_depends}"
+                "${ARG_DEPENDS}"
             COMMAND ${CMAKE_COMMAND} 
                 -D "GTKDOC_SCANGOBJ_EXE:STRING=${GTKDOC_SCANGOBJ_EXE}"
                 -D "doc_prefix:STRING=${_doc_prefix}"
                 -D "output_types:STRING=${_output_types}"
                 -D "output_dir:STRING=${_output_dir}"
-                -D "EXTRA_CFLAGS:STRING=${_extra_cflags}"
-                -D "EXTRA_LDFLAGS:STRING=${_extra_ldflags}"
-                -D "EXTRA_LDPATH:STRING=${_extra_ldpath}"
+                -D "EXTRA_CFLAGS:STRING=${ARG_CFLAGS}"
+                -D "EXTRA_LDFLAGS:STRING=${ARG_LDFLAGS}"
+                -D "EXTRA_LDPATH:STRING=${ARG_LDPATH}"
                 -P ${GTKDOC_SCANGOBJ_WRAPPER}
             WORKING_DIRECTORY "${_output_dir}"
             VERBATIM)
@@ -146,7 +141,7 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
                 "${_output_signals}"
                 "${_output_sections}"
                 "${_output_overrides}"
-                ${_depends}
+                ${ARG_DEPENDS}
             COMMAND ${CMAKE_COMMAND} -E remove_directory ${_output_tmpl_dir}
             COMMAND ${GTKDOC_MKTMPL_EXE}
                 "--module=${_doc_prefix}"
@@ -154,17 +149,17 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
             VERBATIM)
 
         set(_copy_xml_if_needed "")
-        if(_xml_file)
-            get_filename_component(_xml_file ${_xml_file} ABSOLUTE)
+        if(ARG_XML)
+            get_filename_component(ARG_XML ${ARG_XML} ABSOLUTE)
             set(_copy_xml_if_needed 
-                COMMAND ${CMAKE_COMMAND} -E copy "${_xml_file}" "${_default_xml_file}")
-        endif(_xml_file)
+                COMMAND ${CMAKE_COMMAND} -E copy "${ARG_XML}" "${_default_xml_file}")
+        endif(ARG_XML)
 
         set(_remove_xml_if_needed "")
-        if(_xml_file)
+        if(ARG_XML)
             set(_remove_xml_if_needed 
                 COMMAND ${CMAKE_COMMAND} -E remove ${_default_xml_file})
-        endif(_xml_file)
+        endif(ARG_XML)
 
         # add a command to make the database
         add_custom_command(
@@ -176,7 +171,7 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
                 "${_output_unused}"
                 "${_output_undeclared}"
                 "${_output_undocumented}"
-                ${_depends}
+                ${ARG_DEPENDS}
                 ${_remove_xml_if_needed}
             COMMAND ${CMAKE_COMMAND} -E remove_directory ${_output_xml_dir}
             COMMAND ${GTKDOC_MKDB_EXE}
@@ -204,8 +199,8 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
                 "${_output_html_dir_stamp}"
                 "${_output_sgml_stamp}"
                 "${_output_tmpl_stamp}"
-                "${_xml_file}"
-                ${_depends}
+                "${ARG_XML}"
+                ${ARG_DEPENDS}
             ${_copy_xml_if_needed}
             COMMAND ${GTKDOC_MKHTML_EXE}
                 "${_doc_prefix}"
@@ -217,11 +212,11 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
         add_custom_target("${_doc_prefix}-gtxdoc-fixxref" 
             DEPENDS
                 "${_output_html_stamp}"
-                ${_depends}
+                ${ARG_DEPENDS}
             COMMAND ${GTKDOC_FIXXREF_EXE}
                 "--module=${_doc_prefix}"
                 "--module-dir=."
-                ${_fixxref_opts}
+                ${ARG_FIXXREFOPTS}
             #${_remove_xml_if_needed}
             WORKING_DIRECTORY "${_output_dir}"
             VERBATIM)
@@ -229,11 +224,11 @@ macro(gtk_doc_add_module _doc_prefix _doc_sourcedir)
         add_custom_target(doc-${_doc_prefix} ${_do_all} 
             DEPENDS
                 "${_doc_prefix}-gtxdoc-fixxref"
-                ${_depends})
+                ${ARG_DEPENDS})
 
         add_test(doc-${_doc_prefix}-check ${GTKDOC_CHECK_EXE})
         set_tests_properties(doc-${_doc_prefix}-check PROPERTIES
           ENVIRONMENT "DOC_MODULE=${_doc_prefix};DOC_MAIN_SGML_FILE=${_doc_prefix}-docs.xml;SRCDIR=${_doc_sourcedir};BUILDDIR=${_output_dir}"
         )
     endif(_opts_valid)
-endmacro(gtk_doc_add_module)
+endfunction(gtk_doc_add_module)

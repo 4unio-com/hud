@@ -25,25 +25,28 @@ hud-query-iface.h
 set(HUD_SERVICE_GENERATED_SOURCES
 )
 
-add_gdbus_codegen(HUD_SERVICE_GENERATED_SOURCES
-hud-iface
-com.canonical.hud.
-HudIface
-${HUD_SERVICE_XML}
+add_gdbus_codegen(
+OUTFILES HUD_SERVICE_GENERATED_SOURCES
+NAME hud-iface
+PREFIX com.canonical.hud.
+NAMESPACE HudIface
+SERVICE_XML ${HUD_SERVICE_XML}
 )
 
-add_gdbus_codegen(HUD_SERVICE_GENERATED_SOURCES
-hud-query-iface
-com.canonical.hud.query.
-HudQueryIface
-${HUD_QUERY_XML}
+add_gdbus_codegen(
+OUTFILES HUD_SERVICE_GENERATED_SOURCES
+NAME hud-query-iface
+PREFIX com.canonical.hud.query.
+NAMESPACE HudQueryIface
+SERVICE_XML ${HUD_QUERY_XML}
 )
 
-add_gdbus_codegen(HUD_SERVICE_GENERATED_SOURCES
-app-iface
-com.canonical.hud.Application.
-AppIface
-${HUD_APP_XML}
+add_gdbus_codegen(
+OUTFILES HUD_SERVICE_GENERATED_SOURCES
+NAME app-iface
+PREFIX com.canonical.hud.Application.
+NAMESPACE AppIface
+SERVICE_XML ${HUD_APP_XML}
 )
 
 add_constant_template(HUD_SERVICE_GENERATED_SOURCES
@@ -157,8 +160,39 @@ set_target_properties(hud-service-exec PROPERTIES OUTPUT_NAME "hud-service")
 target_link_libraries(hud-service-exec hud-service)
 
 ###########################
+# Hud Dump Application
+###########################
+
+add_executable(hud-dump-application hud-dump-application.c)
+
+target_link_libraries(hud-dump-application hud-service)
+
+###########################
+# Hud Verify App Info
+###########################
+
+add_executable(hud-verify-app-info hud-verify-app-info.c)
+
+target_link_libraries(hud-verify-app-info hud-service)
+
+###########################
 # Installation
 ###########################
+
+install(
+  PROGRAMS
+    hud-list-applications
+  DESTINATION
+    ${CMAKE_INSTALL_BINDIR}
+)
+
+install(
+  TARGETS
+    hud-dump-application
+    hud-verify-app-info
+  RUNTIME DESTINATION
+    ${CMAKE_INSTALL_BINDIR}
+)
 
 install(
   TARGETS hud-service-exec
