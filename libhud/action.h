@@ -29,6 +29,8 @@
 #ifndef __HUD_ACTION_H__
 #define __HUD_ACTION_H__
 
+#pragma GCC visibility push(default)
+
 #include "operation.h"
 
 G_BEGIN_DECLS
@@ -103,5 +105,7 @@ void                    hud_action_set_operation                        (HudActi
                                                                          HudOperation *operation);
 
 G_END_DECLS
+
+#pragma GCC visibility pop
 
 #endif /* __HUD_ACTION_H__ */

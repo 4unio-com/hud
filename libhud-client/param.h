@@ -23,6 +23,8 @@
 #ifndef __HUD_CLIENT_PARAM_H__
 #define __HUD_CLIENT_PARAM_H__
 
+#pragma GCC visibility push(default)
+
 #include <glib.h>
 #include <glib-object.h>
 #include <gio/gio.h>
@@ -36,6 +38,11 @@ G_BEGIN_DECLS
 #define HUD_CLIENT_IS_PARAM_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HUD_CLIENT_TYPE_PARAM))
 #define HUD_CLIENT_PARAM_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_CLIENT_TYPE_PARAM, HudClientParamClass))
 
+/**
+ * HUD_CLIENT_PARAM_SIGNAL_MODEL_READY
+ *
+ * Signal to indicate when the model is ready
+ */
 #define HUD_CLIENT_PARAM_SIGNAL_MODEL_READY  "model-ready"
 
 typedef struct _HudClientParam          HudClientParam;
@@ -95,5 +102,7 @@ void                   hud_client_param_send_commit   (HudClientParam * param);
 */
 
 G_END_DECLS
+
+#pragma GCC visibility pop
 
 #endif

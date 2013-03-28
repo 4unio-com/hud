@@ -23,6 +23,8 @@
 #ifndef __HUD_CLIENT_CONNECTION_H__
 #define __HUD_CLIENT_CONNECTION_H__
 
+#pragma GCC visibility push(default)
+
 #include <glib-object.h>
 
 G_BEGIN_DECLS
@@ -94,5 +96,7 @@ gboolean                hud_client_connection_connected  (HudClientConnection * 
 */
 
 G_END_DECLS
+
+#pragma GCC visibility pop
 
 #endif
