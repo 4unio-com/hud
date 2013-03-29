@@ -555,6 +555,37 @@ hud_action_publisher_build_id (HudActionPublisher    *publisher)
 }
 
 /**
+ * hud_action_publisher_get_window_id:
+ * @publisher: A #HudActionPublisher object
+ *
+ * Gets the window ID for this publisher
+ *
+ * Return value: The Window ID associtaed with this action publisher
+ */
+guint
+hud_action_publisher_get_window_id (HudActionPublisher    *publisher)
+{
+	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), 0);
+	return publisher->window_id;
+}
+
+/**
+ * hud_action_publisher_get_context_id:
+ * @publisher: A #HudActionPublisher object
+ *
+ * Gets the context ID for this publisher
+ *
+ * Return value: The context ID associtaed with this action publisher
+ */
+const gchar *
+hud_action_publisher_get_context_id (HudActionPublisher    *publisher)
+{
+	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), 0);
+	return publisher->context_id;
+}
+
+
+/**
  * hud_action_publisher_get_action_groups:
  * @publisher: A #HudActionPublisher object
  *
