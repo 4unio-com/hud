@@ -155,6 +155,14 @@ hudtest(test-application-list test-application-list.c test-application-list.xml)
 #test-good-app-info-tons-of-entries
 #test-dbus-message-count
 
+####################################
+# Voice tests (needs working pulse)
+####################################
+
+if(${enable_voice_tests})
+  hudtest(test-voice test-voice.c test-voice.xml)
+endif()
+
 #######################
 # Slow test
 #######################
