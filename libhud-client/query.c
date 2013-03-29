@@ -592,7 +592,12 @@ hud_client_query_execute_command (HudClientQuery * cquery, GVariant * command_ke
 	g_return_if_fail(HUD_CLIENT_IS_QUERY(cquery));
 	g_return_if_fail(command_key != NULL);
 
-	_hud_query_com_canonical_hud_query_call_execute_command_sync(cquery->priv->proxy, command_key, timestamp, NULL, NULL);
+	GError *error = NULL;
+	if (!_hud_query_com_canonical_hud_query_call_execute_command_sync(cquery->priv->proxy, command_key, timestamp, NULL, &error))
+  {
+	  g_warning("Error executing command [%s]", error->message);
+	  g_error_free(error);
+  }
 
 	return;
 }

@@ -2,11 +2,15 @@
 #define HUDTESTUTILS_H_
 
 #include <glib.h>
+#include <dee.h>
+#include "hud-query-iface.h"
 
 typedef struct _HudStringList HudStringList;
 typedef struct _GDBusConnection GDBusConnection;
 typedef struct _DbusTestService DbusTestService;
 typedef struct _HudResult HudResult;
+
+const gchar *QUERY_PATH;
 
 #define HUD_TEST_UTILS_LOADER_NAME "test.json.loader"
 #define HUD_TEST_UTILS_LOADER_PATH "/test/json/loader"
@@ -26,6 +30,17 @@ typedef GPtrArray DBusMockSignalArgs;
 DBusMockProperties * dbus_mock_new_properties();
 
 DBusMockMethods * dbus_mock_new_methods();
+
+void dbus_mock_get_method_calls (GDBusConnection *connection,
+    const gchar *bus_name, const gchar *path, const gchar *method_name,
+    GVariant **response);
+
+void dbus_mock_clear_method_calls (GDBusConnection *connection,
+    const gchar *bus_name, const gchar *path);
+
+void dbus_mock_assert_method_call_results (GDBusConnection *connection,
+    const gchar *name, const gchar *path, const gchar* method_name,
+    const gchar *regex);
 
 DBusMockSignalArgs * dbus_mock_new_signal_args();
 
@@ -93,5 +108,20 @@ void hud_test_utils_source_assert_result (GPtrArray* results, const guint index,
     const gchar* value);
 
 void hud_test_utils_ignore_dbus_null_connection();
+
+void hud_test_utils_add_result (DeeModel *results_model, guint64 id,
+    const gchar *command, const gchar *description, const gchar *shortcut,
+    guint32 distance, gboolean parameterized);
+
+void hud_test_utils_start_hud_service (DbusTestService **service,
+    GDBusConnection **connection, DeeModel **results_model,
+    DeeModel **appstack_model);
+
+void hud_test_utils_stop_hud_service (DbusTestService *service,
+    GDBusConnection *connection, DeeModel *results_model,
+    DeeModel *appstack_model);
+
+gboolean no_dee_add_match (const gchar * log_domain, GLogLevelFlags level,
+    const gchar * message, gpointer user_data);
 
 #endif /* HUDTESTUTILS_H_ */
