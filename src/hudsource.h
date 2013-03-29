@@ -22,6 +22,7 @@
 #include "huditem.h"
 #include "hudresult.h"
 #include "enum-types.h"
+#include <libhud-client/hud-client.h>
 
 #define HUD_TYPE_SOURCE                                     (hud_source_get_type ())
 #define HUD_SOURCE(inst)                                    (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \

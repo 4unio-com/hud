@@ -19,8 +19,6 @@
 #ifndef __HUD_ABSTRACT_APP_H__
 #define __HUD_ABSTRACT_APP_H__
 
-#include "config.h"
-
 #ifdef HAVE_BAMF
 
 #include <libbamf/libbamf.h>
