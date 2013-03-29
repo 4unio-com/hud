@@ -63,6 +63,7 @@ Description: Backend for the Unity HUD
  This package provides a service for Unity's HUD
 
 Package: hud-doc
+Section: doc
 Architecture: all
 Recommends: hud (= ${binary:Version}),
 Description: Backend for the Unity HUD
