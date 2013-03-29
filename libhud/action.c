@@ -55,7 +55,7 @@ enum
   N_SIGNALS
 };
 
-guint hud_action_signals[N_SIGNALS];
+static guint hud_action_signals[N_SIGNALS];
 
 static void hud_action_iface_init (GActionInterface *iface);
 

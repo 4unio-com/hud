@@ -25,6 +25,8 @@
 #ifndef __HUD_MANAGER_H__
 #define __HUD_MANAGER_H__
 
+#pragma GCC visibility push(default)
+
 #include <glib-object.h>
 
 #include "action-publisher.h"
@@ -71,5 +73,7 @@ void                    hud_manager_switch_window_context               (HudMana
                                                                          const gchar * new_context);
 
 G_END_DECLS
+
+#pragma GCC visibility pop
 
 #endif /* __HUD_MANAGER_H__ */

@@ -18,8 +18,6 @@
 
 #define G_LOG_DOMAIN "hud-service"
 
-#include "config.h"
-
 #include <glib.h>
 #include <gio/gio.h>
 #include <stdlib.h>

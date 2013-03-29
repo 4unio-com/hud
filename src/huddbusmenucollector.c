@@ -29,8 +29,6 @@
 #include "hudsource.h"
 #include "hudkeywordmapping.h"
 
-#include "config.h"
-
 /**
  * SECTION:huddbusmenucollector
  * @title: HudDbusmenuCollector
