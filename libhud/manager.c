@@ -603,22 +603,17 @@ hud_manager_remove_actions (HudManager * manager, HudActionPublisher * pub)
 /**
  * hud_manager_switch_window_context:
  * @manager: A #HudManager object
- * @windowid: Window that is changing its context
- * @new_context: (allow none): Identifier for the new context
+ * @pub: Action publisher object tracking the descriptions and action groups
  *
  * Tells the HUD service that a window should use a different context of
  * actions with the current window.  This allows the application to export
  * sets of actions and switch them easily with a single dbus message.
  */
 void
-hud_manager_switch_window_context (HudManager * manager, guint windowid, const gchar * new_context)
+hud_manager_switch_window_context (HudManager * manager, HudActionPublisher * pub)
 {
 	g_return_if_fail(HUD_IS_MANAGER(manager));
-	g_return_if_fail(windowid != 0);
-
-	if (new_context == NULL) {
-		new_context = "";
-	}
+	g_return_if_fail(HUD_IS_ACTION_PUBLISHER(pub));
 
 	/* TODO: DO IT */
 

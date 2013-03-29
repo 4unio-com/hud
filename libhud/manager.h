@@ -69,8 +69,7 @@ void                    hud_manager_remove_actions                      (HudMana
                                                                          HudActionPublisher * pub);
 
 void                    hud_manager_switch_window_context               (HudManager * manager,
-                                                                         guint windowid,
-                                                                         const gchar * new_context);
+                                                                         HudActionPublisher * pub);
 
 G_END_DECLS
 
