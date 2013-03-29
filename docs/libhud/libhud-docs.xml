@@ -12,10 +12,8 @@
 
   <chapter>
     <title>Data Types</title>
-    <xi:include href="xml/action.xml"/>
     <xi:include href="xml/action-publisher.xml"/>
     <xi:include href="xml/manager.xml"/>
-    <xi:include href="xml/operation.xml"/>
   </chapter>
 
   <chapter id="object-tree">
