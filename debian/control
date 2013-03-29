@@ -38,6 +38,7 @@ Build-Depends: bamfdaemon,
                pocketsphinx-hmm-en-hub4wsj (>= 0.8),
                pocketsphinx-lm-en-hub4 (>= 0.8),
                pulseaudio,
+               python-setuptools,
 Standards-Version: 3.9.4
 Homepage: http://launchpad.net/hud
 # If you aren't a member of ~indicator-applet-developers but need to upload
@@ -68,6 +69,8 @@ Depends: ${misc:Depends},
          ${shlibs:Depends},
          hud (= ${binary:Version}),
          sqlite3,
+         python-lxml,
+         python-polib,
 Conflicts: indicator-appmenu-tools (<< 13),
 Description: Tools for debugging the Unity HUD.
  Unity HUD is a heads-up-display interface for controlling the behavior of
