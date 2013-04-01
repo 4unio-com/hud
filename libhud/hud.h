@@ -27,8 +27,6 @@
 
 #define _HUD_H_INSIDE
 
-#include <libhud/operation.h>
-#include <libhud/action.h>
 #include <libhud/action-publisher.h>
 #include <libhud/manager.h>
 
