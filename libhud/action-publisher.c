@@ -522,28 +522,6 @@ hud_action_publisher_remove_action_group (HudActionPublisher *publisher,
 }
 
 /**
- * hud_action_publisher_build_id:
- * @publisher: A #HudActionPublisher object
- *
- * Builds the ID variant for this publisher
- *
- * Return value: (transfer full): The ID this publisher should be identified as
- */
-GVariant *
-hud_action_publisher_build_id (HudActionPublisher    *publisher)
-{
-	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
-
-	GVariantBuilder tuple;
-	g_variant_builder_init(&tuple, G_VARIANT_TYPE_TUPLE);
-
-	g_variant_builder_add_value(&tuple, g_variant_new_uint32(publisher->window_id));
-	g_variant_builder_add_value(&tuple, g_variant_new_string(publisher->context_id));
-
-	return g_variant_builder_end(&tuple);
-}
-
-/**
  * hud_action_publisher_get_window_id:
  * @publisher: A #HudActionPublisher object
  *

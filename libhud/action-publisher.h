@@ -118,7 +118,6 @@ void                    hud_action_publisher_add_action_group           (HudActi
 void                    hud_action_publisher_remove_action_group        (HudActionPublisher    *publisher,
                                                                          const gchar           *prefix,
                                                                          GVariant              *identifier);
-GVariant *              hud_action_publisher_build_id                   (HudActionPublisher    *publisher);
 guint                   hud_action_publisher_get_window_id              (HudActionPublisher    *publisher);
 const gchar *           hud_action_publisher_get_context_id             (HudActionPublisher    *publisher);
 GList *                 hud_action_publisher_get_action_groups          (HudActionPublisher    *publisher);
