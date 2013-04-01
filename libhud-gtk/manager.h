@@ -28,6 +28,7 @@
 #include <gtk/gtk.h>
 #include <hud.h>
 
+#pragma GCC visibility push(default)
 G_BEGIN_DECLS
 
 #define HUD_GTK_TYPE_MANAGER            (hud_gtk_manager_get_type ())
@@ -57,5 +58,6 @@ HudActionPublisher *    hud_gtk_manager_get_publisher     (HudGtkManager *   man
                                                            GVariant *        id);
 
 G_END_DECLS
+#pragma GCC visibility pop
 
 #endif /* __HUD_GTK_MANAGER_H__ */
