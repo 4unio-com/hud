@@ -11,11 +11,8 @@ if(GTKDOC_FOUND)
       h c
     IGNOREHEADERS
       hud.h
-      action.h
       app-iface.h
       marshal.h
-      operation-private.h
-      operation.h
       service-iface.h
     LDFLAGS
       -L${CMAKE_CURRENT_BINARY_DIR}/../../libhud
