@@ -93,6 +93,20 @@ void                    hud_manager_add_actions                         (HudMana
 void                    hud_manager_remove_actions                      (HudManager * manager,
                                                                          HudActionPublisher * pub);
 
+/**
+ * SECTION:manager
+ * @short_description: Manage data exported to HUD for the application
+ * @stability: Stable
+ * @include: libhud/manager.h
+ *
+ * Applications that are exporting data to the HUD can export data
+ * for every window or context in the application.  This includes
+ * application internal structures like tabs or views on the various
+ * data inside the application.  The HUD manager allows for registering
+ * and managing all the actions that are exported to the HUD for the
+ * application.
+ */
+
 G_END_DECLS
 
 #pragma GCC visibility pop

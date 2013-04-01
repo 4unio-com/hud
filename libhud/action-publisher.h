@@ -123,6 +123,30 @@ void                    hud_action_description_set_attribute            (HudActi
 void                    hud_action_description_set_parameterized        (HudActionDescription  *parent,
                                                                          GMenuModel            *child);
 
+/**
+ * SECTION:action-publisher
+ * @short_description: Publish action data to the HUD
+ * @stability: Stable
+ * @include: libhud/action-publisher.h
+ *
+ * Each context in the application should have a #HudActionPublisher
+ * object to represents the actions that are available to the user
+ * when that window and context are visible.  This acts as a set of
+ * actions that can be activated by either the window manager changing
+ * focus or the application changing contexts.
+ *
+ * On each action publisher there exits several action groups which can
+ * be separated by allowing different prefixes for those action groups.
+ * A particular prefix should only be used once per action publisher, but
+ * an action group can by used by several action publishers.
+ *
+ * The values describing the action, including the label and description that
+ * show up in the HUD are set via creating a #HudActionDescription for a
+ * action.  Each action can have more than one description if there
+ * is a reason to do so.  But, it is probably better to use the keywords
+ * attribute in the majority cases.
+ */
+
 G_END_DECLS
 
 #pragma GCC visibility pop
