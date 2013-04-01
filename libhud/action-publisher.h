@@ -62,7 +62,19 @@ GType hud_action_description_get_type (void);
 #define HUD_IS_ACTION_DESCRIPTION(inst)                     (G_TYPE_CHECK_INSTANCE_TYPE ((inst),                     \
                                                              HUD_TYPE_ACTION_DESCRIPTION))
 
+/**
+ * HUD_ACTION_PUBLISHER_NO_CONTEXT:
+ *
+ * Can be passed to hud_action_publisher_new() to request that it build
+ * it's own context.
+ */
 #define HUD_ACTION_PUBLISHER_NO_CONTEXT                     (NULL)
+/**
+ * HUD_ACTION_PUBLISHER_ALL_WINDOWS:
+ *
+ * Can be passed to hud_action_publisher_new() to request that these actions
+ * apply to all windows for the application.
+ */
 #define HUD_ACTION_PUBLISHER_ALL_WINDOWS                    (0)
 
 typedef struct _HudActionDescription                        HudActionDescription;
