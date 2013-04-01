@@ -264,8 +264,8 @@ static guint context_count = 0;
 
 /**
  * hud_action_publisher_new:
- * @window_id: (allow none): A window ID
- * @context_id: (allow none): A context ID
+ * @window_id: (allow-none): A window ID
+ * @context_id: (allow-none): A context ID
  *
  * Creates a new #HudActionPublisher based on the window ID passed
  * in via @window_id and context ID from @context_id.
@@ -396,7 +396,7 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
  * hud_action_publisher_remove_description:
  * @publisher: the #HudActionPublisher
  * @action_name: an action name
- * @action_target: (allow none): an action target
+ * @action_target: (allow-none): an action target
  *
  * Removes the action descriptions that has the name @action_name and
  * the target value @action_target (including the possibility of %NULL).
@@ -506,7 +506,7 @@ hud_action_publisher_add_action_group (HudActionPublisher *publisher,
  * hud_action_publisher_remove_action_group:
  * @publisher: a #HudActionPublisher
  * @prefix: the action prefix for the group (like "app")
- * @identifier: (allow none): an identifier, or %NULL
+ * @identifier: (allow-none): an identifier, or %NULL
  *
  * Informs the HUD that an action group no longer exists.
  *
@@ -694,7 +694,7 @@ hud_action_description_new (const gchar *action_name,
  * hud_action_description_set_attribute_value:
  * @description: a #HudActionDescription
  * @attribute_name: an attribute name
- * @value: (allow none): the new value for the attribute
+ * @value: (allow-none): the new value for the attribute
  *
  * Sets or unsets an attribute on @description.
  *
@@ -729,7 +729,7 @@ hud_action_description_set_attribute_value (HudActionDescription *description,
  * hud_action_description_set_attribute:
  * @description: a #HudActionDescription
  * @attribute_name: an attribute name
- * @format_string: (allow none): a #GVariant format string
+ * @format_string: (allow-none): a #GVariant format string
  * @...: arguments to @format_string
  *
  * Sets or unsets an attribute on @description.
