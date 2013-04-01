@@ -40,17 +40,42 @@ G_BEGIN_DECLS
 #define HUD_IS_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HUD_TYPE_MANAGER))
 #define HUD_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_TYPE_MANAGER, HudManagerClass))
 
+/**
+ * HUD_MANAGER_PROP_APPLICATION:
+ *
+ * Define for the string to lookup HudManager:application.
+ */
 #define HUD_MANAGER_PROP_APPLICATION  "application"
+/**
+ * HUD_MANAGER_PROP_APP_ID:
+ *
+ * Define for the string to lookup HudManager:app-id.
+ */
 #define HUD_MANAGER_PROP_APP_ID       "app-id"
 
 typedef struct _HudManager        HudManager;
 typedef struct _HudManagerClass   HudManagerClass;
 typedef struct _HudManagerPrivate HudManagerPrivate;
 
+/**
+ * HudManagerClass:
+ * @parent_class: The #GObject class
+ *
+ * Class data for #HudManager
+ */
 struct _HudManagerClass {
 	GObjectClass parent_class;
 };
 
+/**
+ * HudManager:
+ * @parent: #GObject instance data
+ * @priv: Private data
+ *
+ * Instance data for the HUD Manager object.  This object
+ * tracks the information exported to the HUD for a specific
+ * application.
+ */
 struct _HudManager {
 	GObject parent;
 	HudManagerPrivate * priv;
