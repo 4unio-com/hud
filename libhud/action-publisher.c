@@ -64,8 +64,6 @@ struct _HudActionPublisher
 
 enum
 {
-  SIGNAL_BEFORE_EMIT,
-  SIGNAL_AFTER_EMIT,
   SIGNAL_ACTION_GROUP_ADDED,
   SIGNAL_ACTION_GROUP_REMOVED,
   N_SIGNALS
@@ -208,52 +206,29 @@ hud_action_publisher_class_init (HudActionPublisherClass *class)
 {
   class->finalize = hud_action_publisher_finalize;
 
-  hud_action_publisher_signals[SIGNAL_BEFORE_EMIT] = g_signal_new ("before-emit", HUD_TYPE_ACTION_PUBLISHER,
-                                                                   G_SIGNAL_RUN_LAST, 0, NULL, NULL,
-                                                                   g_cclosure_marshal_VOID__VARIANT,
-                                                                   G_TYPE_NONE, 1, G_TYPE_VARIANT);
-  hud_action_publisher_signals[SIGNAL_AFTER_EMIT] = g_signal_new ("after-emit", HUD_TYPE_ACTION_PUBLISHER,
-                                                                  G_SIGNAL_RUN_LAST, 0, NULL, NULL,
-                                                                  g_cclosure_marshal_VOID__VARIANT,
-                                                                  G_TYPE_NONE, 1, G_TYPE_VARIANT);
+  /**
+   * HudActionPublisher::action-group-added:
+   * @param1: Prefix for the action group
+   * @param2: Path group is exported on DBus
+   *
+   * Emitted when a new action group is added to the publisher
+   */
   hud_action_publisher_signals[SIGNAL_ACTION_GROUP_ADDED] = g_signal_new (HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_ADDED, HUD_TYPE_ACTION_PUBLISHER,
                                                                   G_SIGNAL_RUN_LAST, 0, NULL, NULL,
                                                                   _hud_marshal_VOID__STRING_STRING,
                                                                   G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_STRING);
+  /**
+   * HudActionPublisher::action-group-removed:
+   * @param1: Prefix for the action group
+   * @param2: Path group is exported on DBus
+   *
+   * Emitted when a new action group is removed from the publisher
+   */
   hud_action_publisher_signals[SIGNAL_ACTION_GROUP_REMOVED] = g_signal_new (HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_REMOVED, HUD_TYPE_ACTION_PUBLISHER,
                                                                   G_SIGNAL_RUN_LAST, 0, NULL, NULL,
                                                                   _hud_marshal_VOID__STRING_STRING,
                                                                   G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_STRING);
 }
-
-/**
- * hud_action_publisher_new_for_application:
- * @application: a #GApplication
- *
- * Creates a new #HudActionPublisher for the given @application.
- * @application must have an application ID.
- *
- * @application must be registered and non-remote.  You should call this
- * from the startup() vfunc (or signal) for @application.
- *
- * The action group for the application will automatically be added as a
- * potential target ("app") for actions described by action descriptions added
- * to the publisher.  For example, if @application has a "quit" action
- * then action descriptions can speak of "app.quit".
- *
- * If @application is a #GtkApplication then any #GtkApplicationWindow
- * added to the application will also be added as a potential target
- * ("win") for actions.  For example, if a #GtkApplicationWindow
- * features an action "fullscreen" then action descriptions can speak of
- * "win.fullscreen".
- *
- * @application must have no windows at the time that this function is
- * called.
- *
- * Returns: a new #HudActionPublisher
- **/
-
-/* TODO: Combine these */
 
 /**
  * hud_action_publisher_new_for_application:
@@ -283,6 +258,15 @@ hud_action_publisher_new_for_application (GApplication *application)
   return publisher;
 }
 
+/**
+ * hud_action_publisher_new_for_id:
+ * @id: A window ID
+ *
+ * Creates a new #HudActionPublisher based on the window ID passed
+ * in via @id.
+ *
+ * Return value: (transfer full): A new #HudActionPublisher object
+ */
 HudActionPublisher *
 hud_action_publisher_new_for_id (GVariant * id)
 {
@@ -605,6 +589,13 @@ hud_action_description_class_init (HudActionDescriptionClass *class)
 {
   class->finalize = hud_action_description_finalize;
 
+  /**
+   * HudActionDescription::changed:
+   * @param1: Name of changed property
+   *
+   * Emitted when a property of the action description gets
+   * changed.
+   */
   hud_action_description_changed_signal = g_signal_new ("changed", HUD_TYPE_ACTION_DESCRIPTION,
                                                         G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED, 0, NULL, NULL,
                                                         g_cclosure_marshal_VOID__STRING,
@@ -760,7 +751,7 @@ hud_action_description_get_action_target (HudActionDescription *description)
 }
 
 /**
- * hud_action_description_add_description:
+ * hud_action_description_set_parameterized:
  * @parent: a #HudActionDescription
  * @child: The child #GMenuModel to add
  *
@@ -788,4 +779,34 @@ hud_action_description_set_parameterized (HudActionDescription * parent, GMenuMo
 	               g_quark_try_string (G_MENU_LINK_SUBMENU), G_MENU_LINK_SUBMENU);
 
 	return;
+}
+
+/**
+ * hud_action_description_ref:
+ * @description: A #HudActionDescription
+ *
+ * Increase the reference count to an action description
+ *
+ * Return value: (transfer none): Value of @description
+ */
+HudActionDescription *
+hud_action_description_ref (HudActionDescription  * description)
+{
+	g_return_val_if_fail(HUD_IS_ACTION_DESCRIPTION(description), NULL);
+
+	return HUD_ACTION_DESCRIPTION(g_object_ref(description));
+}
+
+/**
+ * hud_action_description_unref:
+ * @description: A #HudActionDescription
+ *
+ * Decrease the reference count to an action description
+ */
+void
+hud_action_description_unref (HudActionDescription * description)
+{
+	g_return_if_fail(HUD_IS_ACTION_DESCRIPTION(description));
+
+	return g_object_unref(description);
 }
