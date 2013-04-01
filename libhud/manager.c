@@ -610,6 +610,22 @@ hud_manager_remove_actions (HudManager * manager, HudActionPublisher * pub)
 	return;
 }
 
+/* Callback from setting the window context.  Not much we can do, just
+   reporting errors */
+static void
+set_window_context_cb (GObject * obj, GAsyncResult *res, gpointer user_data)
+{
+	GError * error = NULL;
+
+	_hud_app_iface_com_canonical_hud_application_call_set_window_context_finish((_HudAppIfaceComCanonicalHudApplication *)obj, res, &error);
+	if (error != NULL) {
+		g_warning("Unable to set context for window: %s", error->message);
+		g_error_free(error);
+	}
+
+	return;
+}
+
 /**
  * hud_manager_switch_window_context:
  * @manager: A #HudManager object
@@ -625,7 +641,20 @@ hud_manager_switch_window_context (HudManager * manager, HudActionPublisher * pu
 	g_return_if_fail(HUD_IS_MANAGER(manager));
 	g_return_if_fail(HUD_IS_ACTION_PUBLISHER(pub));
 
-	/* TODO: DO IT */
+	/* TODO: Need to cache contexts for reconnection case */
+
+	if (manager->priv->app_proxy == NULL) {
+		g_debug("Unable to send context change now, caching for reconnection");
+		return;
+	}
+
+
+	_hud_app_iface_com_canonical_hud_application_call_set_window_context(manager->priv->app_proxy,
+		hud_action_publisher_get_window_id(pub),
+		hud_action_publisher_get_context_id(pub),
+		NULL, /* cancellable */
+		set_window_context_cb,
+		NULL);
 
 	return;
 }

@@ -12,6 +12,10 @@
 			<arg type="a(usso)" name="actions" direction="in" />
 			<arg type="a(uso)"  name="descriptions" direction="in" />
 		</method>
+		<method name="SetWindowContext">
+			<arg type="u" name="window" direction="in" />
+			<arg type="s" name="context" direction="in" />
+		</method>
 
 <!-- Signals -->
 		<!-- None -->

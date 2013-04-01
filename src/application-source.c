@@ -88,6 +88,11 @@ static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplicatio
                                                GVariant *                  actions,
                                                GVariant *                  descs,
                                                gpointer                    user_data);
+static gboolean dbus_set_context              (AppIfaceComCanonicalHudApplication * skel,
+                                               GDBusMethodInvocation *     invocation,
+                                               guint                       window_id,
+                                               const gchar *               context,
+                                               gpointer                    user_data);
 static GList * source_get_items               (HudSource *                 object);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationSource, hud_application_source, G_TYPE_OBJECT,
@@ -442,6 +447,7 @@ hud_application_source_new_for_id (const gchar * id)
 	}
 
 	g_signal_connect(G_OBJECT(source->priv->skel), "handle-add-sources", G_CALLBACK(dbus_add_sources), source);
+	g_signal_connect(G_OBJECT(source->priv->skel), "handle-set-window-context", G_CALLBACK(dbus_set_context), source);
 
 	g_debug("Application ('%s') path: %s", id, source->priv->path);
 	g_free(app_id_clean);
@@ -606,6 +612,16 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		g_object_unref(model);
 		add_id_to_connection(app, session, sender, idn);
 	}
+
+	g_dbus_method_invocation_return_value(invocation, NULL);
+	return TRUE;
+}
+
+/* Application changing the context for a window */
+static gboolean
+dbus_set_context (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocation * invocation, guint window_id, const gchar * context, gpointer user_data)
+{
+	/* TODO: Use the data for something useful */
 
 	g_dbus_method_invocation_return_value(invocation, NULL);
 	return TRUE;
