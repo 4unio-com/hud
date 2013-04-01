@@ -11,6 +11,7 @@ if(PROJECT_BINARY_DIR STREQUAL PROJECT_SOURCE_DIR)
 endif()
 
 option(enable_tests "Enable tests." ON)
+option(enable_voice_tests "Enable voice tests" ON)
 option(enable_scalability_tests "Additional scalability tests that are potentially very slow to run." OFF)
 option(full_warnings "Full compiler warnings." OFF)
 option(debug_messages "Print debug messages." OFF)

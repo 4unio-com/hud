@@ -99,6 +99,8 @@ ${DBUSTEST_LIBRARIES}
 
 add_definitions(-DJSON_SIMPLE="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-simple.json")
 add_definitions(-DJSON_SHORTCUTS="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-shortcuts.json")
+add_definitions(-DJSON_SOURCE_ONE="${CMAKE_CURRENT_SOURCE_DIR}/test-app-indicator-source-one.json")
+add_definitions(-DJSON_SOURCE_TWO="${CMAKE_CURRENT_SOURCE_DIR}/test-app-indicator-source-two.json")
 
 #######################
 # Generated test fixtures
@@ -153,6 +155,14 @@ hudtest(test-application-list test-application-list.c test-application-list.xml)
 #test-good-app-info-tons-of-entries
 #test-dbus-message-count
 
+####################################
+# Voice tests (needs working pulse)
+####################################
+
+if(${enable_voice_tests})
+  hudtest(test-voice test-voice.c test-voice.xml)
+endif()
+
 #######################
 # Slow test
 #######################
@@ -172,3 +182,10 @@ if(${enable_scalability_tests})
   )
 endif()
 
+#####################################
+# libhud-client test suite
+#####################################
+
+hudtest(test-hud-client-connection test-hud-client-connection.c test-hud-client-connection.xml)
+hudtest(test-hud-client-query test-hud-client-query.c test-hud-client-query.xml)
+hudtest(test-hud-client-param test-hud-client-param.c test-hud-client-param.xml)

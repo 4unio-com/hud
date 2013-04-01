@@ -241,14 +241,20 @@ hud_client_query_constructed (GObject *object)
 	 there's a whole world of hurt for us. */
 	g_return_if_fail(hud_client_connection_new_query(cquery->priv->connection, cquery->priv->query, &path, &results, &appstack));
 
+	GError *error = NULL;
 	cquery->priv->proxy = _hud_query_com_canonical_hud_query_proxy_new_for_bus_sync(
 		G_BUS_TYPE_SESSION,
 		G_DBUS_PROXY_FLAGS_NONE,
 		hud_client_connection_get_address(cquery->priv->connection),
 		path,
 		NULL, /* GCancellable */
-		NULL  /* GError */
+		&error  /* GError */
 	);
+	if (cquery->priv->proxy == NULL)
+	{
+	  g_error("Could not make query connection: [%s]", error->message);
+	  g_error_free(error);
+	}
 
 	g_clear_object(&cquery->priv->results);
 	cquery->priv->results = dee_shared_model_new(results);
@@ -533,7 +539,12 @@ hud_client_query_execute_command (HudClientQuery * cquery, GVariant * command_ke
 	g_return_if_fail(HUD_CLIENT_IS_QUERY(cquery));
 	g_return_if_fail(command_key != NULL);
 
-	_hud_query_com_canonical_hud_query_call_execute_command_sync(cquery->priv->proxy, command_key, timestamp, NULL, NULL);
+	GError *error = NULL;
+	if (!_hud_query_com_canonical_hud_query_call_execute_command_sync(cquery->priv->proxy, command_key, timestamp, NULL, &error))
+  {
+	  g_warning("Error executing command [%s]", error->message);
+	  g_error_free(error);
+  }
 
 	return;
 }

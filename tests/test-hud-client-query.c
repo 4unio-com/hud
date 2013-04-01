@@ -1,0 +1,341 @@
+
+#include <libdbustest/dbus-test.h>
+#include <hud-client.h>
+#include "shared-values.h"
+
+#include "hudtestutils.h"
+
+static void
+test_query_create (void)
+{
+	g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
+	DbusTestService *service = NULL;
+	GDBusConnection *connection = NULL;
+	DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+	/* Create a query */
+	HudClientQuery * query = hud_client_query_new("test");
+
+	g_assert(DEE_IS_MODEL(hud_client_query_get_results_model(query)));
+	g_assert(DEE_IS_MODEL(hud_client_query_get_appstack_model(query)));
+
+	g_assert(g_strcmp0("test", hud_client_query_get_query(query)) == 0);
+
+	HudClientConnection * client_connection = NULL;
+	gchar * search = NULL;
+
+	g_object_get(G_OBJECT(query), "query", &search, "connection", &client_connection, NULL);
+
+	g_assert(g_strcmp0("test", search) == 0);
+	g_assert(HUD_CLIENT_IS_CONNECTION(client_connection));
+	
+	g_free(search);
+
+	g_object_unref(query);
+
+	g_object_unref(client_connection);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
+test_query_custom (void)
+{
+	g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
+	DbusTestService *service = NULL;
+	GDBusConnection *connection = NULL;
+	DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+	/* Create a connection */
+  HudClientConnection * client_connection = hud_client_connection_new (
+      DBUS_NAME, DBUS_PATH);
+	g_assert(HUD_CLIENT_IS_CONNECTION(client_connection));
+
+	/* Create a query */
+	HudClientQuery * query = hud_client_query_new_for_connection("test", client_connection);
+	g_assert(HUD_CLIENT_IS_QUERY(query));
+
+	/* Make sure it has models */
+	g_assert(DEE_IS_MODEL(hud_client_query_get_results_model(query)));
+	g_assert(DEE_IS_MODEL(hud_client_query_get_appstack_model(query)));
+
+	g_assert(g_strcmp0("test", hud_client_query_get_query(query)) == 0);
+
+	/* Make sure the connection is the same */
+	HudClientConnection * testcon = NULL;
+
+	g_object_get(G_OBJECT(query), "connection", &testcon, NULL);
+
+	g_assert(HUD_CLIENT_IS_CONNECTION(testcon));
+	g_assert(testcon == client_connection);
+	g_object_unref(testcon);
+
+	/* Clean up */
+	g_object_unref(query);
+	g_object_unref(client_connection);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
+test_query_update (void)
+{
+  g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
+  DbusTestService *service = NULL;
+  GDBusConnection *connection = NULL;
+  DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+  /* Create a query */
+  HudClientQuery * query = hud_client_query_new("test");
+  g_assert(HUD_CLIENT_IS_QUERY(query));
+
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "UpdateQuery", "\\(\\[\\(\\d+, \\[<'test'>\\]\\)\\],\\)");
+
+  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
+
+  hud_client_query_set_query(query, "test2");
+  g_assert_cmpstr(hud_client_query_get_query(query), ==, "test2");
+
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "UpdateQuery", "\\(\\[\\(\\d+, \\[<'test2'>\\]\\)\\],\\)");
+
+  g_object_unref(query);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static gboolean
+handle_voice_query_finished (HudClientQuery *query,
+    GDBusMethodInvocation *invocation, gpointer user_data)
+{
+  gboolean *called = (gboolean *) user_data;
+  *called = TRUE;
+  return TRUE;
+}
+
+static void
+test_query_voice (void)
+{
+  g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
+  DbusTestService *service = NULL;
+  GDBusConnection *connection = NULL;
+  DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+  /* Create a query */
+  HudClientQuery *query = hud_client_query_new("test");
+  g_assert(HUD_CLIENT_IS_QUERY(query));
+
+  gboolean called = FALSE;
+  g_signal_connect(G_OBJECT(query), "voice-query-finished",
+      G_CALLBACK(handle_voice_query_finished), &called);
+
+  hud_client_query_voice_query(query);
+  hud_test_utils_process_mainloop (100);
+
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "VoiceQuery", "\\(\\[\\(\\d+, \\[\\]\\)\\],\\)");
+
+  g_assert(called);
+
+  g_object_unref(query);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
+test_query_update_app (void)
+{
+  g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
+  DbusTestService *service = NULL;
+  GDBusConnection *connection = NULL;
+  DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+  /* Create a query */
+  HudClientQuery *query = hud_client_query_new("test");
+  g_assert(HUD_CLIENT_IS_QUERY(query));
+
+  hud_client_query_set_appstack_app(query, "application-id");
+
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "UpdateApp", "\\(\\[\\(\\d+, \\[<'application-id'>\\]\\)\\],\\)");
+
+  g_object_unref(query);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
+test_query_execute_command (void)
+{
+  g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
+  DbusTestService *service = NULL;
+  GDBusConnection *connection = NULL;
+  DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+  /* Create a query */
+  HudClientQuery *query = hud_client_query_new("test");
+  g_assert(HUD_CLIENT_IS_QUERY(query));
+
+  hud_client_query_execute_command (query,
+      g_variant_new_variant (g_variant_new_uint64 (4321)), 1234);
+
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteCommand", "\\(\\[\\(\\d+, \\[<uint64 4321>, <uint32 1234>\\]\\)\\],\\)");
+
+  g_object_unref(query);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
+test_query_execute_parameterized (void)
+{
+  g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
+  DbusTestService *service = NULL;
+  GDBusConnection *connection = NULL;
+  DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+  /* Create a query */
+  HudClientQuery *query = hud_client_query_new("test");
+  g_assert(HUD_CLIENT_IS_QUERY(query));
+
+  HudClientParam *param = hud_client_query_execute_param_command (query,
+      g_variant_new_variant (g_variant_new_uint64 (4321)), 1234);
+
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteParameterized", "\\(\\[\\(\\d+, \\[<uint64 4321>, <uint32 1234>\\]\\)\\],\\)");
+
+  g_object_unref(param);
+  g_object_unref(query);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
+test_query_execute_toolbar (void)
+{
+  g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
+  DbusTestService *service = NULL;
+  GDBusConnection *connection = NULL;
+  DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+  /* Create a query */
+  HudClientQuery *query = hud_client_query_new("test");
+  g_assert(HUD_CLIENT_IS_QUERY(query));
+
+  hud_client_query_execute_toolbar_item (query,
+      HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN, 12345);
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteToolbar",
+      "\\(\\[\\(\\d+, \\[<'fullscreen'>, <uint32 12345>\\]\\)\\],\\)");
+  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
+
+  hud_client_query_execute_toolbar_item (query,
+      HUD_CLIENT_QUERY_TOOLBAR_HELP, 12);
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteToolbar",
+      "\\(\\[\\(\\d+, \\[<'help'>, <uint32 12>\\]\\)\\],\\)");
+  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
+
+  hud_client_query_execute_toolbar_item (query,
+      HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES, 312);
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteToolbar",
+      "\\(\\[\\(\\d+, \\[<'preferences'>, <uint32 312>\\]\\)\\],\\)");
+  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
+
+  hud_client_query_execute_toolbar_item (query,
+      HUD_CLIENT_QUERY_TOOLBAR_QUIT, 3312);
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteToolbar",
+      "\\(\\[\\(\\d+, \\[<'quit'>, <uint32 3312>\\]\\)\\],\\)");
+  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
+
+  hud_client_query_execute_toolbar_item (query,
+      HUD_CLIENT_QUERY_TOOLBAR_UNDO, 53312);
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
+      "ExecuteToolbar",
+      "\\(\\[\\(\\d+, \\[<'undo'>, <uint32 53312>\\]\\)\\],\\)");
+  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
+
+  g_object_unref(query);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
+test_suite (void)
+{
+  g_test_add_func ("/hud/client/query/create", test_query_create);
+  g_test_add_func ("/hud/client/query/custom", test_query_custom);
+  g_test_add_func ("/hud/client/query/update", test_query_update);
+  g_test_add_func ("/hud/client/query/voice", test_query_voice);
+  g_test_add_func ("/hud/client/query/update_app", test_query_update_app);
+  g_test_add_func ("/hud/client/query/execute_command", test_query_execute_command);
+  g_test_add_func ("/hud/client/query/execute_command_parameterized", test_query_execute_parameterized);
+  g_test_add_func ("/hud/client/query/execute_command_toolbar", test_query_execute_toolbar);
+}
+
+int
+main (int argc, char * argv[])
+{
+#ifndef GLIB_VERSION_2_36
+	g_type_init ();
+#endif
+
+	g_test_init(&argc, &argv, NULL);
+
+	/* Test Suites */
+	test_suite();
+
+	return g_test_run();
+}

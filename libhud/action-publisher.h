@@ -41,7 +41,17 @@ G_BEGIN_DECLS
 #define HUD_IS_ACTION_PUBLISHER(inst)                       (G_TYPE_CHECK_INSTANCE_TYPE ((inst),                     \
                                                              HUD_TYPE_ACTION_PUBLISHER))
 
+/**
+ * HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_ADDED:
+ *
+ * Define for the string to access the signal HudActionPublisher::action-group-added
+ */
 #define HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_ADDED      "action-group-added"
+/**
+ * HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_REMOVED:
+ *
+ * Define for the string to access the signal HudActionPublisher::action-group-removed
+ */
 #define HUD_ACTION_PUBLISHER_SIGNAL_ACTION_GROUP_REMOVED    "action-group-removed"
 
 GType hud_action_description_get_type (void);
@@ -59,6 +69,22 @@ typedef struct _HudActionDescription                        HudActionDescription
 typedef struct _HudActionPublisher                          HudActionPublisher;
 typedef struct _HudActionPublisherActionGroupSet            HudActionPublisherActionGroupSet;
 
+/**
+ * HudActionPublisher:
+ *
+ * An object representing the actions that are published for a
+ * particular context within the application.  Most often this is
+ * a window, but could also be used for tabs or other modal style
+ * user contexts in the application.
+ */
+
+/**
+ * HudActionPublisherActionGroupSet:
+ * @prefix: Action prefix for the action group
+ * @path: Path that the action group is exported on DBus
+ *
+ * A set of properties of that describe the action group.
+ */
 struct _HudActionPublisherActionGroupSet {
 	gchar * prefix;
 	gchar * path;
@@ -102,6 +128,30 @@ void                    hud_action_description_set_attribute            (HudActi
                                                                          ...);
 void                    hud_action_description_set_parameterized        (HudActionDescription  *parent,
                                                                          GMenuModel            *child);
+
+/**
+ * SECTION:action-publisher
+ * @short_description: Publish action data to the HUD
+ * @stability: Stable
+ * @include: libhud/action-publisher.h
+ *
+ * Each context in the application should have a #HudActionPublisher
+ * object to represents the actions that are available to the user
+ * when that window and context are visible.  This acts as a set of
+ * actions that can be activated by either the window manager changing
+ * focus or the application changing contexts.
+ *
+ * On each action publisher there exits several action groups which can
+ * be separated by allowing different prefixes for those action groups.
+ * A particular prefix should only be used once per action publisher, but
+ * an action group can by used by several action publishers.
+ *
+ * The values describing the action, including the label and description that
+ * show up in the HUD are set via creating a #HudActionDescription for a
+ * action.  Each action can have more than one description if there
+ * is a reason to do so.  But, it is probably better to use the keywords
+ * attribute in the majority cases.
+ */
 
 G_END_DECLS
 
