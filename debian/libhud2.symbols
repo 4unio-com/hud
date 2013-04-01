@@ -1,4 +1,4 @@
-libhud.so.1 libhud1 #MINVER#
+libhud.so.2 libhud2 #MINVER#
  hud_action_description_get_action_name@Base 13.04.0
  hud_action_description_get_action_target@Base 13.04.0
  hud_action_description_get_type@Base 13.04.0
