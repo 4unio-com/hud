@@ -42,10 +42,24 @@ typedef struct _HudGtkManager         HudGtkManager;
 typedef struct _HudGtkManagerClass    HudGtkManagerClass;
 typedef struct _HudGtkManagerPrivate  HudGtkManagerPrivate;
 
+/**
+ * HudGtkManagerClass:
+ * @parent_class: #HudManagerClass
+ *
+ * Class data for #HudGtkManager.
+ */
 struct _HudGtkManagerClass {
 	HudManagerClass parent_class;
 };
 
+/**
+ * HudGtkManager:
+ * @parent: #HudManager
+ * @priv: Private data
+ *
+ * Helper class to work with #GtkApplication to automatically
+ * export action groups registered there to the HUD.
+ */
 struct _HudGtkManager {
 	HudManager parent;
 	HudGtkManagerPrivate * priv;
@@ -56,6 +70,19 @@ GType hud_gtk_manager_get_type (void);
 HudGtkManager *         hud_gtk_manager_new               (GtkApplication *  app);
 HudActionPublisher *    hud_gtk_manager_get_publisher     (HudGtkManager *   manager,
                                                            GVariant *        id);
+
+/**
+ * SECTION:manager
+ * @short_description: Work with a #GtkApplication to easily export action groups
+ * @stability: Stable
+ * @include: libhud-gtk/manager.h
+ *
+ * A helper class #HudGtkManager to work with #GtkApplication and
+ * automatically export the base action group "app." along with the
+ * window action groups typically "win.".  These can then have #HudActionDescription
+ * objects used to describe them without having to worry about creating
+ * and managing the #GActionGroup's.
+ */
 
 G_END_DECLS
 #pragma GCC visibility pop
