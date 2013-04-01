@@ -9,8 +9,8 @@
 
 <!-- Functions -->
 		<method name="AddSources">
-			<arg type="a(vso)" name="actions" direction="in" />
-			<arg type="a(vo)"  name="descriptions" direction="in" />
+			<arg type="a(usso)" name="actions" direction="in" />
+			<arg type="a(uso)"  name="descriptions" direction="in" />
 		</method>
 
 <!-- Signals -->

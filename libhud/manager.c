@@ -288,7 +288,7 @@ process_todo_queues (HudManager * manager)
 		g_variant_builder_unref(manager->priv->todo_add_acts);
 		manager->priv->todo_add_acts = NULL;
 	} else {
-		actions = g_variant_new_array(G_VARIANT_TYPE("(vso)"), NULL, 0);
+		actions = g_variant_new_array(G_VARIANT_TYPE("(usso)"), NULL, 0);
 	}
 
 	/* Build a descriptions list */
@@ -297,7 +297,7 @@ process_todo_queues (HudManager * manager)
 		g_variant_builder_unref(manager->priv->todo_add_desc);
 		manager->priv->todo_add_desc = NULL;
 	} else {
-		descriptions = g_variant_new_array(G_VARIANT_TYPE("(vo)"), NULL, 0);
+		descriptions = g_variant_new_array(G_VARIANT_TYPE("(uso)"), NULL, 0);
 	}
 
 	/* Should never happen, but let's get useful error messages if it does */
@@ -533,8 +533,13 @@ hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 	/* Set up watching for new groups */
 	/* TODO */
 
+	/* Grab the window and context IDs for each of them */
+	GVariant * winid = g_variant_new_uint32(hud_action_publisher_get_window_id(pub));
+	GVariant * conid = g_variant_new_string(hud_action_publisher_get_context_id(pub));
+	g_variant_ref_sink(winid);
+	g_variant_ref_sink(conid);
+
 	/* Send the current groups out */
-	GVariant * id = hud_action_publisher_build_id(pub);
 	GList * ags_list = hud_action_publisher_get_action_groups(pub);
 
 	/* Build the variant builder if it doesn't exist */
@@ -549,7 +554,8 @@ hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 
 		g_variant_builder_open(manager->priv->todo_add_acts, G_VARIANT_TYPE_TUPLE);
 
-		g_variant_builder_add_value(manager->priv->todo_add_acts, g_variant_new_variant(id));
+		g_variant_builder_add_value(manager->priv->todo_add_acts, winid);
+		g_variant_builder_add_value(manager->priv->todo_add_acts, conid);
 		g_variant_builder_add_value(manager->priv->todo_add_acts, g_variant_new_string(set->prefix));
 		g_variant_builder_add_value(manager->priv->todo_add_acts, g_variant_new_object_path(set->path));
 
@@ -567,7 +573,8 @@ hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 	if (descpath != NULL) {
 		g_variant_builder_open(manager->priv->todo_add_desc, G_VARIANT_TYPE_TUPLE);
 
-		g_variant_builder_add_value(manager->priv->todo_add_desc, g_variant_new_variant(id));
+		g_variant_builder_add_value(manager->priv->todo_add_acts, winid);
+		g_variant_builder_add_value(manager->priv->todo_add_acts, conid);
 		g_variant_builder_add_value(manager->priv->todo_add_desc, g_variant_new_object_path(descpath));
 
 		g_variant_builder_close(manager->priv->todo_add_desc);
@@ -577,6 +584,9 @@ hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 	if (manager->priv->connection_cancel == NULL && manager->priv->todo_idle == 0) {
 		manager->priv->todo_idle = g_idle_add(todo_handler, manager);
 	}
+
+	g_variant_unref(winid);  winid = NULL;
+	g_variant_unref(conid);  conid = NULL;
 
 	return;
 }

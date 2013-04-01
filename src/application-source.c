@@ -558,7 +558,8 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	GVariantIter action_iter;
 	g_variant_iter_init(&action_iter, actions);
 
-	GVariant * id = NULL;
+	guint32 idn = 0;
+	gchar * context = NULL;
 	gchar * prefix = NULL;
 	gchar * object = NULL;
 
@@ -566,13 +567,11 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	   the models need the actions, but it'd be hard to update them
 	   if we add the actions second.  This order is the best.  Don't
 	   change it. */
-	while (g_variant_iter_loop(&action_iter, "(vso)", &id, &prefix, &object)) {
+	while (g_variant_iter_loop(&action_iter, "(usso)", &idn, &context, &prefix, &object)) {
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
 
 #ifdef HAVE_HYBRIS
-		guint32 idn = WINDOW_ID_CONSTANT;
-#else
-		guint32 idn = g_variant_get_int32(id);
+		idn = WINDOW_ID_CONSTANT;
 #endif
 
 		HudMenuModelCollector * collector = NULL;
@@ -590,13 +589,11 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	GVariantIter desc_iter;
 	g_variant_iter_init(&desc_iter, descs);
 
-	while (g_variant_iter_loop(&desc_iter, "(vo)", &id, &object)) {
+	while (g_variant_iter_loop(&desc_iter, "(uso)", &idn, &context, &object)) {
 		g_debug("Adding descriptions: %s", object);
 
 #ifdef HAVE_HYBRIS
-		guint32 idn = WINDOW_ID_CONSTANT;
-#else
-		guint32 idn = g_variant_get_int32(id);
+		idn = WINDOW_ID_CONSTANT;
 #endif
 
 		HudMenuModelCollector * collector = NULL;
