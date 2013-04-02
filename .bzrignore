@@ -4,7 +4,3 @@
 /.pydevproject
 /build
 
-test-watchdog
-test-watchdog-test
-test-watchdog-xunit.xml
-test-watchdog.xml
