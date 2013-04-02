@@ -2,10 +2,11 @@ cmake_minimum_required(VERSION 2.6)
 
 find_program(MSCGEN_EXECUTABLE NAMES mscgen DOC "mscgen executable")
 if(NOT MSCGEN_EXECUTABLE)
-  message(FATAL_ERROR "Excutable mscgen not found")
+  message(STATUS "Excutable mscgen not found")
 endif()
 
 function(mscgen ID)
+  if (MSCGEN_EXECUTABLE)
   set(_options INSTALL)
   set(_one_value INPUT_NAME OUTPUT_NAME OUTPUT_TYPE)
   cmake_parse_arguments (ARG "${_options}" "${_one_value}" "" ${ARGN})
@@ -48,5 +49,6 @@ function(mscgen ID)
       DESTINATION
         ${CMAKE_INSTALL_DOCDIR}
     )
+  endif()
   endif()
 endfunction(mscgen)
