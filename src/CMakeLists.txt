@@ -70,6 +70,7 @@ set(HUD_SERVICE_LIB_HEADERS
 abstract-app.h
 action-muxer.h
 application-list.h
+application-source-context.h
 application-source.h
 dump-app-info.h
 shared-values.h
@@ -101,6 +102,7 @@ usage-tracker.h
 set(HUD_SERVICE_LIB_SOURCES
 action-muxer.c
 application-list.c
+application-source-context.c
 application-source.c
 dump-app-info.c
 hudsettings.c
