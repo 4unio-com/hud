@@ -96,11 +96,6 @@ if(${HAVE_SIGNAL_H})
   check_function_exists(kill HAVE_KILL)
 endif()
 
-find_package(Curses)
-check_include_file("readline/readline.h" READLINE_FOUND)
-check_include_file("readline/history.h" READLINE_HISTORY_FOUND)
-find_library(READLINE_LIBRARIES NAMES readline)
-
 pkg_search_module(PANGO REQUIRED pango)
 
 pkg_search_module(BAMF libbamf3)
