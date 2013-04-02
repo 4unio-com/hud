@@ -6,8 +6,6 @@ add_subdirectory(libhud-client)
 install(
   FILES
     "HUD Architecture.svg"
-    libhud-communication.msc
-    libhud-client.msc
   DESTINATION
     ${CMAKE_INSTALL_DOCDIR}
 )
