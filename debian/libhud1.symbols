@@ -3,9 +3,11 @@ libhud.so.1 libhud1 #MINVER#
  hud_action_description_get_action_target@Base 13.04.0
  hud_action_description_get_type@Base 13.04.0
  hud_action_description_new@Base 13.04.0
+ hud_action_description_ref@Base 13.10.0
  hud_action_description_set_attribute@Base 13.04.0
  hud_action_description_set_attribute_value@Base 13.04.0
  hud_action_description_set_parameterized@Base 13.04.0-0ubuntu1~ppa3
+ hud_action_description_unref@Base 13.10.0
  hud_action_publisher_add_action_group@Base 13.04.0
  hud_action_publisher_add_description@Base 13.04.0
  hud_action_publisher_get_action_groups@Base 13.04.0-0ubuntu1~ppa2

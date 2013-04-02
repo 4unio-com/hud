@@ -232,6 +232,15 @@ window_removed (GApplication *application, /* really GtkApplication */
  * new windows get tracked and their actions automatically added to so
  * the HUD can access them.
  *
+ * From the #GtkApplication passed as @app any #GtkApplicationWindow
+ * added to the application will also be added as a potential target
+ * ("win") for actions.  For example, if a #GtkApplicationWindow
+ * features an action "fullscreen" then action descriptions can speak of
+ * "win.fullscreen".
+ *
+ * @app must have no windows at the time that this function is
+ * called.
+ *
  * Return value: (transfer full): A new #HudGtkManager object
  */
 HudGtkManager *
