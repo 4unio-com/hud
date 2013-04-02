@@ -44,7 +44,8 @@ struct _HudVoiceInterface
 
 GType hud_voice_get_type (void);
 
-HudVoice * hud_voice_new(HudQueryIfaceComCanonicalHudQuery *skel, GError **error);
+HudVoice * hud_voice_new (HudQueryIfaceComCanonicalHudQuery *skel,
+    const gchar *device, GError **error);
 
 gboolean hud_voice_query (HudVoice *self, HudSource *source, gchar **result,
     GError **error);

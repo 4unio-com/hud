@@ -40,17 +40,42 @@ G_BEGIN_DECLS
 #define HUD_IS_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HUD_TYPE_MANAGER))
 #define HUD_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_TYPE_MANAGER, HudManagerClass))
 
+/**
+ * HUD_MANAGER_PROP_APPLICATION:
+ *
+ * Define for the string to lookup HudManager:application.
+ */
 #define HUD_MANAGER_PROP_APPLICATION  "application"
+/**
+ * HUD_MANAGER_PROP_APP_ID:
+ *
+ * Define for the string to lookup HudManager:app-id.
+ */
 #define HUD_MANAGER_PROP_APP_ID       "app-id"
 
 typedef struct _HudManager        HudManager;
 typedef struct _HudManagerClass   HudManagerClass;
 typedef struct _HudManagerPrivate HudManagerPrivate;
 
+/**
+ * HudManagerClass:
+ * @parent_class: The #GObject class
+ *
+ * Class data for #HudManager
+ */
 struct _HudManagerClass {
 	GObjectClass parent_class;
 };
 
+/**
+ * HudManager:
+ * @parent: #GObject instance data
+ * @priv: Private data
+ *
+ * Instance data for the HUD Manager object.  This object
+ * tracks the information exported to the HUD for a specific
+ * application.
+ */
 struct _HudManager {
 	GObject parent;
 	HudManagerPrivate * priv;
@@ -67,6 +92,20 @@ void                    hud_manager_add_actions                         (HudMana
 
 void                    hud_manager_remove_actions                      (HudManager * manager,
                                                                          HudActionPublisher * pub);
+
+/**
+ * SECTION:manager
+ * @short_description: Manage data exported to HUD for the application
+ * @stability: Stable
+ * @include: libhud/manager.h
+ *
+ * Applications that are exporting data to the HUD can export data
+ * for every window or context in the application.  This includes
+ * application internal structures like tabs or views on the various
+ * data inside the application.  The HUD manager allows for registering
+ * and managing all the actions that are exported to the HUD for the
+ * application.
+ */
 
 G_END_DECLS
 

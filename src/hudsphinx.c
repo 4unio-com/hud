@@ -56,7 +56,8 @@ hud_sphinx_alphanumeric_regex_new (void)
 
 static arg_t sphinx_cmd_ln[] = {
   POCKETSPHINX_OPTIONS,
-  {NULL, 0, NULL, NULL}
+  { "-adcdev", ARG_STRING, NULL, "Name of audio device to use for input." },
+  CMDLN_EMPTY_OPTION
 };
 
 struct _HudSphinx
@@ -113,7 +114,7 @@ hud_sphinx_finalize (GObject *object)
 }
 
 HudSphinx *
-hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery *skel, GError **error)
+hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery *skel, const gchar *device, GError **error)
 {
   HudSphinx *self = g_object_new (HUD_TYPE_SPHINX, NULL);
   self->skel = g_object_ref(skel);
@@ -124,6 +125,7 @@ hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery *skel, GError **error)
   self->config = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
                                      "-hmm", hmm,
                                      "-dict", dict,
+                                     "-adcdev", device == NULL ? "" : device,
                                      NULL);
 
   if (self->config == NULL) {
@@ -466,6 +468,7 @@ hud_sphinx_voice_query (HudVoice *voice, HudSource *source, gchar **result, GErr
   GList *items = hud_source_get_items(source);
   if (items == NULL) {
     /* The active window doesn't have items, that's cool.  We'll move on. */
+    *result = NULL;
     return TRUE;
   }
 

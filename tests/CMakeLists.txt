@@ -97,8 +97,23 @@ ${DBUSTEST_LIBRARIES}
 # Test Fixtures
 #######################
 
+add_definitions(-DKEYWORD_MAPPING="${CMAKE_CURRENT_SOURCE_DIR}/keyword-mapping")
+
+add_definitions(-DTEST_VOICE_SOUNDS_PLAY="${CMAKE_CURRENT_SOURCE_DIR}/test-voice-sounds-play.sh")
+
 add_definitions(-DJSON_SIMPLE="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-simple.json")
 add_definitions(-DJSON_SHORTCUTS="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-shortcuts.json")
+add_definitions(-DJSON_SOURCE_ONE="${CMAKE_CURRENT_SOURCE_DIR}/test-app-indicator-source-one.json")
+add_definitions(-DJSON_SOURCE_TWO="${CMAKE_CURRENT_SOURCE_DIR}/test-app-indicator-source-two.json")
+add_definitions(-DJSON_SOURCE_SESSION="${CMAKE_CURRENT_SOURCE_DIR}/test-indicator-source-session.json")
+add_definitions(-DJSON_SOURCE_DATETIME="${CMAKE_CURRENT_SOURCE_DIR}/test-indicator-source-datetime.json")
+add_definitions(-DJSON_SOURCE_SOUND="${CMAKE_CURRENT_SOURCE_DIR}/test-indicator-source-sound.json")
+add_definitions(-DJSON_SOURCE="${CMAKE_CURRENT_SOURCE_DIR}/test-source.json")
+
+add_definitions(-DPRONOUCE_DICT_HASHES="${CMAKE_CURRENT_SOURCE_DIR}/test-pronounce-dict-hashes.dic")
+add_definitions(-DPRONOUCE_DICT_SEMICOLON="${CMAKE_CURRENT_SOURCE_DIR}/test-pronounce-dict-semicolon.dic")
+add_definitions(-DPRONOUCE_DICT_LOWERCASE="${CMAKE_CURRENT_SOURCE_DIR}/test-pronounce-dict-lowercase.dic")
+add_definitions(-DPRONOUCE_DICT_HTK="${CMAKE_CURRENT_SOURCE_DIR}/test-pronounce-dict-htk.dic")
 
 #######################
 # Generated test fixtures
@@ -153,6 +168,14 @@ hudtest(test-application-list test-application-list.c test-application-list.xml)
 #test-good-app-info-tons-of-entries
 #test-dbus-message-count
 
+####################################
+# Voice tests (needs working pulse)
+####################################
+
+if(${ENABLE_VOICE_TESTS})
+  hudtest(test-voice test-voice.c test-voice.xml)
+endif()
+
 #######################
 # Slow test
 #######################
@@ -163,7 +186,7 @@ target_link_libraries(hud-performance
   hud-test
   ${GIO2_LIBRARIES}
 )
-if(${enable_scalability_tests})
+if(${ENABLE_SCALABILITY_TESTS})
   add_test(hud-performance
     "${CMAKE_CURRENT_SOURCE_DIR}/test-runner.sh"
     "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -172,3 +195,10 @@ if(${enable_scalability_tests})
   )
 endif()
 
+#####################################
+# libhud-client test suite
+#####################################
+
+hudtest(test-hud-client-connection test-hud-client-connection.c test-hud-client-connection.xml)
+hudtest(test-hud-client-query test-hud-client-query.c test-hud-client-query.xml)
+hudtest(test-hud-client-param test-hud-client-param.c test-hud-client-param.xml)

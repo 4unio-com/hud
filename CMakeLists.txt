@@ -10,11 +10,15 @@ if(PROJECT_BINARY_DIR STREQUAL PROJECT_SOURCE_DIR)
    message(FATAL_ERROR "In-tree build attempt detected, aborting. Set your build dir outside your source dir, delete CMakeCache.txt from source root and try again.")
 endif()
 
-option(enable_tests "Enable tests." ON)
-option(enable_scalability_tests "Additional scalability tests that are potentially very slow to run." OFF)
-option(full_warnings "Full compiler warnings." OFF)
-option(debug_messages "Print debug messages." OFF)
-option(local_install "Support local installation." OFF)
+option(ENABLE_TESTS "Enable tests." ON)
+option(ENABLE_VOICE_TESTS "Enable voice tests" ON)
+option(ENABLE_SCALABILITY_TESTS "Additional scalability tests that are potentially very slow to run." OFF)
+option(FULL_WARNINGS "Full compiler warnings." OFF)
+option(DEBUG_MESSAGES "Print debug messages." OFF)
+option(LOCAL_INSTALL "Support local installation." OFF)
+
+# Trick the H10enable_coverage script into enabling coverage by including the text below:
+# CMAKE_BUILD_TYPE coverage
 
 find_package(PkgConfig REQUIRED)
 include(GNUInstallDirs)
@@ -33,11 +37,11 @@ if (EXISTS "/etc/debian_version")
   set(CMAKE_INSTALL_FULL_LIBEXECDIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}")
 endif()
 
-if(${full_warnings})
+if(${FULL_WARNINGS})
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pedantic")
 endif()
 
-if(${debug_messages})
+if(${DEBUG_MESSAGES})
   add_definitions(-DDEBUG_MESSAGES)
 endif()
 
@@ -92,11 +96,6 @@ if(${HAVE_SIGNAL_H})
   check_function_exists(kill HAVE_KILL)
 endif()
 
-find_package(Curses)
-check_include_file("readline/readline.h" READLINE_FOUND)
-check_include_file("readline/history.h" READLINE_HISTORY_FOUND)
-find_library(READLINE_LIBRARIES NAMES readline)
-
 pkg_search_module(PANGO REQUIRED pango)
 
 pkg_search_module(BAMF libbamf3)
@@ -105,14 +104,14 @@ if(${BAMF_FOUND})
   include_directories(${BAMF_INCLUDE_DIRS})
 endif()
 
-if(${local_install})
+if(${LOCAL_INSTALL})
   set(DBUSSERVICEDIR "${CMAKE_INSTALL_DATADIR}/dbus-1/services/")
 else()
   EXEC_PROGRAM(${PKG_CONFIG_EXECUTABLE} ARGS dbus-1 --variable session_bus_services_dir OUTPUT_VARIABLE DBUSSERVICEDIR )
 endif()
 message("Installing DBus services to ${DBUSSERVICEDIR}")
 
-if(${local_install})
+if(${LOCAL_INSTALL})
   set(DBUSIFACEDIR "${CMAKE_INSTALL_DATADIR}/dbus-1/interfaces/")
 else()
   EXEC_PROGRAM(${PKG_CONFIG_EXECUTABLE} ARGS dbus-1 --variable interfaces_dir OUTPUT_VARIABLE DBUSIFACEDIR )
@@ -131,7 +130,7 @@ add_subdirectory(libhud-gtk)
 add_subdirectory(src)
 add_subdirectory(tools)
 
-if(${enable_tests})
+if(${ENABLE_TESTS})
   enable_testing()
   
   pkg_check_modules(DBUSTEST REQUIRED dbustest-1)

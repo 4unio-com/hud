@@ -27,8 +27,12 @@
 
 struct _HudClientConnectionPrivate {
 	_HudServiceComCanonicalHud * proxy;
+	GDBusConnection * bus;
 	gchar * address;
 	gchar * path;
+	gboolean connected;
+	gulong name_owner_sig;
+	GCancellable * cancellable;
 };
 
 #define HUD_CLIENT_CONNECTION_GET_PRIVATE(o) \
@@ -50,8 +54,11 @@ static void hud_client_connection_dispose    (GObject *object);
 static void hud_client_connection_finalize   (GObject *object);
 static void set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec);
 static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec);
+static void name_owner_changed (GObject * object, GParamSpec * pspec, gpointer user_data);
 
 G_DEFINE_TYPE (HudClientConnection, hud_client_connection, G_TYPE_OBJECT);
+
+static guint signal_connection_status = 0;
 
 static void
 hud_client_connection_class_init (HudClientConnectionClass *klass)
@@ -78,6 +85,20 @@ hud_client_connection_class_init (HudClientConnectionClass *klass)
 	                                              DBUS_PATH,
 	                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * HudClientConnection::connection-status:
+	 *
+	 * Called when the connection status changes in some way.
+	 */
+	signal_connection_status = g_signal_new (HUD_CLIENT_CONNECTION_SIGNAL_CONNECTION_STATUS,
+	                                         HUD_CLIENT_TYPE_CONNECTION,
+	                                         G_SIGNAL_RUN_LAST,
+	                                         0, /* offset */
+	                                         NULL, NULL, /* Collectors */
+	                                         g_cclosure_marshal_VOID__BOOLEAN,
+	                                         G_TYPE_NONE, 1, G_TYPE_BOOLEAN);
+
+
 	return;
 }
 
@@ -85,6 +106,16 @@ static void
 hud_client_connection_init (HudClientConnection *self)
 {
 	self->priv = HUD_CLIENT_CONNECTION_GET_PRIVATE(self);
+	self->priv->connected = FALSE;
+	self->priv->cancellable = g_cancellable_new();
+
+	GError * error = NULL;
+	self->priv->bus = g_bus_get_sync(G_BUS_TYPE_SESSION, self->priv->cancellable, &error);
+
+	if (G_UNLIKELY(error != NULL)) { /* really should never happen */
+		g_warning("Unable to get session bus: %s", error->message);
+		g_error_free(error);
+	}
 
 	return;
 }
@@ -145,7 +176,7 @@ hud_client_connection_constructed (GObject * object)
 		G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
 		self->priv->address,
 		self->priv->path,
-		NULL, /* GCancellable */
+		self->priv->cancellable,
 		&error
 	);
 
@@ -155,6 +186,9 @@ hud_client_connection_constructed (GObject * object)
 		g_error_free(error); error = NULL;
 	}
 
+	self->priv->name_owner_sig = g_signal_connect(G_OBJECT(self->priv->proxy), "notify::g-name-owner", G_CALLBACK(name_owner_changed), self);
+	name_owner_changed(G_OBJECT(self->priv->proxy), NULL, self);
+
 	return;
 }
 
@@ -163,7 +197,18 @@ hud_client_connection_dispose (GObject *object)
 {
 	HudClientConnection * self = HUD_CLIENT_CONNECTION(object);
 
+	if (self->priv->cancellable != NULL) {
+		g_cancellable_cancel(self->priv->cancellable);
+		g_clear_object(&self->priv->cancellable);
+	}
+
+	if (self->priv->name_owner_sig != 0) {
+		g_signal_handler_disconnect(self->priv->proxy, self->priv->name_owner_sig);
+		self->priv->name_owner_sig = 0;
+	}
+
 	g_clear_object(&self->priv->proxy);
+	g_clear_object(&self->priv->bus);
 
 	G_OBJECT_CLASS (hud_client_connection_parent_class)->dispose (object);
 	return;
@@ -178,6 +223,36 @@ hud_client_connection_finalize (GObject *object)
 	g_clear_pointer(&self->priv->path, g_free);
 
 	G_OBJECT_CLASS (hud_client_connection_parent_class)->finalize (object);
+	return;
+}
+
+/* Called when the HUD service comes on or off the bus */
+static void
+name_owner_changed (GObject * object, GParamSpec * pspec, gpointer user_data)
+{
+	HudClientConnection * self = HUD_CLIENT_CONNECTION(user_data);
+	gboolean connected = FALSE;
+
+	gchar * owner = g_dbus_proxy_get_name_owner(G_DBUS_PROXY(self->priv->proxy));
+	if (owner != NULL) {
+		connected = TRUE;
+		g_free(owner);
+	}
+
+	/* Make sure we set the internal variable before signaling */
+	gboolean change = (connected == self->priv->connected);
+	self->priv->connected = connected;
+
+	/* Cancel anything we had running */
+	if (!self->priv->connected && self->priv->cancellable != NULL) {
+		g_cancellable_cancel(self->priv->cancellable);
+	}
+
+	/* If there was a change, make sure others know about it */
+	if (change) {
+		g_signal_emit(self, signal_connection_status, 0, connected);
+	}
+
 	return;
 }
 
@@ -225,34 +300,74 @@ hud_client_connection_new (gchar * dbus_address, gchar * dbus_path)
 			NULL));
 }
 
+/* Data to handle the callback */
+typedef struct _new_query_data_t new_query_data_t;
+struct _new_query_data_t {
+	HudClientConnection * con;
+	HudClientConnectionNewQueryCallback cb;
+	gpointer user_data;
+};
+
+/* Called when the new query call comes back */
+static void
+new_query_complete (GObject * object, GAsyncResult * res, gpointer user_data)
+{
+	new_query_data_t * data = (new_query_data_t *)user_data;
+
+	gchar * query_object = NULL;
+	gchar * results_name = NULL;
+	gchar * appstack_name = NULL;
+	gint revision = 0;
+	GError * error = NULL;
+
+	_hud_service_com_canonical_hud_call_create_query_finish((_HudServiceComCanonicalHud *)object,
+	                                                        &query_object,
+	                                                        &results_name,
+	                                                        &appstack_name,
+	                                                        &revision,
+	                                                        res,
+	                                                        &error);
+
+	if (error != NULL) {
+		if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) && 
+				!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CLOSED)) {
+			g_warning("Unable to allocate query: %s", error->message);
+		}
+		g_error_free(error);
+	}
+
+	data->cb(data->con, query_object, results_name, appstack_name, data->user_data);
+
+	g_free(data);
+
+	return;
+}
+
 /**
  * hud_client_connection_new_query:
  * @connection: A #HudClientConnection
  * @query: The initial query string
- * @query_path: (transfer full): Place to put the path for the new query
- * @results_name: (transfer full): Place to put the #DeeModel name for the results
- * @appstack_name: (transfer full): Place to put the #DeeModel name for the appstack
+ * @cb: Callback when we've got the query
+ * @user_data: Data to pass to the callback
  *
  * Function to create a new query in the HUD service and pass back
  * the information needed to create a #HudClientQuery object.
- *
- * Return value: Whether we were able to create the query
  */
-gboolean
-hud_client_connection_new_query (HudClientConnection * connection, const gchar * query, gchar ** query_path, gchar ** results_name, gchar ** appstack_name)
+void
+hud_client_connection_new_query (HudClientConnection * connection, const gchar * query, HudClientConnectionNewQueryCallback cb, gpointer user_data)
 {
-	g_return_val_if_fail(HUD_CLIENT_IS_CONNECTION(connection), FALSE);
+	g_return_if_fail(HUD_CLIENT_IS_CONNECTION(connection));
 
-	gint modelrev = 0;
+	new_query_data_t * data = g_new0(new_query_data_t, 1);
+	data->con = connection;
+	data->cb = cb;
+	data->user_data = user_data;
 
-	return _hud_service_com_canonical_hud_call_create_query_sync(connection->priv->proxy,
+	return _hud_service_com_canonical_hud_call_create_query(connection->priv->proxy,
 		query,
-		query_path,
-		results_name,
-		appstack_name,
-		&modelrev,
-		NULL,  /* GCancellable */
-		NULL); /* GError */
+		connection->priv->cancellable,
+		new_query_complete,
+		data);
 }
 
 /**
@@ -269,4 +384,19 @@ hud_client_connection_get_address (HudClientConnection * connection)
 	g_return_val_if_fail(HUD_CLIENT_IS_CONNECTION(connection), NULL);
 
 	return connection->priv->address;
+}
+
+/**
+ * hud_client_connection_connected:
+ * @connection: A #HudClientConnection
+ *
+ * Accessor to get the connected status of the connection
+ *
+ * Return value: If we're connected or not
+ */
+gboolean
+hud_client_connection_connected (HudClientConnection * connection)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_CONNECTION(connection), FALSE);
+	return connection->priv->connected;
 }
