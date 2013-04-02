@@ -5,6 +5,21 @@
 
 #include "hudtestutils.h"
 
+static gboolean
+fail_quit (gpointer pmain)
+{
+	g_error("Timeout, mainloop took too long!");
+	g_main_loop_quit((GMainLoop *)pmain);
+	return FALSE;
+}
+
+static void
+test_query_create_models_ready (HudClientQuery * query, gpointer user_data)
+{
+	g_main_loop_quit((GMainLoop *)user_data);
+	return;
+}
+
 static void
 test_query_create (void)
 {
@@ -21,6 +36,16 @@ test_query_create (void)
 	/* Create a query */
 	HudClientQuery * query = hud_client_query_new("test");
 
+	/* Wait for the models to be ready */
+	GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+	gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+
+	g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
+
+	g_main_loop_run(loop);
+	g_main_loop_unref(loop);
+
+	/* Check the models */
 	g_assert(DEE_IS_MODEL(hud_client_query_get_results_model(query)));
 	g_assert(DEE_IS_MODEL(hud_client_query_get_appstack_model(query)));
 
@@ -66,6 +91,15 @@ test_query_custom (void)
 	HudClientQuery * query = hud_client_query_new_for_connection("test", client_connection);
 	g_assert(HUD_CLIENT_IS_QUERY(query));
 
+	/* Wait for the models to be ready */
+	GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+	gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+
+	g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
+
+	g_main_loop_run(loop);
+	g_main_loop_unref(loop);
+
 	/* Make sure it has models */
 	g_assert(DEE_IS_MODEL(hud_client_query_get_results_model(query)));
 	g_assert(DEE_IS_MODEL(hud_client_query_get_appstack_model(query)));
@@ -106,8 +140,14 @@ test_query_update (void)
   HudClientQuery * query = hud_client_query_new("test");
   g_assert(HUD_CLIENT_IS_QUERY(query));
 
-  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
-      "UpdateQuery", "\\(\\[\\(\\d+, \\[<'test'>\\]\\)\\],\\)");
+  /* Wait for the models to be ready */
+  GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+
+  g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
+
+  g_main_loop_run(loop);
+  g_main_loop_unref(loop);
 
   dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
 
@@ -149,6 +189,16 @@ test_query_voice (void)
   HudClientQuery *query = hud_client_query_new("test");
   g_assert(HUD_CLIENT_IS_QUERY(query));
 
+  /* Wait for the models to be ready */
+  GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+
+  g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
+
+  g_main_loop_run(loop);
+  g_main_loop_unref(loop);
+
+  /* Call the voice query */
   gboolean called = FALSE;
   g_signal_connect(G_OBJECT(query), "voice-query-finished",
       G_CALLBACK(handle_voice_query_finished), &called);
@@ -184,6 +234,16 @@ test_query_update_app (void)
   HudClientQuery *query = hud_client_query_new("test");
   g_assert(HUD_CLIENT_IS_QUERY(query));
 
+  /* Wait for the models to be ready */
+  GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+
+  g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
+
+  g_main_loop_run(loop);
+  g_main_loop_unref(loop);
+
+  /* Set App ID */
   hud_client_query_set_appstack_app(query, "application-id");
 
   dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
@@ -212,6 +272,16 @@ test_query_execute_command (void)
   HudClientQuery *query = hud_client_query_new("test");
   g_assert(HUD_CLIENT_IS_QUERY(query));
 
+  /* Wait for the models to be ready */
+  GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+
+  g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
+
+  g_main_loop_run(loop);
+  g_main_loop_unref(loop);
+
+  /* Execute a command */
   hud_client_query_execute_command (query,
       g_variant_new_variant (g_variant_new_uint64 (4321)), 1234);
 
@@ -241,6 +311,16 @@ test_query_execute_parameterized (void)
   HudClientQuery *query = hud_client_query_new("test");
   g_assert(HUD_CLIENT_IS_QUERY(query));
 
+  /* Wait for the models to be ready */
+  GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+
+  g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
+
+  g_main_loop_run(loop);
+  g_main_loop_unref(loop);
+
+  /* Execute a parameterized command */
   HudClientParam *param = hud_client_query_execute_param_command (query,
       g_variant_new_variant (g_variant_new_uint64 (4321)), 1234);
 
@@ -271,6 +351,16 @@ test_query_execute_toolbar (void)
   HudClientQuery *query = hud_client_query_new("test");
   g_assert(HUD_CLIENT_IS_QUERY(query));
 
+  /* Wait for the models to be ready */
+  GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+
+  g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
+
+  g_main_loop_run(loop);
+  g_main_loop_unref(loop);
+
+  /* Start attacking the toolbar */
   hud_client_query_execute_toolbar_item (query,
       HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN, 12345);
   dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
