@@ -17,6 +17,9 @@ option(FULL_WARNINGS "Full compiler warnings." OFF)
 option(DEBUG_MESSAGES "Print debug messages." OFF)
 option(LOCAL_INSTALL "Support local installation." OFF)
 
+# Trick the H10enable_coverage script into enabling coverage by including the text below:
+# CMAKE_BUILD_TYPE coverage
+
 find_package(PkgConfig REQUIRED)
 include(GNUInstallDirs)
 include(CheckIncludeFile)
