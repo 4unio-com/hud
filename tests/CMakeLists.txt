@@ -159,7 +159,7 @@ hudtest(test-application-list test-application-list.c test-application-list.xml)
 # Voice tests (needs working pulse)
 ####################################
 
-if(${enable_voice_tests})
+if(${ENABLE_VOICE_TESTS})
   hudtest(test-voice test-voice.c test-voice.xml)
 endif()
 
@@ -173,7 +173,7 @@ target_link_libraries(hud-performance
   hud-test
   ${GIO2_LIBRARIES}
 )
-if(${enable_scalability_tests})
+if(${ENABLE_SCALABILITY_TESTS})
   add_test(hud-performance
     "${CMAKE_CURRENT_SOURCE_DIR}/test-runner.sh"
     "${CMAKE_CURRENT_SOURCE_DIR}"
