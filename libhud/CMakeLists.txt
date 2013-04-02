@@ -78,16 +78,12 @@ hud.h
 
 set(HUD_HEADERS
 manager.h
-operation.h
-action.h
 action-publisher.h
 ${HUD_HEADERS}
 )
 
 set(HUD_SOURCES
 manager.c
-operation.c
-action.c
 action-publisher.c
 )
 

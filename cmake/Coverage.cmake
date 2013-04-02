@@ -11,7 +11,7 @@ if (CMAKE_BUILD_TYPE MATCHES coverage)
     message(STATUS "Gcovr found, can generate XML coverage info.")
     add_custom_target (coverage-xml
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-      COMMAND "${GCOVR_EXECUTABLE}" --exclude="test.*" -x -r "${CMAKE_SOURCE_DIR}" 
+      COMMAND "${GCOVR_EXECUTABLE}" --exclude="test.*" --exclude="obj.*" -x -r "${CMAKE_SOURCE_DIR}" 
       --object-directory=${CMAKE_BINARY_DIR} -o coverage.xml)
   endif()
 
