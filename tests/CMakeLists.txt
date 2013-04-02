@@ -97,6 +97,8 @@ ${DBUSTEST_LIBRARIES}
 # Test Fixtures
 #######################
 
+add_definitions(-DKEYWORD_MAPPING="${CMAKE_CURRENT_SOURCE_DIR}/keyword-mapping")
+
 add_definitions(-DJSON_SIMPLE="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-simple.json")
 add_definitions(-DJSON_SHORTCUTS="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-shortcuts.json")
 add_definitions(-DJSON_SOURCE_ONE="${CMAKE_CURRENT_SOURCE_DIR}/test-app-indicator-source-one.json")

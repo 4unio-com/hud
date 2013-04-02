@@ -70,7 +70,7 @@ test_keyword_mapping_unknown_action (void)
 
   mapping = hud_keyword_mapping_new ();
   hud_keyword_mapping_load (mapping, "gnome-terminal",
-      "keyword-mapping", KEYWORD_LOCALE_DIR);
+      KEYWORD_MAPPING, KEYWORD_LOCALE_DIR);
 
   results = hud_keyword_mapping_transform (mapping, "random action string");
   g_assert_cmpint(results->len, ==, 0);
@@ -92,7 +92,7 @@ test_keyword_mapping_open_tab (void)
 
   mapping = hud_keyword_mapping_new ();
   hud_keyword_mapping_load (mapping, "gnome-terminal",
-      "keyword-mapping", KEYWORD_LOCALE_DIR);
+      KEYWORD_MAPPING, KEYWORD_LOCALE_DIR);
   results = hud_keyword_mapping_transform (mapping, "Open Ta_b");
 
   g_assert_cmpint(results->len, ==, 2);
@@ -114,7 +114,7 @@ test_keyword_mapping_open_tab_with_translation (void)
   /* Temporarily change to language to read in our translations */
   set_language ("en_FAKELANG");
   hud_keyword_mapping_load (mapping, "gnome-terminal",
-      "keyword-mapping", KEYWORD_LOCALE_DIR);
+      KEYWORD_MAPPING, KEYWORD_LOCALE_DIR);
   set_language (original_language);
 
   results = hud_keyword_mapping_transform (mapping, "Open Ta_b");
@@ -135,7 +135,7 @@ test_keyword_mapping_open_terminal (void)
   GPtrArray* results;
 
   mapping = hud_keyword_mapping_new ();
-  hud_keyword_mapping_load (mapping, "gnome-terminal", "keyword-mapping",
+  hud_keyword_mapping_load (mapping, "gnome-terminal", KEYWORD_MAPPING,
       KEYWORD_LOCALE_DIR);
   results = hud_keyword_mapping_transform (mapping, "Open _Terminal");
 
