@@ -105,6 +105,15 @@ add_definitions(-DJSON_SIMPLE="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-simpl
 add_definitions(-DJSON_SHORTCUTS="${CMAKE_CURRENT_SOURCE_DIR}/test-menu-input-shortcuts.json")
 add_definitions(-DJSON_SOURCE_ONE="${CMAKE_CURRENT_SOURCE_DIR}/test-app-indicator-source-one.json")
 add_definitions(-DJSON_SOURCE_TWO="${CMAKE_CURRENT_SOURCE_DIR}/test-app-indicator-source-two.json")
+add_definitions(-DJSON_SOURCE_SESSION="${CMAKE_CURRENT_SOURCE_DIR}/test-indicator-source-session.json")
+add_definitions(-DJSON_SOURCE_DATETIME="${CMAKE_CURRENT_SOURCE_DIR}/test-indicator-source-datetime.json")
+add_definitions(-DJSON_SOURCE_SOUND="${CMAKE_CURRENT_SOURCE_DIR}/test-indicator-source-sound.json")
+add_definitions(-DJSON_SOURCE="${CMAKE_CURRENT_SOURCE_DIR}/test-source.json")
+
+add_definitions(-DPRONOUCE_DICT_HASHES="${CMAKE_CURRENT_SOURCE_DIR}/test-pronounce-dict-hashes.dic")
+add_definitions(-DPRONOUCE_DICT_SEMICOLON="${CMAKE_CURRENT_SOURCE_DIR}/test-pronounce-dict-semicolon.dic")
+add_definitions(-DPRONOUCE_DICT_LOWERCASE="${CMAKE_CURRENT_SOURCE_DIR}/test-pronounce-dict-lowercase.dic")
+add_definitions(-DPRONOUCE_DICT_HTK="${CMAKE_CURRENT_SOURCE_DIR}/test-pronounce-dict-htk.dic")
 
 #######################
 # Generated test fixtures
