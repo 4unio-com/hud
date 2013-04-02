@@ -295,7 +295,7 @@ play_sound (const gchar *name, const gchar *to)
 {
   GError *error = NULL;
   const gchar *argv[] =
-  { "./test-voice-sounds-play.sh", name, to, NULL };
+  { TEST_VOICE_SOUNDS_PLAY, name, to, NULL };
   if (!g_spawn_async (NULL, (gchar **) argv, NULL, 0, NULL, NULL, NULL, &error))
   {
     g_error("%s", error->message);
