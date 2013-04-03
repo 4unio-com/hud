@@ -63,6 +63,18 @@ Description: Backend for the Unity HUD
  .
  This package provides a service for Unity's HUD
 
+Package: hud-doc
+Section: doc
+Architecture: all
+Recommends: hud (= ${binary:Version}),
+Description: Backend for the Unity HUD
+ Unity HUD is a heads-up-display interface for controlling the behavior of
+ applications as well as Unity via typed-in commands. It provides access to
+ all applications menu via a single central interface, in order to simplify
+ application usage and make menus more accessible.
+ .
+ This package contains developer documentation.
+
 Package: hud-tools
 Architecture: any
 Depends: ${misc:Depends},
