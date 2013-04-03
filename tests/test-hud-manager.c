@@ -16,14 +16,58 @@ test_manager_create ()
   hud_test_utils_start_hud_service (&service, &connection, &results_model,
       &appstack_model);
 
-  HudManager *manager = hud_manager_new ("test-app");
+  HudManager *manager = hud_manager_new ("test.app");
   hud_test_utils_process_mainloop (300);
 
   dbus_mock_assert_method_call_results (connection, DBUS_NAME, DBUS_PATH,
       "RegisterApplication",
-      "\\(\\[\\(\\d+, \\[<'test-app'>\\]\\)\\],\\)");
+      "\\(\\[\\(\\d+, \\[<'test.app'>\\]\\)\\],\\)");
 
   g_object_unref (manager);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
+test_manager_create_with_application ()
+{
+  DbusTestService *service = NULL;
+  GDBusConnection *connection = NULL;
+  DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+  {
+    DBusMockProperties* properties = dbus_mock_new_properties ();
+    DBusMockMethods* methods = dbus_mock_new_methods ();
+    dbus_mock_methods_append (methods, "AddSources", "a(vso)a(vo)", "", "");
+    dbus_mock_add_object (connection, DBUS_NAME, DBUS_PATH, "/app/object",
+        "com.canonical.hud.Application", properties, methods);
+  }
+
+  GApplication *application = g_application_new("app.id", G_APPLICATION_FLAGS_NONE);
+  GError *error = NULL;
+  if (!g_application_register(application, NULL, &error))
+  {
+    g_error("%s", error->message);
+  }
+
+  HudManager *manager = hud_manager_new_for_application(application);
+  hud_test_utils_process_mainloop (100);
+  g_object_unref (manager);
+
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, DBUS_PATH,
+      "RegisterApplication",
+      "\\(\\[\\(\\d+, \\[<'app.id'>\\]\\)\\],\\)");
+
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, "/app/object",
+      "AddSources",
+      "\\(\\[\\(\\d+, \\[<\\[\\(<-1>, 'app', objectpath '\\/app\\/id'\\)\\]>, <\\[\\(<-1>, objectpath '\\/com\\/canonical\\/hud\\/publisher0'\\)\\]>\\]\\)\\],\\)");
+
+  g_object_unref (application);
 
   hud_test_utils_stop_hud_service (service, connection, results_model,
       appstack_model);
@@ -33,6 +77,7 @@ static void
 test_suite (void)
 {
   g_test_add_func ("/hud/hud/manager/create", test_manager_create);
+  g_test_add_func ("/hud/hud/manager/create_with_application", test_manager_create_with_application);
 }
 
 int

@@ -163,10 +163,32 @@ _hud_aux_class_init (HudAuxClass *class)
 }
 
 static void
+hud_action_publisher_dispose (GObject *object)
+{
+  HudActionPublisher *self = HUD_ACTION_PUBLISHER(object);
+
+  g_clear_pointer(&self->id, g_variant_unref);
+
+  g_clear_object(&self->aux);
+  g_clear_object(&self->application);
+
+  g_dbus_connection_unexport_menu_model (self->bus, self->export_id);
+
+  g_clear_pointer(&self->path, g_free);
+  g_clear_pointer(&self->descriptions, g_sequence_free);
+
+  g_list_free_full(self->action_groups, g_free);
+
+  g_clear_object(&self->bus);
+
+  G_OBJECT_CLASS (hud_action_publisher_parent_class)->dispose (object);
+}
+
+static void
 hud_action_publisher_finalize (GObject *object)
 {
-  g_error ("g_object_unref() called on internally-owned ref of HudActionPublisher");
-  g_clear_pointer(&HUD_ACTION_PUBLISHER(object)->id, g_variant_unref);
+  G_OBJECT_CLASS (hud_action_publisher_parent_class)->finalize (object);
+  return;
 }
 
 static void
@@ -204,6 +226,7 @@ hud_action_publisher_init (HudActionPublisher *publisher)
 static void
 hud_action_publisher_class_init (HudActionPublisherClass *class)
 {
+  class->dispose = hud_action_publisher_dispose;
   class->finalize = hud_action_publisher_finalize;
 
   /**
@@ -270,11 +293,16 @@ hud_action_publisher_new_for_application (GApplication *application)
 HudActionPublisher *
 hud_action_publisher_new_for_id (GVariant * id)
 {
-	g_return_val_if_fail(id != NULL, NULL);
-
 	HudActionPublisher * publisher;
 	publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
-	publisher->id = g_variant_ref_sink(id);
+	if (id != NULL)
+	{
+	  publisher->id = g_variant_ref_sink(id);
+	}
+	else
+	{
+	  publisher->id = g_variant_ref_sink(g_variant_new_int32(-1));
+	}
 
 	return publisher;
 }
