@@ -210,4 +210,5 @@ hudtest(test-hud-client-param test-hud-client-param.c test-hud-client-param.xml)
 #####################################
 
 hudtest(test-hud-manager test-hud-manager.c test-hud-manager.xml)
+hudtest(test-hud-action-publisher test-hud-action-publisher.c test-hud-action-publisher.xml)
 
