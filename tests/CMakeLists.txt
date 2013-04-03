@@ -202,3 +202,10 @@ endif()
 hudtest(test-hud-client-connection test-hud-client-connection.c test-hud-client-connection.xml)
 hudtest(test-hud-client-query test-hud-client-query.c test-hud-client-query.xml)
 hudtest(test-hud-client-param test-hud-client-param.c test-hud-client-param.xml)
+
+#####################################
+# libhud test suite
+#####################################
+
+hudtest(test-hud-manager test-hud-manager.c test-hud-manager.xml)
+
