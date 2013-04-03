@@ -1,5 +1,6 @@
 include_directories(${HUD_SERVICE_INCLUDE_DIRS})
 include_directories(${HUD_CLIENT_INCLUDE_DIRS})
+include_directories(${HUD_INCLUDE_DIRS})
 
 #######################
 # Dbus JSON Loader
@@ -56,6 +57,7 @@ macro(hudtest tname tfilename rfilename)
   add_executable(${tname} ${tfilename})
   target_link_libraries(${tname}
     hud-service
+    hud
     hud-test
   )
   add_test(${tname}

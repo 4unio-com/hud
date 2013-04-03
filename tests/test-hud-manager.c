@@ -74,10 +74,35 @@ test_manager_create_with_application ()
 }
 
 static void
+test_manager_add_actions ()
+{
+  DbusTestService *service = NULL;
+  GDBusConnection *connection = NULL;
+  DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+  HudManager *manager = hud_manager_new ("test.app");
+  hud_test_utils_process_mainloop (300);
+
+  dbus_mock_assert_method_call_results (connection, DBUS_NAME, DBUS_PATH,
+      "RegisterApplication",
+      "\\(\\[\\(\\d+, \\[<'test.app'>\\]\\)\\],\\)");
+
+  g_object_unref (manager);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
 test_suite (void)
 {
   g_test_add_func ("/hud/hud/manager/create", test_manager_create);
   g_test_add_func ("/hud/hud/manager/create_with_application", test_manager_create_with_application);
+  g_test_add_func ("/hud/hud/manager/add_actions", test_manager_add_actions);
 }
 
 int
