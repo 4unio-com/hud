@@ -166,6 +166,7 @@ test_action_publisher_add_description ()
 
   g_object_unref (application);
   g_object_unref (publisher);
+  hud_action_description_unref(description);
 
   hud_test_utils_stop_hud_service (service, connection, results_model,
       appstack_model);
