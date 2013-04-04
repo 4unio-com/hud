@@ -417,7 +417,11 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
  *
  * Removes the action descriptions that has the name @action_name and
  * the target value @action_target (including the possibility of %NULL).
+ *
+ * FIXME This method is not exposed on the public interface, and so is not used.
+ * FIXME It should either be removed, or added to the interface.
  **/
+/*
 void
 hud_action_publisher_remove_description (HudActionPublisher *publisher,
                                          const gchar        *action_name,
@@ -441,6 +445,7 @@ hud_action_publisher_remove_description (HudActionPublisher *publisher,
       g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), position, 1, 0);
     }
 }
+*/
 
 /**
  * hud_action_publisher_remove_descriptions:
@@ -449,7 +454,11 @@ hud_action_publisher_remove_description (HudActionPublisher *publisher,
  *
  * Removes all action descriptions that has the name @action_name and
  * any target value.
+ *
+ * FIXME This method is not exposed on the public interface, and so is not used.
+ * FIXME It should either be removed, or added to the interface.
  **/
+/*
 void
 hud_action_publisher_remove_descriptions (HudActionPublisher *publisher,
                                           const gchar        *action_name)
@@ -475,6 +484,7 @@ hud_action_publisher_remove_descriptions (HudActionPublisher *publisher,
       g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), s, e - s, 0);
     }
 }
+*/
 
 /**
  * hud_action_publisher_add_action_group:
