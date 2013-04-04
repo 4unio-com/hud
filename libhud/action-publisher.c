@@ -172,6 +172,7 @@ hud_action_publisher_dispose (GObject *object)
   g_clear_object(&self->aux);
   g_clear_object(&self->application);
 
+  g_debug("Un-exporting menu model at with id [%d]", self->export_id);
   g_dbus_connection_unexport_menu_model (self->bus, self->export_id);
 
   g_clear_pointer(&self->path, g_free);
@@ -215,6 +216,7 @@ hud_action_publisher_init (HudActionPublisher *publisher)
 
       publisher->export_id = g_dbus_connection_export_menu_model (publisher->bus, publisher->path,
                                                                   G_MENU_MODEL (publisher->aux), NULL);
+      g_debug("Exporting menu model at [%s] with id [%d]", publisher->path, publisher->export_id);
 
       if (!publisher->export_id)
         /* try again... */
