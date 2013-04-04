@@ -8,7 +8,7 @@ export DEBIAN_TARGET_DIR="${CURDIR}/debian/tmp"
 	dh $@ --parallel
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DDEBIAN_TARGET_DIR="${DEBIAN_TARGET_DIR}" -DENABLE_VOICE_TESTS=OFF
+	dh_auto_configure -- -DDEBIAN_TARGET_DIR="${DEBIAN_TARGET_DIR}" -DENABLE_DOCUMENTATION=ON -DENABLE_VOICE_TESTS=OFF
 
 override_dh_install:
 	dh_install --fail-missing
