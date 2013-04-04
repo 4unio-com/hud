@@ -130,11 +130,54 @@ test_action_publisher_add_action_group ()
 }
 
 static void
+test_action_publisher_add_description ()
+{
+  DbusTestService *service = NULL;
+  GDBusConnection *connection = NULL;
+  DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+  GApplication *application = g_application_new("app.id", G_APPLICATION_FLAGS_NONE);
+  GError *error = NULL;
+  if (!g_application_register(application, NULL, &error))
+  {
+    g_error("%s", error->message);
+  }
+
+  HudActionPublisher *publisher = hud_action_publisher_new_for_application(application);
+  g_assert(publisher);
+
+  HudActionDescription *description = hud_action_description_new (
+      "hud.simple-action", g_variant_new_string ("Foo") );
+  hud_action_description_set_attribute_value (description,
+      G_MENU_ATTRIBUTE_LABEL, g_variant_new_string ("Simple Action"));
+  g_assert_cmpstr(hud_action_description_get_action_name(description), ==,
+      "hud.simple-action");
+  g_assert_cmpstr(
+      g_variant_get_string(hud_action_description_get_action_target(description), 0),
+      ==, "Foo");
+
+  hud_action_publisher_add_description (publisher, description);
+
+  // FIXME Need to make actual assertions about what the publisher is doing here
+
+  g_object_unref (application);
+  g_object_unref (publisher);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
 test_suite (void)
 {
   g_test_add_func ("/hud/hud/action-publisher/new_for_id", test_action_publisher_new_for_id);
   g_test_add_func ("/hud/hud/action-publisher/new_for_application", test_action_publisher_new_for_application);
   g_test_add_func ("/hud/hud/action-publisher/add_action_group", test_action_publisher_add_action_group);
+  g_test_add_func ("/hud/hud/action-publisher/add_description", test_action_publisher_add_description);
 }
 
 int
