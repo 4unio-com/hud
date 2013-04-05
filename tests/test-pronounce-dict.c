@@ -24,7 +24,7 @@ static void
 test_hud_pronouce_dict_hashes ()
 {
   GError *error = NULL;
-  PronounceDict *dict = pronounce_dict_new("test-pronounce-dict-hashes.dic", &error);
+  PronounceDict *dict = pronounce_dict_new(PRONOUCE_DICT_HASHES, &error);
 
   {
     gchar** pronounciations = pronounce_dict_lookup_word (dict, "hello");
@@ -48,7 +48,7 @@ static void
 test_hud_pronouce_dict_semicolon ()
 {
   GError *error = NULL;
-  PronounceDict *dict = pronounce_dict_new("test-pronounce-dict-semicolon.dic", &error);
+  PronounceDict *dict = pronounce_dict_new(PRONOUCE_DICT_SEMICOLON, &error);
 
   {
     gchar** pronounciations = pronounce_dict_lookup_word (dict, "hello");
@@ -72,7 +72,7 @@ static void
 test_hud_pronouce_dict_lowercase ()
 {
   GError *error = NULL;
-  PronounceDict *dict = pronounce_dict_new("test-pronounce-dict-lowercase.dic", &error);
+  PronounceDict *dict = pronounce_dict_new(PRONOUCE_DICT_LOWERCASE, &error);
 
   {
     gchar** pronounciations = pronounce_dict_lookup_word (dict, "hello");
@@ -96,7 +96,7 @@ static void
 test_hud_pronouce_dict_htk ()
 {
   GError *error = NULL;
-  PronounceDict *dict = pronounce_dict_new("test-pronounce-dict-htk.dic", &error);
+  PronounceDict *dict = pronounce_dict_new(PRONOUCE_DICT_HTK, &error);
 
   {
     gchar** pronounciations = pronounce_dict_lookup_word (dict, "abandon");

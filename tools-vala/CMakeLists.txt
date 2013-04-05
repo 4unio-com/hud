@@ -20,7 +20,7 @@ vala_init (hud-gtk-vala
   PACKAGES
     Dee-1.0
     gtk+-3.0
-    HudClient-1
+    HudClient-2
   OPTIONS
     ${VALA_OPTIONS}
   DEPENDS

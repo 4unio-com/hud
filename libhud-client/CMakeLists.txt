@@ -20,8 +20,8 @@ add_definitions( -DHUD_CLIENT_COMPILATION=1 )
 # Version Information
 ###########################
 
-set(API_VERSION 1)
-set(ABI_VERSION 1)
+set(API_VERSION 2)
+set(ABI_VERSION 2)
 
 ###########################
 # Generated Hud Client
@@ -126,20 +126,20 @@ if(${INTROSPECTION_FOUND})
   set(INTROSPECTION_GIRS)
 
   set(_introspection_files ${HUD_CLIENT_SOURCES} ${HUD_CLIENT_HEADERS})
-  set(HudClient_1_gir "hud-client")
-  set(HudClient_1_gir_INCLUDES GObject-2.0 Dee-1.0)
+  set(HudClient_2_gir "hud-client")
+  set(HudClient_2_gir_INCLUDES GObject-2.0 Dee-1.0)
   
   gir_get_cflags(_cflags)
-  set(HudClient_1_gir_CFLAGS ${_cflags})
+  set(HudClient_2_gir_CFLAGS ${_cflags})
   
-  set(HudClient_1_gir_LIBS hud-client)
+  set(HudClient_2_gir_LIBS hud-client)
   
   list_make_absolute(_abs_introspection_files _introspection_files "${CMAKE_CURRENT_SOURCE_DIR}/")
-  set(HudClient_1_gir_FILES ${_abs_introspection_files})
-  set(HudClient_1_gir_SCANNERFLAGS --c-include "hud-client.h")
-  set(HudClient_1_gir_EXPORT_PACKAGES "hud-client-${API_VERSION}")
+  set(HudClient_2_gir_FILES ${_abs_introspection_files})
+  set(HudClient_2_gir_SCANNERFLAGS --c-include "hud-client.h")
+  set(HudClient_2_gir_EXPORT_PACKAGES "hud-client-${API_VERSION}")
 
-  list(APPEND INTROSPECTION_GIRS HudClient-1.gir)
+  list(APPEND INTROSPECTION_GIRS HudClient-2.gir)
   gir_add_introspections(INTROSPECTION_GIRS)
 else()
   message("Not performing GIR as required tools not found")
@@ -154,11 +154,11 @@ if(${INTROSPECTION_FOUND})
 
 vapi_gen(hud-client-vapi
   INPUT
-  	HudClient-1.gir
+  	HudClient-2.gir
   PACKAGES
     gio-2.0
   LIBRARY
-    HudClient-1
+    HudClient-2
 )
 
 install(

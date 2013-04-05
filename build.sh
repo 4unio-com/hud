@@ -13,6 +13,6 @@ fi
 echo "Using $BUILD_COMMAND to build"
 (
   cd build
-  cmake .. $EXTRA_ARGS -DCMAKE_INSTALL_PREFIX=../../install -Dlocal_install=ON -DGSETTINGS_LOCALINSTALL=ON
+  cmake .. $EXTRA_ARGS -DCMAKE_INSTALL_PREFIX=../../install -DLOCAL_INSTALL=ON
   $BUILD_COMMAND
 )

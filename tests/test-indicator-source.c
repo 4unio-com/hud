@@ -48,7 +48,7 @@ test_indicator_source_datetime ()
   DbusTestService *service = dbus_test_service_new (NULL);
 
   hud_test_utils_json_loader_start_full (service, dbus_name, dbus_menu_path,
-      "./test-indicator-source-datetime.json");
+      JSON_SOURCE_DATETIME);
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
       dbus_name, NULL);
 
@@ -84,7 +84,7 @@ test_indicator_source_session ()
   DbusTestService *service = dbus_test_service_new (NULL);
 
   hud_test_utils_json_loader_start_full (service, dbus_name, dbus_menu_path,
-      "./test-indicator-source-session.json");
+      JSON_SOURCE_SESSION);
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
       dbus_name, NULL);
 
@@ -120,7 +120,7 @@ test_indicator_source_sound ()
   DbusTestService *service = dbus_test_service_new (NULL);
 
   hud_test_utils_json_loader_start_full (service, dbus_name, dbus_menu_path,
-      "./test-indicator-source-sound.json");
+      JSON_SOURCE_SOUND);
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
       dbus_name, NULL);
 

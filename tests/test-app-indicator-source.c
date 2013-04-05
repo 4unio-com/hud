@@ -44,9 +44,9 @@ test_app_indicator_source_add_remove ()
   hud_test_utils_dbus_mock_start (service, APP_INDICATOR_SERVICE_BUS_NAME,
       APP_INDICATOR_SERVICE_OBJECT_PATH, APP_INDICATOR_SERVICE_IFACE);
   hud_test_utils_json_loader_start_full (service, "menu.one", "/menu/one",
-      "./test-app-indicator-source-one.json");
+      JSON_SOURCE_ONE);
   hud_test_utils_json_loader_start_full (service, "menu.two", "/menu/two",
-        "./test-app-indicator-source-two.json");
+        JSON_SOURCE_TWO);
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
       APP_INDICATOR_SERVICE_BUS_NAME, "menu.one", "menu.two", NULL);
   hud_test_utils_process_mainloop (300);
@@ -146,7 +146,7 @@ test_app_indicator_source_start_empty ()
   hud_test_utils_dbus_mock_start (service, APP_INDICATOR_SERVICE_BUS_NAME,
       APP_INDICATOR_SERVICE_OBJECT_PATH, APP_INDICATOR_SERVICE_IFACE);
   hud_test_utils_json_loader_start_full (service, "menu.one", "/menu/one",
-      "./test-app-indicator-source-one.json");
+      JSON_SOURCE_ONE);
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
       APP_INDICATOR_SERVICE_BUS_NAME, "menu.one", NULL);
   hud_test_utils_process_mainloop (300);
@@ -238,7 +238,7 @@ test_app_indicator_source_change_title ()
   hud_test_utils_dbus_mock_start (service, APP_INDICATOR_SERVICE_BUS_NAME,
       APP_INDICATOR_SERVICE_OBJECT_PATH, APP_INDICATOR_SERVICE_IFACE);
   hud_test_utils_json_loader_start_full (service, "menu.one", "/menu/one",
-      "./test-app-indicator-source-one.json");
+      JSON_SOURCE_ONE);
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
       APP_INDICATOR_SERVICE_BUS_NAME, "menu.one", NULL);
   hud_test_utils_process_mainloop (300);

@@ -165,10 +165,33 @@ _hud_aux_class_init (HudAuxClass *class)
 }
 
 static void
+hud_action_publisher_dispose (GObject *object)
+{
+  HudActionPublisher *self = HUD_ACTION_PUBLISHER(object);
+
+  g_clear_object(&self->aux);
+  g_clear_object(&self->application);
+
+  g_debug("Un-exporting menu model at with id [%d]", self->export_id);
+  g_dbus_connection_unexport_menu_model (self->bus, self->export_id);
+
+  g_clear_pointer(&self->path, g_free);
+  g_clear_pointer(&self->descriptions, g_sequence_free);
+
+  g_list_free_full(self->action_groups, g_free);
+
+  g_clear_object(&self->bus);
+
+  G_OBJECT_CLASS (hud_action_publisher_parent_class)->dispose (object);
+}
+
+static void
 hud_action_publisher_finalize (GObject *object)
 {
-  g_error ("g_object_unref() called on internally-owned ref of HudActionPublisher");
   g_clear_pointer (&HUD_ACTION_PUBLISHER(object)->context_id, g_free);
+
+  G_OBJECT_CLASS (hud_action_publisher_parent_class)->finalize (object);
+  return;
 }
 
 static void
@@ -195,6 +218,7 @@ hud_action_publisher_init (HudActionPublisher *publisher)
 
       publisher->export_id = g_dbus_connection_export_menu_model (publisher->bus, publisher->path,
                                                                   G_MENU_MODEL (publisher->aux), NULL);
+      g_debug("Exporting menu model at [%s] with id [%d]", publisher->path, publisher->export_id);
 
       if (!publisher->export_id)
         /* try again... */
@@ -206,6 +230,7 @@ hud_action_publisher_init (HudActionPublisher *publisher)
 static void
 hud_action_publisher_class_init (HudActionPublisherClass *class)
 {
+  class->dispose = hud_action_publisher_dispose;
   class->finalize = hud_action_publisher_finalize;
 
   /**

@@ -40,6 +40,12 @@ G_BEGIN_DECLS
 #define HUD_CLIENT_QUERY_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_CLIENT_TYPE_QUERY, HudClientQueryClass))
 
 /**
+ * HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED
+ *
+ * Signal to indicate when the models have changed
+ */
+#define HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED   "models-changed"
+/**
  * HUD_CLIENT_QUERY_SIGNAL_TOOLBAR_UPDATED
  *
  * Signal to indicate when the toolbar has been updated

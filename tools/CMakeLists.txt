@@ -4,7 +4,7 @@ add_subdirectory(hudkeywords)
 include_directories(${HUD_CLIENT_INCLUDE_DIRS})
 include_directories(${HUD_SERVICE_INCLUDE_DIRS})
 
-if(${READLINE_FOUND} AND ${READLINE_HISTORY_FOUND} AND ${CURSES_FOUND} AND ${PANGO_FOUND})
+if(${PANGO_FOUND})
 
 include_directories(${PANGO_INCLUDE_DIRS})
 
@@ -16,8 +16,6 @@ add_executable(hud-cli hud-cli.c)
 
 target_link_libraries(hud-cli
 hud-service
-${CURSES_LIBRARIES}
-${READLINE_LIBRARIES}
 ${PANGO_LIBRARIES}
 )
 
