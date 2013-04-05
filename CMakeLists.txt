@@ -9,7 +9,7 @@ set(GETTEXT_PACKAGE ${CMAKE_PROJECT_NAME})
 option(ENABLE_TESTS "Enable tests." ON)
 option(ENABLE_VOICE_TESTS "Enable voice tests" ON)
 option(ENABLE_SCALABILITY_TESTS "Additional scalability tests that are potentially very slow to run." OFF)
-option(FULL_WARNINGS "Full compiler warnings." OFF)
+option(FULL_WARNINGS "Full compiler warnings." ON)
 option(DEBUG_MESSAGES "Print debug messages." OFF)
 option(LOCAL_INSTALL "Support local installation." OFF)
 
@@ -34,7 +34,7 @@ if (EXISTS "/etc/debian_version")
 endif()
 
 if(${FULL_WARNINGS})
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pedantic")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 endif()
 
 if(${DEBUG_MESSAGES})
