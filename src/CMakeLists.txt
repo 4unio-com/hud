@@ -96,6 +96,7 @@ load-app-info.h
 pronounce-dict.h
 query-columns.h
 usage-tracker.h
+watchdog.h
 )
 
 set(HUD_SERVICE_LIB_SOURCES
@@ -125,6 +126,7 @@ hudresult.c
 load-app-info.c
 pronounce-dict.c
 usage-tracker.c
+watchdog.c
 )
 
 add_glib_enumtypes_t(HUD_SERVICE_LIB_SOURCES

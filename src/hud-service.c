@@ -36,6 +36,7 @@
 #include "hud-iface.h"
 #include "shared-values.h"
 #include "hudquery.h"
+#include "watchdog.h"
 
 /* Prototypes */
 static void            bus_method         (GDBusConnection       *connection,
@@ -65,6 +66,7 @@ static GDBusInterfaceVTable vtable = {
 	.set_property = NULL
 };
 static HudApplicationList * application_list = NULL;
+static HudWatchdog * watchdog = NULL;
 
 /* Get our error domain */
 GQuark
@@ -228,7 +230,7 @@ query_destroyed (gpointer data, GObject * old_object)
 static HudQuery *
 build_query (HudSourceList * all_sources, HudApplicationList * app_list, GDBusConnection * connection, const gchar * search_string)
 {
-	HudQuery * query = hud_query_new (HUD_SOURCE(all_sources), application_list, search_string, 10, connection, ++query_count);
+	HudQuery * query = hud_query_new (HUD_SOURCE(all_sources), watchdog, application_list, search_string, 10, connection, ++query_count);
 
 	g_ptr_array_add(query_list, query);
 	g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
@@ -263,6 +265,8 @@ bus_method (GDBusConnection       *connection,
             GDBusMethodInvocation *invocation,
             gpointer               user_data)
 {
+	hud_watchdog_ping(watchdog);
+
 	if (g_str_equal (method_name, "CreateQuery")) {
 		HudSourceList *all_sources = user_data;
 		GVariant * vsearch;
@@ -385,6 +389,7 @@ bus_method (GDBusConnection       *connection,
 static GVariant *
 bus_get_prop (GDBusConnection * connection, const gchar * sender, const gchar * object_path, const gchar * interface_name, const gchar * property_name, GError ** error, gpointer user_data)
 {
+	hud_watchdog_ping(watchdog);
 	// HudSource *source = user_data;
 
 	if (g_str_equal(property_name, "OpenQueries")) {
@@ -532,8 +537,12 @@ main (int argc, char **argv)
 
   signal(SIGTERM, sigterm_graceful_exit);
   
+  watchdog = hud_watchdog_new(mainloop);
+
   g_main_loop_run (mainloop);
   g_main_loop_unref (mainloop);
+
+  g_clear_object(&watchdog);
 
   g_object_unref (application_list);
   g_object_unref (source_list);
