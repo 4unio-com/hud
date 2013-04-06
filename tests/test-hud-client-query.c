@@ -410,7 +410,7 @@ test_suite (void)
   g_test_add_func ("/hud/client/query/update_app", test_query_update_app);
   g_test_add_func ("/hud/client/query/execute_command", test_query_execute_command);
   g_test_add_func ("/hud/client/query/execute_command_parameterized", test_query_execute_parameterized);
-//  g_test_add_func ("/hud/client/query/execute_command_toolbar", test_query_execute_toolbar);
+  g_test_add_func ("/hud/client/query/execute_command_toolbar", test_query_execute_toolbar);
 }
 
 int
