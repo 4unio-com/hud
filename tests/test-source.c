@@ -193,7 +193,7 @@ test_source_create_query (GDBusConnection *session, HudSource *source, HudApplic
 {
   g_debug ("query: [%s], on [%s]", search, g_dbus_connection_get_unique_name(session));
 
-  HudQuery * query = hud_query_new (source, list, search, 1u << 30, session, query_count);
+  HudQuery * query = hud_query_new (source, NULL, list, search, 1u << 30, session, query_count);
 
   return query;
 }
@@ -355,7 +355,7 @@ test_hud_query_sequence ()
       g_assert(G_N_ELEMENTS(expected) == G_N_ELEMENTS(expected_distances));
 
       AppListDummy * dummy = app_list_dummy_new(HUD_SOURCE(collector));
-      HudQuery *query = hud_query_new (HUD_SOURCE(source_list), HUD_APPLICATION_LIST(dummy), search, 1u << 30, session, 6);
+      HudQuery *query = hud_query_new (HUD_SOURCE(source_list), NULL, HUD_APPLICATION_LIST(dummy), search, 1u << 30, session, 6);
       test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, G_N_ELEMENTS(appstack_expected_ids), path, name, expected, expected_distances, G_N_ELEMENTS(expected));
 
       // Change the app to the manual_source
