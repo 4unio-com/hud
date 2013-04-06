@@ -163,10 +163,33 @@ _hud_aux_class_init (HudAuxClass *class)
 }
 
 static void
+hud_action_publisher_dispose (GObject *object)
+{
+  HudActionPublisher *self = HUD_ACTION_PUBLISHER(object);
+
+  g_clear_pointer(&self->id, g_variant_unref);
+
+  g_clear_object(&self->aux);
+  g_clear_object(&self->application);
+
+  g_debug("Un-exporting menu model at with id [%d]", self->export_id);
+  g_dbus_connection_unexport_menu_model (self->bus, self->export_id);
+
+  g_clear_pointer(&self->path, g_free);
+  g_clear_pointer(&self->descriptions, g_sequence_free);
+
+  g_list_free_full(self->action_groups, g_free);
+
+  g_clear_object(&self->bus);
+
+  G_OBJECT_CLASS (hud_action_publisher_parent_class)->dispose (object);
+}
+
+static void
 hud_action_publisher_finalize (GObject *object)
 {
-  g_error ("g_object_unref() called on internally-owned ref of HudActionPublisher");
-  g_clear_pointer(&HUD_ACTION_PUBLISHER(object)->id, g_variant_unref);
+  G_OBJECT_CLASS (hud_action_publisher_parent_class)->finalize (object);
+  return;
 }
 
 static void
@@ -193,6 +216,7 @@ hud_action_publisher_init (HudActionPublisher *publisher)
 
       publisher->export_id = g_dbus_connection_export_menu_model (publisher->bus, publisher->path,
                                                                   G_MENU_MODEL (publisher->aux), NULL);
+      g_debug("Exporting menu model at [%s] with id [%d]", publisher->path, publisher->export_id);
 
       if (!publisher->export_id)
         /* try again... */
@@ -204,6 +228,7 @@ hud_action_publisher_init (HudActionPublisher *publisher)
 static void
 hud_action_publisher_class_init (HudActionPublisherClass *class)
 {
+  class->dispose = hud_action_publisher_dispose;
   class->finalize = hud_action_publisher_finalize;
 
   /**
@@ -270,11 +295,16 @@ hud_action_publisher_new_for_application (GApplication *application)
 HudActionPublisher *
 hud_action_publisher_new_for_id (GVariant * id)
 {
-	g_return_val_if_fail(id != NULL, NULL);
-
 	HudActionPublisher * publisher;
 	publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
-	publisher->id = g_variant_ref_sink(id);
+	if (id != NULL)
+	{
+	  publisher->id = g_variant_ref_sink(id);
+	}
+	else
+	{
+	  publisher->id = g_variant_ref_sink(g_variant_new_int32(-1));
+	}
 
 	return publisher;
 }
@@ -377,73 +407,6 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
   g_object_ref (description);
 
   g_signal_connect (description, "changed", G_CALLBACK (description_changed), publisher);
-}
-
-/**
- * hud_action_publisher_remove_description:
- * @publisher: the #HudActionPublisher
- * @action_name: an action name
- * @action_target: (allow none): an action target
- *
- * Removes the action descriptions that has the name @action_name and
- * the target value @action_target (including the possibility of %NULL).
- **/
-void
-hud_action_publisher_remove_description (HudActionPublisher *publisher,
-                                         const gchar        *action_name,
-                                         GVariant           *action_target)
-{
-  HudActionDescription tmp;
-  GSequenceIter *iter;
-
-  tmp.identifier = format_identifier (action_name, action_target);
-  iter = g_sequence_lookup (publisher->descriptions, &tmp, compare_descriptions, NULL);
-  g_free (tmp.identifier);
-
-  if (iter)
-    {
-      gint position;
-
-      position = g_sequence_iter_get_position (iter);
-      disconnect_handler (g_sequence_get (iter), publisher);
-      g_sequence_remove (iter);
-
-      g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), position, 1, 0);
-    }
-}
-
-/**
- * hud_action_publisher_remove_descriptions:
- * @publisher: the #HudActionPublisher
- * @action_name: an action name
- *
- * Removes all action descriptions that has the name @action_name and
- * any target value.
- **/
-void
-hud_action_publisher_remove_descriptions (HudActionPublisher *publisher,
-                                          const gchar        *action_name)
-{
-  HudActionDescription before, after;
-  GSequenceIter *start, *end;
-
-  before.identifier = (gchar *) action_name;
-  after.identifier = g_strconcat (action_name, "~", NULL);
-  start = g_sequence_search (publisher->descriptions, &before, compare_descriptions, NULL);
-  end = g_sequence_search (publisher->descriptions, &after, compare_descriptions, NULL);
-  g_free (after.identifier);
-
-  if (start != end)
-    {
-      gint s, e;
-
-      s = g_sequence_iter_get_position (start);
-      e = g_sequence_iter_get_position (end);
-      g_sequence_foreach_range (start, end, disconnect_handler, publisher);
-      g_sequence_remove_range (start, end);
-
-      g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), s, e - s, 0);
-    }
 }
 
 /**

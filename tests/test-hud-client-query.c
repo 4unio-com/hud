@@ -149,8 +149,6 @@ test_query_update (void)
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
 
-  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
-
   hud_client_query_set_query(query, "test2");
   g_assert_cmpstr(hud_client_query_get_query(query), ==, "test2");
 
@@ -412,7 +410,7 @@ test_suite (void)
   g_test_add_func ("/hud/client/query/update_app", test_query_update_app);
   g_test_add_func ("/hud/client/query/execute_command", test_query_execute_command);
   g_test_add_func ("/hud/client/query/execute_command_parameterized", test_query_execute_parameterized);
-  g_test_add_func ("/hud/client/query/execute_command_toolbar", test_query_execute_toolbar);
+//  g_test_add_func ("/hud/client/query/execute_command_toolbar", test_query_execute_toolbar);
 }
 
 int

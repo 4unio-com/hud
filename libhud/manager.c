@@ -174,6 +174,8 @@ hud_manager_dispose (GObject *object)
 	g_clear_object(&manager->priv->service_proxy);
 	g_clear_object(&manager->priv->app_proxy);
 
+	g_list_free_full(manager->priv->publishers, g_object_unref);
+
 	g_clear_object(&manager->priv->app_pub);
 	g_clear_object(&manager->priv->application);
 
@@ -205,7 +207,7 @@ set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
 			g_clear_pointer(&manager->priv->application_id, g_free);
 			manager->priv->application_id = g_value_dup_string(value);
 		} else {
-			g_warning("Application ID being set on HUD Manager already initialized with a GApplication");
+			g_debug("Application ID being set on HUD Manager already initialized with a GApplication");
 		}
 		break;
 	case PROP_APPLICATION:
