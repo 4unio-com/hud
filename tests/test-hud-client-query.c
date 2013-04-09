@@ -189,7 +189,7 @@ test_query_voice (void)
 
   /* Wait for the models to be ready */
   GMainLoop * loop = g_main_loop_new(NULL, FALSE);
-  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+  gulong sig = g_timeout_add_seconds(10, fail_quit, loop);
 
   g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
 
