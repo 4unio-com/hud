@@ -6,8 +6,8 @@
 #include "hudtestutils.h"
 
 /* Define the global default timeout for g_timeout_add_seconds */
-#ifndef TEST_DEFAULT_TIMEOUT_S_S
-#define TEST_DEFAULT_TIMEOUT_S_S 10
+#ifndef TEST_DEFAULT_TIMEOUT_S
+#define TEST_DEFAULT_TIMEOUT_S 10
 #endif
 
 
