@@ -58,7 +58,7 @@ calculate_distance (const gchar *search, GStrv teststrings, gchar ***matches)
 		list = tmp;
 	}
 
-	haystack = hud_token_list_new_from_string_list (list);
+	haystack = hud_token_list_new_from_string_list (list, NULL);
 	hud_string_list_unref (list);
 
 	needle = hud_token_list_new_from_string (search);
@@ -258,7 +258,10 @@ test_distance_suite (void)
 gint
 main (gint argc, gchar * argv[])
 {
-	//gtk_init(&argc, &argv);
+#ifndef GLIB_VERSION_2_36
+	g_type_init ();
+#endif
+
 	g_test_init(&argc, &argv, NULL);
 
 	/* Test suites */

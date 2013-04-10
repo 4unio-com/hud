@@ -104,6 +104,11 @@ hud_result_get_if_matched (HudItem      *item,
   if (!hud_item_get_enabled (item))
     return NULL;
 
+  /* If we're just a blank list, all should be included */
+  if (search_tokens == NULL) {
+    return hud_result_new (item, search_tokens, penalty);
+  }
+
   /* ignore the penalty in the max-distance calculation */
   if (hud_token_list_distance (hud_item_get_token_list (item), search_tokens, NULL) <= hud_settings.max_distance)
     return hud_result_new (item, search_tokens, penalty);
@@ -144,7 +149,7 @@ hud_result_format_tokens (GString          *string,
   head = hud_string_list_get_head (tokens);
   head_length = strlen (head);
 
-  while (**matches)
+  while (matches != NULL && *matches != NULL && **matches != NULL)
     {
       const gchar *matched_string;
       guint match_length;
@@ -191,14 +196,93 @@ hud_result_format_tokens (GString          *string,
   g_free (escaped);
 }
 
+static void
+hud_result_format_keywords (GString        *string,
+                          HudStringList    *tokens,
+                          const HudToken ***matches,
+                          gint             *count)
+{
+  HudStringList *tail;
+  const gchar *head;
+  guint head_length;
+  gchar *escaped;
+
+  tail = hud_string_list_get_tail (tokens);
+
+  if (tail)
+  {
+    /* The tail will get a chance to consume some 'matches' first... */
+    hud_result_format_keywords (string, tail, matches, count);
+  }
+
+  head = hud_string_list_get_head (tokens);
+  head_length = strlen (head);
+
+  if (*count > 0)
+  {
+    g_string_append (string, "; ");
+  }
+
+  while (matches != NULL && *matches != NULL && **matches != NULL)
+  {
+    const gchar *matched_string;
+    guint match_length;
+
+    matched_string = hud_token_get_original (**matches, &match_length);
+
+    if (matched_string && head <= matched_string
+        && matched_string + match_length <= head + head_length)
+    {
+      (*count)++;
+
+      /* The matched string is a substring of the string that we
+       * were just about to append.
+       *
+       * Append the part before the match.
+       */
+      escaped = g_markup_escape_text (head, matched_string - head);
+      g_string_append (string, escaped);
+      g_free (escaped);
+
+      /* Append the matched part, in bold. */
+      escaped = g_markup_escape_text (matched_string, match_length);
+      g_string_append (string, "<b>");
+      g_string_append (string, escaped);
+      g_string_append (string, "</b>");
+      g_free (escaped);
+
+      /* Fast-forward the head string.  There may be multiple
+       * matches here (so we go another time around the 'while').
+       */
+      head = matched_string + match_length;
+
+      /* That's it for this match. */
+      (*matches)++;
+    }
+
+    else
+      /* Didn't match?  Stop. */
+      break;
+  }
+}
+
 static gchar *
 hud_result_format_description (HudStringList   *tokens,
+                               HudStringList   *keywords,
                                const HudToken **matches)
 {
   GString *description;
 
   description = g_string_new (NULL);
   hud_result_format_tokens (description, tokens, &matches);
+  if (matches != NULL && *matches != NULL)
+  {
+    gint count = 0;
+    g_string_append (description, " (");
+    hud_result_format_keywords (description, keywords, &matches, &count);
+    g_string_append (description, ")");
+  }
+
   return g_string_free (description, FALSE);
 }
 
@@ -221,16 +305,21 @@ hud_result_new (HudItem      *item,
                 HudTokenList *search_tokens,
                 guint         penalty)
 {
-  const HudToken **matched;
+  const HudToken **matched = NULL;
   HudResult *result;
 
   g_return_val_if_fail (HUD_IS_ITEM (item), NULL);
-  g_return_val_if_fail (search_tokens != NULL, NULL);
 
   result = g_object_new (HUD_TYPE_RESULT, NULL);
   result->item = g_object_ref (item);
-  result->distance = hud_token_list_distance (hud_item_get_token_list (item), search_tokens, &matched);
-  result->description = hud_result_format_description (hud_item_get_tokens (item), matched);
+
+  result->distance = 10;
+  if (search_tokens != NULL) {
+    result->distance = hud_token_list_distance (hud_item_get_token_list (item), search_tokens, &matched);
+  }
+
+  result->description = hud_result_format_description (
+      hud_item_get_tokens (item), hud_item_get_keywords(item), matched);
   g_free (matched);
 
   result->distance += (result->distance * penalty) / 100;

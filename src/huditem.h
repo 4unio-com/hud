@@ -38,6 +38,9 @@ typedef struct _HudItemPrivate                              HudItemPrivate;
 typedef struct _HudItemClass                                HudItemClass;
 typedef struct _HudItem                                     HudItem;
 
+typedef struct _PronounceDict                               PronounceDict;
+typedef struct _HudItemPronunciationData                    HudItemPronunciationData;
+
 struct _HudItemClass
 {
   GObjectClass parent_class;
@@ -54,20 +57,38 @@ struct _HudItem
   HudItemPrivate *priv;
 };
 
+struct _HudItemPronunciationData
+{
+  GHashTable *table;
+  GRegex *regex;
+  GPtrArray *list;
+  PronounceDict *dict;
+  GHashTable *unique_commands;
+};
+
 GType                   hud_item_get_type                               (void);
 
 gpointer                hud_item_construct                              (GType          g_type,
                                                                          HudStringList *tokens,
-                                                                         const gchar   *desktop_file,
+                                                                         HudStringList *token_list,
+                                                                         const gchar   *shortcut,
+                                                                         const gchar   *app_id,
                                                                          const gchar   *app_icon,
+                                                                         const gchar   *description,
                                                                          gboolean       enabled);
 HudItem *               hud_item_new                                    (HudStringList *tokens,
-                                                                         const gchar   *desktop_file,
+                                                                         HudStringList *keywords,
+                                                                         const gchar   *shortcut,
+                                                                         const gchar   *app_id,
                                                                          const gchar   *app_icon,
+                                                                         const gchar   *description,
                                                                          gboolean       enabled);
 void                    hud_item_activate                               (HudItem       *item,
                                                                          GVariant      *platform_data);
+void                    hud_item_mark_usage                             (HudItem       *item);
 HudStringList *         hud_item_get_tokens                             (HudItem       *item);
+HudStringList *         hud_item_get_keywords                             (HudItem       *item);
+const gchar *           hud_item_get_app_id                             (HudItem       *item);
 const gchar *           hud_item_get_app_icon                           (HudItem       *item);
 const gchar *           hud_item_get_item_icon                          (HudItem       *item);
 guint                   hud_item_get_usage                              (HudItem       *item);
@@ -75,5 +96,10 @@ gboolean                hud_item_get_enabled                            (HudItem
 guint64                 hud_item_get_id                                 (HudItem       *item);
 HudItem *               hud_item_lookup                                 (guint64        id);
 HudTokenList *          hud_item_get_token_list                         (HudItem       *item);
+const gchar *           hud_item_get_command                            (HudItem       *item);
+const gchar *           hud_item_get_description                        (HudItem       *item);
+const gchar *           hud_item_get_shortcut                           (HudItem       *item);
+void                    hud_item_insert_pronounciation                  (HudItem       * item,
+                                                                         HudItemPronunciationData    * user_data);
 
 #endif /* __HUD_ITEM_H__ */

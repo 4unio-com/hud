@@ -276,12 +276,13 @@ hud_token_list_new_from_string (const gchar *string)
 }
 
 HudTokenList *
-hud_token_list_new_from_string_list (HudStringList *string_list)
+hud_token_list_new_from_string_list (HudStringList *string_list, HudStringList* keywords)
 {
   GPtrArray *array;
 
   array = g_ptr_array_new ();
   hud_token_list_add_string_list_to_array (array, string_list);
+  hud_token_list_add_string_list_to_array (array, keywords);
   return hud_token_list_new_consume_array (array);
 }
 
@@ -403,4 +404,10 @@ guint
 hud_token_list_get_length (HudTokenList *list)
 {
   return list->length;
+}
+
+HudToken**
+hud_token_list_get_tokens (HudTokenList *list)
+{
+  return list->tokens;
 }

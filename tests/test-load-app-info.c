@@ -53,6 +53,10 @@ main (int argv, char * argc[])
 		return 1;
 	}
 
+#ifndef GLIB_VERSION_2_36
+	g_type_init();
+#endif
+
 	gchar * filename = argc[1];
 
 	sqlite3 * db = NULL;

@@ -160,13 +160,3 @@ hud_string_list_ref
 hud_string_list_unref
 </SECTION>
 
-<SECTION>
-<FILE>hudwindowsource</FILE>
-HudWindowSource
-hud_window_source_new
-<SUBSECTION Standard>
-HUD_IS_WINDOW_SOURCE
-HUD_TYPE_WINDOW_SOURCE
-HUD_WINDOW_SOURCE
-hud_window_source_get_type
-</SECTION>

@@ -418,8 +418,6 @@ usage_tracker_get_usage (UsageTracker * self, const gchar * application, const g
 		g_warning("Unknown status from executing entry_count: %d", exec_status);
 	}
 
-	g_debug ("Usage of %s %s is %u", application, entry, count);
-
 	return count;
 }
 
@@ -475,7 +473,6 @@ check_app_init (UsageTracker * self, const gchar * application)
 		return;
 	}
 
-	g_debug("Initializing application: %s", application);
 	gchar * basename = g_path_get_basename(application);
 
 	gchar * app_info_path = NULL;

@@ -19,7 +19,9 @@
 #ifndef __HUD_DBUSMENU_COLLECTOR_H__
 #define __HUD_DBUSMENU_COLLECTOR_H__
 
-#include <libbamf/libbamf.h>
+#include "glib-object.h"
+#include "abstract-app.h"
+#include "hudsource.h"
 
 #define HUD_TYPE_DBUSMENU_COLLECTOR                         (hud_dbusmenu_collector_get_type ())
 #define HUD_DBUSMENU_COLLECTOR(inst)                        (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
@@ -36,10 +38,12 @@ HudDbusmenuCollector *  hud_dbusmenu_collector_new_for_endpoint         (const g
                                                                          const gchar *icon,
                                                                          guint        penalty,
                                                                          const gchar *bus_name,
-                                                                         const gchar *object_path);
-HudDbusmenuCollector *  hud_dbusmenu_collector_new_for_window           (BamfWindow  *window,
-                                                                         const gchar *desktop_file,
-                                                                         const gchar *icon);
+                                                                         const gchar *object_path,
+                                                                         HudSourceItemType type);
+HudDbusmenuCollector *  hud_dbusmenu_collector_new_for_window           (AbstractWindow  *window,
+                                                                         const gchar *application_id,
+                                                                         const gchar *icon,
+                                                                         HudSourceItemType type);
 void                    hud_dbusmenu_collector_set_prefix               (HudDbusmenuCollector *collector,
                                                                          const gchar          *prefix);
 void                    hud_dbusmenu_collector_set_icon                 (HudDbusmenuCollector *collector,

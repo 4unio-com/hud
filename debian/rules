@@ -1,15 +1,14 @@
 #!/usr/bin/make -f
 
-%:
-	dh $@ --with autoreconf
+export DPKG_GENSYMBOLS_CHECK_LEVEL = 4
+export G_MESSAGES_DEBUG=all
+export DEBIAN_TARGET_DIR="${CURDIR}/debian/tmp"
 
-override_dh_autoreconf:
-	NOCONFIGURE=1 dh_autoreconf ./autogen.sh
+%:
+	dh $@ --parallel
 
 override_dh_auto_configure:
-	# Manually specify compiler in case user has multiple valac's lying around,
-	# in which case 0.18 may not be the default.
-	dh_auto_configure -- VALAC=/usr/bin/valac-0.18
+	dh_auto_configure -- -DDEBIAN_TARGET_DIR="${DEBIAN_TARGET_DIR}" -DENABLE_DOCUMENTATION=ON -DENABLE_VOICE_TESTS=OFF
 
 override_dh_install:
 	dh_install --fail-missing
