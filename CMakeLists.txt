@@ -6,10 +6,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
 set(PACKAGE ${CMAKE_PROJECT_NAME})
 set(GETTEXT_PACKAGE ${CMAKE_PROJECT_NAME})
 
-if(PROJECT_BINARY_DIR STREQUAL PROJECT_SOURCE_DIR)
-   message(FATAL_ERROR "In-tree build attempt detected, aborting. Set your build dir outside your source dir, delete CMakeCache.txt from source root and try again.")
-endif()
-
 option(ENABLE_TESTS "Enable tests." ON)
 option(ENABLE_VOICE_TESTS "Enable voice tests" ON)
 option(ENABLE_SCALABILITY_TESTS "Additional scalability tests that are potentially very slow to run." OFF)
