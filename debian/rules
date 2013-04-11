@@ -4,11 +4,23 @@ export DPKG_GENSYMBOLS_CHECK_LEVEL = 4
 export G_MESSAGES_DEBUG=all
 export DEBIAN_TARGET_DIR="${CURDIR}/debian/tmp"
 
+FLAVORS = desktop phablet
+
 %:
 	dh $@ --parallel
 
-override_dh_auto_configure:
-	dh_auto_configure -- -DDEBIAN_TARGET_DIR="${DEBIAN_TARGET_DIR}" -DENABLE_DOCUMENTATION=ON -DENABLE_VOICE_TESTS=OFF
+override_dh_auto_configure: $(FLAVORS:%=autoconfigure-%)
+
+autoconfigure-desktop:
+	dh_auto_configure --builddirectory=build/desktop/ -- -DDEBIAN_TARGET_DIR="${DEBIAN_TARGET_DIR}" -DENABLE_DOCUMENTATION=ON -DENABLE_VOICE_TESTS=OFF -DENABLE_PHABLET=OFF
+
+autoconfigure-phablet:
+	dh_auto_configure --builddirectory=build/phablet/ -- -DDEBIAN_TARGET_DIR="${DEBIAN_TARGET_DIR}" -DENABLE_DOCUMENTATION=ON -DENABLE_VOICE_TESTS=OFF -DENABLE_PHABLET=ON
+
+override_dh_auto_build: $(FLAVORS:%=autobuild-%)
+
+autobuild-%:
+	dh_auto_build --builddirectory=build/$*/
 
 override_dh_install:
 	dh_install --fail-missing

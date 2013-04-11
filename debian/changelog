@@ -1,8 +1,15 @@
-hud (13.10.1-0ubuntu1~ppa1) UNRELEASED; urgency=low
+hud (13.10.1-0ubuntu1~ppa2) UNRELEASED; urgency=low
 
+  [ Ted Gould ]
   * Bumping the number to make diffs more plesant.
 
- -- Ted Gould <ted@ubuntu.com>  Wed, 20 Feb 2013 09:28:40 -0600
+  [ Mathieu Trudel-Lapierre ]
+  * debian/control: introduce new *hud*-phablet packages for the phablet code
+    paths.
+  * debian/rules: start doing two different flavor builds; one with the older
+    bamf codepaths, one with the new platform-api stuff for phablet.
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Wed, 10 Apr 2013 23:44:54 -0400
 
 hud (13.10.0-0ubuntu1) UNRELEASED; urgency=low
 
