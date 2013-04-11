@@ -43,13 +43,17 @@ struct _HudApplicationSourceContext {
 	GObject parent;
 };
 
-GType hud_application_source_context_get_type (void);
-HudApplicationSourceContext * hud_application_source_context_new (guint32 window_id, const gchar * context_id);
-guint32 hud_application_source_context_get_window_id (HudApplicationSourceContext * context);
-const gchar * hud_application_source_context_get_context_id (HudApplicationSourceContext * context);
-void hud_application_source_context_add_action_group (HudApplicationSourceContext * context, GActionGroup * group);
-void hud_application_source_context_add_model (HudApplicationSourceContext * context, GMenuModel * model);
-void hud_application_source_context_add_window (HudApplicationSourceContext * context, AbstractWindow * window);
+GType                           hud_application_source_context_get_type          (void);
+HudApplicationSourceContext *   hud_application_source_context_new               (guint32                         window_id,
+                                                                                  const gchar *                   context_id);
+guint32                         hud_application_source_context_get_window_id     (HudApplicationSourceContext *   context);
+const gchar *                   hud_application_source_context_get_context_id    (HudApplicationSourceContext *   context);
+void                            hud_application_source_context_add_action_group  (HudApplicationSourceContext *   context,
+                                                                                  GActionGroup *                  group);
+void                            hud_application_source_context_add_model         (HudApplicationSourceContext *   context,
+                                                                                  GMenuModel *                    model);
+void                            hud_application_source_context_add_window        (HudApplicationSourceContext *   context,
+                                                                                  AbstractWindow *                window);
 
 G_END_DECLS
 

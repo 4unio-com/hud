@@ -29,6 +29,7 @@ static void hud_application_source_context_finalize   (GObject *object);
 
 G_DEFINE_TYPE (HudApplicationSourceContext, hud_application_source_context, G_TYPE_OBJECT);
 
+/* Initialize the class data */
 static void
 hud_application_source_context_class_init (HudApplicationSourceContextClass *klass)
 {
@@ -40,6 +41,7 @@ hud_application_source_context_class_init (HudApplicationSourceContextClass *kla
 	return;
 }
 
+/* Initialize the instance data */
 static void
 hud_application_source_context_init (HudApplicationSourceContext *self)
 {
@@ -47,6 +49,7 @@ hud_application_source_context_init (HudApplicationSourceContext *self)
 	return;
 }
 
+/* Free references */
 static void
 hud_application_source_context_dispose (GObject *object)
 {
@@ -55,10 +58,107 @@ hud_application_source_context_dispose (GObject *object)
 	return;
 }
 
+/* Free memory */
 static void
 hud_application_source_context_finalize (GObject *object)
 {
 
 	G_OBJECT_CLASS (hud_application_source_context_parent_class)->finalize (object);
+	return;
+}
+
+/**
+ * hud_application_source_context_new:
+ * @window_id: Window associated with the data
+ * @context_id: (allow-none): The context of the data
+ *
+ * Builds an structure to track the items for a given context in a
+ * given window.
+ *
+ * Return value: (transfer full): A new #HudApplicationSourceContext object
+ */
+HudApplicationSourceContext *
+hud_application_source_context_new (guint32 window_id, const gchar * context_id)
+{
+
+	return NULL;
+}
+
+/**
+ * hud_application_source_context_get_window_id:
+ * @context: The #HudApplicationSourceContext to look into
+ *
+ * Gets the window ID this context was built with.
+ *
+ * Return value: A window ID or #HUD_APPLICATION_SOURCE_CONTEXT_ALL_WINDOWS
+ */
+guint32
+hud_application_source_context_get_window_id (HudApplicationSourceContext * context)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context), 0);
+
+	return 0;
+}
+
+/**
+ * hud_application_source_context_get_context_id:
+ * @context: The #HudApplicationSourceContext to look into
+ *
+ * Gets the context ID this context was built with.
+ *
+ * Return value: A context ID or #HUD_APPLICATION_SOURCE_CONTEXT_NO_CONTEXT
+ */
+const gchar *
+hud_application_source_context_get_context_id (HudApplicationSourceContext * context)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context), NULL);
+
+	return NULL;
+}
+
+/**
+ * hud_application_source_context_add_action_group:
+ * @context: The #HudApplicationSourceContext to look into
+ * @group: Action group to add
+ *
+ * Adds an action group to the items indexed by this context.
+ */
+void
+hud_application_source_context_add_action_group (HudApplicationSourceContext * context, GActionGroup * group)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
+	g_return_if_fail(G_IS_ACTION_GROUP(group));
+
+	return;
+}
+
+/**
+ * hud_application_source_context_add_model:
+ * @context: The #HudApplicationSourceContext to look into
+ * @model: menu model to add
+ *
+ * Adds a model to the items indexed by this context.
+ */
+void
+hud_application_source_context_add_model (HudApplicationSourceContext * context, GMenuModel * model)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
+	g_return_if_fail(G_IS_MENU_MODEL(model));
+
+	return;
+}
+
+/**
+ * hud_application_source_context_add_window:
+ * @context: The #HudApplicationSourceContext to look into
+ * @window: window to add
+ *
+ * Adds a window to the items indexed by this context.
+ */
+void
+hud_application_source_context_add_window (HudApplicationSourceContext * context, AbstractWindow * window)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
+
 	return;
 }
