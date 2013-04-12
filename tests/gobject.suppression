@@ -1,614 +1,72 @@
 
+###############################
+# PocketSphinx rules
+###############################
+
 {
-   hello
+   <insert_a_suppression_name_here>
    Memcheck:Leak
-   fun:malloc
-   fun:realloc
-   fun:g_realloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
+   ...
+   fun:cmd_ln_init
+}
+
+###############################
+# GObject rules
+###############################
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
    fun:g_type_register_static
-   fun:g_type_plugin_get_type
-   fun:g_type_init_with_debug_flags
-   fun:main
 }
 
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
-   fun:malloc
-   fun:realloc
-   fun:g_realloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_register_static
-   fun:g_boxed_type_register_static
-   fun:g_value_array_get_type
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_init_with_debug_flags
-   fun:main
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:realloc
-   fun:g_realloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_register_static
-   fun:g_pointer_type_register_static
-   fun:g_gtype_get_type
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_init_with_debug_flags
-   fun:main
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:calloc
-   fun:g_malloc0
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
+   ...
    fun:g_type_register_fundamental
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_init_with_debug_flags
-   fun:main
 }
 
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
-   fun:malloc
-   fun:realloc
-   fun:g_realloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_register_fundamental
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_init_with_debug_flags
-   fun:main
+   ...
+   fun:type_node_fundamental_new_W
 }
 
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
-   fun:calloc
-   fun:g_malloc0
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_init_with_debug_flags
-   fun:main
+   ...
+   fun:type_data_make_W
 }
 
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
-   fun:calloc
-   fun:g_malloc0
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_register_fundamental
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_init_with_debug_flags
-   fun:main
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:realloc
-   fun:g_realloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_register_static
-   fun:g_param_type_register_static
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_init_with_debug_flags
-   fun:main
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:calloc
-   fun:g_malloc0
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_init_with_debug_flags
-   fun:main
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:realloc
-   fun:g_realloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_register_static
-   fun:g_type_register_static_simple
-   fun:hud_keyword_mapping_get_type
-   fun:hud_keyword_mapping_new
-   fun:test_keyword_mapping_open_tab
-   obj:/lib/x86_64-linux-gnu/libglib-2.*
-   obj:/lib/x86_64-linux-gnu/libglib-2.*
-   obj:/lib/x86_64-linux-gnu/libglib-2.*
-   fun:g_test_run_suite
-   fun:main
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:realloc
-   fun:g_realloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.*
-   fun:g_type_register_static
-   fun:g_type_register_static_simple
-   fun:hud_result_get_type
-   fun:hud_result_new
-   fun:test_result_highlighting_base
-   obj:/lib/x86_64-linux-gnu/libglib-2.*
-   obj:/lib/x86_64-linux-gnu/libglib-2.*
-   obj:/lib/x86_64-linux-gnu/libglib-2.*
-   fun:g_test_run_suite
-   fun:main
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
+   ...
    fun:g_type_add_interface_static
-   fun:hud_random_source_get_type
-   fun:hud_random_source_new_full
-   fun:test_hud_query
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3400.1
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3400.1
-   fun:g_test_run_suite
-   fun:main
 }
 
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_add_interface_static
-   fun:g_dbus_interface_skeleton_get_type
-   fun:hud_query_iface_com_canonical_hud_query_skeleton_get_type
-   fun:hud_query_iface_com_canonical_hud_query_skeleton_new
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-   fun:hud_query_new
-   fun:make_assertion
-   fun:test_hud_query
+   ...
+   fun:type_iface_vtable_base_init_Wm
 }
 
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_add_interface_static
-   fun:hud_query_iface_com_canonical_hud_query_skeleton_get_type
-   fun:hud_query_iface_com_canonical_hud_query_skeleton_new
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-   fun:hud_query_new
-   fun:make_assertion
-   fun:test_hud_query
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3400.1
+   ...
+   fun:g_dbus_interface_skeleton_class_intern_init
 }
 
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_add_interface_static
-   fun:g_dbus_connection_get_type
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_bus_get_sync
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-   fun:hud_query_new
-   fun:make_assertion
-   fun:test_hud_query
+   ...
+   fun:g_signal_type_cclosure_new
 }
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_add_interface_static
-   fun:g_socket_address_get_type
-   fun:g_unix_socket_address_get_type
-   fun:g_unix_socket_address_new_with_type
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_dbus_address_get_stream_sync
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_bus_get_sync
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_add_interface_static
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_bus_get_sync
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_add_interface_static
-   fun:g_simple_async_result_get_type
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_bus_get_sync
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-   fun:hud_query_new
-   fun:make_assertion
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_add_interface_static
-   fun:g_memory_output_stream_get_type
-   fun:g_memory_output_stream_new
-   fun:g_dbus_message_to_blob
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_dbus_connection_send_message_with_reply
-   fun:g_dbus_connection_send_message_with_reply_sync
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_dbus_connection_call_sync
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_bus_get_sync
-   fun:hud_query_init
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:calloc
-   fun:g_malloc0
-   fun:g_type_class_ref
-   fun:g_type_class_ref
-   fun:g_param_spec_flags
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_type_class_ref
-   fun:g_type_class_ref
-   fun:g_object_newv
-   fun:g_object_new
-   fun:hud_query_iface_com_canonical_hud_query_skeleton_new
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-   fun:hud_query_new
-   fun:make_assertion
-   fun:test_hud_query
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3400.1
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_memdup
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_class_ref
-   fun:g_object_new_valist
-   fun:g_initable_new_valist
-   fun:g_initable_new
-   fun:g_socket_new
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_socket_client_connect
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_dbus_address_get_stream_sync
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_bus_get_sync
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_memdup
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_class_ref
-   fun:g_type_class_ref
-   fun:g_object_new_valist
-   fun:g_object_new
-   fun:g_unix_socket_address_new_with_type
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_dbus_address_get_stream_sync
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_bus_get_sync
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-   fun:hud_query_new
-   fun:make_assertion
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:calloc
-   fun:g_malloc0
-   fun:g_type_class_ref
-   fun:g_type_class_ref
-   fun:g_param_spec_enum
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_type_class_ref
-   fun:g_type_class_ref
-   fun:g_object_new_valist
-   fun:g_object_new
-   fun:g_unix_socket_address_new_with_type
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_dbus_address_get_stream_sync
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_bus_get_sync
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:realloc
-   fun:g_realloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_register_static
-   fun:g_flags_register_static
-   fun:g_tls_certificate_flags_get_type
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_type_class_ref
-   fun:g_object_newv
-   fun:g_object_new
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_dbus_address_get_stream_sync
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_bus_get_sync
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-   fun:hud_query_new
-}
-
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:realloc
-   fun:g_realloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_register_static
-   fun:g_boxed_type_register_static
-   fun:dee_model_iter_get_type
-   obj:/usr/lib/libdee-1.0.so.4.1.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_class_ref
-   fun:g_type_class_ref
-   fun:g_object_newv
-   fun:g_object_new
-   fun:dee_sequence_model_new
-   fun:dee_shared_model_new
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_add_interface_static
-   fun:g_memory_input_stream_get_type
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.3400.1
-   fun:g_bus_get_sync
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-   fun:hud_query_new
-   fun:make_assertion
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_add_interface_static
-   fun:hud_random_source_get_type
-   fun:hud_random_source_new_full
-   fun:test_hud_query
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3400.1
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3400.1
-   fun:g_test_run_suite
-   fun:main
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_memdup
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_class_ref
-   fun:g_object_newv
-   fun:g_object_new
-   fun:hud_random_source_new_full
-   fun:test_hud_query
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3400.1
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3400.1
-   fun:g_test_run_suite
-   fun:main
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_add_interface_static
-   fun:g_dbus_interface_skeleton_get_type
-   fun:hud_query_iface_com_canonical_hud_query_skeleton_get_type
-   fun:hud_query_iface_com_canonical_hud_query_skeleton_new
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-   fun:hud_query_new
-   fun:make_assertion
-   fun:test_hud_query
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3400.1
-}
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   fun:malloc
-   fun:g_malloc
-   fun:g_slice_alloc
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_type_register_static
-   fun:g_type_register_static_simple
-   fun:hud_query_iface_com_canonical_hud_query_skeleton_get_type
-   fun:hud_query_iface_com_canonical_hud_query_skeleton_new
-   fun:hud_query_init
-   fun:g_type_create_instance
-   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.3400.1
-   fun:g_object_newv
-   fun:g_object_new
-   fun:hud_query_new
-   fun:make_assertion
-   fun:test_hud_query
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3400.1
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3400.1
-}
-
 
