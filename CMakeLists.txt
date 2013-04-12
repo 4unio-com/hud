@@ -17,7 +17,7 @@ option(ENABLE_SCALABILITY_TESTS "Additional scalability tests that are potential
 option(FULL_WARNINGS "Full compiler warnings." OFF)
 option(DEBUG_MESSAGES "Print debug messages." OFF)
 option(LOCAL_INSTALL "Support local installation." OFF)
-option(ENABLE_PHABLET "Enable building for phablet." OFF)
+option(ENABLE_PLATFORM_API "Enable building for platform API." OFF)
 
 # Trick the H10enable_coverage script into enabling coverage by including the text below:
 # CMAKE_BUILD_TYPE coverage
@@ -106,7 +106,7 @@ if(${BAMF_FOUND})
   include_directories(${BAMF_INCLUDE_DIRS})
 endif()
 
-if(${ENABLE_PHABLET})
+if(${ENABLE_PLATFORM_API})
   add_definitions( -DHAVE_HYBRIS=1 )
   include_directories("/usr/include/hybris")
   set(PHABLET_LIBRARIES "-lubuntu_application_api")

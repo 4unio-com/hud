@@ -5,16 +5,16 @@ export G_MESSAGES_DEBUG=all
 export DEBIAN_TARGET_DIR="${CURDIR}/debian/tmp"
 
 ifeq ($(DEB_HOST_ARCH),armhf)
-	ENABLE_PHABLET = ON
+	ENABLE_PLATFORM_API = ON
 else
-	ENABLE_PHABLET = OFF
+	ENABLE_PLATFORM_API = OFF
 endif
 
 %:
 	dh $@ --parallel
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DDEBIAN_TARGET_DIR="${DEBIAN_TARGET_DIR}" -DENABLE_DOCUMENTATION=ON -DENABLE_VOICE_TESTS=OFF -DENABLE_PHABLET=$(ENABLE_PHABLET)
+	dh_auto_configure -- -DDEBIAN_TARGET_DIR="${DEBIAN_TARGET_DIR}" -DENABLE_DOCUMENTATION=ON -DENABLE_VOICE_TESTS=OFF -DENABLE_PLATFORM_API=$(ENABLE_PLATFORM_API)
 
 override_dh_install:
 	dh_install --fail-missing
