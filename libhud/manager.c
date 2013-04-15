@@ -575,8 +575,8 @@ hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 	if (descpath != NULL) {
 		g_variant_builder_open(manager->priv->todo_add_desc, G_VARIANT_TYPE_TUPLE);
 
-		g_variant_builder_add_value(manager->priv->todo_add_acts, winid);
-		g_variant_builder_add_value(manager->priv->todo_add_acts, conid);
+		g_variant_builder_add_value(manager->priv->todo_add_desc, winid);
+		g_variant_builder_add_value(manager->priv->todo_add_desc, conid);
 		g_variant_builder_add_value(manager->priv->todo_add_desc, g_variant_new_object_path(descpath));
 
 		g_variant_builder_close(manager->priv->todo_add_desc);
