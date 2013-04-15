@@ -208,6 +208,10 @@ load_dict (PronounceDict *dict, const gchar *dict_path, GError **error)
 
 	g_free(line);
 
+  g_object_unref(dstream);
+  g_object_unref(stream);
+  g_object_unref(dict_file);
+
 	return TRUE;
 }
 
