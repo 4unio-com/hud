@@ -46,6 +46,11 @@ G_DEFINE_TYPE_WITH_CODE (HudApplicationSourceContext, hud_application_source_con
 
 /* Privates */
 struct _HudApplicationSourceContextPrivate {
+	/* Identification */
+	guint32 window_id;
+	gchar * context_id;
+
+	/* Collectors */
 	HudDbusmenuCollector * window_menus_dbus;
 	GPtrArray * model_sources;
 };
@@ -96,6 +101,9 @@ hud_application_source_context_dispose (GObject *object)
 static void
 hud_application_source_context_finalize (GObject *object)
 {
+	HudApplicationSourceContext * context = HUD_APPLICATION_SOURCE_CONTEXT(object);
+
+	g_clear_pointer(&context->priv->context_id, g_free);
 
 	G_OBJECT_CLASS (hud_application_source_context_parent_class)->finalize (object);
 	return;
@@ -182,8 +190,12 @@ source_search (HudSource * hud_source, HudTokenList * search_string, void (*appe
 HudApplicationSourceContext *
 hud_application_source_context_new (guint32 window_id, const gchar * context_id)
 {
+	HudApplicationSourceContext * context = g_object_new(HUD_TYPE_APPLICATION_SOURCE_CONTEXT, NULL);
 
-	return NULL;
+	context->priv->window_id = window_id;
+	context->priv->context_id = g_strdup(context_id);
+
+	return context;
 }
 
 /**
@@ -199,7 +211,7 @@ hud_application_source_context_get_window_id (HudApplicationSourceContext * cont
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context), 0);
 
-	return 0;
+	return context->priv->window_id;
 }
 
 /**
@@ -215,7 +227,7 @@ hud_application_source_context_get_context_id (HudApplicationSourceContext * con
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context), NULL);
 
-	return NULL;
+	return context->priv->context_id;
 }
 
 /**
