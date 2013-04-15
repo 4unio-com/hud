@@ -121,7 +121,7 @@ hud_manager_constructed (GObject * object)
 	HudManager * manager = HUD_MANAGER(object);
 
 	if (manager->priv->application) {
-		manager->priv->app_pub = hud_action_publisher_new_for_id(NULL);
+		manager->priv->app_pub = hud_action_publisher_new(HUD_ACTION_PUBLISHER_ALL_WINDOWS, HUD_ACTION_PUBLISHER_NO_CONTEXT);
 
 		hud_action_publisher_add_action_group(manager->priv->app_pub, "app", g_application_get_dbus_object_path (manager->priv->application));
 		hud_manager_add_actions(manager, manager->priv->app_pub);
@@ -174,6 +174,8 @@ hud_manager_dispose (GObject *object)
 	g_clear_object(&manager->priv->service_proxy);
 	g_clear_object(&manager->priv->app_proxy);
 
+	g_list_free_full(manager->priv->publishers, g_object_unref);
+
 	g_clear_object(&manager->priv->app_pub);
 	g_clear_object(&manager->priv->application);
 
@@ -205,7 +207,7 @@ set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
 			g_clear_pointer(&manager->priv->application_id, g_free);
 			manager->priv->application_id = g_value_dup_string(value);
 		} else {
-			g_warning("Application ID being set on HUD Manager already initialized with a GApplication");
+			g_debug("Application ID being set on HUD Manager already initialized with a GApplication");
 		}
 		break;
 	case PROP_APPLICATION:
@@ -288,7 +290,7 @@ process_todo_queues (HudManager * manager)
 		g_variant_builder_unref(manager->priv->todo_add_acts);
 		manager->priv->todo_add_acts = NULL;
 	} else {
-		actions = g_variant_new_array(G_VARIANT_TYPE("(vso)"), NULL, 0);
+		actions = g_variant_new_array(G_VARIANT_TYPE("(usso)"), NULL, 0);
 	}
 
 	/* Build a descriptions list */
@@ -297,7 +299,7 @@ process_todo_queues (HudManager * manager)
 		g_variant_builder_unref(manager->priv->todo_add_desc);
 		manager->priv->todo_add_desc = NULL;
 	} else {
-		descriptions = g_variant_new_array(G_VARIANT_TYPE("(vo)"), NULL, 0);
+		descriptions = g_variant_new_array(G_VARIANT_TYPE("(uso)"), NULL, 0);
 	}
 
 	/* Should never happen, but let's get useful error messages if it does */
@@ -533,8 +535,13 @@ hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 	/* Set up watching for new groups */
 	/* TODO */
 
+	/* Grab the window and context IDs for each of them */
+	GVariant * winid = g_variant_new_uint32(hud_action_publisher_get_window_id(pub));
+	GVariant * conid = g_variant_new_string(hud_action_publisher_get_context_id(pub));
+	g_variant_ref_sink(winid);
+	g_variant_ref_sink(conid);
+
 	/* Send the current groups out */
-	GVariant * id = hud_action_publisher_get_id(pub);
 	GList * ags_list = hud_action_publisher_get_action_groups(pub);
 
 	/* Build the variant builder if it doesn't exist */
@@ -549,7 +556,8 @@ hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 
 		g_variant_builder_open(manager->priv->todo_add_acts, G_VARIANT_TYPE_TUPLE);
 
-		g_variant_builder_add_value(manager->priv->todo_add_acts, g_variant_new_variant(id));
+		g_variant_builder_add_value(manager->priv->todo_add_acts, winid);
+		g_variant_builder_add_value(manager->priv->todo_add_acts, conid);
 		g_variant_builder_add_value(manager->priv->todo_add_acts, g_variant_new_string(set->prefix));
 		g_variant_builder_add_value(manager->priv->todo_add_acts, g_variant_new_object_path(set->path));
 
@@ -567,7 +575,8 @@ hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 	if (descpath != NULL) {
 		g_variant_builder_open(manager->priv->todo_add_desc, G_VARIANT_TYPE_TUPLE);
 
-		g_variant_builder_add_value(manager->priv->todo_add_desc, g_variant_new_variant(id));
+		g_variant_builder_add_value(manager->priv->todo_add_desc, winid);
+		g_variant_builder_add_value(manager->priv->todo_add_desc, conid);
 		g_variant_builder_add_value(manager->priv->todo_add_desc, g_variant_new_object_path(descpath));
 
 		g_variant_builder_close(manager->priv->todo_add_desc);
@@ -577,6 +586,9 @@ hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 	if (manager->priv->connection_cancel == NULL && manager->priv->todo_idle == 0) {
 		manager->priv->todo_idle = g_idle_add(todo_handler, manager);
 	}
+
+	g_variant_unref(winid);  winid = NULL;
+	g_variant_unref(conid);  conid = NULL;
 
 	return;
 }
@@ -596,6 +608,55 @@ hud_manager_remove_actions (HudManager * manager, HudActionPublisher * pub)
 	g_return_if_fail(HUD_IS_MANAGER(manager));
 
 	/* TODO: We need DBus API for this */
+
+	return;
+}
+
+/* Callback from setting the window context.  Not much we can do, just
+   reporting errors */
+static void
+set_window_context_cb (GObject * obj, GAsyncResult *res, gpointer user_data)
+{
+	GError * error = NULL;
+
+	_hud_app_iface_com_canonical_hud_application_call_set_window_context_finish((_HudAppIfaceComCanonicalHudApplication *)obj, res, &error);
+	if (error != NULL) {
+		g_warning("Unable to set context for window: %s", error->message);
+		g_error_free(error);
+	}
+
+	return;
+}
+
+/**
+ * hud_manager_switch_window_context:
+ * @manager: A #HudManager object
+ * @pub: Action publisher object tracking the descriptions and action groups
+ *
+ * Tells the HUD service that a window should use a different context of
+ * actions with the current window.  This allows the application to export
+ * sets of actions and switch them easily with a single dbus message.
+ */
+void
+hud_manager_switch_window_context (HudManager * manager, HudActionPublisher * pub)
+{
+	g_return_if_fail(HUD_IS_MANAGER(manager));
+	g_return_if_fail(HUD_IS_ACTION_PUBLISHER(pub));
+
+	/* TODO: Need to cache contexts for reconnection case */
+
+	if (manager->priv->app_proxy == NULL) {
+		g_debug("Unable to send context change now, caching for reconnection");
+		return;
+	}
+
+
+	_hud_app_iface_com_canonical_hud_application_call_set_window_context(manager->priv->app_proxy,
+		hud_action_publisher_get_window_id(pub),
+		hud_action_publisher_get_context_id(pub),
+		NULL, /* cancellable */
+		set_window_context_cb,
+		NULL);
 
 	return;
 }

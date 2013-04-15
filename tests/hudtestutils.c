@@ -496,10 +496,7 @@ hud_test_utils_add_result (DeeModel *results_model, guint64 id,
   columns[7] = g_variant_new_boolean(parameterized);
   columns[8] = NULL;
 
-  DeeModelIter *iter = dee_model_append_row (results_model,
-      columns);
-
-//dee_model_set_tag(query->results_model, iter, query->results_tag, result);
+  dee_model_append_row (results_model, columns);
 }
 
 void
@@ -541,6 +538,11 @@ hud_test_utils_start_hud_service (DbusTestService **service,
   dbus_mock_add_method (*connection, DBUS_NAME, DBUS_PATH, DBUS_IFACE,
       "CreateQuery", "s", "ossi",
       "ret = ('/com/canonical/hud/query0', 'com.canonical.hud.query0.results', 'com.canonical.hud.query0.appstack', dbus.Int32(0))");
+
+  /* id */
+  dbus_mock_add_method (*connection, DBUS_NAME, DBUS_PATH, DBUS_IFACE,
+      "RegisterApplication", "s", "o",
+      "ret = ('/app/object')");
 
   hud_test_utils_process_mainloop (100);
 }

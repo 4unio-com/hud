@@ -1,5 +1,10 @@
 include_directories(${HUD_SERVICE_INCLUDE_DIRS})
 include_directories(${HUD_CLIENT_INCLUDE_DIRS})
+include_directories(${HUD_INCLUDE_DIRS})
+
+if(${FULL_WARNINGS})
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+endif()
 
 #######################
 # Dbus JSON Loader
@@ -56,6 +61,7 @@ macro(hudtest tname tfilename rfilename)
   add_executable(${tname} ${tfilename})
   target_link_libraries(${tname}
     hud-service
+    hud
     hud-test
   )
   add_test(${tname}
@@ -142,6 +148,7 @@ add_custom_target(keyword-files DEPENDS "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_ME
 # HUD Test Suite
 #######################
 
+hudtest(test-watchdog test-watchdog.c test-watchdog.xml)
 hudtest(test-distance test-distance.c test-distance.xml)
 hudtest(test-hud-item test-huditem.c test-hud-item.xml)
 hudtest(test-result-highlighting test-result-highlighting.c test-result-highlighting.xml)
@@ -153,7 +160,9 @@ hudtest(test-pronounce-dict test-pronounce-dict.c test-pronounce-dict.xml)
 hudtest(test-source test-source.c test-source.xml)
 hudtest(test-app-indicator-source test-app-indicator-source.c test-app-indicator-source.xml)
 hudtest(test-indicator-source test-indicator-source.c test-indicator-source.xml)
-hudtest(test-application-list test-application-list.c test-application-list.xml)
+if(!${ENABLE_PLATFORM_API})
+  hudtest(test-application-list test-application-list.c test-application-list.xml)
+endif()
 #test-usage-db-simple.xml
 #test-usage-db-old.xml
 #test-usage-db-testapp.xml
@@ -202,3 +211,11 @@ endif()
 hudtest(test-hud-client-connection test-hud-client-connection.c test-hud-client-connection.xml)
 hudtest(test-hud-client-query test-hud-client-query.c test-hud-client-query.xml)
 hudtest(test-hud-client-param test-hud-client-param.c test-hud-client-param.xml)
+
+#####################################
+# libhud test suite
+#####################################
+
+hudtest(test-hud-manager test-hud-manager.c test-hud-manager.xml)
+hudtest(test-hud-action-publisher test-hud-action-publisher.c test-hud-action-publisher.xml)
+

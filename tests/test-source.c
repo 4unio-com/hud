@@ -33,6 +33,11 @@
 #include <dee.h>
 #include <libdbustest/dbus-test.h>
 
+/* Define the global default timeout for hud_test_utils_process_mainloop */
+#ifndef TEST_DEFAULT_TIMEOUT
+#define TEST_DEFAULT_TIMEOUT 200
+#endif
+
 /* hardcode some parameters for reasons of determinism.
  */
 HudSettings hud_settings = {
@@ -193,7 +198,7 @@ test_source_create_query (GDBusConnection *session, HudSource *source, HudApplic
 {
   g_debug ("query: [%s], on [%s]", search, g_dbus_connection_get_unique_name(session));
 
-  HudQuery * query = hud_query_new (source, list, search, 1u << 30, session, query_count);
+  HudQuery * query = hud_query_new (source, NULL, list, search, 1u << 30, session, query_count);
 
   return query;
 }
@@ -213,7 +218,7 @@ test_hud_query_sequence ()
   g_assert(collector != NULL);
   g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
-  hud_test_utils_process_mainloop (100);
+  hud_test_utils_process_mainloop (TEST_DEFAULT_TIMEOUT);
 
   HudManualSource *manual_source = hud_manual_source_new("manual_app", "manual_icon");
 
@@ -278,7 +283,7 @@ test_hud_query_sequence ()
 
     TestSourceThreadData thread_data = {session, path};
     GThread* thread = g_thread_new ("close_query", test_source_call_close_query, &thread_data);
-    hud_test_utils_process_mainloop(100);
+    hud_test_utils_process_mainloop (TEST_DEFAULT_TIMEOUT);
     g_thread_join(thread);
   }
 
@@ -296,7 +301,7 @@ test_hud_query_sequence ()
 
     TestSourceThreadData thread_data = {session, path, "dare"};
     GThread* thread = g_thread_new ("update_query", test_source_call_update_query, &thread_data);
-    hud_test_utils_process_mainloop(100);
+    hud_test_utils_process_mainloop (TEST_DEFAULT_TIMEOUT);
     g_thread_join(thread);
 
     const gchar *expected_after[2] = { "mess strand", "bowl"};
@@ -329,7 +334,7 @@ test_hud_query_sequence ()
 
       app_list_dummy_set_focus(APP_LIST_DUMMY(applist), HUD_SOURCE(manual_source));
 
-      hud_test_utils_process_mainloop(50);
+      hud_test_utils_process_mainloop (TEST_DEFAULT_TIMEOUT / 2);
 
       const gchar *expected_after[2] = { "something dare", "something else darn"};
       const guint32 expected_distances_after[2] = { 0, 11 };
@@ -355,14 +360,14 @@ test_hud_query_sequence ()
       g_assert(G_N_ELEMENTS(expected) == G_N_ELEMENTS(expected_distances));
 
       AppListDummy * dummy = app_list_dummy_new(HUD_SOURCE(collector));
-      HudQuery *query = hud_query_new (HUD_SOURCE(source_list), HUD_APPLICATION_LIST(dummy), search, 1u << 30, session, 6);
+      HudQuery *query = hud_query_new (HUD_SOURCE(source_list), NULL, HUD_APPLICATION_LIST(dummy), search, 1u << 30, session, 6);
       test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, G_N_ELEMENTS(appstack_expected_ids), path, name, expected, expected_distances, G_N_ELEMENTS(expected));
 
       // Change the app to the manual_source
 	  g_debug("Changing to 'manual_app'");
       TestSourceThreadData thread_data = {session, path, "manual_app"};
       GThread* thread = g_thread_new ("update_app", test_source_call_update_app, &thread_data);
-      hud_test_utils_process_mainloop(100);
+      hud_test_utils_process_mainloop (TEST_DEFAULT_TIMEOUT);
       g_thread_join(thread);
 
       const gchar *expected_after[2] = { "something dare", "something else darn"};
@@ -380,7 +385,7 @@ test_hud_query_sequence ()
   g_object_unref (manual_source);
   g_object_unref (applist);
 
-  hud_test_utils_process_mainloop(100);
+  hud_test_utils_process_mainloop (TEST_DEFAULT_TIMEOUT);
 
   g_object_unref (service);
   hud_test_utils_wait_for_connection_close(session);
@@ -401,7 +406,7 @@ test_hud_query_sequence_counter_increment ()
   g_assert(collector != NULL);
   g_assert(HUD_IS_DBUSMENU_COLLECTOR(collector));
 
-  hud_test_utils_process_mainloop (100);
+  hud_test_utils_process_mainloop (TEST_DEFAULT_TIMEOUT);
 
   HudManualSource *manual_source = hud_manual_source_new("manual-id", "manual-icon");
 
@@ -466,7 +471,7 @@ test_hud_query_sequence_counter_increment ()
 
     TestSourceThreadData thread_data = {session, path};
     GThread* thread = g_thread_new ("close_query", test_source_call_close_query, &thread_data);
-    hud_test_utils_process_mainloop(100);
+    hud_test_utils_process_mainloop (TEST_DEFAULT_TIMEOUT);
     g_thread_join(thread);
   }
 
@@ -484,7 +489,7 @@ test_hud_query_sequence_counter_increment ()
 
     TestSourceThreadData thread_data = {session, path, "dare"};
     GThread* thread = g_thread_new ("update_query", test_source_call_update_query, &thread_data);
-    hud_test_utils_process_mainloop(100);
+    hud_test_utils_process_mainloop (TEST_DEFAULT_TIMEOUT);
     g_thread_join(thread);
 
     const gchar *expected_after[2] = { "mess strand", "bowl"};
@@ -517,7 +522,7 @@ test_hud_query_sequence_counter_increment ()
 
       app_list_dummy_set_focus(APP_LIST_DUMMY(applist), HUD_SOURCE(manual_source));
 
-      hud_test_utils_process_mainloop(50);
+      hud_test_utils_process_mainloop (TEST_DEFAULT_TIMEOUT / 2);
 
       const gchar *expected_after[2] = { "something dare", "something else darn" };
       const guint32 expected_distances_after[2] = { 0, 11 };
@@ -535,7 +540,7 @@ test_hud_query_sequence_counter_increment ()
   g_object_unref (manual_source);
   g_object_unref (applist);
 
-  hud_test_utils_process_mainloop(100);
+  hud_test_utils_process_mainloop (TEST_DEFAULT_TIMEOUT);
 
   g_object_unref (service);
   hud_test_utils_wait_for_connection_close(session);

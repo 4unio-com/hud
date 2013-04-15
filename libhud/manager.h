@@ -93,6 +93,9 @@ void                    hud_manager_add_actions                         (HudMana
 void                    hud_manager_remove_actions                      (HudManager * manager,
                                                                          HudActionPublisher * pub);
 
+void                    hud_manager_switch_window_context               (HudManager * manager,
+                                                                         HudActionPublisher * pub);
+
 /**
  * SECTION:manager
  * @short_description: Manage data exported to HUD for the application

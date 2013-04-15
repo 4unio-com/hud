@@ -50,9 +50,11 @@ struct _HudActionPublisher
 {
   GObject parent_instance;
 
+  guint window_id;
+  gchar * context_id;
+
   GDBusConnection *bus;
   GApplication *application;
-  GVariant * id;
   gint export_id;
   gchar *path;
 
@@ -163,10 +165,33 @@ _hud_aux_class_init (HudAuxClass *class)
 }
 
 static void
+hud_action_publisher_dispose (GObject *object)
+{
+  HudActionPublisher *self = HUD_ACTION_PUBLISHER(object);
+
+  g_clear_object(&self->aux);
+  g_clear_object(&self->application);
+
+  g_debug("Un-exporting menu model at with id [%d]", self->export_id);
+  g_dbus_connection_unexport_menu_model (self->bus, self->export_id);
+
+  g_clear_pointer(&self->path, g_free);
+  g_clear_pointer(&self->descriptions, g_sequence_free);
+
+  g_list_free_full(self->action_groups, g_free);
+
+  g_clear_object(&self->bus);
+
+  G_OBJECT_CLASS (hud_action_publisher_parent_class)->dispose (object);
+}
+
+static void
 hud_action_publisher_finalize (GObject *object)
 {
-  g_error ("g_object_unref() called on internally-owned ref of HudActionPublisher");
-  g_clear_pointer(&HUD_ACTION_PUBLISHER(object)->id, g_variant_unref);
+  g_clear_pointer (&HUD_ACTION_PUBLISHER(object)->context_id, g_free);
+
+  G_OBJECT_CLASS (hud_action_publisher_parent_class)->finalize (object);
+  return;
 }
 
 static void
@@ -193,6 +218,7 @@ hud_action_publisher_init (HudActionPublisher *publisher)
 
       publisher->export_id = g_dbus_connection_export_menu_model (publisher->bus, publisher->path,
                                                                   G_MENU_MODEL (publisher->aux), NULL);
+      g_debug("Exporting menu model at [%s] with id [%d]", publisher->path, publisher->export_id);
 
       if (!publisher->export_id)
         /* try again... */
@@ -204,6 +230,7 @@ hud_action_publisher_init (HudActionPublisher *publisher)
 static void
 hud_action_publisher_class_init (HudActionPublisherClass *class)
 {
+  class->dispose = hud_action_publisher_dispose;
   class->finalize = hud_action_publisher_finalize;
 
   /**
@@ -258,23 +285,34 @@ hud_action_publisher_new_for_application (GApplication *application)
   return publisher;
 }
 
+static guint context_count = 0;
+
 /**
- * hud_action_publisher_new_for_id:
- * @id: A window ID
+ * hud_action_publisher_new:
+ * @window_id: (allow-none): A window ID
+ * @context_id: (allow-none): A context ID
  *
  * Creates a new #HudActionPublisher based on the window ID passed
- * in via @id.
+ * in via @window_id and context ID from @context_id.
+ *
+ * Either one of them can be not used by passing in eithe of the
+ * defines #HUD_ACTION_PUBLISHER_ALL_WINDOWS or #HUD_ACTION_PUBLISHER_NO_CONTEXT
+ * for the appropriate parameter.
  *
  * Return value: (transfer full): A new #HudActionPublisher object
  */
 HudActionPublisher *
-hud_action_publisher_new_for_id (GVariant * id)
+hud_action_publisher_new (guint window_id, const gchar * context_id)
 {
-	g_return_val_if_fail(id != NULL, NULL);
-
 	HudActionPublisher * publisher;
 	publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
-	publisher->id = g_variant_ref_sink(id);
+	publisher->window_id = window_id;
+
+	if (context_id != NULL) {
+		publisher->context_id = g_strdup(context_id);
+	} else {
+		publisher->context_id = g_strdup_printf("action-publisher-context-%d", context_count++);
+	}
 
 	return publisher;
 }
@@ -383,7 +421,7 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
  * hud_action_publisher_remove_description:
  * @publisher: the #HudActionPublisher
  * @action_name: an action name
- * @action_target: (allow none): an action target
+ * @action_target: (allow-none): an action target
  *
  * Removes the action descriptions that has the name @action_name and
  * the target value @action_target (including the possibility of %NULL).
@@ -493,7 +531,7 @@ hud_action_publisher_add_action_group (HudActionPublisher *publisher,
  * hud_action_publisher_remove_action_group:
  * @publisher: a #HudActionPublisher
  * @prefix: the action prefix for the group (like "app")
- * @identifier: (allow none): an identifier, or %NULL
+ * @identifier: (allow-none): an identifier, or %NULL
  *
  * Informs the HUD that an action group no longer exists.
  *
@@ -509,19 +547,35 @@ hud_action_publisher_remove_action_group (HudActionPublisher *publisher,
 }
 
 /**
- * hud_action_publisher_get_id:
+ * hud_action_publisher_get_window_id:
  * @publisher: A #HudActionPublisher object
  *
- * Grabs the ID for this publisher
+ * Gets the window ID for this publisher
  *
- * Return value: (transfer none): The ID this publisher was created with
+ * Return value: The Window ID associtaed with this action publisher
  */
-GVariant *
-hud_action_publisher_get_id (HudActionPublisher    *publisher)
+guint
+hud_action_publisher_get_window_id (HudActionPublisher    *publisher)
 {
-	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
-	return publisher->id;
+	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), 0);
+	return publisher->window_id;
 }
+
+/**
+ * hud_action_publisher_get_context_id:
+ * @publisher: A #HudActionPublisher object
+ *
+ * Gets the context ID for this publisher
+ *
+ * Return value: The context ID associtaed with this action publisher
+ */
+const gchar *
+hud_action_publisher_get_context_id (HudActionPublisher    *publisher)
+{
+	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), 0);
+	return publisher->context_id;
+}
+
 
 /**
  * hud_action_publisher_get_action_groups:
@@ -643,7 +697,7 @@ hud_action_description_new (const gchar *action_name,
  * hud_action_description_set_attribute_value:
  * @description: a #HudActionDescription
  * @attribute_name: an attribute name
- * @value: (allow none): the new value for the attribute
+ * @value: (allow-none): the new value for the attribute
  *
  * Sets or unsets an attribute on @description.
  *
@@ -678,7 +732,7 @@ hud_action_description_set_attribute_value (HudActionDescription *description,
  * hud_action_description_set_attribute:
  * @description: a #HudActionDescription
  * @attribute_name: an attribute name
- * @format_string: (allow none): a #GVariant format string
+ * @format_string: (allow-none): a #GVariant format string
  * @...: arguments to @format_string
  *
  * Sets or unsets an attribute on @description.

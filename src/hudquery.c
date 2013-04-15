@@ -30,6 +30,7 @@
 #include "application-source.h"
 #include "application-list.h"
 #include "query-columns.h"
+#include "watchdog.h"
 
 /**
  * SECTION:hudquery
@@ -58,6 +59,7 @@ struct _HudQuery
 {
   GObject parent_instance;
 
+  HudWatchdog * watchdog;
   HudSource *all_sources;
   HudApplicationList *app_list;
   HudSource *current_source;
@@ -285,6 +287,7 @@ hud_query_refresh (HudQuery *query)
 {
   guint64 start_time;
 
+  hud_watchdog_ping(query->watchdog);
   start_time = g_get_monotonic_time ();
 
   dee_model_clear(query->results_model);
@@ -416,6 +419,7 @@ hud_query_finalize (GObject *object)
   g_clear_pointer(&query->appstack_name, g_free);
 
   g_clear_object(&query->voice);
+  g_clear_object(&query->watchdog);
 
   G_OBJECT_CLASS (hud_query_parent_class)
     ->finalize (object);
@@ -427,6 +431,7 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 {
   g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
   HudQuery * query = HUD_QUERY(user_data);
+  hud_watchdog_ping(query->watchdog);
 
   g_debug("Voice query is loading");
   hud_query_iface_com_canonical_hud_query_emit_voice_query_loading (
@@ -484,6 +489,7 @@ handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoca
 {
 	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
 	HudQuery * query = HUD_QUERY(user_data);
+	hud_watchdog_ping(query->watchdog);
 
 	g_debug("Updating Query to: '%s'", search_string);
 
@@ -517,6 +523,7 @@ handle_update_app (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocati
 {
 	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
 	HudQuery * query = HUD_QUERY(user_data);
+	hud_watchdog_ping(query->watchdog);
 
 	g_debug("Updating App to: '%s'", app_id);
 
@@ -540,7 +547,8 @@ static gboolean
 handle_execute (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, GVariant * command_id, guint timestamp, gpointer user_data)
 {
 	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
-	//HudQuery * query = HUD_QUERY(user_data);
+	HudQuery * query = HUD_QUERY(user_data);
+	hud_watchdog_ping(query->watchdog);
 
 	/* Do good */
 	GVariant * inner = g_variant_get_variant(command_id);
@@ -578,7 +586,8 @@ static gboolean
 handle_parameterized (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, GVariant * command_id, guint timestamp, gpointer user_data)
 {
 	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
-	//HudQuery * query = HUD_QUERY(user_data);
+	HudQuery * query = HUD_QUERY(user_data);
+	hud_watchdog_ping(query->watchdog);
 
 	GVariant * inner = g_variant_get_variant(command_id);
 	guint64 id = g_variant_get_uint64(inner);
@@ -630,6 +639,7 @@ handle_execute_toolbar (HudQueryIfaceComCanonicalHudQuery *object, GDBusMethodIn
 {
 	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
 	HudQuery * query = HUD_QUERY(user_data);
+	hud_watchdog_ping(query->watchdog);
 
 	HudClientQueryToolbarItems item = hud_client_query_toolbar_items_get_value_from_nick(arg_item);
 
@@ -681,6 +691,7 @@ handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 {
 	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
 	HudQuery * query = HUD_QUERY(user_data);
+	hud_watchdog_ping(query->watchdog);
 
 	/* Close the query */
 	hud_query_close(query);
@@ -791,6 +802,7 @@ hud_query_class_init (HudQueryClass *class)
  **/
 HudQuery *
 hud_query_new (HudSource   *all_sources,
+               HudWatchdog *watchdog,
                HudApplicationList *application_list,
                const gchar *search_string,
                gint         num_results,
@@ -807,6 +819,10 @@ hud_query_new (HudSource   *all_sources,
   query->app_list = g_object_ref (application_list);
   query->search_string = g_strdup (search_string);
   query->token_list = NULL;
+
+  if (watchdog != NULL) {
+    query->watchdog = g_object_ref(watchdog);
+  }
   
   if (query->search_string[0] != '\0') {
     query->token_list = hud_token_list_new_from_string (query->search_string);

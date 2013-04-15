@@ -5,6 +5,12 @@
 
 #include "hudtestutils.h"
 
+/* Define the global default timeout for g_timeout_add_seconds */
+#ifndef TEST_DEFAULT_TIMEOUT_S
+#define TEST_DEFAULT_TIMEOUT_S 10
+#endif
+
+
 static gboolean
 fail_quit (gpointer pmain)
 {
@@ -38,12 +44,14 @@ test_query_create (void)
 
 	/* Wait for the models to be ready */
 	GMainLoop * loop = g_main_loop_new(NULL, FALSE);
-	gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+	gulong sig = g_timeout_add_seconds(TEST_DEFAULT_TIMEOUT_S, fail_quit, loop);
 
 	g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
 
 	g_main_loop_run(loop);
 	g_main_loop_unref(loop);
+
+	g_source_remove(sig);
 
 	/* Check the models */
 	g_assert(DEE_IS_MODEL(hud_client_query_get_results_model(query)));
@@ -93,12 +101,14 @@ test_query_custom (void)
 
 	/* Wait for the models to be ready */
 	GMainLoop * loop = g_main_loop_new(NULL, FALSE);
-	gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+	gulong sig = g_timeout_add_seconds(TEST_DEFAULT_TIMEOUT_S, fail_quit, loop);
 
 	g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
 
 	g_main_loop_run(loop);
 	g_main_loop_unref(loop);
+
+	g_source_remove(sig);
 
 	/* Make sure it has models */
 	g_assert(DEE_IS_MODEL(hud_client_query_get_results_model(query)));
@@ -142,14 +152,14 @@ test_query_update (void)
 
   /* Wait for the models to be ready */
   GMainLoop * loop = g_main_loop_new(NULL, FALSE);
-  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+  gulong sig = g_timeout_add_seconds(TEST_DEFAULT_TIMEOUT_S, fail_quit, loop);
 
   g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
 
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
 
-  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
+  g_source_remove(sig);
 
   hud_client_query_set_query(query, "test2");
   g_assert_cmpstr(hud_client_query_get_query(query), ==, "test2");
@@ -191,12 +201,14 @@ test_query_voice (void)
 
   /* Wait for the models to be ready */
   GMainLoop * loop = g_main_loop_new(NULL, FALSE);
-  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+  gulong sig = g_timeout_add_seconds(TEST_DEFAULT_TIMEOUT_S, fail_quit, loop);
 
   g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
 
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
+
+  g_source_remove(sig);
 
   /* Call the voice query */
   gboolean called = FALSE;
@@ -236,12 +248,14 @@ test_query_update_app (void)
 
   /* Wait for the models to be ready */
   GMainLoop * loop = g_main_loop_new(NULL, FALSE);
-  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+  gulong sig = g_timeout_add_seconds(TEST_DEFAULT_TIMEOUT_S, fail_quit, loop);
 
   g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
 
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
+
+  g_source_remove(sig);
 
   /* Set App ID */
   hud_client_query_set_appstack_app(query, "application-id");
@@ -274,12 +288,14 @@ test_query_execute_command (void)
 
   /* Wait for the models to be ready */
   GMainLoop * loop = g_main_loop_new(NULL, FALSE);
-  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+  gulong sig = g_timeout_add_seconds(TEST_DEFAULT_TIMEOUT_S, fail_quit, loop);
 
   g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
 
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
+
+  g_source_remove(sig);
 
   /* Execute a command */
   hud_client_query_execute_command (query,
@@ -313,12 +329,14 @@ test_query_execute_parameterized (void)
 
   /* Wait for the models to be ready */
   GMainLoop * loop = g_main_loop_new(NULL, FALSE);
-  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+  gulong sig = g_timeout_add_seconds(TEST_DEFAULT_TIMEOUT_S, fail_quit, loop);
 
   g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
 
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
+
+  g_source_remove(sig);
 
   /* Execute a parameterized command */
   HudClientParam *param = hud_client_query_execute_param_command (query,
@@ -353,9 +371,11 @@ test_query_execute_toolbar (void)
 
   /* Wait for the models to be ready */
   GMainLoop * loop = g_main_loop_new(NULL, FALSE);
-  gulong sig = g_timeout_add_seconds(5, fail_quit, loop);
+  gulong sig = g_timeout_add_seconds(TEST_DEFAULT_TIMEOUT_S, fail_quit, loop);
 
   g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
+
+  g_source_remove(sig);
 
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
