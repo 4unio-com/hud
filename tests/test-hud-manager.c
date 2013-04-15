@@ -95,7 +95,7 @@ test_manager_add_actions ()
   HudManager *manager = hud_manager_new ("test.app");
   hud_test_utils_process_mainloop (100);
 
-  HudActionPublisher *publisher = hud_action_publisher_new_for_id(NULL);
+  HudActionPublisher *publisher = hud_action_publisher_new(HUD_ACTION_PUBLISHER_ALL_WINDOWS, HUD_ACTION_PUBLISHER_NO_CONTEXT);
   hud_action_publisher_add_action_group(publisher, "app", "/app/object");
   hud_manager_add_actions(manager, publisher);
   hud_test_utils_process_mainloop (100);
@@ -137,7 +137,7 @@ test_manager_remove_actions ()
   HudManager *manager = hud_manager_new ("app.id");
   hud_test_utils_process_mainloop (100);
 
-  HudActionPublisher *publisher = hud_action_publisher_new_for_id(NULL);
+  HudActionPublisher *publisher = hud_action_publisher_new(HUD_ACTION_PUBLISHER_ALL_WINDOWS, HUD_ACTION_PUBLISHER_NO_CONTEXT);
   hud_action_publisher_add_action_group(publisher, "app", "/app/object");
   hud_manager_add_actions(manager, publisher);
   hud_test_utils_process_mainloop (100);
