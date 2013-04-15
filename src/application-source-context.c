@@ -21,13 +21,26 @@
 #endif
 
 #include "application-source-context.h"
+#include "hudsource.h"
 
+/* GObject Basis funcs */
 static void hud_application_source_context_class_init (HudApplicationSourceContextClass *klass);
 static void hud_application_source_context_init       (HudApplicationSourceContext *self);
 static void hud_application_source_context_dispose    (GObject *object);
 static void hud_application_source_context_finalize   (GObject *object);
 
-G_DEFINE_TYPE (HudApplicationSourceContext, hud_application_source_context, G_TYPE_OBJECT);
+/* Source Interface Funcs */
+static void source_iface_init                         (HudSourceInterface *      iface);
+static void source_use                                (HudSource *               hud_source);
+static void source_unuse                              (HudSource *               hud_source);
+static void source_search                             (HudSource *               hud_source,
+                                                       HudTokenList *            search_string,
+                                                       void                    (*append_func) (HudResult * result, gpointer user_data),
+                                                       gpointer                  user_data);
+
+/* #define object building */
+G_DEFINE_TYPE_WITH_CODE (HudApplicationSourceContext, hud_application_source_context, G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
 
 /* Initialize the class data */
 static void
@@ -64,6 +77,41 @@ hud_application_source_context_finalize (GObject *object)
 {
 
 	G_OBJECT_CLASS (hud_application_source_context_parent_class)->finalize (object);
+	return;
+}
+
+/* Initialize the source interface */
+static void
+source_iface_init (HudSourceInterface * iface)
+{
+	iface->use = source_use;
+	iface->unuse = source_unuse;
+	iface->search = source_search;
+
+	return;
+}
+
+/* Mark all the sources used */
+static void
+source_use (HudSource * hud_source)
+{
+
+	return;
+}
+
+/* Mark all the sources unused */
+static void
+source_unuse (HudSource * hud_source)
+{
+
+	return;
+}
+
+/* Search all of our internal sources */
+static void
+source_search (HudSource * hud_source, HudTokenList * search_string, void (*append_func) (HudResult * result, gpointer user_data), gpointer user_data)
+{
+
 	return;
 }
 
