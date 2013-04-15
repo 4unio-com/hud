@@ -496,10 +496,7 @@ hud_test_utils_add_result (DeeModel *results_model, guint64 id,
   columns[7] = g_variant_new_boolean(parameterized);
   columns[8] = NULL;
 
-  DeeModelIter *iter = dee_model_append_row (results_model,
-      columns);
-
-//dee_model_set_tag(query->results_model, iter, query->results_tag, result);
+  dee_model_append_row (results_model, columns);
 }
 
 void
