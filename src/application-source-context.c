@@ -42,11 +42,21 @@ static void source_search                             (HudSource *              
 G_DEFINE_TYPE_WITH_CODE (HudApplicationSourceContext, hud_application_source_context, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
 
+/* Privates */
+struct _HudApplicationSourceContextPrivate {
+	int dummy;
+};
+
+#define HUD_APPLICATION_SOURCE_CONTEXT_GET_PRIVATE(o) \
+	(G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_TYPE_APPLICATION_SOURCE_CONTEXT, HudApplicationSourceContextPrivate))
+
 /* Initialize the class data */
 static void
 hud_application_source_context_class_init (HudApplicationSourceContextClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+	g_type_class_add_private (klass, sizeof (HudApplicationSourceContextPrivate));
 
 	object_class->dispose = hud_application_source_context_dispose;
 	object_class->finalize = hud_application_source_context_finalize;
@@ -58,7 +68,7 @@ hud_application_source_context_class_init (HudApplicationSourceContextClass *kla
 static void
 hud_application_source_context_init (HudApplicationSourceContext *self)
 {
-
+	self->priv = HUD_APPLICATION_SOURCE_CONTEXT_GET_PRIVATE(self);
 	return;
 }
 

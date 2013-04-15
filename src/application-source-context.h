@@ -32,8 +32,9 @@ G_BEGIN_DECLS
 #define HUD_IS_APPLICATION_SOURCE_CONTEXT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HUD_TYPE_APPLICATION_SOURCE_CONTEXT))
 #define HUD_APPLICATION_SOURCE_CONTEXT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HUD_TYPE_APPLICATION_SOURCE_CONTEXT, HudApplicationSourceContextClass))
 
-typedef struct _HudApplicationSourceContext      HudApplicationSourceContext;
-typedef struct _HudApplicationSourceContextClass HudApplicationSourceContextClass;
+typedef struct _HudApplicationSourceContext          HudApplicationSourceContext;
+typedef struct _HudApplicationSourceContextClass     HudApplicationSourceContextClass;
+typedef struct _HudApplicationSourceContextPrivate   HudApplicationSourceContextPrivate;
 
 struct _HudApplicationSourceContextClass {
 	GObjectClass parent_class;
@@ -41,6 +42,7 @@ struct _HudApplicationSourceContextClass {
 
 struct _HudApplicationSourceContext {
 	GObject parent;
+	HudApplicationSourceContextPrivate * priv;
 };
 
 GType                           hud_application_source_context_get_type          (void);
