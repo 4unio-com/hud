@@ -22,6 +22,8 @@
 
 #include "application-source-context.h"
 #include "hudsource.h"
+#include "huddbusmenucollector.h"
+#include "hudmenumodelcollector.h"
 
 /* GObject Basis funcs */
 static void hud_application_source_context_class_init (HudApplicationSourceContextClass *klass);
@@ -44,7 +46,8 @@ G_DEFINE_TYPE_WITH_CODE (HudApplicationSourceContext, hud_application_source_con
 
 /* Privates */
 struct _HudApplicationSourceContextPrivate {
-	int dummy;
+	HudDbusmenuCollector * window_menus_dbus;
+	GPtrArray * model_sources;
 };
 
 #define HUD_APPLICATION_SOURCE_CONTEXT_GET_PRIVATE(o) \
@@ -69,6 +72,10 @@ static void
 hud_application_source_context_init (HudApplicationSourceContext *self)
 {
 	self->priv = HUD_APPLICATION_SOURCE_CONTEXT_GET_PRIVATE(self);
+
+	/* Starting out with 4, seems an unlikely case that we'll use more than that, but we
+	   want to avoid frequent reallocation. */
+	self->priv->model_sources = g_ptr_array_new_full(4, g_object_unref);
 	return;
 }
 
@@ -76,6 +83,10 @@ hud_application_source_context_init (HudApplicationSourceContext *self)
 static void
 hud_application_source_context_dispose (GObject *object)
 {
+	HudApplicationSourceContext * context = HUD_APPLICATION_SOURCE_CONTEXT(object);
+
+	g_clear_object(&context->priv->window_menus_dbus);
+	g_clear_pointer(&context->priv->model_sources, g_ptr_array_unref);
 
 	G_OBJECT_CLASS (hud_application_source_context_parent_class)->dispose (object);
 	return;
