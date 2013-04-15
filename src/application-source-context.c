@@ -116,6 +116,17 @@ source_iface_init (HudSourceInterface * iface)
 static void
 source_use (HudSource * hud_source)
 {
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(hud_source));
+	HudApplicationSourceContext * context = HUD_APPLICATION_SOURCE_CONTEXT(hud_source);
+
+	if (context->priv->window_menus_dbus != NULL) {
+		hud_source_use(HUD_SOURCE(context->priv->window_menus_dbus));
+	}
+
+	int i;
+	for (i = 0; i < context->priv->model_sources->len; i++) {
+		hud_source_use(HUD_SOURCE(g_ptr_array_index(context->priv->model_sources, i)));
+	}
 
 	return;
 }
@@ -124,6 +135,17 @@ source_use (HudSource * hud_source)
 static void
 source_unuse (HudSource * hud_source)
 {
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(hud_source));
+	HudApplicationSourceContext * context = HUD_APPLICATION_SOURCE_CONTEXT(hud_source);
+
+	if (context->priv->window_menus_dbus != NULL) {
+		hud_source_unuse(HUD_SOURCE(context->priv->window_menus_dbus));
+	}
+
+	int i;
+	for (i = 0; i < context->priv->model_sources->len; i++) {
+		hud_source_unuse(HUD_SOURCE(g_ptr_array_index(context->priv->model_sources, i)));
+	}
 
 	return;
 }
@@ -132,6 +154,17 @@ source_unuse (HudSource * hud_source)
 static void
 source_search (HudSource * hud_source, HudTokenList * search_string, void (*append_func) (HudResult * result, gpointer user_data), gpointer user_data)
 {
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(hud_source));
+	HudApplicationSourceContext * context = HUD_APPLICATION_SOURCE_CONTEXT(hud_source);
+
+	if (context->priv->window_menus_dbus != NULL) {
+		hud_source_search(HUD_SOURCE(context->priv->window_menus_dbus), search_string, append_func, user_data);
+	}
+
+	int i;
+	for (i = 0; i < context->priv->model_sources->len; i++) {
+		hud_source_search(HUD_SOURCE(g_ptr_array_index(context->priv->model_sources, i)), search_string, append_func, user_data);
+	}
 
 	return;
 }
