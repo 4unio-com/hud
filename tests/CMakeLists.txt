@@ -148,6 +148,7 @@ add_custom_target(keyword-files DEPENDS "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_ME
 # HUD Test Suite
 #######################
 
+hudtest(test-watchdog test-watchdog.c test-watchdog.xml)
 hudtest(test-distance test-distance.c test-distance.xml)
 hudtest(test-hud-item test-huditem.c test-hud-item.xml)
 hudtest(test-result-highlighting test-result-highlighting.c test-result-highlighting.xml)
@@ -159,7 +160,9 @@ hudtest(test-pronounce-dict test-pronounce-dict.c test-pronounce-dict.xml)
 hudtest(test-source test-source.c test-source.xml)
 hudtest(test-app-indicator-source test-app-indicator-source.c test-app-indicator-source.xml)
 hudtest(test-indicator-source test-indicator-source.c test-indicator-source.xml)
-hudtest(test-application-list test-application-list.c test-application-list.xml)
+if(!${ENABLE_PLATFORM_API})
+  hudtest(test-application-list test-application-list.c test-application-list.xml)
+endif()
 #test-usage-db-simple.xml
 #test-usage-db-old.xml
 #test-usage-db-testapp.xml

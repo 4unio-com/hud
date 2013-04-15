@@ -6,12 +6,14 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
 set(PACKAGE ${CMAKE_PROJECT_NAME})
 set(GETTEXT_PACKAGE ${CMAKE_PROJECT_NAME})
 
+option(ENABLE_DOCUMENTATION "Enable documentation." OFF)
 option(ENABLE_TESTS "Enable tests." ON)
 option(ENABLE_VOICE_TESTS "Enable voice tests" ON)
 option(ENABLE_SCALABILITY_TESTS "Additional scalability tests that are potentially very slow to run." OFF)
 option(FULL_WARNINGS "Full compiler warnings." ON)
 option(DEBUG_MESSAGES "Print debug messages." OFF)
 option(LOCAL_INSTALL "Support local installation." OFF)
+option(ENABLE_PLATFORM_API "Enable building for platform API." OFF)
 
 # Trick the H10enable_coverage script into enabling coverage by including the text below:
 # CMAKE_BUILD_TYPE coverage
@@ -100,6 +102,12 @@ if(${BAMF_FOUND})
   include_directories(${BAMF_INCLUDE_DIRS})
 endif()
 
+if(${ENABLE_PLATFORM_API})
+  add_definitions( -DHAVE_HYBRIS=1 )
+  include_directories("/usr/include/hybris")
+  set(PHABLET_LIBRARIES "-lubuntu_application_api")
+endif()
+
 if(${LOCAL_INSTALL})
   set(DBUSSERVICEDIR "${CMAKE_INSTALL_DATADIR}/dbus-1/services/")
 else()
@@ -117,7 +125,7 @@ message("Installing DBus interfaces to ${DBUSIFACEDIR}")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -fPIC")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -fPIC")
 
 add_subdirectory(data)
 add_subdirectory(libhud-client)
@@ -139,4 +147,6 @@ if(${ENABLE_TESTS})
 endif()
 
 add_subdirectory(tools-vala)
-add_subdirectory(docs)
+if(${ENABLE_DOCUMENTATION})
+  add_subdirectory(docs)
+endif()

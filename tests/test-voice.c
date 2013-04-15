@@ -347,26 +347,31 @@ test_hud_voice_query ()
     HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
     tokens = hud_string_list_add_item ("auto adjust", tokens);
     hud_manual_source_add (source, tokens, NULL, "shortcut1", TRUE);
+    hud_string_list_unref(tokens);
   }
   {
     HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
     tokens = hud_string_list_add_item ("color balance", tokens);
     hud_manual_source_add (source, tokens, NULL, "shortcut2", TRUE);
+    hud_string_list_unref(tokens);
   }
   {
     HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
     tokens = hud_string_list_add_item ("open tab", tokens);
     hud_manual_source_add (source, tokens, NULL, "shortcut3", TRUE);
+    hud_string_list_unref(tokens);
   }
   {
     HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
     tokens = hud_string_list_add_item ("open terminal", tokens);
     hud_manual_source_add (source, tokens, NULL, "shortcut4", TRUE);
+    hud_string_list_unref(tokens);
   }
   {
     HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
     tokens = hud_string_list_add_item ("system settings", tokens);
     hud_manual_source_add (source, tokens, NULL, "shortcut5", TRUE);
+    hud_string_list_unref(tokens);
   }
 
   load_pipe_module (&test_voice);

@@ -1,16 +1,15 @@
 hud (13.10.1-0ubuntu1~ppa1) UNRELEASED; urgency=low
 
+  [ Ted Gould ]
   * Bumping the number to make diffs more plesant.
 
- -- Ted Gould <ted@ubuntu.com>  Wed, 20 Feb 2013 09:28:40 -0600
-
-hud (13.10.0-0ubuntu1) UNRELEASED; urgency=low
-
+  [ Mathieu Trudel-Lapierre ]
   * debian/control:
     - Update Vcs-Bzr and Vcs-Browser to point to the correct branches for
       phablet.
+  * debian/rules: build with ENABLE_PLATFORM_API=ON on armhf.
 
- -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Mon, 25 Mar 2013 15:13:48 -0400
+ -- Ted Gould <ted@ubuntu.com>  Wed, 20 Feb 2013 09:28:40 -0600
 
 hud (13.10.0-0ubuntu1~ppa2) quantal; urgency=low
 

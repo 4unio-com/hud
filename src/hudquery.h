@@ -22,6 +22,7 @@
 #include "hudsource.h"
 #include "hudresult.h"
 #include "application-list.h"
+#include "watchdog.h"
 
 #define HUD_TYPE_QUERY                                      (hud_query_get_type ())
 #define HUD_QUERY(inst)                                     (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \
@@ -36,6 +37,7 @@ typedef struct _HudQuery                                    HudQuery;
 GType                   hud_query_get_type                              (void);
 
 HudQuery *              hud_query_new                                   (HudSource   *all_sources,
+                                                                         HudWatchdog  * watchdog,
                                                                          HudApplicationList  * application_list,
                                                                          const gchar *search_string,
                                                                          gint         num_results,
