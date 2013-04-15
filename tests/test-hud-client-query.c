@@ -51,6 +51,8 @@ test_query_create (void)
 	g_main_loop_run(loop);
 	g_main_loop_unref(loop);
 
+	g_source_remove(sig);
+
 	/* Check the models */
 	g_assert(DEE_IS_MODEL(hud_client_query_get_results_model(query)));
 	g_assert(DEE_IS_MODEL(hud_client_query_get_appstack_model(query)));
@@ -106,6 +108,8 @@ test_query_custom (void)
 	g_main_loop_run(loop);
 	g_main_loop_unref(loop);
 
+	g_source_remove(sig);
+
 	/* Make sure it has models */
 	g_assert(DEE_IS_MODEL(hud_client_query_get_results_model(query)));
 	g_assert(DEE_IS_MODEL(hud_client_query_get_appstack_model(query)));
@@ -155,6 +159,8 @@ test_query_update (void)
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
 
+  g_source_remove(sig);
+
   hud_client_query_set_query(query, "test2");
   g_assert_cmpstr(hud_client_query_get_query(query), ==, "test2");
 
@@ -202,6 +208,8 @@ test_query_voice (void)
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
 
+  g_source_remove(sig);
+
   /* Call the voice query */
   gboolean called = FALSE;
   g_signal_connect(G_OBJECT(query), "voice-query-finished",
@@ -247,6 +255,8 @@ test_query_update_app (void)
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
 
+  g_source_remove(sig);
+
   /* Set App ID */
   hud_client_query_set_appstack_app(query, "application-id");
 
@@ -284,6 +294,8 @@ test_query_execute_command (void)
 
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
+
+  g_source_remove(sig);
 
   /* Execute a command */
   hud_client_query_execute_command (query,
@@ -324,6 +336,8 @@ test_query_execute_parameterized (void)
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
 
+  g_source_remove(sig);
+
   /* Execute a parameterized command */
   HudClientParam *param = hud_client_query_execute_param_command (query,
       g_variant_new_variant (g_variant_new_uint64 (4321)), 1234);
@@ -360,6 +374,8 @@ test_query_execute_toolbar (void)
   gulong sig = g_timeout_add_seconds(TEST_DEFAULT_TIMEOUT_S, fail_quit, loop);
 
   g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
+
+  g_source_remove(sig);
 
   g_main_loop_run(loop);
   g_main_loop_unref(loop);
@@ -416,7 +432,7 @@ test_suite (void)
   g_test_add_func ("/hud/client/query/update_app", test_query_update_app);
   g_test_add_func ("/hud/client/query/execute_command", test_query_execute_command);
   g_test_add_func ("/hud/client/query/execute_command_parameterized", test_query_execute_parameterized);
-//  g_test_add_func ("/hud/client/query/execute_command_toolbar", test_query_execute_toolbar);
+  g_test_add_func ("/hud/client/query/execute_command_toolbar", test_query_execute_toolbar);
 }
 
 int
