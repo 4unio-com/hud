@@ -11,7 +11,7 @@
 /* The max amount of time we should wait for the session bus to shutdown all
  of its objects.  It's in another thread so it's hard to be deterministic
  about when it should happen, but we need things cleaned up. */
-#define SESSION_MAX_WAIT 10
+#define SESSION_MAX_WAIT 20
 
 static void
 dbus_mock_method_array_free_func(gpointer data)
