@@ -396,7 +396,7 @@ hud_test_utils_wait_for_connection_close (GDBusConnection *connection)
   for (wait_count = 0; connection != NULL && wait_count < SESSION_MAX_WAIT;
       wait_count++)
   {
-    hud_test_utils_process_mainloop (100);
+    hud_test_utils_process_mainloop (200);
   }
 
   g_assert(wait_count != SESSION_MAX_WAIT);
