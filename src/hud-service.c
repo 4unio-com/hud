@@ -20,6 +20,7 @@
 
 #include <glib.h>
 #include <gio/gio.h>
+#include <glib/gi18n.h>
 #include <stdlib.h>
 #include <locale.h>
 #include <libintl.h>
@@ -105,7 +106,11 @@ build_legacy_description (DeeModel * model, DeeModelIter * iter)
 
 	gchar * combined;
 	if (description != NULL && strlen(description) > 1) {
-		combined = g_strdup_printf("%s\xE2\x80\x82(%s)", command_name, description);
+		/* TRANSLATORS: This is what is shown for Unity Nux in
+		   the HUD entries.  The first %s is the command name and
+		   the second is a description or list of keywords that
+		   was used to find the entry. */
+		combined = g_strdup_printf(_("%s\xE2\x80\x82(%s)"), command_name, description);
 	} else {
 		combined = g_strdup(command_name);
 	}
