@@ -103,9 +103,15 @@ build_legacy_description (DeeModel * model, DeeModelIter * iter)
 	const gchar * command_name = dee_model_get_string(model, iter, HUD_QUERY_RESULTS_COMMAND_NAME);
 	const gchar * description = dee_model_get_string(model, iter, HUD_QUERY_RESULTS_DESCRIPTION);
 
-	gchar * combined = g_strdup_printf("%s\xE2\x80\x82(%s)", command_name, description);
+	gchar * combined;
+	if (description != NULL && strlen(description) > 1) {
+		combined = g_strdup_printf("%s\xE2\x80\x82(%s)", command_name, description);
+	} else {
+		combined = g_strdup(command_name);
+	}
 
 	gchar * retval = g_markup_escape_text(combined, -1);
+	g_free(combined);
 
 	/* TODO: Highlights */
 
