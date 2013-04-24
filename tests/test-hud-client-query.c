@@ -7,7 +7,7 @@
 
 /* Define the global default timeout for g_timeout_add_seconds */
 #ifndef TEST_DEFAULT_TIMEOUT_S
-#define TEST_DEFAULT_TIMEOUT_S 10
+#define TEST_DEFAULT_TIMEOUT_S 15
 #endif
 
 
