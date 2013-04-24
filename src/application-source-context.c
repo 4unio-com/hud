@@ -52,7 +52,7 @@ struct _HudApplicationSourceContextPrivate {
 
 	/* Collectors */
 	HudDbusmenuCollector * window_menus_dbus;
-	GPtrArray * model_sources;
+	HudMenuModelCollector * model_collector;
 };
 
 #define HUD_APPLICATION_SOURCE_CONTEXT_GET_PRIVATE(o) \
@@ -78,9 +78,6 @@ hud_application_source_context_init (HudApplicationSourceContext *self)
 {
 	self->priv = HUD_APPLICATION_SOURCE_CONTEXT_GET_PRIVATE(self);
 
-	/* Starting out with 4, seems an unlikely case that we'll use more than that, but we
-	   want to avoid frequent reallocation. */
-	self->priv->model_sources = g_ptr_array_new_full(4, g_object_unref);
 	return;
 }
 
@@ -91,7 +88,7 @@ hud_application_source_context_dispose (GObject *object)
 	HudApplicationSourceContext * context = HUD_APPLICATION_SOURCE_CONTEXT(object);
 
 	g_clear_object(&context->priv->window_menus_dbus);
-	g_clear_pointer(&context->priv->model_sources, g_ptr_array_unref);
+	g_clear_object(&context->priv->model_collector);
 
 	G_OBJECT_CLASS (hud_application_source_context_parent_class)->dispose (object);
 	return;
@@ -131,9 +128,8 @@ source_use (HudSource * hud_source)
 		hud_source_use(HUD_SOURCE(context->priv->window_menus_dbus));
 	}
 
-	int i;
-	for (i = 0; i < context->priv->model_sources->len; i++) {
-		hud_source_use(HUD_SOURCE(g_ptr_array_index(context->priv->model_sources, i)));
+	if (context->priv->model_collector != NULL) {
+		hud_source_use(HUD_SOURCE(context->priv->model_collector));
 	}
 
 	return;
@@ -150,9 +146,8 @@ source_unuse (HudSource * hud_source)
 		hud_source_unuse(HUD_SOURCE(context->priv->window_menus_dbus));
 	}
 
-	int i;
-	for (i = 0; i < context->priv->model_sources->len; i++) {
-		hud_source_unuse(HUD_SOURCE(g_ptr_array_index(context->priv->model_sources, i)));
+	if (context->priv->model_collector != NULL) {
+		hud_source_unuse(HUD_SOURCE(context->priv->model_collector));
 	}
 
 	return;
@@ -169,9 +164,8 @@ source_search (HudSource * hud_source, HudTokenList * search_string, void (*appe
 		hud_source_search(HUD_SOURCE(context->priv->window_menus_dbus), search_string, append_func, user_data);
 	}
 
-	int i;
-	for (i = 0; i < context->priv->model_sources->len; i++) {
-		hud_source_search(HUD_SOURCE(g_ptr_array_index(context->priv->model_sources, i)), search_string, append_func, user_data);
+	if (context->priv->model_collector != NULL) {
+		hud_source_search(HUD_SOURCE(context->priv->model_collector), search_string, append_func, user_data);
 	}
 
 	return;
