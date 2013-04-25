@@ -306,5 +306,11 @@ hud_application_source_context_add_window (HudApplicationSourceContext * context
 
 	hud_menu_model_collector_add_window(context->priv->model_collector, window);
 
+	if (context->priv->window_menus_dbus == NULL) {
+		context->priv->window_menus_dbus = hud_dbusmenu_collector_new_for_window(window, context->priv->app_id, context->priv->icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+	} else {
+		g_warning("Adding a second DBus Menu window to a context.");
+	}
+
 	return;
 }
