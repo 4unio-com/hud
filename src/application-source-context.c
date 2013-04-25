@@ -49,6 +49,12 @@ struct _HudApplicationSourceContextPrivate {
 	/* Identification */
 	guint32 window_id;
 	gchar * context_id;
+	gchar * app_id;
+	gchar * icon;
+	gchar * app_path;
+
+	/* Generated */
+	gchar * export_path;
 
 	/* Collectors */
 	HudDbusmenuCollector * window_menus_dbus;
@@ -101,6 +107,11 @@ hud_application_source_context_finalize (GObject *object)
 	HudApplicationSourceContext * context = HUD_APPLICATION_SOURCE_CONTEXT(object);
 
 	g_clear_pointer(&context->priv->context_id, g_free);
+	g_clear_pointer(&context->priv->app_id, g_free);
+	g_clear_pointer(&context->priv->icon, g_free);
+	g_clear_pointer(&context->priv->app_path, g_free);
+
+	g_clear_pointer(&context->priv->export_path, g_free);
 
 	G_OBJECT_CLASS (hud_application_source_context_parent_class)->finalize (object);
 	return;
@@ -182,12 +193,17 @@ source_search (HudSource * hud_source, HudTokenList * search_string, void (*appe
  * Return value: (transfer full): A new #HudApplicationSourceContext object
  */
 HudApplicationSourceContext *
-hud_application_source_context_new (guint32 window_id, const gchar * context_id)
+hud_application_source_context_new (guint32 window_id, const gchar * context_id, const gchar * app_id, const gchar * icon, const gchar * app_path)
 {
 	HudApplicationSourceContext * context = g_object_new(HUD_TYPE_APPLICATION_SOURCE_CONTEXT, NULL);
 
 	context->priv->window_id = window_id;
 	context->priv->context_id = g_strdup(context_id);
+	context->priv->app_id = g_strdup(app_id);
+	context->priv->icon = g_strdup(icon);
+	context->priv->app_path = g_strdup(app_path);
+
+	context->priv->export_path = g_strdup_printf("%s/window_%d/context_%s", app_path, window_id, context_id);
 
 	return context;
 }
@@ -267,6 +283,11 @@ void
 hud_application_source_context_add_window (HudApplicationSourceContext * context, AbstractWindow * window)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
+
+	if (context->priv->model_collector == NULL) {
+		context->priv->model_collector = hud_menu_model_collector_new(context->priv->app_id, context->priv->icon, 0, context->priv->export_path, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+	}
+	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(context->priv->model_collector));
 
 	return;
 }

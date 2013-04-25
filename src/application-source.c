@@ -516,7 +516,7 @@ add_id_to_connection (HudApplicationSource * app, GDBusConnection * session, con
 
 /* Either find the context or build one */
 HudApplicationSourceContext *
-find_context (GPtrArray * contexts, guint32 winid, const gchar * conid)
+find_context (HudApplicationSource * app, GPtrArray * contexts, guint32 winid, const gchar * conid)
 {
 	HudApplicationSourceContext * retval = NULL;
 
@@ -540,7 +540,7 @@ find_context (GPtrArray * contexts, guint32 winid, const gchar * conid)
 
 	/* Can't find, must build */
 	if (retval == NULL) {
-		retval = hud_application_source_context_new(winid, conid);
+		retval = hud_application_source_context_new(winid, conid, app->priv->app_id, hud_application_source_get_app_icon(app), app->priv->path);
 		g_ptr_array_add(contexts, retval);
 	}
 
@@ -574,7 +574,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		idn = WINDOW_ID_CONSTANT;
 #endif
 
-		HudApplicationSourceContext * ctx = find_context(app->priv->contexts, idn, NULL);
+		HudApplicationSourceContext * ctx = find_context(app, app->priv->contexts, idn, NULL);
 
 		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
 		hud_application_source_context_add_action_group(ctx, G_ACTION_GROUP(ag));
@@ -594,7 +594,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		idn = WINDOW_ID_CONSTANT;
 #endif
 
-		HudApplicationSourceContext * ctx = find_context(app->priv->contexts, idn, NULL);
+		HudApplicationSourceContext * ctx = find_context(app, app->priv->contexts, idn, NULL);
 
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
 		hud_application_source_context_add_model(ctx, G_MENU_MODEL(model));
@@ -897,7 +897,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	g_object_weak_ref(G_OBJECT(window), window_destroyed, window_info);
 #endif
 
-	HudApplicationSourceContext * context = find_context(app->priv->contexts, xid, NULL);
+	HudApplicationSourceContext * context = find_context(app, app->priv->contexts, xid, NULL);
 
 	/* We're managing the lifecycle of the window info here as
 	   that allows it to have some sort of destroy function */

@@ -47,7 +47,10 @@ struct _HudApplicationSourceContext {
 
 GType                           hud_application_source_context_get_type          (void);
 HudApplicationSourceContext *   hud_application_source_context_new               (guint32                         window_id,
-                                                                                  const gchar *                   context_id);
+                                                                                  const gchar *                   context_id,
+                                                                                  const gchar *                   app_id,
+                                                                                  const gchar *                   icon,
+                                                                                  const gchar *                   app_path);
 guint32                         hud_application_source_context_get_window_id     (HudApplicationSourceContext *   context);
 const gchar *                   hud_application_source_context_get_context_id    (HudApplicationSourceContext *   context);
 void                            hud_application_source_context_add_action_group  (HudApplicationSourceContext *   context,
