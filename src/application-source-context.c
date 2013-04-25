@@ -304,5 +304,7 @@ hud_application_source_context_add_window (HudApplicationSourceContext * context
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
 	check_for_menu_model(context);
 
+	hud_menu_model_collector_add_window(context->priv->model_collector, window);
+
 	return;
 }
