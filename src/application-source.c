@@ -309,7 +309,7 @@ source_get (HudSource *     hud_source,
 	if (g_strcmp0 (application_id, app->priv->app_id) == 0) {
 		return hud_source;
 	}
-	
+
 	return NULL;
 }
 
