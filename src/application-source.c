@@ -577,7 +577,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		HudApplicationSourceContext * ctx = find_context(app, app->priv->contexts, idn, NULL);
 
 		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
-		hud_application_source_context_add_action_group(ctx, G_ACTION_GROUP(ag));
+		hud_application_source_context_add_action_group(ctx, G_ACTION_GROUP(ag), prefix);
 
 		add_id_to_connection(app, session, sender, idn);
 

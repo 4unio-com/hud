@@ -29,7 +29,6 @@
 #include <gio/gio.h>
 #include <string.h>
 
-#define DEFAULT_MENU_DEPTH  10
 #define RECURSE_DATA        "hud-menu-model-recurse-level"
 #define EXPORT_PATH         "hud-menu-model-export-path"
 #define EXPORT_MENU         "hud-menu-model-export-menu"
@@ -1199,14 +1198,14 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   if (app_menu_object_path)
     {
       app_menu = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, app_menu_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH, collector->type);
       g_object_unref(app_menu);
     }
 
   if (menubar_object_path)
     {
       menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, menubar_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH, collector->type);
       g_object_unref(menubar);
     }
 
@@ -1262,7 +1261,7 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
   g_object_unref(group);
 
   GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, menu_path);
-  hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix, DEFAULT_MENU_DEPTH);
+  hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix, HUD_MENU_MODEL_DEFAULT_DEPTH);
   g_object_unref(app_menu);
 
   return;

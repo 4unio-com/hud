@@ -240,6 +240,19 @@ hud_application_source_context_get_context_id (HudApplicationSourceContext * con
 	return context->priv->context_id;
 }
 
+/* Check to ensure we have a menu model collector, if not, build
+   us one. */
+static inline void
+check_for_menu_model (HudApplicationSourceContext * context)
+{
+	if (context->priv->model_collector == NULL) {
+		context->priv->model_collector = hud_menu_model_collector_new(context->priv->app_id, context->priv->icon, 0, context->priv->export_path, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+	}
+	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(context->priv->model_collector));
+
+	return;
+}
+
 /**
  * hud_application_source_context_add_action_group:
  * @context: The #HudApplicationSourceContext to look into
@@ -248,10 +261,13 @@ hud_application_source_context_get_context_id (HudApplicationSourceContext * con
  * Adds an action group to the items indexed by this context.
  */
 void
-hud_application_source_context_add_action_group (HudApplicationSourceContext * context, GActionGroup * group)
+hud_application_source_context_add_action_group (HudApplicationSourceContext * context, GActionGroup * group, const gchar * prefix)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
 	g_return_if_fail(G_IS_ACTION_GROUP(group));
+	check_for_menu_model(context);
+
+	hud_menu_model_collector_add_actions(context->priv->model_collector, group, prefix);
 
 	return;
 }
@@ -268,6 +284,9 @@ hud_application_source_context_add_model (HudApplicationSourceContext * context,
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
 	g_return_if_fail(G_IS_MENU_MODEL(model));
+	check_for_menu_model(context);
+
+	hud_menu_model_collector_add_model(context->priv->model_collector, model, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH);
 
 	return;
 }
@@ -283,11 +302,7 @@ void
 hud_application_source_context_add_window (HudApplicationSourceContext * context, AbstractWindow * window)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
-
-	if (context->priv->model_collector == NULL) {
-		context->priv->model_collector = hud_menu_model_collector_new(context->priv->app_id, context->priv->icon, 0, context->priv->export_path, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
-	}
-	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(context->priv->model_collector));
+	check_for_menu_model(context);
 
 	return;
 }
