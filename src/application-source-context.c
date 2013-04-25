@@ -39,6 +39,10 @@ static void source_search                             (HudSource *              
                                                        HudTokenList *            search_string,
                                                        void                    (*append_func) (HudResult * result, gpointer user_data),
                                                        gpointer                  user_data);
+static void source_activate_toolbar                   (HudSource *               hud_source,
+                                                       HudClientQueryToolbarItems  item,
+                                                       GVariant                 *platform_data);
+static GList * source_get_items                       (HudSource *               object);
 
 /* #define object building */
 G_DEFINE_TYPE_WITH_CODE (HudApplicationSourceContext, hud_application_source_context, G_TYPE_OBJECT,
@@ -124,6 +128,8 @@ source_iface_init (HudSourceInterface * iface)
 	iface->use = source_use;
 	iface->unuse = source_unuse;
 	iface->search = source_search;
+	iface->activate_toolbar = source_activate_toolbar;
+	iface->get_items = source_get_items;
 
 	return;
 }
@@ -180,6 +186,44 @@ source_search (HudSource * hud_source, HudTokenList * search_string, void (*appe
 	}
 
 	return;
+}
+
+/* Pass down toolbar activations */
+static void
+source_activate_toolbar (HudSource * hud_source, HudClientQueryToolbarItems item, GVariant * platform_data)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(hud_source));
+	HudApplicationSourceContext * context = HUD_APPLICATION_SOURCE_CONTEXT(hud_source);
+
+	if (context->priv->window_menus_dbus != NULL) {
+		hud_source_activate_toolbar(HUD_SOURCE(context->priv->window_menus_dbus), item, platform_data);
+	}
+
+	if (context->priv->model_collector != NULL) {
+		hud_source_activate_toolbar(HUD_SOURCE(context->priv->model_collector), item, platform_data);
+	}
+
+	return;
+}
+
+/* Collect all the items */
+static GList *
+source_get_items (HudSource * object)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(object), NULL);
+	HudApplicationSourceContext * app = HUD_APPLICATION_SOURCE_CONTEXT(object);
+
+	GList * retval = NULL;
+
+	if (app->priv->model_collector != NULL) {
+		retval = g_list_concat(hud_source_get_items(HUD_SOURCE(app->priv->model_collector)), retval);
+	}
+
+	if (app->priv->window_menus_dbus != NULL) {
+		retval = g_list_concat(hud_source_get_items(HUD_SOURCE(app->priv->window_menus_dbus)), retval);
+	}
+
+	return retval;
 }
 
 /**

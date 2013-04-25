@@ -970,7 +970,7 @@ source_get_items (HudSource * object)
 	for (i = 0; i < app->priv->contexts->len; i++) {
 		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
 		if (context_is_current(app, context)) {
-			retval = g_list_append(retval, hud_source_get_items(HUD_SOURCE(context)));
+			retval = g_list_concat(hud_source_get_items(HUD_SOURCE(context)), retval);
 		}
 	}
 
