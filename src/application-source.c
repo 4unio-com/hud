@@ -36,6 +36,7 @@ struct _HudApplicationSourcePrivate {
 	gchar * app_id;
 	gchar * path;
 	AppIfaceComCanonicalHudApplication * skel;
+	gboolean used;
 
 #ifdef HAVE_BAMF
 	AbstractApplication * bamf_app;
@@ -147,6 +148,8 @@ hud_application_source_init (HudApplicationSource *self)
 {
 	self->priv = HUD_APPLICATION_SOURCE_GET_PRIVATE(self);
 
+	self->priv->used = FALSE;
+
 	self->priv->contexts = g_ptr_array_new_with_free_func(g_object_unref);
 	self->priv->connections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, connection_watcher_free);
 	self->priv->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
@@ -234,6 +237,7 @@ static void
 source_use (HudSource *hud_source)
 {
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+	app->priv->used = TRUE;
 
 	int i;
 	for (i = 0; i < app->priv->contexts->len; i++) {
@@ -251,6 +255,8 @@ static void
 source_unuse (HudSource *hud_source)
 {
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+	g_warn_if_fail(app->priv->used);
+	app->priv->used = FALSE;
 
 	int i;
 	for (i = 0; i < app->priv->contexts->len; i++) {
@@ -614,7 +620,26 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 static gboolean
 dbus_set_context (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocation * invocation, guint window_id, const gchar * context, gpointer user_data)
 {
-	/* TODO: Use the data for something useful */
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(user_data), FALSE);
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(user_data);
+
+	gboolean was_used = app->priv->used;
+
+	/* Make sure we clear the old contexts if we could have one */
+	if (was_used && window_id == app->priv->focused_window) {
+		hud_source_unuse(HUD_SOURCE(app));
+	}
+
+	/* Swap the context for this window */
+	g_hash_table_insert(app->priv->window_contexts, GUINT_TO_POINTER(window_id), g_strdup(context));
+
+	/* Return our used state */
+	if (was_used && window_id == app->priv->focused_window) {
+		hud_source_use(HUD_SOURCE(app));
+
+		/* If we did change, make sure to signal it */
+		hud_source_changed(HUD_SOURCE(app));
+	}
 
 	g_dbus_method_invocation_return_value(invocation, NULL);
 	return TRUE;
