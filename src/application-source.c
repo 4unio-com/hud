@@ -549,6 +549,7 @@ find_context (HudApplicationSource * app, GPtrArray * contexts, guint32 winid, c
 	/* Can't find, must build */
 	if (retval == NULL) {
 		retval = hud_application_source_context_new(winid, conid, app->priv->app_id, hud_application_source_get_app_icon(app), app->priv->path);
+		g_signal_connect(G_OBJECT(retval), "changed", G_CALLBACK(window_source_changed), app);
 		g_ptr_array_add(contexts, retval);
 	}
 
