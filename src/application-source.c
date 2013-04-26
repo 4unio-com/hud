@@ -45,7 +45,7 @@ struct _HudApplicationSourcePrivate {
 #endif
 
 	guint32 focused_window;
-	char * current_context;
+	GHashTable * window_contexts;
 
 	GPtrArray * contexts;
 	GHashTable * connections;
@@ -185,7 +185,7 @@ hud_application_source_finalize (GObject *object)
 
 	g_clear_pointer(&self->priv->app_id, g_free);
 	g_clear_pointer(&self->priv->path, g_free);
-	g_clear_pointer(&self->priv->current_context, g_free);
+	g_clear_pointer(&self->priv->window_contexts, g_hash_table_unref);
 #ifdef HAVE_HYBRIS
 	g_clear_pointer(&self->priv->desktop_file, g_free);
 #endif
@@ -206,7 +206,9 @@ context_is_current (HudApplicationSource * self, HudApplicationSourceContext * c
 
 	/* Check the context too */
 	const gchar * context_context = hud_application_source_context_get_context_id(context);
-	if (context_context != NULL && g_strcmp0(context_context, self->priv->current_context) != 0) {
+	const gchar * current_context = g_hash_table_lookup(self->priv->window_contexts, GINT_TO_POINTER(self->priv->focused_window));
+
+	if (context_context != NULL && g_strcmp0(context_context, current_context) != 0) {
 		return FALSE;
 	}
 
