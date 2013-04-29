@@ -122,10 +122,20 @@ test_watchdog_timing (void)
 	return;
 }
 
+/* Test to ensure we can ping with a NULL watchdog so the other tests
+   suites will work fine */
+static void
+test_watchdog_null_ping (void)
+{
+	hud_watchdog_ping(NULL);
+	return;
+}
+
 /* Build the test suite */
 static void
 test_watchdog_suite (void)
 {
+	g_test_add_func ("/hud/watchdog/nullping", test_watchdog_null_ping);
 	g_test_add_func ("/hud/watchdog/create",   test_watchdog_create);
 	g_test_add_func ("/hud/watchdog/timing",   test_watchdog_timing);
 	return;
