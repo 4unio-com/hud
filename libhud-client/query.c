@@ -532,7 +532,7 @@ hud_client_query_toolbar_item_active (HudClientQuery * cquery, HudClientQueryToo
 	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), FALSE);
 
 
-	return FALSE;
+	return TRUE;
 }
 
 /**
