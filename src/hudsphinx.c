@@ -122,11 +122,18 @@ hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery *skel, const gchar *device, GE
   gchar *hmm = "/usr/share/pocketsphinx/model/hmm/en_US/hub4wsj_sc_8k";
   gchar *dict = "/usr/share/pocketsphinx/model/lm/en_US/cmu07a.dic";
 
-  self->config = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
+  if (device != NULL) { 
+    self->config = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
                                      "-hmm", hmm,
                                      "-dict", dict,
-                                     "-adcdev", device == NULL ? "" : device,
+                                     "-adcdev", device,
                                      NULL);
+  } else {
+    self->config = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
+                                     "-hmm", hmm,
+                                     "-dict", dict,
+                                     NULL);
+  }
 
   if (self->config == NULL) {
     g_warning("Sphinx command line arguments failed to initialize");
