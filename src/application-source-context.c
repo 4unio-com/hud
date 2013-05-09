@@ -247,7 +247,11 @@ hud_application_source_context_new (guint32 window_id, const gchar * context_id,
 	context->priv->icon = g_strdup(icon);
 	context->priv->app_path = g_strdup(app_path);
 
-	context->priv->export_path = g_strdup_printf("%s/window_%d/context_%s", app_path, window_id, context_id);
+	if (context_id != NULL) {
+		context->priv->export_path = g_strdup_printf("%s/window_%d/context_%s", app_path, window_id, context_id);
+	} else {
+		context->priv->export_path = g_strdup_printf("%s/window_%d/context_none", app_path, window_id);
+	}
 
 	return context;
 }
