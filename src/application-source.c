@@ -839,21 +839,23 @@ window_destroyed (gpointer data, GObject * old_address)
 	window_info_t * window_info = (window_info_t *)data;
 
 	window_info->window = NULL;
+	HudApplicationSource * source = window_info->source;
+	guint32 xid = window_info->xid;
 
 	int i;
-	for (i = 0; i < window_info->source->priv->contexts->len; i++) {
-		HudApplicationSourceContext * context = g_ptr_array_index(window_info->source->priv->contexts, i);
+	for (i = 0; i < source->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(source->priv->contexts, i);
 
 		guint32 ctx_winid = hud_application_source_context_get_window_id(context);
-		if (ctx_winid != window_info->xid) {
+		if (ctx_winid != xid) {
 			continue;
 		}
 
-		g_ptr_array_remove_index(window_info->source->priv->contexts, i);
+		g_ptr_array_remove_index(source->priv->contexts, i);
 		i--;
 	}
 
-	if (window_info->xid == window_info->source->priv->focused_window) {
+	if (xid == source->priv->focused_window) {
 		hud_source_changed(HUD_SOURCE(window_info->source));
 	}
 
