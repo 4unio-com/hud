@@ -37,8 +37,8 @@ Build-Depends: bamfdaemon,
                python3-dbusmock,
                libpocketsphinx-dev (>= 0.8),
                libsphinxbase-dev (>= 0.8),
-               pocketsphinx-hmm-en-hub4wsj (>= 0.8),
-               pocketsphinx-lm-en-hub4 (>= 0.8),
+               sphinx-voxforge-hmm-en,
+               sphinx-voxforge-lm-en,               
                pulseaudio,
                python-setuptools,
 Standards-Version: 3.9.4
@@ -53,8 +53,8 @@ Package: hud
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         pocketsphinx-hmm-en-hub4wsj (>= 0.8),
-         pocketsphinx-lm-en-hub4 (>= 0.8)
+         sphinx-voxforge-hmm-en,
+         sphinx-voxforge-lm-en
 Recommends: julius-voxforge (>= 0.1.1~daily20130206),
 Conflicts: indicator-appmenu (<< 13),
 Description: Backend for the Unity HUD
