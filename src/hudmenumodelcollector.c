@@ -821,7 +821,8 @@ static void
 hud_menu_model_collector_disconnect (gpointer data,
                                      gpointer user_data)
 {
-  g_signal_handlers_disconnect_by_func (data, hud_menu_model_collector_model_changed, user_data);
+  model_data_t * info = (model_data_t *)data;
+  g_signal_handlers_disconnect_by_func (info->model, hud_menu_model_collector_model_changed, user_data);
 }
 
 /* Sends an awareness to a model that needs it */
