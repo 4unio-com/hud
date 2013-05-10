@@ -154,6 +154,8 @@ hud_application_source_init (HudApplicationSource *self)
 	self->priv->connections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, connection_watcher_free);
 	self->priv->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 
+	self->priv->window_contexts = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, g_free);
+
 	return;
 }
 
@@ -236,6 +238,8 @@ window_source_changed (HudSource * source, gpointer user_data)
 static void
 source_use (HudSource *hud_source)
 {
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(hud_source));
+
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
 	app->priv->used = TRUE;
 
