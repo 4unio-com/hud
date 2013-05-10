@@ -379,7 +379,7 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 
 	/* Try to use BAMF */
 	BamfApplication * new_app = bamf_matcher_get_application_for_window(list->priv->matcher, new_win);
-	if (new_app == NULL) {
+	if (new_app == NULL || bamf_application_get_desktop_file(new_app) == NULL) {
 		/* We can't handle things we can't identify */
 		hud_source_changed(HUD_SOURCE(list));
 		return;
