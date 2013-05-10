@@ -741,7 +741,12 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 		app->priv->bamf_app = g_object_ref(bapp);
 	}
 
-	g_return_if_fail(app->priv->bamf_app == bapp);
+	/* Check to make sure we're getting the right events */
+	if (G_UNLIKELY(app->priv->bamf_app != bapp)) {
+		g_critical("App '%s' has been given focus events for '%s'", bamf_application_get_desktop_file(app->priv->bamf_app), bamf_application_get_desktop_file(bapp));
+		return;
+	}
+
 #endif
 #ifdef HAVE_HYBRIS
 	if (app->priv->desktop_file == NULL) {
