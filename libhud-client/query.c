@@ -540,8 +540,16 @@ hud_client_query_toolbar_item_active (HudClientQuery * cquery, HudClientQueryToo
 {
 	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), FALSE);
 
+	int i = 0;
+	for (i = 0; i < cquery->priv->toolbar->len; i++) {
+		HudClientQueryToolbarItems local = g_array_index(cquery->priv->toolbar, HudClientQueryToolbarItems, i);
 
-	return TRUE;
+		if (local == item) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }
 
 /**
