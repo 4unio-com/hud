@@ -643,8 +643,8 @@ handle_execute_toolbar (HudQueryIfaceComCanonicalHudQuery *object, GDBusMethodIn
 
 	HudClientQueryToolbarItems item = hud_client_query_toolbar_items_get_value_from_nick(arg_item);
 
-	if (item != HUD_CLIENT_QUERY_TOOLBAR_QUIT) {
-		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, "TODO");
+	if (item == -1) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, "Unable to resolve nick '%s'", arg_item);
 		return TRUE;
 	}
 
