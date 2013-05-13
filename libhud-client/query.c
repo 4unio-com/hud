@@ -35,6 +35,7 @@ struct _HudClientQueryPrivate {
 	gchar * query;
 	DeeModel * results;
 	DeeModel * appstack;
+	GArray * toolbar;
 };
 
 #define HUD_CLIENT_QUERY_GET_PRIVATE(o) \
@@ -169,6 +170,10 @@ static void
 hud_client_query_init (HudClientQuery *self)
 {
 	self->priv = HUD_CLIENT_QUERY_GET_PRIVATE(self);
+
+	self->priv->toolbar = g_array_new(FALSE, /* zero terminated */
+	                                  FALSE, /* clear */
+	                                  sizeof(HudClientQueryToolbarItems));
 
 	return;
 }
@@ -352,6 +357,7 @@ hud_client_query_finalize (GObject *object)
 	HudClientQuery * self = HUD_CLIENT_QUERY(object);
 
 	g_clear_pointer(&self->priv->query, g_free);
+	g_clear_pointer(&self->priv->toolbar, g_array_unref);
 
 	G_OBJECT_CLASS (hud_client_query_parent_class)->finalize (object);
 	return;
@@ -553,8 +559,7 @@ hud_client_query_get_active_toolbar (HudClientQuery * cquery)
 {
 	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
 
-
-	return NULL;
+	return g_array_ref(cquery->priv->toolbar);
 }
 
 /**
