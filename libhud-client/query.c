@@ -278,6 +278,26 @@ connection_status (HudClientConnection * connection, gboolean connected, HudClie
 	return;
 }
 
+/* Go through the toolbar and put the right items in the array */
+static void
+parse_toolbar (HudClientQuery * query)
+{
+	if (query->priv->toolbar->len > 0) {
+		g_array_remove_range(query->priv->toolbar, 0, query->priv->toolbar->len - 1);
+	}
+
+	const gchar * const * items = NULL;
+	items = _hud_query_com_canonical_hud_query_get_toolbar_items(query->priv->query);
+
+	int i;
+	for (i = 0; items[i] != NULL; i++) {
+		HudClientQueryToolbarItems item = hud_client_query_toolbar_items_get_value_from_nick(items[i]);
+		g_array_append_val(query->priv->toolbar, item);
+	}
+
+	return;
+}
+
 static void
 new_query_cb (HudClientConnection * connection, const gchar * path, const gchar * results, const gchar * appstack, gpointer user_data)
 {
@@ -318,7 +338,7 @@ new_query_cb (HudClientConnection * connection, const gchar * path, const gchar 
 	    G_CALLBACK (hud_client_query_voice_query_heard_something), G_OBJECT(cquery), 0);
 
 	/* Figure out toolbar */
-	/* TODO: Do that */
+	parse_toolbar(cquery);
 
 	g_signal_emit(G_OBJECT(cquery), hud_client_query_signal_models_changed, 0);
 
