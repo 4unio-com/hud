@@ -286,7 +286,7 @@ new_query_cb (HudClientConnection * connection, const gchar * path, const gchar 
 
 	cquery->priv->proxy = _hud_query_com_canonical_hud_query_proxy_new_for_bus_sync(
 		G_BUS_TYPE_SESSION,
-		G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+		G_DBUS_PROXY_FLAGS_NONE,
 		hud_client_connection_get_address(cquery->priv->connection),
 		path,
 		NULL, /* GCancellable */
@@ -311,6 +311,9 @@ new_query_cb (HudClientConnection * connection, const gchar * path, const gchar 
 		G_CALLBACK (hud_client_query_voice_query_listening), G_OBJECT(cquery), 0);
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-heard-something",
 	    G_CALLBACK (hud_client_query_voice_query_heard_something), G_OBJECT(cquery), 0);
+
+	/* Figure out toolbar */
+	/* TODO: Do that */
 
 	g_signal_emit(G_OBJECT(cquery), hud_client_query_signal_models_changed, 0);
 
