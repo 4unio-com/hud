@@ -280,7 +280,7 @@ connection_status (HudClientConnection * connection, gboolean connected, HudClie
 
 /* Go through the toolbar and put the right items in the array */
 static void
-parse_toolbar (HudClientQuery * query)
+parse_toolbar (_HudQueryComCanonicalHudQuery * proxy, G_GNUC_UNUSED GParamSpec * paramspec, HudClientQuery * query)
 {
 	if (query->priv->toolbar->len > 0) {
 		g_array_remove_range(query->priv->toolbar, 0, query->priv->toolbar->len - 1);
@@ -337,8 +337,11 @@ new_query_cb (HudClientConnection * connection, const gchar * path, const gchar 
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-heard-something",
 	    G_CALLBACK (hud_client_query_voice_query_heard_something), G_OBJECT(cquery), 0);
 
+	/* Watch for toolbar callbacks */
+	g_signal_connect (cquery->priv->proxy, "notify::toolbar-items", G_CALLBACK(parse_toolbar), cquery);
+
 	/* Figure out toolbar */
-	parse_toolbar(cquery);
+	parse_toolbar(cquery->priv->proxy, NULL, cquery);
 
 	g_signal_emit(G_OBJECT(cquery), hud_client_query_signal_models_changed, 0);
 
