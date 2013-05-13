@@ -387,13 +387,6 @@ test_query_execute_toolbar (void)
   dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
 
   hud_client_query_execute_toolbar_item (query,
-      HUD_CLIENT_QUERY_TOOLBAR_QUIT, 3312);
-  dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
-      "ExecuteToolbar",
-      "\\(\\[\\(\\d+, \\[<'quit'>, <uint32 3312>\\]\\)\\],\\)");
-  dbus_mock_clear_method_calls (connection, DBUS_NAME, QUERY_PATH);
-
-  hud_client_query_execute_toolbar_item (query,
       HUD_CLIENT_QUERY_TOOLBAR_UNDO, 53312);
   dbus_mock_assert_method_call_results (connection, DBUS_NAME, QUERY_PATH,
       "ExecuteToolbar",
