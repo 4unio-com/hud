@@ -39,6 +39,8 @@ static void source_search                             (HudSource *              
                                                        HudTokenList *            search_string,
                                                        void                    (*append_func) (HudResult * result, gpointer user_data),
                                                        gpointer                  user_data);
+static void source_get_toolbar_entries                (HudSource *               hud_source,
+                                                       GArray *                  toolbar);
 static void source_activate_toolbar                   (HudSource *               hud_source,
                                                        HudClientQueryToolbarItems  item,
                                                        GVariant                 *platform_data);
@@ -128,6 +130,7 @@ source_iface_init (HudSourceInterface * iface)
 	iface->use = source_use;
 	iface->unuse = source_unuse;
 	iface->search = source_search;
+	iface->get_toolbar_entries = source_get_toolbar_entries;
 	iface->activate_toolbar = source_activate_toolbar;
 	iface->get_items = source_get_items;
 
@@ -187,6 +190,21 @@ source_search (HudSource * hud_source, HudTokenList * search_string, void (*appe
 
 	return;
 }
+
+/* Get Toolbar Entries */
+static void
+source_get_toolbar_entries (HudSource * hud_source, GArray * toolbar)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(hud_source));
+	HudApplicationSourceContext * context = HUD_APPLICATION_SOURCE_CONTEXT(hud_source);
+
+	if (context->priv->model_collector != NULL) {
+		hud_source_get_toolbar_entries(HUD_SOURCE(context->priv->model_collector), toolbar);
+	}
+
+	return;
+}
+
 
 /* Pass down toolbar activations */
 static void
