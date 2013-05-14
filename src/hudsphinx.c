@@ -119,8 +119,8 @@ hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery *skel, const gchar *device, GE
   HudSphinx *self = g_object_new (HUD_TYPE_SPHINX, NULL);
   self->skel = g_object_ref(skel);
 
-  gchar *hmm = "/usr/share/pocketsphinx/model/hmm/en_US/hub4wsj_sc_8k";
-  gchar *dict = "/usr/share/pocketsphinx/model/lm/en_US/cmu07a.dic";
+  gchar *hmm = HMM_PATH;
+  gchar *dict = DICT_PATH;
 
   if (device != NULL) { 
     self->config = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
