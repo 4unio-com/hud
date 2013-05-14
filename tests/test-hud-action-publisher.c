@@ -17,21 +17,21 @@ test_action_publisher_new_for_id ()
       &appstack_model);
 
   {
-    HudActionPublisher *publisher = hud_action_publisher_new_for_id(NULL);
+    HudActionPublisher *publisher = hud_action_publisher_new(HUD_ACTION_PUBLISHER_ALL_WINDOWS, HUD_ACTION_PUBLISHER_NO_CONTEXT);
     g_assert(publisher);
 
-    g_assert_cmpint(g_variant_get_int32(hud_action_publisher_get_id(publisher)),
-        ==, -1);
+    g_assert_cmpint(hud_action_publisher_get_window_id(publisher),
+        ==, HUD_ACTION_PUBLISHER_ALL_WINDOWS);
+    g_assert(hud_action_publisher_get_context_id(publisher) != NULL);
 
     g_object_unref (publisher);
   }
 
   {
-    HudActionPublisher *publisher = hud_action_publisher_new_for_id (
-        g_variant_new_int32 (123));
+    HudActionPublisher *publisher = hud_action_publisher_new(123, HUD_ACTION_PUBLISHER_NO_CONTEXT);
     g_assert(publisher);
 
-    g_assert_cmpint(g_variant_get_int32(hud_action_publisher_get_id(publisher)),
+    g_assert_cmpint(hud_action_publisher_get_window_id(publisher),
         ==, 123);
 
     g_object_unref (publisher);
@@ -61,8 +61,6 @@ test_action_publisher_new_for_application ()
 
   HudActionPublisher *publisher = hud_action_publisher_new_for_application(application);
   g_assert(publisher);
-
-  g_assert(!hud_action_publisher_get_id(publisher));
 
   g_object_unref (application);
   g_object_unref (publisher);

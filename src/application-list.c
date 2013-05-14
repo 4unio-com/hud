@@ -374,8 +374,17 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 	if (hud_application_list_name_in_ignore_list (new_win))
 	    return;
 
+	/* Clear the last source, as we've obviously changed */
+	g_clear_object(&list->priv->last_focused_main_stage_source);
+
 	/* Try to use BAMF */
 	BamfApplication * new_app = bamf_matcher_get_application_for_window(list->priv->matcher, new_win);
+	if (new_app == NULL || bamf_application_get_desktop_file(new_app) == NULL) {
+		/* We can't handle things we can't identify */
+		hud_source_changed(HUD_SOURCE(list));
+		return;
+	}
+
 	HudApplicationSource * source = NULL;
 
 	/* If we've got an app, we can find it easily */
@@ -406,10 +415,11 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 		return;
 	}
 
-	g_clear_object(&list->priv->last_focused_main_stage_source);
 	list->priv->last_focused_main_stage_source = g_object_ref(source);
 
 	hud_application_source_focus(source, new_app, new_win);
+
+	hud_source_changed(HUD_SOURCE(list));
 
 	return;
 }

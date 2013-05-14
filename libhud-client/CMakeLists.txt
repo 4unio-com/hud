@@ -16,6 +16,10 @@ include_directories(${HUD_SRC_DIR})
 
 add_definitions( -DHUD_CLIENT_COMPILATION=1 )
 
+if(${FULL_WARNINGS})
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+endif()
+
 ###########################
 # Version Information
 ###########################

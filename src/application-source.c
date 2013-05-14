@@ -23,6 +23,7 @@
 #endif
 
 #include "application-source.h"
+#include "application-source-context.h"
 #include "hudsource.h"
 #include "app-iface.h"
 #include "hudmenumodelcollector.h"
@@ -35,6 +36,7 @@ struct _HudApplicationSourcePrivate {
 	gchar * app_id;
 	gchar * path;
 	AppIfaceComCanonicalHudApplication * skel;
+	gboolean used;
 
 #ifdef HAVE_BAMF
 	AbstractApplication * bamf_app;
@@ -44,11 +46,9 @@ struct _HudApplicationSourcePrivate {
 #endif
 
 	guint32 focused_window;
+	GHashTable * window_contexts;
 
-	HudSource * used_source;
-	guint how_used;
-
-	GHashTable * windows;
+	GPtrArray * contexts;
 	GHashTable * connections;
 };
 
@@ -87,6 +87,11 @@ static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplicatio
                                                GDBusMethodInvocation *     invocation,
                                                GVariant *                  actions,
                                                GVariant *                  descs,
+                                               gpointer                    user_data);
+static gboolean dbus_set_context              (AppIfaceComCanonicalHudApplication * skel,
+                                               GDBusMethodInvocation *     invocation,
+                                               guint                       window_id,
+                                               const gchar *               context,
                                                gpointer                    user_data);
 static GList * source_get_items               (HudSource *                 object);
 
@@ -143,9 +148,13 @@ hud_application_source_init (HudApplicationSource *self)
 {
 	self->priv = HUD_APPLICATION_SOURCE_GET_PRIVATE(self);
 
-	self->priv->windows = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, g_object_unref);
+	self->priv->used = FALSE;
+
+	self->priv->contexts = g_ptr_array_new_with_free_func(g_object_unref);
 	self->priv->connections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, connection_watcher_free);
 	self->priv->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+
+	self->priv->window_contexts = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, g_free);
 
 	return;
 }
@@ -156,12 +165,7 @@ hud_application_source_dispose (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
-	if (self->priv->used_source != NULL) {
-		hud_source_unuse(self->priv->used_source);
-		g_clear_object(&self->priv->used_source);
-	}
-
-	g_clear_pointer(&self->priv->windows, g_hash_table_unref);
+	g_clear_pointer(&self->priv->contexts, g_ptr_array_unref);
 	g_clear_pointer(&self->priv->connections, g_hash_table_unref);
 
 	if (self->priv->skel != NULL) {
@@ -186,6 +190,7 @@ hud_application_source_finalize (GObject *object)
 
 	g_clear_pointer(&self->priv->app_id, g_free);
 	g_clear_pointer(&self->priv->path, g_free);
+	g_clear_pointer(&self->priv->window_contexts, g_hash_table_unref);
 #ifdef HAVE_HYBRIS
 	g_clear_pointer(&self->priv->desktop_file, g_free);
 #endif
@@ -194,32 +199,25 @@ hud_application_source_finalize (GObject *object)
 	return;
 }
 
-static HudSource *
-get_used_source (HudApplicationSource *app)
+/* Checks to see if a context is in use */
+static gboolean
+context_is_current (HudApplicationSource * self, HudApplicationSourceContext * context)
 {
-  if (app->priv->used_source != NULL )
-  {
-    return app->priv->used_source;
-  }
+	/* See if this window is the one we're looking at */
+	guint32 context_window = hud_application_source_context_get_window_id(context);
+	if (context_window != self->priv->focused_window && context_window != 0) {
+		return FALSE;
+	}
 
-  if (g_hash_table_size (app->priv->windows) == 1)
-  {
-    GHashTableIter iter;
-    gpointer key, value;
-    g_hash_table_iter_init (&iter, app->priv->windows);
-    g_hash_table_iter_next (&iter, &key, &value);
-    HudSourceList *list = HUD_SOURCE_LIST(value);
-    if (list != NULL )
-    {
-      return HUD_SOURCE(list) ;
-    }
+	/* Check the context too */
+	const gchar * context_context = hud_application_source_context_get_context_id(context);
+	const gchar * current_context = g_hash_table_lookup(self->priv->window_contexts, GINT_TO_POINTER(self->priv->focused_window));
 
-    g_warning("An app '%s' single window but no source list.", app->priv->app_id);
-    return NULL ;
-  }
+	if (context_context != NULL && g_strcmp0(context_context, current_context) != 0) {
+		return FALSE;
+	}
 
-  g_warning("An app '%s' without a single window.", app->priv->app_id);
-  return NULL ;
+	return TRUE;
 }
 
 /* Gets called when the items in a window's sources changes */
@@ -227,8 +225,9 @@ static void
 window_source_changed (HudSource * source, gpointer user_data)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(user_data);
+	HudApplicationSourceContext * context = HUD_APPLICATION_SOURCE_CONTEXT(source);
 
-	if (get_used_source(self) == source) {
+	if (context_is_current(self, context)) {
 		hud_source_changed(HUD_SOURCE(self));
 	}
 
@@ -239,24 +238,18 @@ window_source_changed (HudSource * source, gpointer user_data)
 static void
 source_use (HudSource *hud_source)
 {
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(hud_source));
+
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+	app->priv->used = TRUE;
 
-	if (app->priv->used_source == NULL) {
-		app->priv->used_source = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(app->priv->focused_window));
-		g_object_ref(app->priv->used_source);
-		app->priv->how_used = 0;
+	int i;
+	for (i = 0; i < app->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
+		if (context_is_current(app, context)) {
+			hud_source_use(HUD_SOURCE(context));
+		}
 	}
-
-	if (app->priv->used_source == NULL) {
-		g_warning("Application '%s' has no focused window.", app->priv->app_id);
-		return;
-	}
-
-	if (app->priv->how_used == 0) {
-		hud_source_use(app->priv->used_source);
-	}
-
-	app->priv->how_used++;
 
 	return;
 }
@@ -266,17 +259,15 @@ static void
 source_unuse (HudSource *hud_source)
 {
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+	g_warn_if_fail(app->priv->used);
+	app->priv->used = FALSE;
 
-	if (app->priv->used_source == NULL) {
-		g_warning("An asymetric number of uses");
-		return;
-	}
-
-	app->priv->how_used--;
-
-	if (app->priv->how_used == 0) {
-		hud_source_unuse(app->priv->used_source);
-		g_clear_object(&app->priv->used_source);
+	int i;
+	for (i = 0; i < app->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
+		if (context_is_current(app, context)) {
+			hud_source_unuse(HUD_SOURCE(context));
+		}
 	}
 
 	return;
@@ -289,14 +280,17 @@ source_search (HudSource *     hud_source,
                void          (*append_func) (HudResult * result, gpointer user_data),
                gpointer        user_data)
 {
-  HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
 
-  HudSource *source = get_used_source (app);
+	int i;
+	for (i = 0; i < app->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
+		if (context_is_current(app, context)) {
+			hud_source_search(HUD_SOURCE(context), search_string, append_func, user_data);
+		}
+	}
 
-  if (source != NULL )
-  {
-    hud_source_search (source, search_string, append_func, user_data);
-  }
+	return;
 }
 
 static void
@@ -305,14 +299,17 @@ source_list_applications (HudSource *     hud_source,
                           void           (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                           gpointer        user_data)
 {
-  HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
 
-  HudSource *source = get_used_source (app);
+	int i;
+	for (i = 0; i < app->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
+		if (context_is_current(app, context)) {
+			hud_source_list_applications(HUD_SOURCE(context), search_string, append_func, user_data);
+		}
+	}
 
-  if (source != NULL )
-  {
-    hud_source_list_applications (source, search_string, append_func, user_data);
-  }
+	return;
 }
 
 static HudSource *
@@ -324,7 +321,7 @@ source_get (HudSource *     hud_source,
 	if (g_strcmp0 (application_id, app->priv->app_id) == 0) {
 		return hud_source;
 	}
-	
+
 	return NULL;
 }
 
@@ -343,14 +340,17 @@ source_get_app_icon (HudSource * hud_source)
 static void
 source_activate_toolbar (HudSource * hud_source, HudClientQueryToolbarItems item, GVariant *platform_data)
 {
-  HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
 
-  HudSource *source = get_used_source (app);
+	int i;
+	for (i = 0; i < app->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
+		if (context_is_current(app, context)) {
+			hud_source_activate_toolbar (HUD_SOURCE(context), item, platform_data);
+		}
+	}
 
-  if (source != NULL )
-  {
-    hud_source_activate_toolbar (source, item, platform_data);
-  }
+	return;
 }
 
 /**
@@ -442,55 +442,12 @@ hud_application_source_new_for_id (const gchar * id)
 	}
 
 	g_signal_connect(G_OBJECT(source->priv->skel), "handle-add-sources", G_CALLBACK(dbus_add_sources), source);
+	g_signal_connect(G_OBJECT(source->priv->skel), "handle-set-window-context", G_CALLBACK(dbus_set_context), source);
 
 	g_debug("Application ('%s') path: %s", id, source->priv->path);
 	g_free(app_id_clean);
 
 	return source;
-}
-
-/* Get the collectors if we need them */
-static void
-get_collectors (HudApplicationSource * app, guint32 xid, const gchar * appid, HudDbusmenuCollector ** dcollector, HudMenuModelCollector ** mcollector)
-{
-	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
-	if (collector_list == NULL) {
-		collector_list = hud_source_list_new();
-		g_signal_connect(collector_list, "changed", G_CALLBACK(window_source_changed), app);
-		g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector_list);
-	}
-
-	HudMenuModelCollector * mm_collector = NULL;
-	HudDbusmenuCollector * dm_collector = NULL;
-	GSList * sources = hud_source_list_get_list(collector_list);
-	GSList * source;
-	for (source = sources; source != NULL; source = g_slist_next(source)) {
-		if (HUD_IS_MENU_MODEL_COLLECTOR(source->data)) {
-			mm_collector = HUD_MENU_MODEL_COLLECTOR(source->data);
-		}
-		if (HUD_IS_DBUSMENU_COLLECTOR(source->data)) {
-			dm_collector = HUD_DBUSMENU_COLLECTOR(source->data);
-		}
-	}
-	if (mm_collector == NULL) {
-		gchar * export_path = g_strdup_printf("%s/window%X", app->priv->path, xid);
-		mm_collector = hud_menu_model_collector_new(appid, NULL, 0, export_path, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
-		g_free(export_path);
-
-		if (mm_collector != NULL) {
-			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
-			g_object_unref(mm_collector);
-		}
-	}
-
-	if (dcollector != NULL) {
-		*dcollector = dm_collector;
-	}
-	if (mcollector != NULL) {
-		*mcollector = mm_collector;
-	}
-
-	return;
 }
 
 /* Handle a name disappearing off of DBus */
@@ -504,18 +461,40 @@ connection_lost (GDBusConnection * session, const gchar * name, gpointer user_da
 		return;
 	}
 
+	gboolean focused_changed = FALSE;
 	GList * idtemp;
 	for (idtemp = watcher->ids; idtemp != NULL; idtemp = g_list_next(idtemp)) {
-		g_hash_table_remove(app->priv->windows, idtemp->data);
+		guint32 winid = GPOINTER_TO_UINT(idtemp->data);
+
+		if (winid == 0) {
+			focused_changed = TRUE;
+		}
+
+		if (winid == app->priv->focused_window) {
+			focused_changed = TRUE;
+		}
+
+		int i;
+		for (i = 0; i < app->priv->contexts->len; i++) {
+			HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
+			if (hud_application_source_context_get_window_id(context) == winid) {
+				g_ptr_array_remove_index(app->priv->contexts, i);
+				i--;
+			}
+		}
 	}
 
 	g_hash_table_remove(app->priv->connections, name);
 
-	/* all the items have been removed. When application-list sees this it
-	 * will happily unref us to complete the cleanup (missing the last unref)
-	 */
-	hud_source_changed(HUD_SOURCE(app));
-	g_object_unref(app); 
+	if (focused_changed) {
+		/* If the focused window changed, let's tell everyone about it */
+		hud_source_changed(HUD_SOURCE(app));
+	} else if (app->priv->contexts->len == 0) {
+		/* If we've not gotten to the situation of no more contexts, let's tell
+		   our parent so they can reap us. */
+		hud_source_changed(HUD_SOURCE(app));
+	}
+
 	return;
 }
 
@@ -547,6 +526,40 @@ add_id_to_connection (HudApplicationSource * app, GDBusConnection * session, con
 	return;
 }
 
+/* Either find the context or build one */
+HudApplicationSourceContext *
+find_context (HudApplicationSource * app, GPtrArray * contexts, guint32 winid, const gchar * conid)
+{
+	HudApplicationSourceContext * retval = NULL;
+
+	int i;
+	for (i = 0; i < contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(contexts, i);
+
+		guint32 ctx_winid = hud_application_source_context_get_window_id(context);
+		if (ctx_winid != winid) {
+			continue;
+		}
+
+		const gchar * ctx_conid = hud_application_source_context_get_context_id(context);
+		if (g_strcmp0(conid, ctx_conid) != 0) {
+			continue;
+		}
+
+		retval = context;
+		break;
+	}
+
+	/* Can't find, must build */
+	if (retval == NULL) {
+		retval = hud_application_source_context_new(winid, conid, app->priv->app_id, hud_application_source_get_app_icon(app), app->priv->path);
+		g_signal_connect(G_OBJECT(retval), "changed", G_CALLBACK(window_source_changed), app);
+		g_ptr_array_add(contexts, retval);
+	}
+
+	return retval;
+}
+
 /* Respond to the DBus function to add sources */
 static gboolean
 dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocation * invocation, GVariant * actions, GVariant * descs, gpointer user_data)
@@ -558,7 +571,8 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	GVariantIter action_iter;
 	g_variant_iter_init(&action_iter, actions);
 
-	GVariant * id = NULL;
+	guint32 idn = 0;
+	gchar * context = NULL;
 	gchar * prefix = NULL;
 	gchar * object = NULL;
 
@@ -566,22 +580,18 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	   the models need the actions, but it'd be hard to update them
 	   if we add the actions second.  This order is the best.  Don't
 	   change it. */
-	while (g_variant_iter_loop(&action_iter, "(vso)", &id, &prefix, &object)) {
+	while (g_variant_iter_loop(&action_iter, "(usso)", &idn, &context, &prefix, &object)) {
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
 
 #ifdef HAVE_HYBRIS
-		guint32 idn = WINDOW_ID_CONSTANT;
-#else
-		guint32 idn = g_variant_get_int32(id);
+		idn = WINDOW_ID_CONSTANT;
 #endif
 
-		HudMenuModelCollector * collector = NULL;
-		get_collectors(app, idn, app->priv->app_id, NULL, &collector);
-		if (collector == NULL) continue;
+		HudApplicationSourceContext * ctx = find_context(app, app->priv->contexts, idn, NULL);
 
 		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
+		hud_application_source_context_add_action_group(ctx, G_ACTION_GROUP(ag), prefix);
 
-		hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), prefix);
 		add_id_to_connection(app, session, sender, idn);
 
 		g_object_unref(ag);
@@ -590,24 +600,50 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	GVariantIter desc_iter;
 	g_variant_iter_init(&desc_iter, descs);
 
-	while (g_variant_iter_loop(&desc_iter, "(vo)", &id, &object)) {
+	while (g_variant_iter_loop(&desc_iter, "(uso)", &idn, &context, &object)) {
 		g_debug("Adding descriptions: %s", object);
 
 #ifdef HAVE_HYBRIS
-		guint32 idn = WINDOW_ID_CONSTANT;
-#else
-		guint32 idn = g_variant_get_int32(id);
+		idn = WINDOW_ID_CONSTANT;
 #endif
 
-		HudMenuModelCollector * collector = NULL;
-		get_collectors(app, idn, app->priv->app_id, NULL, &collector);
-		if (collector == NULL) continue;
+		HudApplicationSourceContext * ctx = find_context(app, app->priv->contexts, idn, NULL);
 
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
+		hud_application_source_context_add_model(ctx, G_MENU_MODEL(model));
 
-		hud_menu_model_collector_add_model(collector, G_MENU_MODEL(model), NULL, 1);
-		g_object_unref(model);
 		add_id_to_connection(app, session, sender, idn);
+
+		g_object_unref(model);
+	}
+
+	g_dbus_method_invocation_return_value(invocation, NULL);
+	return TRUE;
+}
+
+/* Application changing the context for a window */
+static gboolean
+dbus_set_context (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocation * invocation, guint window_id, const gchar * context, gpointer user_data)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(user_data), FALSE);
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(user_data);
+
+	gboolean was_used = app->priv->used;
+
+	/* Make sure we clear the old contexts if we could have one */
+	if (was_used && window_id == app->priv->focused_window) {
+		hud_source_unuse(HUD_SOURCE(app));
+	}
+
+	/* Swap the context for this window */
+	g_hash_table_insert(app->priv->window_contexts, GUINT_TO_POINTER(window_id), g_strdup(context));
+
+	/* Return our used state */
+	if (was_used && window_id == app->priv->focused_window) {
+		hud_source_use(HUD_SOURCE(app));
+
+		/* If we did change, make sure to signal it */
+		hud_source_changed(HUD_SOURCE(app));
 	}
 
 	g_dbus_method_invocation_return_value(invocation, NULL);
@@ -627,7 +663,7 @@ hud_application_source_is_empty (HudApplicationSource * app)
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), TRUE);
 
-	return (g_hash_table_size(app->priv->windows) == 0);
+	return (app->priv->contexts->len == 0);
 }
 
 /**
@@ -705,7 +741,12 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 		app->priv->bamf_app = g_object_ref(bapp);
 	}
 
-	g_return_if_fail(app->priv->bamf_app == bapp);
+	/* Check to make sure we're getting the right events */
+	if (G_UNLIKELY(app->priv->bamf_app != bapp)) {
+		g_critical("App '%s' has been given focus events for '%s'", bamf_application_get_desktop_file(app->priv->bamf_app), bamf_application_get_desktop_file(bapp));
+		return;
+	}
+
 #endif
 #ifdef HAVE_HYBRIS
 	if (app->priv->desktop_file == NULL) {
@@ -807,11 +848,26 @@ window_destroyed (gpointer data, GObject * old_address)
 	window_info_t * window_info = (window_info_t *)data;
 
 	window_info->window = NULL;
+	HudApplicationSource * source = window_info->source;
+	guint32 xid = window_info->xid;
 
-	if (window_info->source->priv->focused_window == window_info->xid) {
-		g_clear_object(&window_info->source->priv->used_source);
+	int i;
+	for (i = 0; i < source->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(source->priv->contexts, i);
+
+		guint32 ctx_winid = hud_application_source_context_get_window_id(context);
+		if (ctx_winid != xid) {
+			continue;
+		}
+
+		g_ptr_array_remove_index(source->priv->contexts, i);
+		i--;
 	}
-	g_hash_table_remove(window_info->source->priv->windows, GINT_TO_POINTER(window_info->xid));
+
+	if (xid == source->priv->focused_window) {
+		hud_source_changed(HUD_SOURCE(window_info->source));
+	}
+
 	/* NOTE: DO NOT use the window_info after this point as
 	   it may be free'd by the remove above. */
 
@@ -880,29 +936,11 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	g_object_weak_ref(G_OBJECT(window), window_destroyed, window_info);
 #endif
 
-	HudSourceList * collector_list = g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid));
-	if (collector_list == NULL) {
-		collector_list = hud_source_list_new();
-		g_signal_connect(collector_list, "changed", G_CALLBACK(window_source_changed), app);
-		g_hash_table_insert(app->priv->windows, GINT_TO_POINTER(xid), collector_list);
-	}
+	HudApplicationSourceContext * context = find_context(app, app->priv->contexts, xid, NULL);
 
 	/* We're managing the lifecycle of the window info here as
 	   that allows it to have some sort of destroy function */
-	g_object_set_data_full(G_OBJECT(collector_list), "hud-application-source-window-info", window_info, free_window_info);
-
-	HudMenuModelCollector * mm_collector = NULL;
-	HudDbusmenuCollector * dm_collector = NULL;
-	GSList * sources = hud_source_list_get_list(collector_list);
-	GSList * source;
-	for (source = sources; source != NULL; source = g_slist_next(source)) {
-		if (HUD_IS_MENU_MODEL_COLLECTOR(source->data)) {
-			mm_collector = HUD_MENU_MODEL_COLLECTOR(source->data);
-		}
-		if (HUD_IS_DBUSMENU_COLLECTOR(source->data)) {
-			dm_collector = HUD_DBUSMENU_COLLECTOR(source->data);
-		}
-	}
+	g_object_set_data_full(G_OBJECT(context), "hud-application-source-window-info", window_info, free_window_info);
 
 #ifdef HAVE_BAMF
 	gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
@@ -925,31 +963,8 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 		app_iface_com_canonical_hud_application_set_icon(app->priv->skel, icon);
 	}
 
-	if (mm_collector == NULL) {
-		gchar * export_path = g_strdup_printf("%s/window%X", app->priv->path, xid);
-		mm_collector = hud_menu_model_collector_new(app_id, icon, 0, export_path, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
-		g_free(export_path);
+	hud_application_source_context_add_window(context, window);
 
-		if (mm_collector != NULL) {
-#ifdef HAVE_BAMF
-			hud_menu_model_collector_add_window(mm_collector, window);
-#endif
-#ifdef HAVE_HYBRIS
-			/* We only have GApplication based windows on the desktop, so we don't need this currently */
-#endif
-			hud_source_list_add(collector_list, HUD_SOURCE(mm_collector));
-			g_object_unref(mm_collector);
-		}
-	}
-
-	if (dm_collector == NULL) {
-		dm_collector = hud_dbusmenu_collector_new_for_window(window, app_id, icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
-
-		if (dm_collector != NULL) {
-			hud_source_list_add(collector_list, HUD_SOURCE(dm_collector));
-			g_object_unref(dm_collector);
-		}
-	}
 	g_free (app_id);
 
 	return;
@@ -969,21 +984,34 @@ hud_application_source_has_xid (HudApplicationSource * app, guint32 xid)
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), FALSE);
 
-	return g_hash_table_lookup(app->priv->windows, GINT_TO_POINTER(xid)) != NULL;
+	int i;
+	for (i = 0; i < app->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
+
+		guint32 ctx_winid = hud_application_source_context_get_window_id(context);
+		if (ctx_winid != xid) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }
 
+/* Gets all the items for the sources */
 static GList *
 source_get_items (HudSource * object)
 {
-  g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(object), NULL);
-  HudApplicationSource *app = HUD_APPLICATION_SOURCE(object);
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(object), NULL);
+	HudApplicationSource *app = HUD_APPLICATION_SOURCE(object);
+	GList * retval = NULL;
 
-  HudSource *source = get_used_source (app);
+	int i;
+	for (i = 0; i < app->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
+		if (context_is_current(app, context)) {
+			retval = g_list_concat(hud_source_get_items(HUD_SOURCE(context)), retval);
+		}
+	}
 
-  if (source != NULL )
-  {
-    return hud_source_get_items (source);
-  }
-
-  return NULL ;
+	return retval;
 }

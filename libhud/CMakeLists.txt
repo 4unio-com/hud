@@ -16,12 +16,16 @@ include_directories(${HUD_SRC_DIR})
 
 add_definitions( -DHUD_COMPILATION=1 )
 
+if(${FULL_WARNINGS})
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+endif()
+
 ###########################
 # Version Information
 ###########################
 
-set(API_VERSION 1)
-set(ABI_VERSION 1)
+set(API_VERSION 2)
+set(ABI_VERSION 2)
 
 ###########################
 # Generated Lib Hud
@@ -123,20 +127,20 @@ if(${INTROSPECTION_FOUND})
   set(INTROSPECTION_GIRS)
 
   set(_introspection_files ${HUD_SOURCES} ${HUD_HEADERS})
-  set(Hud_1_gir "hud")
-  set(Hud_1_gir_INCLUDES GObject-2.0)
+  set(Hud_2_gir "hud")
+  set(Hud_2_gir_INCLUDES GObject-2.0)
   
   gir_get_cflags(_cflags)
-  set(Hud_1_gir_CFLAGS ${_cflags})
+  set(Hud_2_gir_CFLAGS ${_cflags})
   
-  set(Hud_1_gir_LIBS hud)
+  set(Hud_2_gir_LIBS hud)
   
   list_make_absolute(_abs_introspection_files _introspection_files "${CMAKE_CURRENT_SOURCE_DIR}/")
-  set(Hud_1_gir_FILES ${_abs_introspection_files})
-  set(Hud_1_gir_SCANNERFLAGS --c-include "hud.h")
-  set(Hud_1_gir_EXPORT_PACKAGES "hud-${API_VERSION}")
+  set(Hud_2_gir_FILES ${_abs_introspection_files})
+  set(Hud_2_gir_SCANNERFLAGS --c-include "hud.h")
+  set(Hud_2_gir_EXPORT_PACKAGES "hud-${API_VERSION}")
 
-  list(APPEND INTROSPECTION_GIRS Hud-1.gir)
+  list(APPEND INTROSPECTION_GIRS Hud-2.gir)
   gir_add_introspections(INTROSPECTION_GIRS)
 else()
   message("Not performing GIR as required tools not found")
@@ -151,11 +155,11 @@ if(${INTROSPECTION_FOUND})
 
 vapi_gen(hud-vapi
   INPUT
-  	Hud-1.gir
+  	Hud-2.gir
   PACKAGES
     gio-2.0
   LIBRARY
-    Hud-1
+    Hud-2
 )
 
 install(

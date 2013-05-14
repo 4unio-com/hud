@@ -50,9 +50,11 @@ struct _HudActionPublisher
 {
   GObject parent_instance;
 
+  guint window_id;
+  gchar * context_id;
+
   GDBusConnection *bus;
   GApplication *application;
-  GVariant * id;
   gint export_id;
   gchar *path;
 
@@ -167,8 +169,6 @@ hud_action_publisher_dispose (GObject *object)
 {
   HudActionPublisher *self = HUD_ACTION_PUBLISHER(object);
 
-  g_clear_pointer(&self->id, g_variant_unref);
-
   g_clear_object(&self->aux);
   g_clear_object(&self->application);
 
@@ -188,6 +188,8 @@ hud_action_publisher_dispose (GObject *object)
 static void
 hud_action_publisher_finalize (GObject *object)
 {
+  g_clear_pointer (&HUD_ACTION_PUBLISHER(object)->context_id, g_free);
+
   G_OBJECT_CLASS (hud_action_publisher_parent_class)->finalize (object);
   return;
 }
@@ -283,27 +285,33 @@ hud_action_publisher_new_for_application (GApplication *application)
   return publisher;
 }
 
+static guint context_count = 0;
+
 /**
- * hud_action_publisher_new_for_id:
- * @id: A window ID
+ * hud_action_publisher_new:
+ * @window_id: (allow-none): A window ID
+ * @context_id: (allow-none): A context ID
  *
  * Creates a new #HudActionPublisher based on the window ID passed
- * in via @id.
+ * in via @window_id and context ID from @context_id.
+ *
+ * Either one of them can be not used by passing in eithe of the
+ * defines #HUD_ACTION_PUBLISHER_ALL_WINDOWS or #HUD_ACTION_PUBLISHER_NO_CONTEXT
+ * for the appropriate parameter.
  *
  * Return value: (transfer full): A new #HudActionPublisher object
  */
 HudActionPublisher *
-hud_action_publisher_new_for_id (GVariant * id)
+hud_action_publisher_new (guint window_id, const gchar * context_id)
 {
 	HudActionPublisher * publisher;
 	publisher = g_object_new (HUD_TYPE_ACTION_PUBLISHER, NULL);
-	if (id != NULL)
-	{
-	  publisher->id = g_variant_ref_sink(id);
-	}
-	else
-	{
-	  publisher->id = g_variant_ref_sink(g_variant_new_int32(-1));
+	publisher->window_id = window_id;
+
+	if (context_id != NULL) {
+		publisher->context_id = g_strdup(context_id);
+	} else {
+		publisher->context_id = g_strdup_printf("action-publisher-context-%d", context_count++);
 	}
 
 	return publisher;
@@ -410,6 +418,73 @@ hud_action_publisher_add_description (HudActionPublisher   *publisher,
 }
 
 /**
+ * hud_action_publisher_remove_description:
+ * @publisher: the #HudActionPublisher
+ * @action_name: an action name
+ * @action_target: (allow-none): an action target
+ *
+ * Removes the action descriptions that has the name @action_name and
+ * the target value @action_target (including the possibility of %NULL).
+ **/
+void
+hud_action_publisher_remove_description (HudActionPublisher *publisher,
+                                         const gchar        *action_name,
+                                         GVariant           *action_target)
+{
+  HudActionDescription tmp;
+  GSequenceIter *iter;
+
+  tmp.identifier = format_identifier (action_name, action_target);
+  iter = g_sequence_lookup (publisher->descriptions, &tmp, compare_descriptions, NULL);
+  g_free (tmp.identifier);
+
+  if (iter)
+    {
+      gint position;
+
+      position = g_sequence_iter_get_position (iter);
+      disconnect_handler (g_sequence_get (iter), publisher);
+      g_sequence_remove (iter);
+
+      g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), position, 1, 0);
+    }
+}
+
+/**
+ * hud_action_publisher_remove_descriptions:
+ * @publisher: the #HudActionPublisher
+ * @action_name: an action name
+ *
+ * Removes all action descriptions that has the name @action_name and
+ * any target value.
+ **/
+void
+hud_action_publisher_remove_descriptions (HudActionPublisher *publisher,
+                                          const gchar        *action_name)
+{
+  HudActionDescription before, after;
+  GSequenceIter *start, *end;
+
+  before.identifier = (gchar *) action_name;
+  after.identifier = g_strconcat (action_name, "~", NULL);
+  start = g_sequence_search (publisher->descriptions, &before, compare_descriptions, NULL);
+  end = g_sequence_search (publisher->descriptions, &after, compare_descriptions, NULL);
+  g_free (after.identifier);
+
+  if (start != end)
+    {
+      gint s, e;
+
+      s = g_sequence_iter_get_position (start);
+      e = g_sequence_iter_get_position (end);
+      g_sequence_foreach_range (start, end, disconnect_handler, publisher);
+      g_sequence_remove_range (start, end);
+
+      g_menu_model_items_changed (G_MENU_MODEL (publisher->aux), s, e - s, 0);
+    }
+}
+
+/**
  * hud_action_publisher_add_action_group:
  * @publisher: a #HudActionPublisher
  * @prefix: the action prefix for the group (like "app")
@@ -456,7 +531,7 @@ hud_action_publisher_add_action_group (HudActionPublisher *publisher,
  * hud_action_publisher_remove_action_group:
  * @publisher: a #HudActionPublisher
  * @prefix: the action prefix for the group (like "app")
- * @identifier: (allow none): an identifier, or %NULL
+ * @identifier: (allow-none): an identifier, or %NULL
  *
  * Informs the HUD that an action group no longer exists.
  *
@@ -472,19 +547,35 @@ hud_action_publisher_remove_action_group (HudActionPublisher *publisher,
 }
 
 /**
- * hud_action_publisher_get_id:
+ * hud_action_publisher_get_window_id:
  * @publisher: A #HudActionPublisher object
  *
- * Grabs the ID for this publisher
+ * Gets the window ID for this publisher
  *
- * Return value: (transfer none): The ID this publisher was created with
+ * Return value: The Window ID associtaed with this action publisher
  */
-GVariant *
-hud_action_publisher_get_id (HudActionPublisher    *publisher)
+guint
+hud_action_publisher_get_window_id (HudActionPublisher    *publisher)
 {
-	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), NULL);
-	return publisher->id;
+	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), 0);
+	return publisher->window_id;
 }
+
+/**
+ * hud_action_publisher_get_context_id:
+ * @publisher: A #HudActionPublisher object
+ *
+ * Gets the context ID for this publisher
+ *
+ * Return value: The context ID associtaed with this action publisher
+ */
+const gchar *
+hud_action_publisher_get_context_id (HudActionPublisher    *publisher)
+{
+	g_return_val_if_fail(HUD_IS_ACTION_PUBLISHER(publisher), 0);
+	return publisher->context_id;
+}
+
 
 /**
  * hud_action_publisher_get_action_groups:
@@ -606,7 +697,7 @@ hud_action_description_new (const gchar *action_name,
  * hud_action_description_set_attribute_value:
  * @description: a #HudActionDescription
  * @attribute_name: an attribute name
- * @value: (allow none): the new value for the attribute
+ * @value: (allow-none): the new value for the attribute
  *
  * Sets or unsets an attribute on @description.
  *
@@ -641,7 +732,7 @@ hud_action_description_set_attribute_value (HudActionDescription *description,
  * hud_action_description_set_attribute:
  * @description: a #HudActionDescription
  * @attribute_name: an attribute name
- * @format_string: (allow none): a #GVariant format string
+ * @format_string: (allow-none): a #GVariant format string
  * @...: arguments to @format_string
  *
  * Sets or unsets an attribute on @description.
