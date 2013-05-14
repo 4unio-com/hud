@@ -12,6 +12,10 @@ PARENT_SCOPE
 include_directories(${HUD_SERVICE_INCLUDE_DIRS})
 include_directories(${HUD_CLIENT_INCLUDE_DIRS})
 
+if(${FULL_WARNINGS})
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+endif()
+
 ###########################
 # Generated Lib Hud Service
 ###########################

@@ -88,6 +88,11 @@ static gboolean dbus_add_sources              (AppIfaceComCanonicalHudApplicatio
                                                GVariant *                  actions,
                                                GVariant *                  descs,
                                                gpointer                    user_data);
+static gboolean dbus_set_context              (AppIfaceComCanonicalHudApplication * skel,
+                                               GDBusMethodInvocation *     invocation,
+                                               guint                       window_id,
+                                               const gchar *               context,
+                                               gpointer                    user_data);
 static GList * source_get_items               (HudSource *                 object);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationSource, hud_application_source, G_TYPE_OBJECT,
@@ -442,6 +447,7 @@ hud_application_source_new_for_id (const gchar * id)
 	}
 
 	g_signal_connect(G_OBJECT(source->priv->skel), "handle-add-sources", G_CALLBACK(dbus_add_sources), source);
+	g_signal_connect(G_OBJECT(source->priv->skel), "handle-set-window-context", G_CALLBACK(dbus_set_context), source);
 
 	g_debug("Application ('%s') path: %s", id, source->priv->path);
 	g_free(app_id_clean);
@@ -558,7 +564,8 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	GVariantIter action_iter;
 	g_variant_iter_init(&action_iter, actions);
 
-	GVariant * id = NULL;
+	guint32 idn = 0;
+	gchar * context = NULL;
 	gchar * prefix = NULL;
 	gchar * object = NULL;
 
@@ -566,13 +573,11 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	   the models need the actions, but it'd be hard to update them
 	   if we add the actions second.  This order is the best.  Don't
 	   change it. */
-	while (g_variant_iter_loop(&action_iter, "(vso)", &id, &prefix, &object)) {
+	while (g_variant_iter_loop(&action_iter, "(usso)", &idn, &context, &prefix, &object)) {
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
 
 #ifdef HAVE_HYBRIS
-		guint32 idn = WINDOW_ID_CONSTANT;
-#else
-		guint32 idn = g_variant_get_int32(id);
+		idn = WINDOW_ID_CONSTANT;
 #endif
 
 		HudMenuModelCollector * collector = NULL;
@@ -590,13 +595,11 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	GVariantIter desc_iter;
 	g_variant_iter_init(&desc_iter, descs);
 
-	while (g_variant_iter_loop(&desc_iter, "(vo)", &id, &object)) {
+	while (g_variant_iter_loop(&desc_iter, "(uso)", &idn, &context, &object)) {
 		g_debug("Adding descriptions: %s", object);
 
 #ifdef HAVE_HYBRIS
-		guint32 idn = WINDOW_ID_CONSTANT;
-#else
-		guint32 idn = g_variant_get_int32(id);
+		idn = WINDOW_ID_CONSTANT;
 #endif
 
 		HudMenuModelCollector * collector = NULL;
@@ -609,6 +612,16 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		g_object_unref(model);
 		add_id_to_connection(app, session, sender, idn);
 	}
+
+	g_dbus_method_invocation_return_value(invocation, NULL);
+	return TRUE;
+}
+
+/* Application changing the context for a window */
+static gboolean
+dbus_set_context (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocation * invocation, guint window_id, const gchar * context, gpointer user_data)
+{
+	/* TODO: Use the data for something useful */
 
 	g_dbus_method_invocation_return_value(invocation, NULL);
 	return TRUE;
