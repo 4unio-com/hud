@@ -357,7 +357,7 @@ hud_query_refresh (HudQuery *query)
 
   /* Get the list of toolbar items */
   if (search_source != NULL) {
-	/* Note: 5 is here because we know that's the most number today, it's
+    /* Note: 5 is here because we know that's the highest number today, it's
        probably going to be for the forseeable future.  But things could change
        and it's kinda arbitrary.  Feel free to change it, but update this
        comment when you do. */
