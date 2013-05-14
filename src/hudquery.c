@@ -357,13 +357,18 @@ hud_query_refresh (HudQuery *query)
 
   /* Get the list of toolbar items */
   if (search_source != NULL) {
+	/* Note: 5 is here because we know that's the most number today, it's
+       probably going to be for the forseeable future.  But things could change
+       and it's kinda arbitrary.  Feel free to change it, but update this
+       comment when you do. */
     GArray * toolbars = g_array_sized_new(TRUE, FALSE, sizeof(const gchar *), 5);
 
-    /* TODO: Search the search source */
+    hud_source_get_toolbar_entries(search_source, toolbars);
 
     hud_query_iface_com_canonical_hud_query_set_toolbar_items(query->skel, (const gchar* const*)toolbars->data);
     g_array_unref(toolbars);	
   } else {
+    /* No source no toolbar */
     const gchar * nulllist[1] = {NULL};
     hud_query_iface_com_canonical_hud_query_set_toolbar_items(query->skel, nulllist);
   }
