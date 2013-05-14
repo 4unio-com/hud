@@ -355,6 +355,19 @@ hud_query_refresh (HudQuery *query)
   /* Thanks hash ol' friend */
   g_hash_table_unref(appstack_hash);
 
+  /* Get the list of toolbar items */
+  if (search_source != NULL) {
+    GArray * toolbars = g_array_sized_new(TRUE, FALSE, sizeof(const gchar *), 5);
+
+    /* TODO: Search the search source */
+
+    hud_query_iface_com_canonical_hud_query_set_toolbar_items(query->skel, (const gchar* const*)toolbars->data);
+    g_array_unref(toolbars);	
+  } else {
+    const gchar * nulllist[1] = {NULL};
+    hud_query_iface_com_canonical_hud_query_set_toolbar_items(query->skel, nulllist);
+  }
+
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
 
   g_object_set(G_OBJECT(query->skel), "current-query", query->search_string, NULL);
