@@ -295,6 +295,8 @@ parse_toolbar (_HudQueryComCanonicalHudQuery * proxy, G_GNUC_UNUSED GParamSpec *
 		g_array_append_val(query->priv->toolbar, item);
 	}
 
+	g_signal_emit(G_OBJECT(query), signal_toolbar_updated, 0, NULL);
+
 	return;
 }
 
