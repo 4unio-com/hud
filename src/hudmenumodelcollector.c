@@ -154,6 +154,8 @@ static void hud_menu_model_collector_hud_awareness_cb (GObject      *source,
                                                        GAsyncResult *result,
                                                        gpointer      user_data);
 static GList * hud_menu_model_collector_get_items (HudSource * source);
+static void hud_menu_model_collector_get_toolbar_entries (HudSource * source,
+                                                          GArray * toolbar);
 static void hud_menu_model_collector_activate_toolbar (HudSource *   source,
                                                        HudClientQueryToolbarItems titem,
                                                        GVariant  *   platform_data);
@@ -958,6 +960,35 @@ hud_menu_model_collector_get (HudSource   *source,
   return NULL;
 }
 
+/* Go through the items, find those with toolbar fields that are enabled
+   and add them to the list */
+static void
+hud_menu_model_collector_get_toolbar_entries (HudSource * source, GArray * toolbar)
+{
+  HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
+
+  gint i;
+  for (i = 0; i < collector->items->len; i++) {
+    HudModelItem * item = g_ptr_array_index(collector->items, i);
+    if (item->toolbar_item == -1) continue;
+    if (!g_action_group_get_action_enabled(G_ACTION_GROUP(item->group), item->action_name)) continue;
+
+    const gchar * nick = hud_client_query_toolbar_items_get_nick(item->toolbar_item);
+    int i;
+    for (i = 0; i < toolbar->len; i++) {
+      if (g_array_index(toolbar, const gchar *, i) == nick) {
+        break;
+      }
+    }
+
+    if (i == toolbar->len) {
+      g_array_append_val(toolbar, nick);
+    }
+  }
+
+  return;
+}
+
 static void
 hud_menu_model_collector_activate_toolbar (HudSource * source,
                               HudClientQueryToolbarItems titem,
@@ -1044,6 +1075,7 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->list_applications = hud_menu_model_collector_list_applications;
   iface->get = hud_menu_model_collector_get;
   iface->get_items = hud_menu_model_collector_get_items;
+  iface->get_toolbar_entries = hud_menu_model_collector_get_toolbar_entries;
   iface->activate_toolbar = hud_menu_model_collector_activate_toolbar;
   iface->get_app_id = hud_menu_model_collector_get_app_id;
   iface->get_app_icon = hud_menu_model_collector_get_app_icon;
