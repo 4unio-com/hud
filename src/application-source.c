@@ -76,6 +76,8 @@ static void source_list_applications          (HudSource *                 hud_s
                                                HudTokenList *              search_string,
                                                void                      (*append_func) (const gchar *application_id, const gchar *application_icon, HudSourceItemType type, gpointer user_data),
                                                gpointer                    user_data);
+static void source_get_toolbar_entries        (HudSource *                 hud_source,
+                                               GArray *                    toolbar);
 static void source_activate_toolbar           (HudSource *                 hud_source,
                                                HudClientQueryToolbarItems  item,
                                                GVariant                   *platform_data);
@@ -122,6 +124,7 @@ source_iface_init (HudSourceInterface *iface)
 	iface->list_applications = source_list_applications;
 	iface->get = source_get;
 	iface->get_items = source_get_items;
+	iface->get_toolbar_entries = source_get_toolbar_entries;
 	iface->activate_toolbar = source_activate_toolbar;
 	iface->get_app_id = source_get_app_id;
 	iface->get_app_icon = source_get_app_icon;
@@ -335,6 +338,22 @@ static const gchar *
 source_get_app_icon (HudSource * hud_source)
 {
 	return hud_application_source_get_app_icon(HUD_APPLICATION_SOURCE(hud_source));
+}
+
+static void
+source_get_toolbar_entries (HudSource * hud_source, GArray * toolbar)
+{
+	HudApplicationSource * app = HUD_APPLICATION_SOURCE(hud_source);
+
+	int i;
+	for (i = 0; i < app->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
+		if (context_is_current(app, context)) {
+			hud_source_get_toolbar_entries (HUD_SOURCE(context), toolbar);
+		}
+	}
+
+	return;
 }
 
 static void
