@@ -587,7 +587,13 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		idn = WINDOW_ID_CONSTANT;
 #endif
 
-		HudApplicationSourceContext * ctx = find_context(app, app->priv->contexts, idn, context);
+		/* Catch the NULL string case */
+		gchar * refinedcontext = NULL;
+		if (context != NULL && context[0] != '\0') {
+			refinedcontext = context;
+		}
+
+		HudApplicationSourceContext * ctx = find_context(app, app->priv->contexts, idn, refinedcontext);
 
 		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
 		hud_application_source_context_add_action_group(ctx, G_ACTION_GROUP(ag), prefix);
