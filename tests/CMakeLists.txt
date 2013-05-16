@@ -65,6 +65,18 @@ target_link_libraries(test-menu-input-model-toolbar-undo
   ${GIO2_LIBRARIES}
 )
 
+#######################################
+# Menu input model toolbar unknown item
+#######################################
+
+add_definitions(-DMODEL_TOOLBAR_UNKNOWN="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-toolbar-unknown")
+
+add_executable(test-menu-input-model-toolbar-unknown test-menu-input-model-toolbar-unknown.c)
+target_link_libraries(test-menu-input-model-toolbar-unknown
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
 #######################
 # TEST MACRO
 #######################
