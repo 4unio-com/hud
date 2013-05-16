@@ -376,6 +376,53 @@ test_menus_model_deep (void)
 	hud_test_utils_process_mainloop(100);
 }
 
+/* Find an item in the toolbar, undo */
+static void
+test_menus_model_toolbar_undo (void) 
+{
+	DbusTestService * service = NULL;
+	GDBusConnection * session = NULL;
+
+	hud_test_utils_start_model_mock_app(&service, &session, MODEL_TOOLBAR_UNDO);
+
+	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
+	                                                                 "no-icon",
+	                                                                 0, /* penalty */
+	                                                                 "/test/collector",
+	                                                                 HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+
+	g_assert(collector != NULL);
+	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	hud_test_utils_process_mainloop(100);
+	
+	hud_menu_model_collector_add_endpoint(collector,
+	                                      "Prefix",
+	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH,
+	                                      HUD_TEST_UTILS_LOADER_PATH);
+
+	hud_test_utils_process_mainloop(100);
+
+	hud_source_use(HUD_SOURCE(collector));
+
+	GArray * toolbar = g_array_new(TRUE, FALSE, sizeof(const gchar *));
+	hud_source_get_toolbar_entries(HUD_SOURCE(collector), toolbar);
+
+	g_assert_cmpint(toolbar->len, ==, 1);
+	g_assert_cmpstr(g_array_index(toolbar, const gchar *, 0), ==, "undo");
+
+	g_array_unref(toolbar);
+
+	hud_source_unuse(HUD_SOURCE(collector));
+
+	g_object_unref(collector);
+	g_object_unref(service);
+
+	hud_test_utils_wait_for_connection_close(session);
+}
+
+
 
 /* Build the test suite */
 static void
@@ -386,6 +433,7 @@ test_menu_input_suite (void)
 	g_test_add_func ("/hud/menus/model/base",             test_menus_model_base);
 	g_test_add_func ("/hud/menus/model/shortcuts",        test_menus_model_shortcuts);
 	g_test_add_func ("/hud/menus/model/deep",             test_menus_model_deep);
+	g_test_add_func ("/hud/menus/model/toolbar/undo",     test_menus_model_toolbar_undo);
 
 	return;
 }

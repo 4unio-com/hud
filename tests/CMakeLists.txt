@@ -53,6 +53,18 @@ target_link_libraries(test-menu-input-model-shortcuts
   ${GIO2_LIBRARIES}
 )
 
+####################################
+# Menu input model toolbar undo item
+####################################
+
+add_definitions(-DMODEL_TOOLBAR_UNDO="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-toolbar-undo")
+
+add_executable(test-menu-input-model-toolbar-undo test-menu-input-model-toolbar-undo.c)
+target_link_libraries(test-menu-input-model-toolbar-undo
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
 #######################
 # TEST MACRO
 #######################
