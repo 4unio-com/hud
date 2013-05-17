@@ -467,6 +467,77 @@ test_menus_model_toolbar_unknown (void)
 	hud_test_utils_wait_for_connection_close(session);
 }
 
+/* Find all the items in the toolbar */
+static void
+test_menus_model_toolbar_all (void) 
+{
+	DbusTestService * service = NULL;
+	GDBusConnection * session = NULL;
+
+	hud_test_utils_start_model_mock_app(&service, &session, MODEL_TOOLBAR_ALL);
+
+	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
+	                                                                 "no-icon",
+	                                                                 0, /* penalty */
+	                                                                 "/test/collector",
+	                                                                 HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+
+	g_assert(collector != NULL);
+	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	hud_test_utils_process_mainloop(100);
+	
+	hud_menu_model_collector_add_endpoint(collector,
+	                                      "Prefix",
+	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH,
+	                                      HUD_TEST_UTILS_LOADER_PATH);
+
+	hud_test_utils_process_mainloop(100);
+
+	hud_source_use(HUD_SOURCE(collector));
+
+	GArray * toolbar = g_array_new(TRUE, FALSE, sizeof(const gchar *));
+	hud_source_get_toolbar_entries(HUD_SOURCE(collector), toolbar);
+
+	g_assert_cmpint(toolbar->len, ==, 4);
+
+	gboolean found_undo = FALSE;
+	gboolean found_fullscreen = FALSE;
+	gboolean found_preferences = FALSE;
+	gboolean found_help = FALSE;
+
+	int i;
+	for (i = 0; i < toolbar->len; i++) {
+		const gchar * item = g_array_index(toolbar, const gchar *, i);
+		if (g_strcmp0(item, "undo") == 0) {
+			found_undo = TRUE;
+		}
+		if (g_strcmp0(item, "fullscreen") == 0) {
+			found_fullscreen = TRUE;
+		}
+		if (g_strcmp0(item, "preferences") == 0) {
+			found_preferences = TRUE;
+		}
+		if (g_strcmp0(item, "help") == 0) {
+			found_help = TRUE;
+		}
+	}
+
+	g_assert(found_undo);
+	g_assert(found_fullscreen);
+	g_assert(found_preferences);
+	g_assert(found_help);
+
+	g_array_unref(toolbar);
+
+	hud_source_unuse(HUD_SOURCE(collector));
+
+	g_object_unref(collector);
+	g_object_unref(service);
+
+	hud_test_utils_wait_for_connection_close(session);
+}
 
 
 /* Build the test suite */
@@ -480,6 +551,7 @@ test_menu_input_suite (void)
 	g_test_add_func ("/hud/menus/model/deep",             test_menus_model_deep);
 	g_test_add_func ("/hud/menus/model/toolbar/undo",     test_menus_model_toolbar_undo);
 	g_test_add_func ("/hud/menus/model/toolbar/unknown",  test_menus_model_toolbar_unknown);
+	g_test_add_func ("/hud/menus/model/toolbar/all",      test_menus_model_toolbar_all);
 
 	return;
 }

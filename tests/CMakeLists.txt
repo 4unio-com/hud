@@ -77,6 +77,18 @@ target_link_libraries(test-menu-input-model-toolbar-unknown
   ${GIO2_LIBRARIES}
 )
 
+####################################
+# Menu input model toolbar all items
+####################################
+
+add_definitions(-DMODEL_TOOLBAR_ALL="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-toolbar-all")
+
+add_executable(test-menu-input-model-toolbar-all test-menu-input-model-toolbar-all.c)
+target_link_libraries(test-menu-input-model-toolbar-all
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
 #######################
 # TEST MACRO
 #######################
