@@ -287,7 +287,7 @@ parse_toolbar (_HudQueryComCanonicalHudQuery * proxy, G_GNUC_UNUSED GParamSpec *
 	}
 
 	const gchar * const * items = NULL;
-	items = _hud_query_com_canonical_hud_query_get_toolbar_items(query->priv->query);
+	items = _hud_query_com_canonical_hud_query_get_toolbar_items(proxy);
 
 	int i;
 	for (i = 0; items[i] != NULL; i++) {
