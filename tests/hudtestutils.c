@@ -132,6 +132,26 @@ dbus_mock_add_method (GDBusConnection *connection,
 }
 
 void
+dbus_mock_update_property (GDBusConnection *connection,
+    const gchar *bus_name, const gchar *path, const gchar *interface,
+    const gchar *name, GVariant * value)
+{
+  GError *error;
+
+  /* interface, name, in_sig, out_sig, code */
+  error = NULL;
+  g_dbus_connection_call_sync (connection, bus_name, path,
+      "org.freedesktop.DBus.Properties", "Set",
+      g_variant_new("(ssv)", interface, name, value), NULL,
+      G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+  if (error)
+  {
+    g_warning("%s %s\n", "The request failed:", error->message);
+    g_error_free (error);
+  }
+}
+
+void
 dbus_mock_get_method_calls (GDBusConnection *connection,
     const gchar *bus_name, const gchar *path, const gchar *method_name,
     GVariant **response)
