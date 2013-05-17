@@ -516,6 +516,8 @@ hud_test_utils_start_hud_service (DbusTestService **service,
         g_variant_new_string ("com.canonical.hud.query0.results"));
     dbus_mock_property_append (properties, "AppstackModel",
         g_variant_new_string ("com.canonical.hud.query0.appstack"));
+    dbus_mock_property_append (properties, "ToolbarItems",
+        g_variant_new_array (G_VARIANT_TYPE_STRING, NULL, 0));
     DBusMockMethods* methods = dbus_mock_new_methods ();
     dbus_mock_methods_append (methods, "UpdateQuery", "s", "i", "ret = 1");
     dbus_mock_methods_append (methods, "VoiceQuery", "", "is", "ret = (1, 'voice query')");
