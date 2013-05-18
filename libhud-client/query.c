@@ -283,7 +283,7 @@ static void
 parse_toolbar (_HudQueryComCanonicalHudQuery * proxy, G_GNUC_UNUSED GParamSpec * paramspec, HudClientQuery * query)
 {
 	if (query->priv->toolbar->len > 0) {
-		g_array_remove_range(query->priv->toolbar, 0, query->priv->toolbar->len - 1);
+		g_array_remove_range(query->priv->toolbar, 0, query->priv->toolbar->len);
 	}
 
 	const gchar * const * items = NULL;
@@ -292,6 +292,7 @@ parse_toolbar (_HudQueryComCanonicalHudQuery * proxy, G_GNUC_UNUSED GParamSpec *
 	int i;
 	for (i = 0; items[i] != NULL; i++) {
 		HudClientQueryToolbarItems item = hud_client_query_toolbar_items_get_value_from_nick(items[i]);
+		if (item == -1) continue;
 		g_array_append_val(query->priv->toolbar, item);
 	}
 
