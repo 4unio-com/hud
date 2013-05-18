@@ -482,6 +482,45 @@ test_query_toolbar_enabled (void)
   g_assert(hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES));
   g_assert(hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_UNDO));
 
+  /* Check the array */
+  GArray * toolbar = hud_client_query_get_active_toolbar(query);
+  g_assert_cmpint(toolbar->len, ==, 4);
+
+  gboolean found_undo = FALSE;
+  gboolean found_help = FALSE;
+  gboolean found_prefs = FALSE;
+  gboolean found_full = FALSE;
+
+  int i;
+  for (i = 0; i < toolbar->len; i++) {
+    switch (g_array_index(toolbar, int, i)) {
+    case HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN:
+      g_assert(!found_full);
+      found_full = TRUE;
+      break;
+    case HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES:
+      g_assert(!found_prefs);
+      found_prefs = TRUE;
+      break;
+    case HUD_CLIENT_QUERY_TOOLBAR_UNDO:
+      g_assert(!found_undo);
+      found_undo = TRUE;
+      break;
+    case HUD_CLIENT_QUERY_TOOLBAR_HELP:
+      g_assert(!found_help);
+      found_help = TRUE;
+      break;
+    default:
+      g_assert_not_reached();
+	}
+  }
+
+
+  g_assert(found_undo);
+  g_assert(found_help);
+  g_assert(found_prefs);
+  g_assert(found_full);
+
   /* Clean up */
   g_object_unref(query);
 
