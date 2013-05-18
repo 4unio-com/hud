@@ -7,7 +7,9 @@ hud (13.10.1-0ubuntu1~ppa1) UNRELEASED; urgency=low
   * debian/control:
     - Update Vcs-Bzr and Vcs-Browser to point to the correct branches for
       phablet.
-  * debian/rules: build with ENABLE_PLATFORM_API=ON on armhf.
+  * debian/rules:
+    - build with ENABLE_PLATFORM_API=ON on armhf.
+    - drop --parallel; give us a better chance to build successfully.
 
  -- Ted Gould <ted@ubuntu.com>  Wed, 20 Feb 2013 09:28:40 -0600
 
