@@ -444,7 +444,43 @@ test_query_toolbar_enabled (void)
   g_main_loop_unref(loop);
 
   /* Test toolbar disabled */
+  g_assert(!hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN));
+  g_assert(!hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_HELP));
+  g_assert(!hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES));
+  g_assert(!hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_UNDO));
 
+  /* Set an 'undo' item */
+  const gchar * undo_toolbar[] = {"undo"};
+  dbus_mock_update_property (connection, DBUS_NAME, QUERY_PATH, 
+    "com.canonical.hud.query", "ToolbarItems", g_variant_new_strv(undo_toolbar, G_N_ELEMENTS(undo_toolbar)));
+  hud_test_utils_process_mainloop (100); /* Let the property change propigate */
+
+  g_assert(!hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN));
+  g_assert(!hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_HELP));
+  g_assert(!hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES));
+  g_assert(hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_UNDO));
+
+  /* Set an 'invalid' item */
+  const gchar * invalid_toolbar[] = {"invalid"};
+  dbus_mock_update_property (connection, DBUS_NAME, QUERY_PATH, 
+    "com.canonical.hud.query", "ToolbarItems", g_variant_new_strv(invalid_toolbar, G_N_ELEMENTS(invalid_toolbar)));
+  hud_test_utils_process_mainloop (100); /* Let the property change propigate */
+
+  g_assert(!hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN));
+  g_assert(!hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_HELP));
+  g_assert(!hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES));
+  g_assert(!hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_UNDO));
+
+  /* Set all items */
+  const gchar * full_toolbar[] = {"fullscreen", "undo", "help", "preferences"};
+  dbus_mock_update_property (connection, DBUS_NAME, QUERY_PATH, 
+    "com.canonical.hud.query", "ToolbarItems", g_variant_new_strv(full_toolbar, G_N_ELEMENTS(full_toolbar)));
+  hud_test_utils_process_mainloop (100); /* Let the property change propigate */
+
+  g_assert(hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN));
+  g_assert(hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_HELP));
+  g_assert(hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES));
+  g_assert(hud_client_query_toolbar_item_active(query, HUD_CLIENT_QUERY_TOOLBAR_UNDO));
 
   /* Clean up */
   g_object_unref(query);
