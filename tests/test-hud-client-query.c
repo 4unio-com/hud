@@ -416,6 +416,44 @@ test_query_execute_toolbar (void)
 }
 
 static void
+test_query_toolbar_enabled (void)
+{
+  g_test_log_set_fatal_handler(no_dee_add_match, NULL);
+
+  DbusTestService *service = NULL;
+  GDBusConnection *connection = NULL;
+  DeeModel *results_model = NULL;
+  DeeModel *appstack_model = NULL;
+
+  hud_test_utils_start_hud_service (&service, &connection, &results_model,
+      &appstack_model);
+
+  /* Create a query */
+  HudClientQuery *query = hud_client_query_new("test");
+  g_assert(HUD_CLIENT_IS_QUERY(query));
+
+  /* Wait for the models to be ready */
+  GMainLoop * loop = g_main_loop_new(NULL, FALSE);
+  gulong sig = g_timeout_add_seconds(TEST_DEFAULT_TIMEOUT_S, fail_quit, loop);
+
+  g_signal_connect(G_OBJECT(query), HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(test_query_create_models_ready), loop);
+
+  g_source_remove(sig);
+
+  g_main_loop_run(loop);
+  g_main_loop_unref(loop);
+
+  /* Test toolbar disabled */
+
+
+  /* Clean up */
+  g_object_unref(query);
+
+  hud_test_utils_stop_hud_service (service, connection, results_model,
+      appstack_model);
+}
+
+static void
 test_suite (void)
 {
   g_test_add_func ("/hud/client/query/create", test_query_create);
@@ -426,6 +464,7 @@ test_suite (void)
   g_test_add_func ("/hud/client/query/execute_command", test_query_execute_command);
   g_test_add_func ("/hud/client/query/execute_command_parameterized", test_query_execute_parameterized);
   g_test_add_func ("/hud/client/query/execute_command_toolbar", test_query_execute_toolbar);
+  g_test_add_func ("/hud/client/query/toolbar_endabled", test_query_toolbar_enabled);
 }
 
 int
