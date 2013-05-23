@@ -1,4 +1,4 @@
-hud (13.10.1-0ubuntu1~ppa1) UNRELEASED; urgency=low
+hud (13.10.1daily13.05.23ubuntu.unity.next-0ubuntu1) raring; urgency=low
 
   [ Ted Gould ]
   * Bumping the number to make diffs more plesant.
@@ -11,7 +11,34 @@ hud (13.10.1-0ubuntu1~ppa1) UNRELEASED; urgency=low
     - build with ENABLE_PLATFORM_API=ON on armhf.
     - drop --parallel; give us a better chance to build successfully.
 
- -- Ted Gould <ted@ubuntu.com>  Wed, 20 Feb 2013 09:28:40 -0600
+  [ Pete Woods ]
+  * Merge the remaining HUD 2.0 branch contents.
+  * Fix voice on the device Have to duplicate the call to cmd_ln_init to
+    handle each case, it won't accept NULL arguments. (LP: #1177226)
+  * Switch acoustic model over to using voxforge-sphinx now that it's in
+    the archive.
+
+  [ Ted Gould ]
+  * Make sure the paren always has data to show. (LP: #1172228)
+  * Test that pinging the watchdog with NULL isn't an error.
+  * Allow applications to define a context for actions.
+
+  [ Albert Astals ]
+  * Return true instead of false It is still un-implemented but this way
+    the Shell can start using this function and have the same behaviour
+    it had.
+
+  [ Łukasz 'sil2100' Zemczak ]
+  * Fixes related to unit tests - increase the number of session waits
+    (SESSION_MAX_WAIT) to 20.
+  * Temporarily disable the test-source unit test since it's failing on
+    non-Android armhf systems. Also, tweak up a bit some of the timeouts
+    for slower systems.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 256 (ubuntu-unity/next)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 23 May 2013 03:01:28 +0000
 
 hud (13.10.0-0ubuntu1~ppa2) quantal; urgency=low
 
