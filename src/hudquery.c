@@ -255,11 +255,73 @@ results_list_max_usage (gpointer data, gpointer user_data)
 	return;
 }
 
+/* Look to see if this check is a match */
+static void
+find_highlights_match (GVariantBuilder * highlights, const gchar * needle, const gchar * haystack, guint start, guint current)
+{
+	/* We've matched everything in the needle, we're good! */
+	if (needle == NULL) {
+		g_variant_builder_add(highlights, "(ii)", start, current);
+		return;
+	}
+
+	/* If we've gotten to the end of the haystack first, just return */
+	if (haystack == NULL) {
+		return;
+	}
+
+	/* Get the first character on each string */
+	gunichar n = g_utf8_get_char(needle);
+	gunichar h = g_utf8_get_char(haystack);
+
+	/* Put them in the same case */
+	n = g_unichar_tolower(n);
+	h = g_unichar_tolower(h);
+
+	/* No match, we're done */
+	if (n != h) {
+		return;
+	}
+
+	/* We've got a match, keep going! */
+	const gchar * haystack_next = g_utf8_next_char(haystack);
+	const gchar * needle_next = g_utf8_next_char(needle);
+
+	find_highlights_match (highlights, needle_next, haystack_next, start, current + 1);
+	return;
+}
+
 /* Find the highlights of needle in haystack */
 static void
 find_highlights (GVariantBuilder * highlights, const gchar * needle, const gchar * haystack, guint location)
 {
+	/* We've looked throughout the haystack, all the answer we'll
+	   find have been added to the builder already */
+	if (haystack == NULL) {
+		return;
+	}
 
+	/* Get the first character on each string */
+	gunichar n = g_utf8_get_char(needle);
+	gunichar h = g_utf8_get_char(haystack);
+
+	/* Put them in the same case */
+	n = g_unichar_tolower(n);
+	h = g_unichar_tolower(h);
+
+	/* We need this value in both cases below, let's grab it now */
+	const gchar * haystack_next = g_utf8_next_char(haystack);
+
+	/* We could have a match */
+	if (n == h) {
+		const gchar * needle_next = g_utf8_next_char(needle);
+
+		/* recurse this match */
+		find_highlights_match(highlights, needle_next, haystack_next, location, location + 1);
+	}
+
+	/* Go further down the haystack */
+	find_highlights(highlights, needle, haystack_next, location + 1);
 	return;
 }
 
