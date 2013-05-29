@@ -400,3 +400,19 @@ hud_client_connection_connected (HudClientConnection * connection)
 	g_return_val_if_fail(HUD_CLIENT_IS_CONNECTION(connection), FALSE);
 	return connection->priv->connected;
 }
+
+/**
+ * hud_client_connection_get_bus:
+ * @connection: A #HudClientConnection
+ *
+ * Grab the bus being used by the connection.
+ *
+ * Return value: (transfer none): Our bus if we have one
+ */
+GDBusConnection *
+hud_client_connection_get_bus (HudClientConnection * connection)
+{
+	g_return_val_if_fail(HUD_CLIENT_IS_CONNECTION(connection), NULL);
+	return connection->priv->bus;
+}
+
