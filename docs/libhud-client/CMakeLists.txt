@@ -13,6 +13,7 @@ if(GTKDOC_FOUND)
       hud-client.h
       query-iface.h
       service-iface.h
+      connection-private.h
     LDFLAGS
       -L${CMAKE_CURRENT_BINARY_DIR}/../../libhud-client
       -l${_hud_client_output_name}
