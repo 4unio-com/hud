@@ -255,6 +255,14 @@ results_list_max_usage (gpointer data, gpointer user_data)
 	return;
 }
 
+/* Find the highlights of needle in haystack */
+static void
+find_highlights (GVariantBuilder * highlights, const gchar * needle, const gchar * haystack, guint location)
+{
+
+	return;
+}
+
 /* Turn the results list into a DeeModel. It assumes the results are already sorted. */
 static void
 results_list_to_model (gpointer data, gpointer user_data)
@@ -263,12 +271,20 @@ results_list_to_model (gpointer data, gpointer user_data)
 	HudQuery * query = (HudQuery *)user_data;
 	HudItem * item = hud_result_get_item(result);
 
+	GVariantBuilder action_highlights;
+	g_variant_builder_init(&action_highlights, G_VARIANT_TYPE("a(ii)"));
+	GVariantBuilder description_highlights;
+	g_variant_builder_init(&description_highlights, G_VARIANT_TYPE("a(ii)"));
+
+	find_highlights(&action_highlights, query->search_string, hud_item_get_command(item), 0);
+	find_highlights(&description_highlights, query->search_string, hud_item_get_description(item), 0);
+
 	GVariant * columns[HUD_QUERY_RESULTS_COUNT + 1];
 	columns[HUD_QUERY_RESULTS_COMMAND_ID]             = g_variant_new_variant(g_variant_new_uint64(hud_item_get_id(item)));
 	columns[HUD_QUERY_RESULTS_COMMAND_NAME]           = g_variant_new_string(hud_item_get_command(item));
-	columns[HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS]     = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+	columns[HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS]     = g_variant_builder_end(&action_highlights);
 	columns[HUD_QUERY_RESULTS_DESCRIPTION]            = g_variant_new_string(hud_item_get_description(item));
-	columns[HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+	columns[HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS] = g_variant_builder_end(&description_highlights);
 	columns[HUD_QUERY_RESULTS_SHORTCUT]               = g_variant_new_string(hud_item_get_shortcut(item));
 	columns[HUD_QUERY_RESULTS_DISTANCE]               = g_variant_new_uint32(hud_result_get_distance(result, query->max_usage));
 	columns[HUD_QUERY_RESULTS_PARAMETERIZED]          = g_variant_new_boolean(HUD_IS_MODEL_ITEM(item) ? hud_model_item_is_parameterized(HUD_MODEL_ITEM(item)) : FALSE);
