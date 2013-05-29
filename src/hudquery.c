@@ -260,13 +260,13 @@ static void
 find_highlights_match (GVariantBuilder * highlights, const gchar * needle, const gchar * haystack, guint start, guint current)
 {
 	/* We've matched everything in the needle, we're good! */
-	if (needle == NULL) {
+	if (needle[0] == '\0') {
 		g_variant_builder_add(highlights, "(ii)", start, current);
 		return;
 	}
 
 	/* If we've gotten to the end of the haystack first, just return */
-	if (haystack == NULL) {
+	if (haystack[0] == '\0') {
 		return;
 	}
 
@@ -297,7 +297,7 @@ find_highlights (GVariantBuilder * highlights, const gchar * needle, const gchar
 {
 	/* We've looked throughout the haystack, all the answer we'll
 	   find have been added to the builder already */
-	if (haystack == NULL) {
+	if (haystack[0] == '\0') {
 		return;
 	}
 
