@@ -256,18 +256,19 @@ results_list_max_usage (gpointer data, gpointer user_data)
 }
 
 /* Look to see if this check is a match */
-static void
+static gboolean
 find_highlights_match (GVariantBuilder * highlights, const gchar * needle, const gchar * haystack, guint start, guint current)
 {
 	/* We've matched everything in the needle, we're good! */
 	if (needle[0] == '\0') {
 		g_variant_builder_add(highlights, "(ii)", start, current);
-		return;
+		g_debug("Highlight match: %d to %d", start, current);
+		return TRUE;
 	}
 
 	/* If we've gotten to the end of the haystack first, just return */
 	if (haystack[0] == '\0') {
-		return;
+		return FALSE;
 	}
 
 	/* Get the first character on each string */
@@ -280,25 +281,28 @@ find_highlights_match (GVariantBuilder * highlights, const gchar * needle, const
 
 	/* No match, we're done */
 	if (n != h) {
-		return;
+		return FALSE;
 	}
 
 	/* We've got a match, keep going! */
 	const gchar * haystack_next = g_utf8_next_char(haystack);
 	const gchar * needle_next = g_utf8_next_char(needle);
 
-	find_highlights_match (highlights, needle_next, haystack_next, start, current + 1);
-	return;
+	return find_highlights_match (highlights, needle_next, haystack_next, start, current + 1);
 }
 
 /* Find the highlights of needle in haystack */
-static void
-find_highlights (GVariantBuilder * highlights, const gchar * needle, const gchar * haystack, guint location)
+static guint
+find_highlights (GVariantBuilder * highlights, const gchar * needle, const gchar * haystack, guint location, guint count)
 {
 	/* We've looked throughout the haystack, all the answer we'll
 	   find have been added to the builder already */
 	if (haystack[0] == '\0') {
-		return;
+		return count;
+	}
+
+	if (location == 0) {
+		g_debug("Searching for highlights of '%s' in '%s'", needle, haystack);
 	}
 
 	/* Get the first character on each string */
@@ -317,12 +321,13 @@ find_highlights (GVariantBuilder * highlights, const gchar * needle, const gchar
 		const gchar * needle_next = g_utf8_next_char(needle);
 
 		/* recurse this match */
-		find_highlights_match(highlights, needle_next, haystack_next, location, location + 1);
+		if (find_highlights_match(highlights, needle_next, haystack_next, location, location + 1)) {
+			count++;
+		}
 	}
 
 	/* Go further down the haystack */
-	find_highlights(highlights, needle, haystack_next, location + 1);
-	return;
+	return find_highlights(highlights, needle, haystack_next, location + 1, count);
 }
 
 /* Turn the results list into a DeeModel. It assumes the results are already sorted. */
@@ -338,15 +343,32 @@ results_list_to_model (gpointer data, gpointer user_data)
 	GVariantBuilder description_highlights;
 	g_variant_builder_init(&description_highlights, G_VARIANT_TYPE("a(ii)"));
 
-	find_highlights(&action_highlights, query->search_string, hud_item_get_command(item), 0);
-	find_highlights(&description_highlights, query->search_string, hud_item_get_description(item), 0);
+	guint actioncnt = find_highlights(&action_highlights, query->search_string, hud_item_get_command(item), 0, 0);
+	GVariant * actionh = NULL; 
+
+	if (actioncnt > 0) {
+		actionh = g_variant_builder_end(&action_highlights);
+	} else {
+		actionh = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+		g_variant_builder_clear(&action_highlights);
+	}
+
+	guint desccnt = find_highlights(&description_highlights, query->search_string, hud_item_get_description(item), 0, 0);
+	GVariant * desch = NULL;
+
+	if (desccnt > 0) {
+		desch = g_variant_builder_end(&description_highlights);
+	} else {
+		desch = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+		g_variant_builder_clear(&description_highlights);
+	}
 
 	GVariant * columns[HUD_QUERY_RESULTS_COUNT + 1];
 	columns[HUD_QUERY_RESULTS_COMMAND_ID]             = g_variant_new_variant(g_variant_new_uint64(hud_item_get_id(item)));
 	columns[HUD_QUERY_RESULTS_COMMAND_NAME]           = g_variant_new_string(hud_item_get_command(item));
-	columns[HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS]     = g_variant_builder_end(&action_highlights);
+	columns[HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS]     = actionh;
 	columns[HUD_QUERY_RESULTS_DESCRIPTION]            = g_variant_new_string(hud_item_get_description(item));
-	columns[HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS] = g_variant_builder_end(&description_highlights);
+	columns[HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS] = desch;
 	columns[HUD_QUERY_RESULTS_SHORTCUT]               = g_variant_new_string(hud_item_get_shortcut(item));
 	columns[HUD_QUERY_RESULTS_DISTANCE]               = g_variant_new_uint32(hud_result_get_distance(result, query->max_usage));
 	columns[HUD_QUERY_RESULTS_PARAMETERIZED]          = g_variant_new_boolean(HUD_IS_MODEL_ITEM(item) ? hud_model_item_is_parameterized(HUD_MODEL_ITEM(item)) : FALSE);
