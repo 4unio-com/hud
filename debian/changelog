@@ -1,3 +1,18 @@
+hud (13.10.1daily13.05.30ubuntu.unity.next-0ubuntu1) raring; urgency=low
+
+  [ Ted Gould ]
+  * If the service has disappeared request a start when updating the
+    query. (LP: #1181289)
+
+  [ Ricardo Mendoza ]
+  * * Remove libhybris dep * Update platform API includes * Update
+    platform API usage * Get rid of hybris references.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 259 (ubuntu-unity/next)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 30 May 2013 03:01:47 +0000
+
 hud (13.10.1daily13.05.23ubuntu.unity.next-0ubuntu1) raring; urgency=low
 
   [ Ted Gould ]
