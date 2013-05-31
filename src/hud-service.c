@@ -96,12 +96,86 @@ describe_query (HudQuery *query)
   return g_variant_builder_end (&builder);
 }
 
+/* We need markers because we need something that'll go through the
+   markup parser. */
+#define HIGHLIGHT_START_MARKER  "000"
+#define HIGHLIGHT_STOP_MARKER   "1111"
+
 /* Escapes the strings and adds in highlights */
 static gchar *
 legacy_add_highlights (const gchar * input, GVariant * highlight_array)
 {
-	/* TODO: Highlights */
-	return g_markup_escape_text(input, -1);
+	/* Most common case is no highlights, take care of it right away */
+	if (g_variant_n_children(highlight_array) == 0) {
+		return g_markup_escape_text(input, -1);
+	}
+
+	/* We need a string where we can insert the <b></b> tags and still
+	   have space left over */
+	guint bytes = strlen(input);
+	gchar * spaced_input = g_new0(gchar, bytes + 1 + (g_variant_n_children(highlight_array) * 7));
+
+	guint character = 0;
+	GVariantIter iter;
+	g_variant_iter_init(&iter, highlight_array);
+	gint start, stop;
+	gchar * spaced_current = spaced_input;
+	const gchar * input_current = input;
+
+	while (g_variant_iter_loop(&iter, "(ii)", &start, &stop)) {
+		/* In theory there should be no overlapping, but we
+		   want to make sure */
+		if (start < character) {
+			g_warning("Overlapping highlighting.  At character %d and asked to highlight from %d to %d.", character, start, stop);
+			continue;
+		}
+
+		/* Get to the start of the highlight */
+		guint initial_skip = start - character;
+		if (initial_skip > 0) {
+			g_utf8_strncpy(spaced_current, input_current, initial_skip);
+			spaced_current = g_utf8_offset_to_pointer(spaced_current, initial_skip);
+			input_current = g_utf8_offset_to_pointer(input_current, initial_skip);
+		}
+
+		/* Put the highlight start marker */
+		g_utf8_strncpy(spaced_current, HIGHLIGHT_START_MARKER, g_utf8_strlen(HIGHLIGHT_START_MARKER, -1));
+		spaced_current = g_utf8_offset_to_pointer(spaced_current, g_utf8_strlen(HIGHLIGHT_START_MARKER, -1));
+
+		/* Copy the characters in the highlight */
+		guint highlight_skip = stop - start;
+		if (highlight_skip > 0) {
+			g_utf8_strncpy(spaced_current, input_current, highlight_skip);
+			spaced_current = g_utf8_offset_to_pointer(spaced_current, highlight_skip);
+			input_current = g_utf8_offset_to_pointer(input_current, highlight_skip);
+		} else {
+			g_warning("Zero character highlight!");
+		}
+
+		/* Put the highlight stop marker */
+		g_utf8_strncpy(spaced_current, HIGHLIGHT_STOP_MARKER, g_utf8_strlen(HIGHLIGHT_STOP_MARKER, 1));
+		spaced_current = g_utf8_offset_to_pointer(spaced_current, g_utf8_strlen(HIGHLIGHT_STOP_MARKER, 1));
+
+		/* Move the start */
+		character = stop;
+	}
+
+	gchar * ret = g_markup_escape_text(spaced_current, -1);
+	g_free(spaced_input);
+
+	gchar * start_search = g_strrstr(ret, HIGHLIGHT_START_MARKER);
+	while (start_search != NULL) {
+		g_utf8_strncpy(start_search, "<b>", 3);
+		start_search = g_strrstr(start_search, HIGHLIGHT_START_MARKER);
+	}
+
+	gchar * stop_search = g_strrstr(ret, HIGHLIGHT_STOP_MARKER);
+	while (stop_search != NULL) {
+		g_utf8_strncpy(stop_search, "</b>", 4);
+		stop_search = g_strrstr(stop_search, HIGHLIGHT_STOP_MARKER);
+	}
+
+	return ret;
 }
 
 /* Builds a single line pango formated description for
