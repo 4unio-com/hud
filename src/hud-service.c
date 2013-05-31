@@ -160,6 +160,12 @@ legacy_add_highlights (const gchar * input, GVariant * highlight_array)
 		character = stop;
 	}
 
+	/* Final copy */
+	guint final_cnt = g_utf8_strlen(input, -1) - character;
+	if (final_cnt > 0) {
+		g_utf8_strncpy(spaced_current, input_current, final_cnt);
+	}
+
 	gchar * ret = g_markup_escape_text(spaced_current, -1);
 	g_free(spaced_input);
 
