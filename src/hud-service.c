@@ -274,15 +274,29 @@ unpack_platform_data (GVariant *parameters)
 gboolean
 query_creation_timeout (gpointer user_data)
 {
-	g_critical("Query unable to be sync'd to bus in under a second.");
+	gpointer pquery = HUD_QUERY(g_object_get_data(G_OBJECT(user_data), QUERY_CREATE_QUERY));
+
+	gboolean results_sync = FALSE;
+	gboolean appstack_sync = FALSE;
+
+	if (pquery != NULL && HUD_IS_QUERY(pquery)) {
+		results_sync = dee_shared_model_is_synchronized(DEE_SHARED_MODEL(hud_query_get_results_model(HUD_QUERY(pquery))));
+		appstack_sync = dee_shared_model_is_synchronized(DEE_SHARED_MODEL(hud_query_get_appstack_model(HUD_QUERY(pquery))));
+	}
 
 	/* NOTE: This will cause the invocation to be free'd which
 	   will clean up all the data we attached to it. */
-	g_dbus_method_invocation_return_error_literal(
-		G_DBUS_METHOD_INVOCATION(user_data),
-		error(),
-		3,
-		"Query unable to be sync'd to bus in under a second.");
+	if (results_sync && appstack_sync) {
+		g_dbus_method_invocation_return_value (G_DBUS_METHOD_INVOCATION(user_data), describe_query(HUD_QUERY(pquery)));
+	} else {
+		g_critical("Query unable to be sync'd to bus in under a second.");
+
+		g_dbus_method_invocation_return_error_literal(
+			G_DBUS_METHOD_INVOCATION(user_data),
+			error(),
+			3,
+			"Query unable to be sync'd to bus in under a second.");
+	}
 
 	return FALSE;
 }
