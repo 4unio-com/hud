@@ -291,6 +291,13 @@ query_creation_timeout (gpointer user_data)
 	} else {
 		g_critical("Query unable to be sync'd to bus in under a second.");
 
+		if (pquery != NULL && HUD_IS_QUERY(pquery)) {
+			/* In this case there's no way for the client to close
+			   the query so we need to get the implied reference that
+			   the client would be keeping */
+			g_object_unref(G_OBJECT(pquery));
+		}
+
 		g_dbus_method_invocation_return_error_literal(
 			G_DBUS_METHOD_INVOCATION(user_data),
 			error(),
