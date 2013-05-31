@@ -96,6 +96,14 @@ describe_query (HudQuery *query)
   return g_variant_builder_end (&builder);
 }
 
+/* Escapes the strings and adds in highlights */
+static gchar *
+legacy_add_highlights (const gchar * input, GVariant * highlight_array)
+{
+	/* TODO: Highlights */
+	return g_markup_escape_text(input, -1);
+}
+
 /* Builds a single line pango formated description for
    the legacy HUD UI */
 static gchar *
@@ -104,23 +112,30 @@ build_legacy_description (DeeModel * model, DeeModelIter * iter)
 	const gchar * command_name = dee_model_get_string(model, iter, HUD_QUERY_RESULTS_COMMAND_NAME);
 	const gchar * description = dee_model_get_string(model, iter, HUD_QUERY_RESULTS_DESCRIPTION);
 
+	GVariant * command_harray = dee_model_get_value(model, iter, HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS);
+	GVariant * desc_harray = dee_model_get_value(model, iter, HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS);
+
+	gchar * command_highlights = legacy_add_highlights(command_name, command_harray);
+	gchar * desc_highlights = legacy_add_highlights(description, desc_harray);
+
+	g_variant_unref(command_harray);
+	g_variant_unref(desc_harray);
+
 	gchar * combined;
 	if (description != NULL && strlen(description) > 1) {
 		/* TRANSLATORS: This is what is shown for Unity Nux in
 		   the HUD entries.  The first %s is the command name and
 		   the second is a description or list of keywords that
 		   was used to find the entry. */
-		combined = g_strdup_printf(_("%s\xE2\x80\x82(%s)"), command_name, description);
+		combined = g_strdup_printf(_("%s\xE2\x80\x82(%s)"), command_highlights, desc_highlights);
 	} else {
 		combined = g_strdup(command_name);
 	}
 
-	gchar * retval = g_markup_escape_text(combined, -1);
-	g_free(combined);
+	g_free(command_highlights);
+	g_free(desc_highlights);
 
-	/* TODO: Highlights */
-
-	return retval;
+	return combined;
 }
 
 /* Describe the legacy query */
