@@ -69,6 +69,12 @@ static GDBusInterfaceVTable vtable = {
 static HudApplicationList * application_list = NULL;
 static HudWatchdog * watchdog = NULL;
 
+/* Defines */
+#define QUERY_CREATE_TIMEOUT        "query-create-timeout"
+#define QUERY_CREATE_QUERY          "query-create-query"
+#define QUERY_CREATE_RESULTS_SYNC   "query-create-results-sync"
+#define QUERY_CREATE_APPSTACK_SYNC  "query-create-appstack-sync"
+
 /* Get our error domain */
 GQuark
 error (void)
@@ -265,6 +271,80 @@ unpack_platform_data (GVariant *parameters)
   return g_variant_ref_sink (platform_data);
 }
 
+/* Called when we were unable to synchronize the query to
+   dbus within a second.  Really bad. */
+static gboolean
+query_creation_timeout (gpointer user_data)
+{
+	gpointer pquery = HUD_QUERY(g_object_get_data(G_OBJECT(user_data), QUERY_CREATE_QUERY));
+
+	gboolean results_sync = FALSE;
+	gboolean appstack_sync = FALSE;
+
+	if (pquery != NULL && HUD_IS_QUERY(pquery)) {
+		results_sync = dee_shared_model_is_synchronized(DEE_SHARED_MODEL(hud_query_get_results_model(HUD_QUERY(pquery))));
+		appstack_sync = dee_shared_model_is_synchronized(DEE_SHARED_MODEL(hud_query_get_appstack_model(HUD_QUERY(pquery))));
+	}
+
+	/* NOTE: This will cause the invocation to be free'd which
+	   will clean up all the data we attached to it. */
+	if (results_sync && appstack_sync) {
+		g_dbus_method_invocation_return_value (G_DBUS_METHOD_INVOCATION(user_data), describe_query(HUD_QUERY(pquery)));
+	} else {
+		g_critical("Query unable to be sync'd to bus in under a second.");
+
+		if (pquery != NULL && HUD_IS_QUERY(pquery)) {
+			/* In this case there's no way for the client to close
+			   the query so we need to get the implied reference that
+			   the client would be keeping */
+			g_object_unref(G_OBJECT(pquery));
+		}
+
+		g_dbus_method_invocation_return_error_literal(
+			G_DBUS_METHOD_INVOCATION(user_data),
+			error(),
+			3,
+			"Query unable to be sync'd to bus in under a second.");
+	}
+
+	return FALSE;
+}
+
+/* A notify signal from one of the models that it's synchronization state
+   has changed and we should reevaluate whether to respond. */
+static void
+synchronized_update (GObject * obj, GParamSpec * pspec, gpointer user_data)
+{
+	gpointer pquery = HUD_QUERY(g_object_get_data(G_OBJECT(user_data), QUERY_CREATE_QUERY));
+
+	gboolean results_sync = FALSE;
+	gboolean appstack_sync = FALSE;
+
+	if (pquery != NULL && HUD_IS_QUERY(pquery)) {
+		results_sync = dee_shared_model_is_synchronized(DEE_SHARED_MODEL(hud_query_get_results_model(HUD_QUERY(pquery))));
+		appstack_sync = dee_shared_model_is_synchronized(DEE_SHARED_MODEL(hud_query_get_appstack_model(HUD_QUERY(pquery))));
+	}
+
+	if (results_sync && appstack_sync) {
+		/* If we've got both, clear all the signals and then call the timeout
+		   which will check this again, but then send the appropriate response */
+		guint signal;
+
+		signal = GPOINTER_TO_UINT(g_object_steal_data(G_OBJECT(user_data), QUERY_CREATE_RESULTS_SYNC));
+		g_signal_handler_disconnect(G_OBJECT(hud_query_get_results_model(HUD_QUERY(pquery))), signal);
+
+		signal = GPOINTER_TO_UINT(g_object_steal_data(G_OBJECT(user_data), QUERY_CREATE_APPSTACK_SYNC));
+		g_signal_handler_disconnect(G_OBJECT(hud_query_get_appstack_model(HUD_QUERY(pquery))), signal);
+
+		signal = GPOINTER_TO_UINT(g_object_steal_data(G_OBJECT(user_data), QUERY_CREATE_TIMEOUT));
+		g_source_remove(signal);
+
+		query_creation_timeout(user_data);
+	}
+
+	return;
+}
+
 /* Take a method call from DBus */
 static void
 bus_method (GDBusConnection       *connection,
@@ -289,7 +369,30 @@ bus_method (GDBusConnection       *connection,
 		g_debug ("'CreateQuery' from %s: '%s'", sender, search_string);
 
 		query = build_query (all_sources, application_list, connection, search_string);
-		g_dbus_method_invocation_return_value (invocation, describe_query (query));
+
+		/* If we wait for sync on any of these, we need to wait
+		   to make sure stuff happens, else clean up. */
+		gboolean set_timeout = FALSE;
+
+		if (!dee_shared_model_is_synchronized(DEE_SHARED_MODEL(hud_query_get_results_model(query)))) {
+			set_timeout = TRUE;
+			guint signal = g_signal_connect(G_OBJECT(hud_query_get_results_model(query)), "notify::synchronized", G_CALLBACK(synchronized_update), invocation);
+			g_object_set_data(G_OBJECT(invocation), QUERY_CREATE_RESULTS_SYNC, GUINT_TO_POINTER(signal));
+		}
+
+		if (!dee_shared_model_is_synchronized(DEE_SHARED_MODEL(hud_query_get_appstack_model(query)))) {
+			set_timeout = TRUE;
+			guint signal = g_signal_connect(G_OBJECT(hud_query_get_appstack_model(query)), "notify::synchronized", G_CALLBACK(synchronized_update), invocation);
+			g_object_set_data(G_OBJECT(invocation), QUERY_CREATE_APPSTACK_SYNC, GUINT_TO_POINTER(signal));
+		}
+
+		if (set_timeout) {
+			guint timeoutid = g_timeout_add_seconds(1, query_creation_timeout, invocation);
+			g_object_set_data(G_OBJECT(invocation), QUERY_CREATE_TIMEOUT, GUINT_TO_POINTER(timeoutid));
+			g_object_set_data_full(G_OBJECT(invocation), QUERY_CREATE_QUERY, g_object_ref(query), g_object_unref);
+		} else {
+			g_dbus_method_invocation_return_value (invocation, describe_query (query));
+		}
 
 		g_variant_unref(vsearch);
 	} else if (g_str_equal (method_name, "StartQuery")) {
