@@ -166,7 +166,7 @@ legacy_add_highlights (const gchar * input, GVariant * highlight_array)
 		g_utf8_strncpy(spaced_current, input_current, final_cnt);
 	}
 
-	gchar * ret = g_markup_escape_text(spaced_current, -1);
+	gchar * ret = g_markup_escape_text(spaced_input, -1);
 	g_free(spaced_input);
 
 	gchar * start_search = g_strrstr(ret, HIGHLIGHT_START_MARKER);
