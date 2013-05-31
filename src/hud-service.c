@@ -105,8 +105,10 @@ describe_query (HudQuery *query)
 static gchar *
 legacy_add_highlights (const gchar * input, GVariant * highlight_array)
 {
+	g_return_val_if_fail(input != NULL, NULL);
+
 	/* Most common case is no highlights, take care of it right away */
-	if (g_variant_n_children(highlight_array) == 0) {
+	if (highlight_array == NULL || g_variant_n_children(highlight_array) == 0) {
 		return g_markup_escape_text(input, -1);
 	}
 
