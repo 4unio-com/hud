@@ -173,13 +173,13 @@ legacy_add_highlights (const gchar * input, GVariant * highlight_array)
 
 	gchar * start_search = g_strstr_len(ret, -1, HIGHLIGHT_START_MARKER);
 	while (start_search != NULL) {
-		g_utf8_strncpy(start_search, "<b>", 3);
+		memcpy(start_search, "<b>", 3);
 		start_search = g_strstr_len(start_search, -1, HIGHLIGHT_START_MARKER);
 	}
 
 	gchar * stop_search = g_strstr_len(ret, -1, HIGHLIGHT_STOP_MARKER);
 	while (stop_search != NULL) {
-		g_utf8_strncpy(stop_search, "</b>", 4);
+		memcpy(stop_search, "</b>", 4);
 		stop_search = g_strstr_len(stop_search, -1, HIGHLIGHT_STOP_MARKER);
 	}
 
