@@ -155,8 +155,8 @@ legacy_add_highlights (const gchar * input, GVariant * highlight_array)
 		}
 
 		/* Put the highlight stop marker */
-		g_utf8_strncpy(spaced_current, HIGHLIGHT_STOP_MARKER, g_utf8_strlen(HIGHLIGHT_STOP_MARKER, 1));
-		spaced_current = g_utf8_offset_to_pointer(spaced_current, g_utf8_strlen(HIGHLIGHT_STOP_MARKER, 1));
+		g_utf8_strncpy(spaced_current, HIGHLIGHT_STOP_MARKER, g_utf8_strlen(HIGHLIGHT_STOP_MARKER, -1));
+		spaced_current = g_utf8_offset_to_pointer(spaced_current, g_utf8_strlen(HIGHLIGHT_STOP_MARKER, -1));
 
 		/* Move the start */
 		character = stop;
