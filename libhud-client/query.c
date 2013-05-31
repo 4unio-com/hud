@@ -93,7 +93,7 @@ hud_client_query_class_init (HudClientQueryClass *klass)
 	                                 g_param_spec_string(PROP_QUERY_S, "Query to the HUD service",
 	                                              "HUD query",
 	                                              NULL,
-	                                              G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * HudClientQuery::toolbar-updated:
