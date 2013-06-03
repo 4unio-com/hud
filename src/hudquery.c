@@ -468,26 +468,11 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   gchar *search_string = g_utf8_strdown(voice_result, -1);
   g_free(voice_result);
 
-  g_debug("Updating Query to: '%s'", search_string);
-
-  /* Clear the last query */
-  g_clear_pointer(&query->search_string, g_free);
-  if (query->token_list != NULL) {
-    hud_token_list_free (query->token_list);
-    query->token_list = NULL;
-  }
-
-  query->search_string = search_string;
-
-  if (query->search_string[0] != '\0') {
-    query->token_list = hud_token_list_new_from_string (query->search_string);
-  }
-
-  /* Refresh it all */
-  hud_query_refresh (query);
+  hud_query_update_search(query, search_string);
+  g_free(search_string);
 
   /* Tell DBus everything is going to be A-OK */
-  hud_query_iface_com_canonical_hud_query_complete_voice_query(skel, invocation, 0, search_string);
+  hud_query_iface_com_canonical_hud_query_complete_voice_query(skel, invocation, 0, query->search_string);
 
   return TRUE;
 }
