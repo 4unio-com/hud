@@ -444,6 +444,15 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
     search_source = hud_application_list_get_focused_app(query->app_list);
   }
 
+  if (query->voice == NULL) {
+    query->voice = hud_voice_new(query->skel, NULL, &error);
+    if (!query->voice)
+    {
+      g_warning ("%s %s\n", "Voice engine failed to initialize:", error->message);
+      g_error_free(error);
+    }
+  }
+
   if (!hud_voice_query (query->voice, search_source, &voice_result, &error))
   {
     g_dbus_method_invocation_return_error_literal(invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, error->message);
@@ -754,12 +763,6 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint q
   g_dbus_interface_skeleton_flush(G_DBUS_INTERFACE_SKELETON(query->skel));
 
   error = NULL;
-  query->voice = hud_voice_new(query->skel, NULL, &error);
-  if (!query->voice)
-  {
-    g_warning ("%s %s\n", "Voice engine failed to initialize:", error->message);
-    g_error_free(error);
-  }
 }
 
 static void
