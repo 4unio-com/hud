@@ -483,12 +483,12 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   return TRUE;
 }
 
-/* Handle the DBus function UpdateQuery */
-static gboolean
-handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, const gchar * search_string, gpointer user_data)
+/* Nice API for changing the search string */
+void
+hud_query_update_search (HudQuery * query, const gchar * search_string)
 {
-	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
-	HudQuery * query = HUD_QUERY(user_data);
+	g_return_if_fail(HUD_IS_QUERY(query));
+
 	hud_watchdog_ping(query->watchdog);
 
 	g_debug("Updating Query to: '%s'", search_string);
@@ -510,6 +510,18 @@ handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoca
 
 	/* Refresh it all */
 	hud_query_refresh (query);
+
+	return;
+}
+
+/* Handle the DBus function UpdateQuery */
+static gboolean
+handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, const gchar * search_string, gpointer user_data)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
+	HudQuery * query = HUD_QUERY(user_data);
+
+	hud_query_update_search(query, search_string);
 
 	/* Tell DBus everything is going to be A-OK */
 	hud_query_iface_com_canonical_hud_query_complete_update_query(skel, invocation, 0);
