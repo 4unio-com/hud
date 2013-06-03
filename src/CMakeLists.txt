@@ -120,7 +120,7 @@ source-list.c
 source.c
 token.c
 query.c
-stringlist.c
+string-list.c
 voice.c
 sphinx.c
 julius.c
