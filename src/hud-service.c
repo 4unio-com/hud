@@ -247,9 +247,9 @@ query_destroyed (gpointer data, GObject * old_object)
 
 /* Build a query and put it into the query list */
 static HudQuery *
-build_query (HudSourceList * all_sources, HudApplicationList * app_list, GDBusConnection * connection, const gchar * search_string)
+build_query (HudSourceList * all_sources, HudApplicationList * app_list, GDBusConnection * connection, const gchar * sender, const gchar * search_string)
 {
-	HudQuery * query = hud_query_new (HUD_SOURCE(all_sources), watchdog, application_list, search_string, 10, connection, NULL, ++query_count);
+	HudQuery * query = hud_query_new (HUD_SOURCE(all_sources), watchdog, application_list, search_string, 10, connection, sender, ++query_count);
 
 	g_ptr_array_add(query_list, query);
 	g_object_weak_ref(G_OBJECT(query), query_destroyed, query_list);
@@ -388,7 +388,7 @@ bus_method (GDBusConnection       *connection,
 		search_string = g_variant_get_string(vsearch, NULL);
 		g_debug ("'CreateQuery' from %s: '%s'", sender, search_string);
 
-		query = build_query (all_sources, application_list, connection, search_string);
+		query = build_query (all_sources, application_list, connection, g_dbus_method_invocation_get_sender(invocation), search_string);
 
 		/* If we wait for sync on any of these, we need to wait
 		   to make sure stuff happens, else clean up. */
@@ -429,7 +429,7 @@ bus_method (GDBusConnection       *connection,
 		query = find_legacy_query(query_list, g_dbus_method_invocation_get_sender(invocation));
 
 		if (query == NULL) {
-			query = build_query (all_sources, application_list, connection, search_string);
+			query = build_query (all_sources, application_list, connection, g_dbus_method_invocation_get_sender(invocation), search_string);
 			g_object_set_data_full(G_OBJECT(query), LEGACY_QUERY_SENDER, g_strdup(g_dbus_method_invocation_get_sender(invocation)), g_free);
 		} else {
 			hud_query_update_search(query, search_string);
