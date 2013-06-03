@@ -84,6 +84,9 @@ struct _HudQuery
   guint max_usage; /* Used to make the GList search easier */
 
   HudVoice *voice;
+
+  gchar * client;
+  guint client_watch;
 };
 
 typedef GObjectClass HudQueryClass;
@@ -390,11 +393,16 @@ hud_query_finalize (GObject *object)
 
   g_debug ("Destroyed query '%s'", query->search_string);
 
-  /* TODO: move to destroy */
+  /* TODO: move to dispose */
   if (query->last_used_source != NULL)
   {
     hud_source_unuse(query->last_used_source);
     g_clear_object(&query->last_used_source);
+  }
+
+  if (query->client_watch != 0) {
+    g_bus_unwatch_name(query->client_watch);
+    query->client_watch = 0;
   }
 
   g_clear_object(&query->skel);
@@ -417,6 +425,7 @@ hud_query_finalize (GObject *object)
   g_clear_pointer(&query->object_path, g_free);
   g_clear_pointer(&query->results_name, g_free);
   g_clear_pointer(&query->appstack_name, g_free);
+  g_clear_pointer(&query->client, g_free);
 
   g_clear_object(&query->voice);
   g_clear_object(&query->watchdog);
