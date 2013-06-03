@@ -298,6 +298,10 @@ find_highlights_match (GVariantBuilder * highlights, const gchar * needle, const
 static guint
 find_highlights (GVariantBuilder * highlights, const gchar * needle, const gchar * haystack, guint location, guint count)
 {
+	if (haystack == NULL || needle == NULL || needle[0] == '\0') {
+		return count;
+	}
+
 	/* We've looked throughout the haystack, all the answer we'll
 	   find have been added to the builder already */
 	if (haystack[0] == '\0') {
