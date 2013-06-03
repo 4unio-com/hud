@@ -726,12 +726,33 @@ handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 	return TRUE;
 }
 
+/* Called when our name watcher finds the client has disappeared.  Time for us to
+   go as well. */
 static void
-hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint querynumber)
+client_disappeared (GDBusConnection * connection, const gchar * name, gpointer user_data)
+{
+	/* Close the query */
+	hud_query_close(HUD_QUERY(user_data));
+	return;
+}
+
+static void
+hud_query_init_real (HudQuery *query, GDBusConnection *connection, const gchar * client, const guint querynumber)
 {
   GError *error = NULL;
 
   query->querynumber = querynumber;
+  query->client = g_strdup(client);
+
+  if (query->client != NULL && connection != NULL) {
+    query->client_watch = g_bus_watch_name_on_connection(connection,
+                                query->client, 
+                                G_BUS_NAME_WATCHER_FLAGS_NONE,
+                                NULL, /* appeared */
+                                client_disappeared,
+                                query,
+                                NULL); /* free func */
+  }
 
   query->skel = hud_query_iface_com_canonical_hud_query_skeleton_new();
 
@@ -836,7 +857,7 @@ hud_query_new (HudSource   *all_sources,
   g_debug ("Created query '%s'", search_string);
 
   query = g_object_new (HUD_TYPE_QUERY, NULL);
-  hud_query_init_real(query, connection, query_count);
+  hud_query_init_real(query, connection, sender, query_count);
   query->all_sources = g_object_ref (all_sources);
   query->app_list = g_object_ref (application_list);
   query->search_string = g_strdup (search_string);
