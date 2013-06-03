@@ -234,6 +234,8 @@ test_hud_query_sequence ()
     gchar *search = "ash";
     const gchar *expected[5] = { "any rash", "stray slash", "swift sad", "itch step", "mess strand" };
     const guint32 expected_distances[5] = { 10, 20, 22, 23, 25 };
+    const gint32 expected_starts[5] = { 5, 8, -1, -1, -1 };
+    const gint32 expected_stops[5] = { 8, 11, -1, -1, -1 };
     const gchar *appstack = "com.canonical.hud.query0.appstack";
     const gchar *path = "/com/canonical/hud/query0";
     const gchar *name = "com.canonical.hud.query0.results";
@@ -247,6 +249,8 @@ test_hud_query_sequence ()
     gchar *search = "mess";
     const gchar *expected[1] = { "mess strand"};
     const guint32 expected_distances[1] = { 1 };
+    const gint32 expected_starts[1] = { 0 };
+    const gint32 expected_stops[1] = { 4 };
     const gchar *appstack = "com.canonical.hud.query1.appstack";
     const gchar *path = "/com/canonical/hud/query1";
     const gchar *name = "com.canonical.hud.query1.results";
@@ -260,6 +264,8 @@ test_hud_query_sequence ()
     gchar *search = "dare";
     const gchar *expected[2] = { "mess strand", "bowl"};
     const guint32 expected_distances[2] = { 2, 30 };
+    const gint32 expected_starts[2] = { -1, -1 };
+    const gint32 expected_stops[2] = { -1, -1 };
     const gchar *appstack = "com.canonical.hud.query2.appstack";
     const gchar *path = "/com/canonical/hud/query2";
     const gchar *name = "com.canonical.hud.query2.results";
@@ -274,6 +280,8 @@ test_hud_query_sequence ()
     gchar *search = "itch step";
     const gchar *expected[1] = { "itch step"};
     const guint32 expected_distances[1] = { 0 };
+    const gint32 expected_starts[1] = { 0 };
+    const gint32 expected_stops[1] = { 9 };
     const gchar *appstack = "com.canonical.hud.query3.appstack";
     const gchar *path = "/com/canonical/hud/query3";
     const gchar *name = "com.canonical.hud.query3.results";
@@ -292,6 +300,8 @@ test_hud_query_sequence ()
     gchar *search = "ash";
     const gchar *expected[5] = { "any rash", "stray slash", "swift sad", "itch step", "mess strand" };
     const guint32 expected_distances[5] = { 10, 20, 22, 23, 25 };
+    const gint32 expected_starts[5] = { 5, 8, -1, -1, -1 };
+    const gint32 expected_stops[5] = { 8, 11, -1, -1, -1 };
     const gchar *appstack = "com.canonical.hud.query4.appstack";
     const gchar *path = "/com/canonical/hud/query4";
     const gchar *name = "com.canonical.hud.query4.results";
@@ -306,6 +316,8 @@ test_hud_query_sequence ()
 
     const gchar *expected_after[2] = { "mess strand", "bowl"};
     const guint32 expected_distances_after[2] = { 2, 30 };
+    const gint32 expected_starts[2] = { -1, -1 };
+    const gint32 expected_stops[2] = { -1, -1 };
 
     test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, 2);
 
@@ -317,6 +329,8 @@ test_hud_query_sequence ()
       gchar *search = "dare";
       const gchar *expected[2] = { "mess strand", "bowl"};
       const guint32 expected_distances[2] = { 2, 30 };
+      const gint32 expected_starts[2] = { -1, -1 };
+      const gint32 expected_stops[2] = { -1, -1 };
       const gchar *appstack = "com.canonical.hud.query5.appstack";
       const gchar *path = "/com/canonical/hud/query5";
       const gchar *name = "com.canonical.hud.query5.results";
@@ -338,6 +352,8 @@ test_hud_query_sequence ()
 
       const gchar *expected_after[2] = { "something dare", "something else darn"};
       const guint32 expected_distances_after[2] = { 0, 11 };
+      const gint32 expected_starts_after[2] = { 10, -1 };
+      const gint32 expected_stops_after[2] = { 14, -1 };
 
       g_assert(G_N_ELEMENTS(expected_after) == G_N_ELEMENTS(expected_distances_after));
       test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, G_N_ELEMENTS(expected_after));
@@ -350,6 +366,8 @@ test_hud_query_sequence ()
       gchar *search = "dare";
       const gchar *expected[2] = { "mess strand", "bowl"};
       const guint32 expected_distances[2] = { 2, 30 };
+      const gint32 expected_starts_after[2] = { -1, -1 };
+      const gint32 expected_stops_after[2] = { -1, -1 };
       const gchar *appstack_expected_ids[2] = { "manual_app", "test-id"};
       const gchar *appstack_expected_icons[2] = { "manual_icon", "no-icon"};
       const gchar *appstack = "com.canonical.hud.query6.appstack";
@@ -372,6 +390,8 @@ test_hud_query_sequence ()
 
       const gchar *expected_after[2] = { "something dare", "something else darn"};
       const guint32 expected_distances_after[2] = { 0, 11 };
+      const gint32 expected_starts_after[2] = { 10, -1 };
+      const gint32 expected_stops_after[2] = { 14, -1 };
       test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, G_N_ELEMENTS(appstack_expected_ids), path, name, expected_after, expected_distances_after, 2);
 
       g_object_unref (query);
@@ -422,6 +442,8 @@ test_hud_query_sequence_counter_increment ()
     gchar *search = "ash";
     const gchar *expected[5] = { "any rash", "stray slash", "swift sad", "itch step", "mess strand" };
     const guint32 expected_distances[5] = { 10, 20, 22, 23, 25 };
+    const gint32 expected_starts[5] = { 5, 8, -1, -1, -1 };
+    const gint32 expected_stops[5] = { 8, 11, -1, -1, -1 };
     const gchar *appstack = "com.canonical.hud.query6.appstack";
     const gchar *path = "/com/canonical/hud/query6";
     const gchar *name = "com.canonical.hud.query6.results";
@@ -435,6 +457,8 @@ test_hud_query_sequence_counter_increment ()
     gchar *search = "mess";
     const gchar *expected[1] = { "mess strand"};
     const guint32 expected_distances[1] = { 1 };
+    const gint32 expected_starts[1] = { 0 };
+    const gint32 expected_stops[1] = { 4 };
     const gchar *appstack = "com.canonical.hud.query7.appstack";
     const gchar *path = "/com/canonical/hud/query7";
     const gchar *name = "com.canonical.hud.query7.results";
@@ -448,6 +472,8 @@ test_hud_query_sequence_counter_increment ()
     gchar *search = "dare";
     const gchar *expected[2] = { "mess strand", "bowl"};
     const guint32 expected_distances[2] = { 2, 30 };
+    const gint32 expected_starts[2] = { -1, -1 };
+    const gint32 expected_stops[2] = { -1, -1 };
     const gchar *appstack = "com.canonical.hud.query8.appstack";
     const gchar *path = "/com/canonical/hud/query8";
     const gchar *name = "com.canonical.hud.query8.results";
@@ -462,6 +488,8 @@ test_hud_query_sequence_counter_increment ()
     gchar *search = "itch step";
     const gchar *expected[1] = { "itch step"};
     const guint32 expected_distances[1] = { 0 };
+    const gint32 expected_starts[1] = { 0 };
+    const gint32 expected_stops[1] = { 9 };
     const gchar *appstack = "com.canonical.hud.query9.appstack";
     const gchar *path = "/com/canonical/hud/query9";
     const gchar *name = "com.canonical.hud.query9.results";
@@ -480,6 +508,8 @@ test_hud_query_sequence_counter_increment ()
     gchar *search = "ash";
     const gchar *expected[5] = { "any rash", "stray slash", "swift sad", "itch step", "mess strand" };
     const guint32 expected_distances[5] = { 10, 20, 22, 23, 25 };
+    const gint32 expected_starts[5] = { 5, 8, -1, -1, -1 };
+    const gint32 expected_stops[5] = { 8, 11, -1, -1, -1 };
     const gchar *appstack = "com.canonical.hud.query10.appstack";
     const gchar *path = "/com/canonical/hud/query10";
     const gchar *name = "com.canonical.hud.query10.results";
@@ -494,6 +524,8 @@ test_hud_query_sequence_counter_increment ()
 
     const gchar *expected_after[2] = { "mess strand", "bowl"};
     const guint32 expected_distances_after[2] = { 2, 30 };
+    const gint32 expected_starts[2] = { -1, -1 };
+    const gint32 expected_stops[2] = { -1, -1 };
 
     test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, 2);
 
@@ -505,6 +537,8 @@ test_hud_query_sequence_counter_increment ()
       gchar *search = "dare";
       const gchar *expected[2] = { "mess strand", "bowl"};
       const guint32 expected_distances[2] = { 2, 30 };
+      const gint32 expected_starts[2] = { -1, -1 };
+      const gint32 expected_stops[2] = { -1, -1 };
       const gchar *appstack = "com.canonical.hud.query11.appstack";
       const gchar *path = "/com/canonical/hud/query11";
       const gchar *name = "com.canonical.hud.query11.results";
@@ -526,6 +560,8 @@ test_hud_query_sequence_counter_increment ()
 
       const gchar *expected_after[2] = { "something dare", "something else darn" };
       const guint32 expected_distances_after[2] = { 0, 11 };
+      const gint32 expected_starts_after[2] = { 10, -1 };
+      const gint32 expected_stops_after[2] = { 14, -1 };
 
       g_assert(G_N_ELEMENTS(expected_after) == G_N_ELEMENTS(expected_distances_after));
       test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, G_N_ELEMENTS(expected_after));
