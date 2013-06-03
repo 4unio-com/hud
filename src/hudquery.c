@@ -98,22 +98,22 @@ static guint hud_query_changed_signal;
 /* Schema that is used in the DeeModel representing
    the results */
 static const gchar * results_model_schema[HUD_QUERY_RESULTS_COUNT] = {
-	"v", /* Command ID */
-	"s", /* Command Name */
-	"a(ii)", /* Highlights in command name */
-	"s", /* Description */
-	"a(ii)", /* Highlights in description */
-	"s", /* Shortcut */
-	"u", /* Distance */
-	"b", /* Parameterized */
+	HUD_QUERY_RESULTS_COMMAND_ID_TYPE,
+	HUD_QUERY_RESULTS_COMMAND_NAME_TYPE,
+	HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS_TYPE,
+	HUD_QUERY_RESULTS_DESCRIPTION_TYPE,
+	HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS_TYPE,
+	HUD_QUERY_RESULTS_SHORTCUT_TYPE,
+	HUD_QUERY_RESULTS_DISTANCE_TYPE,
+	HUD_QUERY_RESULTS_PARAMETERIZED_TYPE,
 };
 
 /* Schema that is used in the DeeModel representing
    the appstack */
 static const gchar * appstack_model_schema[HUD_QUERY_APPSTACK_COUNT] = {
-	"s", /* Application ID */
-	"s", /* Icon Name */
-	"i", /* Item Type */
+	HUD_QUERY_APPSTACK_APPLICATION_ID_TYPE,
+	HUD_QUERY_APPSTACK_ICON_NAME_TYPE,
+	HUD_QUERY_APPSTACK_ITEM_TYPE_TYPE,
 };
 
 static gint
