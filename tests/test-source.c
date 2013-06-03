@@ -198,7 +198,7 @@ test_source_create_query (GDBusConnection *session, HudSource *source, HudApplic
 {
   g_debug ("query: [%s], on [%s]", search, g_dbus_connection_get_unique_name(session));
 
-  HudQuery * query = hud_query_new (source, NULL, list, search, 1u << 30, session, query_count);
+  HudQuery * query = hud_query_new (source, NULL, list, search, 1u << 30, session, NULL, query_count);
 
   return query;
 }
