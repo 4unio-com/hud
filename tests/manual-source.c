@@ -16,7 +16,7 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "hudmanualsource.h"
+#include "manual-source.h"
 
 #include "source.h"
 #include "result.h"

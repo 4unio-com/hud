@@ -3,7 +3,7 @@
 #include <hud-client.h>
 #include "shared-values.h"
 
-#include "hudtestutils.h"
+#include "test-utils.h"
 
 /* Define the global default timeout for g_timeout_add_seconds */
 #ifndef TEST_DEFAULT_TIMEOUT_S

@@ -21,7 +21,7 @@
 
 #include "voice.h"
 #include "source.h"
-#include "hudmanualsource.h"
+#include "manual-source.h"
 #include "hud-query-iface.h"
 
 typedef struct

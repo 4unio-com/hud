@@ -20,7 +20,7 @@
 #include "source.h"
 #include "token.h"
 #include "appindicator-source.h"
-#include "hudtestutils.h"
+#include "test-utils.h"
 
 #include <glib-object.h>
 #include <gio/gio.h>

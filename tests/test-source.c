@@ -22,10 +22,10 @@
 #include "string-list.h"
 #include "source.h"
 #include "source-list.h"
-#include "hudmanualsource.h"
+#include "manual-source.h"
 #include "dbusmenu-collector.h"
 #include "hud-query-iface.h"
-#include "hudtestutils.h"
+#include "test-utils.h"
 #include "app-list-dummy.h"
 #include "query-columns.h"
 

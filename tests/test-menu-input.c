@@ -27,7 +27,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "source.h"
 #include "result.h"
 #include "settings.h"
-#include "hudtestutils.h"
+#include "test-utils.h"
 
 /* hardcode some parameters so the test doesn't fail if the user
  * has bogus things in GSettings.

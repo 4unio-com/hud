@@ -3,7 +3,7 @@
 #include <hud-client.h>
 #include "shared-values.h"
 
-#include "hudtestutils.h"
+#include "test-utils.h"
 
 typedef struct _test_connection_create_t test_connection_create_t;
 struct _test_connection_create_t {

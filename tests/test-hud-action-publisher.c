@@ -3,7 +3,7 @@
 #include <libdbustest/dbus-test.h>
 
 #include "shared-values.h"
-#include "hudtestutils.h"
+#include "test-utils.h"
 
 static void
 test_action_publisher_new_for_id ()

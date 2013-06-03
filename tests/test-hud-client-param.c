@@ -3,7 +3,7 @@
 #include <hud-client.h>
 #include "shared-values.h"
 
-#include "hudtestutils.h"
+#include "test-utils.h"
 
 static void
 test_param_create (void)

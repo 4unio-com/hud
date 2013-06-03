@@ -21,7 +21,7 @@
 #include "query.h"
 #include "token.h"
 #include "source.h"
-#include "hudrandomsource.h"
+#include "random-source.h"
 #include "word-list.h"
 
 #define MAX_DEPTH 6

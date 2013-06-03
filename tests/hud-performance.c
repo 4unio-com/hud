@@ -20,7 +20,7 @@
 #include "query.h"
 #include "token.h"
 #include "source.h"
-#include "hudrandomsource.h"
+#include "random-source.h"
 
 #include <glib-object.h>
 #include <gio/gio.h>
