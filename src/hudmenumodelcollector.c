@@ -1155,7 +1155,7 @@ hud_menu_model_collector_new (const gchar *application_id,
  **/
 void
 hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
-                                     BamfWindow  *window)
+                                     AbstractWindow  *window)
 {
   g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
