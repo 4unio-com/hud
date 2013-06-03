@@ -43,7 +43,7 @@ G_END_DECLS
 
 /*** BEGIN file-production ***/
 /* Enumerations from file: "@basename@" */
-#include "@basename@"
+#include <libhud-client/@basename@>
 
 /*** END file-production ***/
 
