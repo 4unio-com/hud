@@ -162,8 +162,37 @@ test_source_make_assertions (HudQuery* query, const gchar *appstack,
     g_debug("Distance: %d", dee_model_get_uint32(model, iter, HUD_QUERY_RESULTS_DISTANCE));
     g_debug("Exp Distance: %d", expected_distances[row]);
 
+    GVariant * highlights = dee_model_get_value(model, iter, HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS);
+    g_assert(highlights != NULL);
+
+    g_debug("Highlight Count: %d", (guint)g_variant_n_children(highlights));
+    g_debug("Exp Highlight Cnt: %d", expected_starts[row] == -1 ? 0 : 1);
+
+    if (expected_starts[row] != -1)
+    {
+      g_debug("Highlights: %s", g_variant_print(highlights, FALSE));
+      g_debug("Exp Highlights: (%d, %d)", expected_starts[row], expected_stops[row]);
+    }
+
     g_assert_cmpstr(dee_model_get_string(model, iter, HUD_QUERY_RESULTS_COMMAND_NAME), ==, expected_rows[row]);
     g_assert_cmpint(dee_model_get_uint32(model, iter, HUD_QUERY_RESULTS_DISTANCE), ==, expected_distances[row]);
+	g_assert_cmpint(g_variant_n_children(highlights), ==, (expected_starts[row] == -1 ? 0 : 1));
+
+    if (expected_starts[row] != -1)
+    {
+      GVariant * highlight = g_variant_get_child_value(highlights, 0);
+      GVariant * vstart = g_variant_get_child_value(highlight, 0);
+      GVariant * vstop = g_variant_get_child_value(highlight, 1);
+
+      g_assert_cmpint(g_variant_get_uint32(vstart), ==, expected_starts[row]);
+      g_assert_cmpint(g_variant_get_uint32(vstop), ==, expected_stops[row]);
+
+      g_variant_unref(vstop);
+      g_variant_unref(vstart);
+      g_variant_unref(highlight);
+    }
+
+    g_variant_unref(highlights);
   }
 }
 
