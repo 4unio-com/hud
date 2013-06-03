@@ -28,10 +28,10 @@ typedef BamfApplication AbstractApplication;
 
 #endif /* HAVE_BAMF */
 
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 
 #include <ubuntu/ui/ubuntu_ui_session_service.h>
-#include <ubuntu/application/ui/ubuntu_application_ui.h>
+#include <ubuntu/application/ui/stage.h>
 
 #define WINDOW_ID_CONSTANT (5)
 
@@ -40,6 +40,6 @@ typedef ubuntu_ui_session_properties AbstractApplication;
 
 #define _ubuntu_ui_session_properties_get_window_id(props) WINDOW_ID_CONSTANT
 
-#endif /* HAVE_HYBRIS */
+#endif /* HAVE_PLATFORM_API */
 
 #endif /* __HUD_ABSTRACT_APP_H__ */
