@@ -141,7 +141,8 @@ test_source_call_update_app (gpointer user_data)
 static void
 test_source_make_assertions (HudQuery* query, const gchar *appstack,
     const gchar *path, const gchar *name, const gchar **expected_rows,
-    const guint32 *expected_distances, const guint expected_count)
+    const guint32 *expected_distances, const gint32 *expected_starts,
+	const gint32 *expected_stops, const guint expected_count)
 {
   guint row;
 
@@ -170,11 +171,12 @@ static void
 test_source_make_assertions_ext (HudQuery* query, const gchar *appstack,
     const gchar **expected_appstack_ids, const gchar **expected_appstack_icons, const guint expected_appstack_count,
     const gchar *path, const gchar *name, const gchar **expected_rows,
-    const guint32 *expected_distances, const guint expected_count)
+    const guint32 *expected_distances, const gint32 *expected_starts,
+	const gint32 *expected_stops, const guint expected_count)
 {
   guint row;
 
-  test_source_make_assertions(query, appstack, path, name, expected_rows, expected_distances, expected_count);
+  test_source_make_assertions(query, appstack, path, name, expected_rows, expected_distances, expected_starts, expected_stops, expected_count);
 
   DeeModel* model = hud_query_get_appstack_model (query);
   g_assert_cmpint(dee_model_get_n_rows(model), ==, expected_appstack_count);
@@ -241,7 +243,7 @@ test_hud_query_sequence ()
     const gchar *name = "com.canonical.hud.query0.results";
 
     HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 0);
-    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 5);
+    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
     g_object_unref (query);
   }
 
@@ -256,7 +258,7 @@ test_hud_query_sequence ()
     const gchar *name = "com.canonical.hud.query1.results";
 
     HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 1);
-    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 1);
+    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
     g_object_unref (query);
   }
 
@@ -271,7 +273,7 @@ test_hud_query_sequence ()
     const gchar *name = "com.canonical.hud.query2.results";
 
     HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 2);
-    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 2);
+    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
     g_object_unref (query);
   }
 
@@ -287,7 +289,7 @@ test_hud_query_sequence ()
     const gchar *name = "com.canonical.hud.query3.results";
 
     HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 3);
-    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 1);
+    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
 
     TestSourceThreadData thread_data = {session, path};
     GThread* thread = g_thread_new ("close_query", test_source_call_close_query, &thread_data);
@@ -307,7 +309,7 @@ test_hud_query_sequence ()
     const gchar *name = "com.canonical.hud.query4.results";
 
     HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 4);
-    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 5);
+    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
 
     TestSourceThreadData thread_data = {session, path, "dare"};
     GThread* thread = g_thread_new ("update_query", test_source_call_update_query, &thread_data);
@@ -316,10 +318,10 @@ test_hud_query_sequence ()
 
     const gchar *expected_after[2] = { "mess strand", "bowl"};
     const guint32 expected_distances_after[2] = { 2, 30 };
-    const gint32 expected_starts[2] = { -1, -1 };
-    const gint32 expected_stops[2] = { -1, -1 };
+    const gint32 expected_starts_after[2] = { -1, -1 };
+    const gint32 expected_stops_after[2] = { -1, -1 };
 
-    test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, 2);
+    test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, expected_starts_after, expected_stops_after, G_N_ELEMENTS(expected_after));
 
     g_object_unref (query);
   }
@@ -336,7 +338,7 @@ test_hud_query_sequence ()
       const gchar *name = "com.canonical.hud.query5.results";
 
       HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 5);
-      test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 2);
+      test_source_make_assertions (query, appstack, path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
 
       HudStringList *tokens = hud_string_list_add_item("extra", NULL);
       tokens = hud_string_list_add_item("something dare", tokens);
@@ -356,7 +358,7 @@ test_hud_query_sequence ()
       const gint32 expected_stops_after[2] = { 14, -1 };
 
       g_assert(G_N_ELEMENTS(expected_after) == G_N_ELEMENTS(expected_distances_after));
-      test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, G_N_ELEMENTS(expected_after));
+      test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, expected_starts_after, expected_stops_after, G_N_ELEMENTS(expected_after));
 
       g_object_unref (query);
     }
@@ -366,8 +368,8 @@ test_hud_query_sequence ()
       gchar *search = "dare";
       const gchar *expected[2] = { "mess strand", "bowl"};
       const guint32 expected_distances[2] = { 2, 30 };
-      const gint32 expected_starts_after[2] = { -1, -1 };
-      const gint32 expected_stops_after[2] = { -1, -1 };
+      const gint32 expected_starts[2] = { -1, -1 };
+      const gint32 expected_stops[2] = { -1, -1 };
       const gchar *appstack_expected_ids[2] = { "manual_app", "test-id"};
       const gchar *appstack_expected_icons[2] = { "manual_icon", "no-icon"};
       const gchar *appstack = "com.canonical.hud.query6.appstack";
@@ -378,8 +380,8 @@ test_hud_query_sequence ()
       g_assert(G_N_ELEMENTS(expected) == G_N_ELEMENTS(expected_distances));
 
       AppListDummy * dummy = app_list_dummy_new(HUD_SOURCE(collector));
-      HudQuery *query = hud_query_new (HUD_SOURCE(source_list), NULL, HUD_APPLICATION_LIST(dummy), search, 1u << 30, session, 6);
-      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, G_N_ELEMENTS(appstack_expected_ids), path, name, expected, expected_distances, G_N_ELEMENTS(expected));
+      HudQuery *query = hud_query_new (HUD_SOURCE(source_list), NULL, HUD_APPLICATION_LIST(dummy), search, 1u << 30, session, NULL, 6);
+      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, G_N_ELEMENTS(appstack_expected_ids), path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
 
       // Change the app to the manual_source
 	  g_debug("Changing to 'manual_app'");
@@ -392,7 +394,7 @@ test_hud_query_sequence ()
       const guint32 expected_distances_after[2] = { 0, 11 };
       const gint32 expected_starts_after[2] = { 10, -1 };
       const gint32 expected_stops_after[2] = { 14, -1 };
-      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, G_N_ELEMENTS(appstack_expected_ids), path, name, expected_after, expected_distances_after, 2);
+      test_source_make_assertions_ext (query, appstack, appstack_expected_ids, appstack_expected_icons, G_N_ELEMENTS(appstack_expected_ids), path, name, expected_after, expected_distances_after, expected_starts_after, expected_stops_after, G_N_ELEMENTS(expected_after));
 
       g_object_unref (query);
       g_object_unref(dummy);
@@ -449,7 +451,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *name = "com.canonical.hud.query6.results";
 
     HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 6);
-    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 5);
+    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
     g_object_unref (query);
   }
 
@@ -464,7 +466,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *name = "com.canonical.hud.query7.results";
 
     HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 7);
-    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 1);
+    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
     g_object_unref (query);
   }
 
@@ -479,7 +481,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *name = "com.canonical.hud.query8.results";
 
     HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 8);
-    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 2);
+    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
     g_object_unref (query);
   }
 
@@ -495,7 +497,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *name = "com.canonical.hud.query9.results";
 
     HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 9);
-    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 1);
+    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
 
     TestSourceThreadData thread_data = {session, path};
     GThread* thread = g_thread_new ("close_query", test_source_call_close_query, &thread_data);
@@ -515,7 +517,7 @@ test_hud_query_sequence_counter_increment ()
     const gchar *name = "com.canonical.hud.query10.results";
 
     HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 10);
-    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 5);
+    test_source_make_assertions (query, appstack, path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
 
     TestSourceThreadData thread_data = {session, path, "dare"};
     GThread* thread = g_thread_new ("update_query", test_source_call_update_query, &thread_data);
@@ -524,10 +526,10 @@ test_hud_query_sequence_counter_increment ()
 
     const gchar *expected_after[2] = { "mess strand", "bowl"};
     const guint32 expected_distances_after[2] = { 2, 30 };
-    const gint32 expected_starts[2] = { -1, -1 };
-    const gint32 expected_stops[2] = { -1, -1 };
+    const gint32 expected_starts_after[2] = { -1, -1 };
+    const gint32 expected_stops_after[2] = { -1, -1 };
 
-    test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, 2);
+    test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, expected_starts_after, expected_stops_after, G_N_ELEMENTS(expected_after));
 
     g_object_unref (query);
   }
@@ -544,7 +546,7 @@ test_hud_query_sequence_counter_increment ()
       const gchar *name = "com.canonical.hud.query11.results";
 
       HudQuery *query = test_source_create_query (session, HUD_SOURCE(source_list), applist, search, 11);
-      test_source_make_assertions (query, appstack, path, name, expected, expected_distances, 2);
+      test_source_make_assertions (query, appstack, path, name, expected, expected_distances, expected_starts, expected_stops, G_N_ELEMENTS(expected));
 
       HudStringList *tokens = hud_string_list_add_item("extra", NULL);
       tokens = hud_string_list_add_item("something dare", tokens);
@@ -564,7 +566,7 @@ test_hud_query_sequence_counter_increment ()
       const gint32 expected_stops_after[2] = { 14, -1 };
 
       g_assert(G_N_ELEMENTS(expected_after) == G_N_ELEMENTS(expected_distances_after));
-      test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, G_N_ELEMENTS(expected_after));
+      test_source_make_assertions (query, appstack, path, name, expected_after, expected_distances_after, expected_starts_after, expected_stops_after, G_N_ELEMENTS(expected_after));
 
       g_object_unref (query);
     }
