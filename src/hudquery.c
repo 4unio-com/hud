@@ -819,6 +819,7 @@ hud_query_new (HudSource   *all_sources,
                const gchar *search_string,
                gint         num_results,
                GDBusConnection *connection,
+               const gchar * sender,
                const guint  query_count)
 {
   HudQuery *query;
