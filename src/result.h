@@ -19,7 +19,7 @@
 #ifndef __HUD_RESULT_H__
 #define __HUD_RESULT_H__
 
-#include "huditem.h"
+#include "item.h"
 
 #define HUD_TYPE_RESULT                                     (hud_result_get_type ())
 #define HUD_RESULT(inst)                                    (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \

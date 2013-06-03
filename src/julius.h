@@ -17,7 +17,7 @@
 #ifndef HUDJULIUS_H_
 #define HUDJULIUS_H_
 
-#include <hudvoice.h>
+#include <voice.h>
 
 /*
  * Type macros.

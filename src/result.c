@@ -16,12 +16,12 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "hudresult.h"
+#include "result.h"
 
 #include <string.h>
 
-#include "hudsettings.h"
-#include "hudtoken.h"
+#include "settings.h"
+#include "token.h"
 
 /**
  * SECTION:hudresult

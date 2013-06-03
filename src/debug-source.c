@@ -16,10 +16,10 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "huddebugsource.h"
+#include "debug-source.h"
 
-#include "hudsource.h"
-#include "hudresult.h"
+#include "source.h"
+#include "result.h"
 
 /**
  * SECTION:huddebugsource

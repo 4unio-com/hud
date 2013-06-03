@@ -16,10 +16,10 @@
 
 #define G_LOG_DOMAIN "hudsphinx"
 
-#include "hudvoice.h"
-#include "hudsphinx.h"
+#include "voice.h"
+#include "sphinx.h"
 #include "hud-query-iface.h"
-#include "hudsource.h"
+#include "source.h"
 #include "pronounce-dict.h"
 
 /* Pocket Sphinx */

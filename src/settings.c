@@ -18,7 +18,7 @@
 
 #define G_LOG_DOMAIN "hudsettings"
 
-#include "hudsettings.h"
+#include "settings.h"
 
 #include <gio/gio.h>
 

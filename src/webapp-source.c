@@ -16,7 +16,7 @@
  * Authors: Robert Carr
  */
 
-#include "hudwebappsource.h"
+#include "webapp-source.h"
 
 #include <stdio.h>
 
@@ -30,9 +30,9 @@
 #include <libbamf/bamf-tab.h>
 #endif
 
-#include "hudsettings.h"
-#include "huddbusmenucollector.h"
-#include "hudsource.h"
+#include "settings.h"
+#include "dbusmenu-collector.h"
+#include "source.h"
 
 /**
  * SECTION:hudwebappsource

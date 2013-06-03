@@ -19,8 +19,8 @@
 #ifndef __HUD_SOURCE_H__
 #define __HUD_SOURCE_H__
 
-#include "huditem.h"
-#include "hudresult.h"
+#include "item.h"
+#include "result.h"
 #include "enum-types.h"
 #include <libhud-client/hud-client.h>
 

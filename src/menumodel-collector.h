@@ -22,7 +22,7 @@
 #include <gio/gio.h>
 
 #include "abstract-app.h"
-#include "hudsource.h"
+#include "source.h"
 
 #define HUD_TYPE_MENU_MODEL_COLLECTOR                       (hud_menu_model_collector_get_type ())
 #define HUD_MENU_MODEL_COLLECTOR(inst)                      (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \

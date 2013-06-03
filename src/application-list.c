@@ -26,7 +26,7 @@
 
 #include "application-list.h"
 #include "application-source.h"
-#include "hudsource.h"
+#include "source.h"
 
 typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
 

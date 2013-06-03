@@ -18,10 +18,10 @@
 
 #include <glib/gi18n.h>
 
-#include "huditem.h"
+#include "item.h"
 
 #include "usage-tracker.h"
-#include "hudtoken.h"
+#include "token.h"
 
 /**
  * SECTION:huditem

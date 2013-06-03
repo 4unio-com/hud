@@ -20,13 +20,13 @@
 
 #include <dee.h>
 
-#include "hudquery.h"
+#include "query.h"
 #include "hud-query-iface.h"
-#include "hudsourcelist.h"
-#include "hudresult.h"
-#include "hudmenumodelcollector.h"
-#include "huddbusmenucollector.h"
-#include "hudvoice.h"
+#include "source-list.h"
+#include "result.h"
+#include "menumodel-collector.h"
+#include "dbusmenu-collector.h"
+#include "voice.h"
 #include "application-source.h"
 #include "application-list.h"
 #include "query-columns.h"

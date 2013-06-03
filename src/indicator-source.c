@@ -17,15 +17,15 @@
  *          Ted Gould <ted@canonical.com>
  */
 
-#include "hudindicatorsource.h"
+#include "indicator-source.h"
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
-#include "hudsettings.h"
-#include "huddbusmenucollector.h"
-#include "hudmenumodelcollector.h"
-#include "hudsource.h"
+#include "settings.h"
+#include "dbusmenu-collector.h"
+#include "menumodel-collector.h"
+#include "source.h"
 
 /**
  * SECTION:hudindicatorsource

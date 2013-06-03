@@ -20,7 +20,7 @@
 
 #include <glib/gi18n.h>
 
-#include "hudkeywordmapping.h"
+#include "keyword-mapping.h"
 
 /**
  * SECTION:hudkeywordmapping

@@ -16,9 +16,9 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "hudtoken.h"
+#include "token.h"
 
-#include "hudsettings.h"
+#include "settings.h"
 
 #include <string.h>
 

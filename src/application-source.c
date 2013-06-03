@@ -23,11 +23,11 @@
 #endif
 
 #include "application-source.h"
-#include "hudsource.h"
+#include "source.h"
 #include "app-iface.h"
-#include "hudmenumodelcollector.h"
-#include "huddbusmenucollector.h"
-#include "hudsourcelist.h"
+#include "menumodel-collector.h"
+#include "dbusmenu-collector.h"
+#include "source-list.h"
 
 struct _HudApplicationSourcePrivate {
 	GDBusConnection * session;

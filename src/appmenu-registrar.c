@@ -18,7 +18,7 @@
 
 #define G_LOG_DOMAIN "hudappmenuregistrar"
 
-#include "hudappmenuregistrar.h"
+#include "appmenu-registrar.h"
 
 #include <gio/gio.h>
 

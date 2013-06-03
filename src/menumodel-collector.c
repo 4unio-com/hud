@@ -18,12 +18,12 @@
 
 #define G_LOG_DOMAIN "hudmenumodelcollector"
 
-#include "hudmenumodelcollector.h"
+#include "menumodel-collector.h"
 
-#include "hudsource.h"
-#include "hudresult.h"
-#include "huditem.h"
-#include "hudkeywordmapping.h"
+#include "source.h"
+#include "result.h"
+#include "item.h"
+#include "keyword-mapping.h"
 #include "action-muxer.h"
 
 #include <gio/gio.h>

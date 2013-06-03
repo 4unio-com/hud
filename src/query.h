@@ -19,8 +19,8 @@
 #ifndef __HUD_QUERY_H__
 #define __HUD_QUERY_H__
 
-#include "hudsource.h"
-#include "hudresult.h"
+#include "source.h"
+#include "result.h"
 #include "application-list.h"
 #include "watchdog.h"
 

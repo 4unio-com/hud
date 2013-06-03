@@ -19,7 +19,7 @@
 #ifndef __HUD_TOKEN_H__
 #define __HUD_TOKEN_H__
 
-#include "hudstringlist.h"
+#include "string-list.h"
 
 typedef struct _HudTokenList HudTokenList;
 typedef struct _HudToken HudToken;

@@ -21,7 +21,7 @@
 
 #include <glib-object.h>
 #include "application-source.h"
-#include "hudsource.h"
+#include "source.h"
 
 G_BEGIN_DECLS
 

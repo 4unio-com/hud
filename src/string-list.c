@@ -16,9 +16,9 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "hudstringlist.h"
+#include "string-list.h"
 #include "pronounce-dict.h"
-#include "huditem.h"
+#include "item.h"
 
 #include <string.h>
 

@@ -21,7 +21,7 @@
 
 #include <glib-object.h>
 
-#include "hudtoken.h"
+#include "token.h"
 
 #define HUD_TYPE_ITEM                                       (hud_item_get_type ())
 #define HUD_ITEM(inst)                                      (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \

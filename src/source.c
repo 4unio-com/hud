@@ -18,7 +18,7 @@
 
 #define G_LOG_DOMAIN "hudsource"
 
-#include "hudsource.h"
+#include "source.h"
 
 /**
  * SECTION:hudsource

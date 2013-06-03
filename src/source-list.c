@@ -16,7 +16,7 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "hudsourcelist.h"
+#include "source-list.h"
 #include "application-list.h"
 
 /**

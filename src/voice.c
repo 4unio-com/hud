@@ -17,9 +17,9 @@
 
 #define G_LOG_DOMAIN "hudvoice"
 
-#include "hudvoice.h"
-#include "hudsphinx.h"
-#include "hudjulius.h"
+#include "voice.h"
+#include "sphinx.h"
+#include "julius.h"
 
 /**
  * HudVoiceace:

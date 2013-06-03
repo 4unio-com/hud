@@ -21,7 +21,7 @@
 
 #include "glib-object.h"
 #include "abstract-app.h"
-#include "hudsource.h"
+#include "source.h"
 
 #define HUD_TYPE_DBUSMENU_COLLECTOR                         (hud_dbusmenu_collector_get_type ())
 #define HUD_DBUSMENU_COLLECTOR(inst)                        (G_TYPE_CHECK_INSTANCE_CAST ((inst),                     \

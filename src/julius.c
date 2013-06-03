@@ -17,8 +17,8 @@
 #define _POSIX_SOURCE 1
 #define G_LOG_DOMAIN "hudjulius"
 
-#include "hudjulius.h"
-#include "hudsource.h"
+#include "julius.h"
+#include "source.h"
 #include "pronounce-dict.h"
 #include "hud-query-iface.h"
 

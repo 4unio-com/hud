@@ -25,18 +25,18 @@
 #include <locale.h>
 #include <libintl.h>
 
-#include "hudappindicatorsource.h"
-#include "hudindicatorsource.h"
-#include "hudwebappsource.h"
-#include "huddebugsource.h"
-#include "hudsourcelist.h"
-#include "hudsettings.h"
+#include "appindicator-source.h"
+#include "indicator-source.h"
+#include "webapp-source.h"
+#include "debug-source.h"
+#include "source-list.h"
+#include "settings.h"
 #include "application-list.h"
 #include "query-columns.h"
 
 #include "hud-iface.h"
 #include "shared-values.h"
-#include "hudquery.h"
+#include "query.h"
 #include "watchdog.h"
 
 /* Prototypes */

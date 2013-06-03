@@ -19,15 +19,15 @@
 
 #define G_LOG_DOMAIN "huddbusmenucollector"
 
-#include "huddbusmenucollector.h"
+#include "dbusmenu-collector.h"
 
 #include <libdbusmenu-glib/client.h>
 #include <string.h>
 
-#include "hudappmenuregistrar.h"
-#include "hudresult.h"
-#include "hudsource.h"
-#include "hudkeywordmapping.h"
+#include "appmenu-registrar.h"
+#include "result.h"
+#include "source.h"
+#include "keyword-mapping.h"
 
 /**
  * SECTION:huddbusmenucollector
