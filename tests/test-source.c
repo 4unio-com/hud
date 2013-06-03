@@ -184,8 +184,8 @@ test_source_make_assertions (HudQuery* query, const gchar *appstack,
       GVariant * vstart = g_variant_get_child_value(highlight, 0);
       GVariant * vstop = g_variant_get_child_value(highlight, 1);
 
-      g_assert_cmpint(g_variant_get_uint32(vstart), ==, expected_starts[row]);
-      g_assert_cmpint(g_variant_get_uint32(vstop), ==, expected_stops[row]);
+      g_assert_cmpint(g_variant_get_int32(vstart), ==, expected_starts[row]);
+      g_assert_cmpint(g_variant_get_int32(vstop), ==, expected_stops[row]);
 
       g_variant_unref(vstop);
       g_variant_unref(vstart);
