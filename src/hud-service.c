@@ -75,6 +75,8 @@ static HudWatchdog * watchdog = NULL;
 #define QUERY_CREATE_RESULTS_SYNC   "query-create-results-sync"
 #define QUERY_CREATE_APPSTACK_SYNC  "query-create-appstack-sync"
 
+#define LEGACY_QUERY_SENDER         "hud-legacy-query-sender"
+
 /* Get our error domain */
 GQuark
 error (void)
@@ -345,6 +347,24 @@ synchronized_update (GObject * obj, GParamSpec * pspec, gpointer user_data)
 	return;
 }
 
+/* Looks through the queries to find the one with this sender, if there
+   is one */
+HudQuery *
+find_legacy_query (GPtrArray * queries, const gchar * sender)
+{
+	int i;
+	HudQuery * query = NULL;
+	for (i = 0; i < query_list->len; i++) {
+		const gchar * qsender = g_object_get_data(G_OBJECT(g_ptr_array_index(query_list, i)), LEGACY_QUERY_SENDER);
+		if (g_strcmp0(qsender, sender) == 0) {
+			query = HUD_QUERY(g_ptr_array_index(query_list, i));
+			break;
+		}
+	}
+
+	return query;
+}
+
 /* Take a method call from DBus */
 static void
 bus_method (GDBusConnection       *connection,
@@ -399,14 +419,22 @@ bus_method (GDBusConnection       *connection,
 		HudSourceList *all_sources = user_data;
 		GVariant * vsearch;
 		const gchar *search_string;
-		HudQuery *query;
+		HudQuery *query = NULL;
 
 		/* Legacy inteface for Compiz-based Unity */
 		vsearch = g_variant_get_child_value (parameters, 0);
 		search_string = g_variant_get_string(vsearch, NULL);
 		g_debug ("'StartQuery' from %s: '%s'", sender, search_string);
 
-		query = build_query (all_sources, application_list, connection, search_string);
+		query = find_legacy_query(query_list, g_dbus_method_invocation_get_sender(invocation));
+
+		if (query == NULL) {
+			query = build_query (all_sources, application_list, connection, search_string);
+			g_object_set_data_full(G_OBJECT(query), LEGACY_QUERY_SENDER, g_strdup(g_dbus_method_invocation_get_sender(invocation)), g_free);
+		} else {
+			hud_query_update_search(query, search_string);
+		}
+
 		g_signal_connect(query, "changed", G_CALLBACK(legacy_update), connection);
 		g_dbus_method_invocation_return_value (invocation, describe_legacy_query (query));
 
@@ -432,7 +460,7 @@ bus_method (GDBusConnection       *connection,
 		}
 
 		if (query != NULL) {
-			hud_query_close(query);
+			hud_query_update_search(query, "");
 			g_dbus_method_invocation_return_value (invocation, NULL);
 		} else {
 			g_dbus_method_invocation_return_error_literal(invocation, error(), 2, "Unable to find Query");
