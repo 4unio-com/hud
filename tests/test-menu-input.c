@@ -22,11 +22,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <libdbustest/dbus-test.h>
 
-#include "huddbusmenucollector.h"
-#include "hudmenumodelcollector.h"
-#include "hudsource.h"
-#include "hudresult.h"
-#include "hudsettings.h"
+#include "dbusmenu-collector.h"
+#include "menumodel-collector.h"
+#include "source.h"
+#include "result.h"
+#include "settings.h"
 #include "hudtestutils.h"
 
 /* hardcode some parameters so the test doesn't fail if the user

@@ -16,10 +16,10 @@
  * Author: Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "hudsettings.h"
-#include "hudquery.h"
-#include "hudtoken.h"
-#include "hudsource.h"
+#include "settings.h"
+#include "query.h"
+#include "token.h"
+#include "source.h"
 #include "hudrandomsource.h"
 
 #include <glib-object.h>

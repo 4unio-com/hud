@@ -18,7 +18,7 @@
 
 #include <glib-object.h>
 
-#include "hudstringlist.h"
+#include "string-list.h"
 
 static void
 test_hud_string_list_cons ()

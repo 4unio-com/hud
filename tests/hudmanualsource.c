@@ -18,8 +18,8 @@
 
 #include "hudmanualsource.h"
 
-#include "hudsource.h"
-#include "hudresult.h"
+#include "source.h"
+#include "result.h"
 
 struct _HudManualSource
 {

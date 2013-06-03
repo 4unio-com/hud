@@ -24,8 +24,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <stdlib.h>
 
-#include "hudsettings.h"
-#include "hudkeywordmapping.h"
+#include "settings.h"
+#include "keyword-mapping.h"
 
 /* hardcode some parameters so the test doesn't fail if the user
  * has bogus things in GSettings.

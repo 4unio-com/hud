@@ -1,7 +1,7 @@
 
 #include "hudtestutils.h"
-#include "hudstringlist.h"
-#include "hudresult.h"
+#include "string-list.h"
+#include "result.h"
 #include "shared-values.h"
 
 #include <libdbustest/dbus-test.h>

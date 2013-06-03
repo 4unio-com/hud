@@ -16,10 +16,10 @@
 
 #define G_LOG_DOMAIN "test-hudappindicatorsource"
 
-#include "hudsettings.h"
-#include "hudsource.h"
-#include "hudtoken.h"
-#include "hudindicatorsource.h"
+#include "settings.h"
+#include "source.h"
+#include "token.h"
+#include "indicator-source.h"
 #include "hudtestutils.h"
 
 #include <glib-object.h>

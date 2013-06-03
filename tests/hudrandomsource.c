@@ -18,9 +18,9 @@
 
 #include <glib.h>
 
-#include "hudquery.h"
-#include "hudtoken.h"
-#include "hudsource.h"
+#include "query.h"
+#include "token.h"
+#include "source.h"
 #include "hudrandomsource.h"
 #include "word-list.h"
 

@@ -21,9 +21,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string.h>
 
-#include "hudstringlist.h"
-#include "hudresult.h"
-#include "hudsettings.h"
+#include "string-list.h"
+#include "result.h"
+#include "settings.h"
 
 /* hardcode some parameters so the test doesn't fail if the user
  * has bogus things in GSettings.
