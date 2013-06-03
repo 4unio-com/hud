@@ -41,7 +41,7 @@ struct _HudApplicationSourcePrivate {
 #ifdef HAVE_BAMF
 	AbstractApplication * bamf_app;
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	gchar * desktop_file;
 #endif
 
@@ -191,7 +191,7 @@ hud_application_source_finalize (GObject *object)
 	g_clear_pointer(&self->priv->app_id, g_free);
 	g_clear_pointer(&self->priv->path, g_free);
 	g_clear_pointer(&self->priv->window_contexts, g_hash_table_unref);
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	g_clear_pointer(&self->priv->desktop_file, g_free);
 #endif
 
@@ -378,7 +378,7 @@ hud_application_source_new_for_app (AbstractApplication * bapp)
 	source->priv->bamf_app = g_object_ref(bapp);
 	desktop_file = bamf_application_get_desktop_file(bapp);
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	source->priv->desktop_file = g_strdup(ubuntu_ui_session_properties_get_desktop_file_hint(*bapp));
 	desktop_file = source->priv->desktop_file;
 #endif
@@ -583,7 +583,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	while (g_variant_iter_loop(&action_iter, "(usso)", &idn, &context, &prefix, &object)) {
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
 
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 		idn = WINDOW_ID_CONSTANT;
 #endif
 
@@ -609,7 +609,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	while (g_variant_iter_loop(&desc_iter, "(uso)", &idn, &context, &object)) {
 		g_debug("Adding descriptions: %s", object);
 
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 		idn = WINDOW_ID_CONSTANT;
 #endif
 
@@ -688,7 +688,7 @@ hud_application_source_bamf_app_id (AbstractApplication * bapp)
 #ifdef HAVE_BAMF
 	g_return_val_if_fail(BAMF_IS_APPLICATION(bapp), NULL);
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	/* Hybris has no way to check if the pointer is valid */
 #endif
 
@@ -697,7 +697,7 @@ hud_application_source_bamf_app_id (AbstractApplication * bapp)
 #ifdef HAVE_BAMF
 	desktop_file = bamf_application_get_desktop_file(bapp);
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	desktop_file = ubuntu_ui_session_properties_get_desktop_file_hint(*bapp);
 #endif
 	if (desktop_file == NULL) {
@@ -738,7 +738,7 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 #ifdef HAVE_BAMF
 	g_return_if_fail(BAMF_IS_APPLICATION(bapp));
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	/* Hybris has no way to check if the pointer is valid */
 #endif
 
@@ -754,7 +754,7 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 	}
 
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	if (app->priv->desktop_file == NULL) {
 		app->priv->desktop_file = g_strdup(ubuntu_ui_session_properties_get_desktop_file_hint(*bapp));
 		app_iface_com_canonical_hud_application_set_desktop_path(app->priv->skel, app->priv->desktop_file);
@@ -766,7 +766,7 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 #ifdef HAVE_BAMF
 	app->priv->focused_window = bamf_window_get_xid(window);
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	app->priv->focused_window = _ubuntu_ui_session_properties_get_window_id(window);
 #endif
 
@@ -823,7 +823,7 @@ hud_application_source_get_app_icon (HudApplicationSource * app)
 #ifdef HAVE_BAMF
 	desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	desktop_file = app->priv->desktop_file;
 #endif
 	if (desktop_file != NULL) {
@@ -913,7 +913,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 #ifdef HAVE_BAMF
 	g_return_if_fail(BAMF_IS_WINDOW(window));
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	/* Hybris has no way to check if the pointer is valid */
 #endif
 
@@ -921,7 +921,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 #ifdef HAVE_BAMF
 	xid = bamf_window_get_xid(window);
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	xid = _ubuntu_ui_session_properties_get_window_id(window);
 #endif
 
@@ -951,7 +951,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 #ifdef HAVE_BAMF
 	gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	gchar * app_id = g_strdup(app->priv->app_id);
 #endif
 	const gchar * icon = NULL;
@@ -970,7 +970,6 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	}
 
 	hud_application_source_context_add_window(context, window);
-
 	g_free (app_id);
 
 	return;
