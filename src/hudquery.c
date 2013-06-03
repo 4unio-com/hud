@@ -335,7 +335,10 @@ hud_query_refresh (HudQuery *query)
   /* Get the list of all applications that have data that is relevant
      to the current query, but just the app info. */
   GHashTable * appstack_hash = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, appstack_item_free);
-  hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
+
+  if (g_getenv("HUD_ENABLE_APPSTACK") != NULL) {
+    hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
+  }
 
   /* If we've selected a source, make sure it's in the list */
   appstack_hash_add_source(appstack_hash, query->current_source, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
