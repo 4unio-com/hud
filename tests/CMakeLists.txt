@@ -80,16 +80,16 @@ endmacro()
 set(HUD_TEST_HEADERS
 app-list-dummy.h
 word-list.h
-hudrandomsource.h
-hudmanualsource.h
-hudtestutils.h
+random-source.h
+manual-source.h
+test-utils.h
 )
 
 set(HUD_TEST_SOURCES
 app-list-dummy.c
-hudrandomsource.c
-hudmanualsource.c
-hudtestutils.c
+random-source.c
+manual-source.c
+test-utils.c
 )
 
 add_library(hud-test STATIC ${HUD_TEST_SOURCES})
