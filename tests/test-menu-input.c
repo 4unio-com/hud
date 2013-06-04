@@ -576,6 +576,11 @@ test_menus_model_toolbar_dynamic (void)
 	hud_test_utils_process_mainloop(100);
 	verify_toolbar(HUD_SOURCE(collector), 3, TRUE, TRUE, TRUE, FALSE);
 
+	/* Activate prefs, wait and verify that we have a new item */
+	hud_source_activate_toolbar(HUD_SOURCE(collector), HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES, g_variant_new_array(G_VARIANT_TYPE("{sv}"), NULL, 0));
+	hud_test_utils_process_mainloop(100);
+	verify_toolbar(HUD_SOURCE(collector), 4, TRUE, TRUE, TRUE, TRUE);
+
 	/* Clean up */
 	hud_source_unuse(HUD_SOURCE(collector));
 
