@@ -84,6 +84,7 @@ struct _HudQuery
   guint max_usage; /* Used to make the GList search easier */
 
   HudVoice *voice;
+  guint voice_idle;
 
   gchar * client;
   guint client_watch;
@@ -397,6 +398,12 @@ hud_query_finalize (GObject *object)
   g_debug ("Destroyed query '%s'", query->search_string);
 
   /* TODO: move to dispose */
+  if (query->voice_idle != 0)
+  {
+    g_source_remove(query->voice_idle);
+    query->voice_idle = 0;
+  }
+
   if (query->last_used_source != NULL)
   {
     hud_source_unuse(query->last_used_source);
@@ -437,6 +444,29 @@ hud_query_finalize (GObject *object)
     ->finalize (object);
 }
 
+/* Make sure the voice engine is init'd */
+static gboolean
+voice_idle_init (gpointer user_data)
+{
+	GError * error = NULL;
+	HudQuery * query = HUD_QUERY(user_data);
+
+	if (query->voice == NULL) {
+		query->voice = hud_voice_new(query->skel, NULL, &error);
+		if (!query->voice) {
+			g_warning ("%s %s\n", "Voice engine failed to initialize:", error->message);
+			g_error_free(error);
+		}
+	}
+
+	if (query->voice_idle != 0) {
+		g_source_remove(query->voice_idle);
+		query->voice_idle = 0;
+	}
+
+	return FALSE;
+}
+
 /* Handle the DBus function UpdateQuery */
 static gboolean
 handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
@@ -455,6 +485,9 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   if (search_source == NULL) {
     search_source = hud_application_list_get_focused_app(query->app_list);
   }
+
+  /* Init voice if we haven't already */
+  voice_idle_init(query);
 
   if (!hud_voice_query (query->voice, search_source, &voice_result, &error))
   {
@@ -783,13 +816,9 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const gchar *
 
   g_dbus_interface_skeleton_flush(G_DBUS_INTERFACE_SKELETON(query->skel));
 
+  query->voice_idle = g_idle_add(voice_idle_init, query);
+
   error = NULL;
-  query->voice = hud_voice_new(query->skel, NULL, &error);
-  if (!query->voice)
-  {
-    g_warning ("%s %s\n", "Voice engine failed to initialize:", error->message);
-    g_error_free(error);
-  }
 }
 
 static void
