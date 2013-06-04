@@ -35,7 +35,7 @@
 
 /* Define the global default timeout for hud_test_utils_process_mainloop */
 #ifndef TEST_DEFAULT_TIMEOUT
-#define TEST_DEFAULT_TIMEOUT 200
+#define TEST_DEFAULT_TIMEOUT 1000
 #endif
 
 /* hardcode some parameters for reasons of determinism.
@@ -74,6 +74,10 @@ test_source_create_proxy (TestSourceThreadData* thread_data)
     g_error_free (error);
     return NULL ;
   }
+
+  /* Make sure we have a connection through the life
+     of this thread. */
+  g_object_set_data_full(G_OBJECT(proxy), "test-source-bus-ensure", g_object_ref(session), g_object_unref);
 
   return proxy;
 }
