@@ -70,6 +70,7 @@ macro(hudtest tname tfilename rfilename)
     "${CMAKE_CURRENT_BINARY_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}/${tname}"
     "${CMAKE_CURRENT_BINARY_DIR}/${rfilename}"
+    "${ENABLE_VOICE_TESTS}"
   )
 endmacro()
 
