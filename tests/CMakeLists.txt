@@ -89,6 +89,19 @@ target_link_libraries(test-menu-input-model-toolbar-all
   ${GIO2_LIBRARIES}
 )
 
+########################################
+# Menu input model toolbar dynamic items
+########################################
+
+add_definitions(-DMODEL_TOOLBAR_DYNAMIC="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-toolbar-dynamic")
+
+add_executable(test-menu-input-model-toolbar-dynamic test-menu-input-model-toolbar-dynamic.c)
+target_link_libraries(test-menu-input-model-toolbar-dynamic
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
+
 #######################
 # TEST MACRO
 #######################
