@@ -571,6 +571,12 @@ test_menus_model_toolbar_dynamic (void)
 	/* Test the base case */
 	verify_toolbar(HUD_SOURCE(collector), 2, TRUE, FALSE, TRUE, FALSE);
 
+	/* Activate Undo, wait and verify that we have a new item */
+	hud_source_activate_toolbar(HUD_SOURCE(collector), HUD_CLIENT_QUERY_TOOLBAR_UNDO, g_variant_new_array(G_VARIANT_TYPE("{sv}"), NULL, 0));
+	hud_test_utils_process_mainloop(100);
+	verify_toolbar(HUD_SOURCE(collector), 3, TRUE, TRUE, TRUE, FALSE);
+
+	/* Clean up */
 	hud_source_unuse(HUD_SOURCE(collector));
 
 	g_object_unref(collector);
