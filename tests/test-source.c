@@ -69,7 +69,7 @@ test_source_create_proxy (TestSourceThreadData* thread_data)
           &error);
   if (error != NULL )
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The New Proxy request failed:", error->message);
     g_error_free (error);
     return NULL ;
   }
@@ -87,7 +87,7 @@ test_source_call_close_query (gpointer user_data)
   if (!hud_query_iface_com_canonical_hud_query_call_close_query_sync (proxy,
       NULL, &error))
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The Close Query request failed:", error->message);
     g_error_free (error);
   }
 
@@ -108,7 +108,7 @@ test_source_call_update_query (gpointer user_data)
   if (!hud_query_iface_com_canonical_hud_query_call_update_query_sync (proxy,
       thread_data->query, &model_revision, NULL, &error))
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The Update Query request failed:", error->message);
     g_error_free (error);
   }
 
@@ -129,7 +129,7 @@ test_source_call_update_app (gpointer user_data)
   if (!hud_query_iface_com_canonical_hud_query_call_update_app_sync (proxy,
       thread_data->query, &model_revision, NULL, &error))
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The Update App request failed:", error->message);
     g_error_free (error);
   }
 
