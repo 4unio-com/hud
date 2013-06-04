@@ -95,7 +95,7 @@ ${HUD_CLIENT_HEADERS}
 )
 list(APPEND HUD_CLIENT_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/enum-types.h)
 
-add_library(hud-client SHARED ${HUD_CLIENT_SOURCES})
+add_library(hud-client SHARED ${HUD_CLIENT_SOURCES} connection-private.h)
 
 set_target_properties(hud-client PROPERTIES
   VERSION ${API_VERSION}.0.0

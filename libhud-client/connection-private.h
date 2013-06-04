@@ -16,30 +16,20 @@
  * Author: Ted Gould <ted@canonical.com>
  */
 
-#ifndef __HUD_ABSTRACT_APP_H__
-#define __HUD_ABSTRACT_APP_H__
+#if !defined (_HUD_CLIENT_H_INSIDE) && !defined (HUD_CLIENT_COMPILATION)
+#error "Only <hud-client.h> can be included directly."
+#endif
 
-#ifdef HAVE_BAMF
+#ifndef __HUD_CLIENT_CONNECTION_PRIVATE_H__
+#define __HUD_CLIENT_CONNECTION_PRIVATE_H__
 
-#include <libbamf/libbamf.h>
+#include <gio/gio.h>
+#include "connection.h"
 
-typedef BamfWindow AbstractWindow;
-typedef BamfApplication AbstractApplication;
+G_BEGIN_DECLS
 
-#endif /* HAVE_BAMF */
+GDBusConnection *     hud_client_connection_get_bus (HudClientConnection * connection);
 
-#ifdef HAVE_PLATFORM_API
+G_END_DECLS
 
-#include <ubuntu/ui/ubuntu_ui_session_service.h>
-#include <ubuntu/application/ui/stage.h>
-
-#define WINDOW_ID_CONSTANT (5)
-
-typedef ubuntu_ui_session_properties AbstractWindow;
-typedef ubuntu_ui_session_properties AbstractApplication;
-
-#define _ubuntu_ui_session_properties_get_window_id(props) WINDOW_ID_CONSTANT
-
-#endif /* HAVE_PLATFORM_API */
-
-#endif /* __HUD_ABSTRACT_APP_H__ */
+#endif

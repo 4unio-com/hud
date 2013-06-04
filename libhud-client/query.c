@@ -24,9 +24,11 @@
 
 #include "query.h"
 #include "connection.h"
+#include "connection-private.h"
 #include "query-iface.h"
 #include "enum-types.h"
 #include "query-columns.h"
+#include "shared-values.h"
 
 struct _HudClientQueryPrivate {
 	_HudQueryComCanonicalHudQuery * proxy;
@@ -389,6 +391,37 @@ hud_client_query_finalize (GObject *object)
 	return;
 }
 
+/* Try and start the service using dbus activation.  If we're waiting
+   for it to start and send this again, we should be fine. */
+static void
+dbus_start_service (HudClientQuery * query)
+{
+	if (query->priv->connection == NULL) {
+		/* Oh, we don't even have a connection, let's not try */
+		return;
+	}
+
+	GDBusConnection * bus = hud_client_connection_get_bus(query->priv->connection);
+	if (bus == NULL) {
+		/* No bus yet */
+		return;
+	}
+
+	g_dbus_connection_call (bus,
+	                        "org.freedesktop.DBus",
+	                        "/",
+	                        "org.freedesktop.DBus",
+	                        "StartServiceByName",
+	                        g_variant_new ("(su)", DBUS_NAME, 0), 
+	                        G_VARIANT_TYPE ("(u)"),
+	                        G_DBUS_CALL_FLAGS_NONE,
+	                        -1,
+	                        NULL,
+	                        NULL, NULL); /* callback */
+
+	return;
+}
+
 /**
  * hud_client_query_new:
  * @query: String to build the initial set of results from
@@ -447,6 +480,8 @@ hud_client_query_set_query (HudClientQuery * cquery, const gchar * query)
 	if (cquery->priv->proxy != NULL) {
 		gint revision = 0;
 		_hud_query_com_canonical_hud_query_call_update_query_sync(cquery->priv->proxy, cquery->priv->query, &revision, NULL, NULL);
+	} else {
+		dbus_start_service(cquery);
 	}
 
 	g_object_notify(G_OBJECT(cquery), PROP_QUERY_S);

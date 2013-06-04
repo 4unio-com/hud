@@ -104,8 +104,7 @@ if(${BAMF_FOUND})
 endif()
 
 if(${ENABLE_PLATFORM_API})
-  add_definitions( -DHAVE_HYBRIS=1 )
-  include_directories("/usr/include/hybris")
+  add_definitions( -DHAVE_PLATFORM_API=1 )
   set(PHABLET_LIBRARIES "-lubuntu_application_api")
 endif()
 

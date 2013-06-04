@@ -39,7 +39,7 @@ struct _HudApplicationListPrivate {
 	gulong matcher_view_open_sig;
 	gulong matcher_view_close_sig;
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	HudApplicationSource * last_focused_side_stage_source;
 	ubuntu_ui_session_lifecycle_observer observer_definition;
 #endif
@@ -57,7 +57,7 @@ static void hud_application_list_constructed (GObject * object);
 #ifdef HAVE_BAMF
 static void matching_setup_bamf             (HudApplicationList *      self);
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 static void matching_setup_hybris           (HudApplicationList *      self);
 #endif
 static void hud_application_list_dispose    (GObject *                 object);
@@ -72,7 +72,7 @@ static void view_opened                     (BamfMatcher *             matcher,
                                              BamfView *                view,
                                              gpointer                  user_data);
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 static void session_requested               (ubuntu_ui_well_known_application app,
                                              void *                    context);
 static void session_born                    (ubuntu_ui_session_properties props,
@@ -118,7 +118,7 @@ hud_application_list_class_init (HudApplicationListClass *klass)
 #ifdef HAVE_BAMF
 	klass->matching_setup = matching_setup_bamf;
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	klass->matching_setup = matching_setup_hybris;
 #endif
 
@@ -211,7 +211,7 @@ matching_setup_bamf (HudApplicationList * self)
 }
 #endif
 
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 static void
 matching_setup_hybris (HudApplicationList * self)
 {
@@ -267,7 +267,7 @@ hud_application_list_dispose (GObject *object)
 	g_clear_object(&self->priv->matcher);
 #endif
 
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	/* Nothing to do as Hybris has no way to unregister our observer */
 	g_clear_object(&self->priv->last_focused_side_stage_source);
 #endif
@@ -315,7 +315,7 @@ bamf_app_to_source (HudApplicationList * list, AbstractApplication * bapp)
 static gboolean
 hud_application_list_name_in_ignore_list (AbstractWindow *window)
 {
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
   /* Hybris only supports a very limited set of windows, which
      doesn't include any debugging tools.  So we can just exit. */
   return FALSE;
@@ -425,14 +425,14 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 }
 #endif
 
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 /* When a session gets focus */
 static void
 session_focused (ubuntu_ui_session_properties props, void * context)
 {
 	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
 	// Do not care about anything not main or side stage
-	if (stage_hint != MAIN_STAGE_HINT && stage_hint != SIDE_STAGE_HINT)
+	if (stage_hint != U_MAIN_STAGE && stage_hint != U_SIDE_STAGE)
 		return;
 
 	HudApplicationList * list = HUD_APPLICATION_LIST(context);
@@ -454,10 +454,10 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 	   we can't get window IDs anyway. */
 	hud_application_source_focus(source, &props, &props);
 
-	if (stage_hint == MAIN_STAGE_HINT) {
+	if (stage_hint == U_MAIN_STAGE) {
 		g_clear_object(&list->priv->last_focused_main_stage_source);
 		list->priv->last_focused_main_stage_source = g_object_ref(source);
-	} else { /*SIDE_STAGE_HINT*/
+	} else { /*U_SIDE_STAGE*/
 		g_clear_object(&list->priv->last_focused_side_stage_source);
 		list->priv->last_focused_side_stage_source = g_object_ref(source);
 	}
@@ -472,9 +472,9 @@ session_unfocused (ubuntu_ui_session_properties props, void * context)
 	HudApplicationList * list = HUD_APPLICATION_LIST(context);
 
 	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
-	if (stage_hint == MAIN_STAGE_HINT)
+	if (stage_hint == U_MAIN_STAGE)
 		g_clear_object(&list->priv->last_focused_main_stage_source);
-	else if (stage_hint == SIDE_STAGE_HINT)
+	else if (stage_hint == U_SIDE_STAGE)
 		g_clear_object(&list->priv->last_focused_side_stage_source);
 	return;
 }
@@ -550,7 +550,7 @@ view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 }
 #endif
 
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 /* When a new session gets created */
 static void
 session_born (ubuntu_ui_session_properties props, void * context)
@@ -589,7 +589,7 @@ source_use (HudSource *hud_source)
 	}
 #endif
 
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 	/* Hybris doesn't allow us to query what is currently focused,
 	   we'll just have to hope we've tracked it perfectly.  Hopefully
 	   there are no races in the API, we can't protect ourselves against
@@ -605,7 +605,7 @@ source_use (HudSource *hud_source)
 #ifdef HAVE_BAMF
 		xid = bamf_window_get_xid(bamf_matcher_get_active_window(list->priv->matcher));
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
 		/* Hybris has no concept of windows yet, we have to work around it with this */
 		xid = WINDOW_ID_CONSTANT;
 #endif
@@ -816,7 +816,7 @@ hud_application_list_get_side_stage_focused_app (HudApplicationList * list)
 #ifdef HAVE_BAMF
     return NULL;
 #endif
-#ifdef HAVE_HYBRIS
+#ifdef HAVE_PLATFORM_API
     return HUD_SOURCE(list->priv->last_focused_side_stage_source);
 #endif
 }

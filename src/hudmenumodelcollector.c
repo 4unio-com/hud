@@ -1179,7 +1179,6 @@ hud_menu_model_collector_new (const gchar *application_id,
 	return collector;
 }
 
-#ifdef HAVE_BAMF
 /**
  * hud_menu_model_collector_add_window:
  * @window: a #BamfWindow
@@ -1191,10 +1190,11 @@ hud_menu_model_collector_new (const gchar *application_id,
  **/
 void
 hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
-                                     BamfWindow  *window)
+                                     AbstractWindow  *window)
 {
   g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
+#ifdef HAVE_BAMF
   gchar *unique_bus_name;
   gchar *application_object_path;
   gchar *window_object_path;
@@ -1257,10 +1257,10 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
 
   g_free (application_object_path);
   g_free (window_object_path);
+#endif
 
   return;
 }
-#endif
 
 /**
  * hud_menu_model_collector_add_endpoint:

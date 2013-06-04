@@ -214,7 +214,6 @@ endif()
 #test-bad-app-info-missing-menus
 #test-bad-app-info-multiple-menus
 #test-good-app-info-tons-of-entries
-#test-dbus-message-count
 
 ####################################
 # Voice tests (needs working pulse)
