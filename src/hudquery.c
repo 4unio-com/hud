@@ -920,7 +920,14 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const gchar *
 
   g_dbus_interface_skeleton_flush(G_DBUS_INTERFACE_SKELETON(query->skel));
 
-  query->voice_idle = g_idle_add(voice_idle_init, query);
+  if (G_LIKELY(g_getenv("HUD_DISABLE_VOICE") == NULL))
+  {
+    query->voice_idle = g_idle_add(voice_idle_init, query);
+  }
+  else
+  {
+    g_warning("HUD's voice support has been disabled");
+  }
 
   error = NULL;
 }
