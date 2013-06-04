@@ -65,7 +65,7 @@ test_source_create_proxy (TestSourceThreadData* thread_data)
 
   HudQueryIfaceComCanonicalHudQuery *proxy =
       hud_query_iface_com_canonical_hud_query_proxy_new_sync (session,
-          G_DBUS_PROXY_FLAGS_NONE, name, thread_data->object_path, NULL,
+          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES, name, thread_data->object_path, NULL,
           &error);
   g_dbus_proxy_set_default_timeout(G_DBUS_PROXY(proxy), 30 * 1000);
   if (error != NULL )
