@@ -376,6 +376,48 @@ test_menus_model_deep (void)
 	hud_test_utils_process_mainloop(100);
 }
 
+/* Helper to verify the toolbar state */
+static void
+verify_toolbar (HudSource * source, guint count, gboolean expect_undo, gboolean expect_fullscreen, gboolean expect_preferences, gboolean expect_help)
+{
+	GArray * toolbar = g_array_new(TRUE, FALSE, sizeof(const gchar *));
+	hud_source_get_toolbar_entries(source, toolbar);
+
+	g_assert_cmpint(toolbar->len, ==, count);
+
+	gboolean found_undo = FALSE;
+	gboolean found_fullscreen = FALSE;
+	gboolean found_preferences = FALSE;
+	gboolean found_help = FALSE;
+
+	int i;
+	for (i = 0; i < toolbar->len; i++) {
+		const gchar * item = g_array_index(toolbar, const gchar *, i);
+		if (g_strcmp0(item, "undo") == 0) {
+			found_undo = TRUE;
+		}
+		if (g_strcmp0(item, "fullscreen") == 0) {
+			found_fullscreen = TRUE;
+		}
+		if (g_strcmp0(item, "preferences") == 0) {
+			found_preferences = TRUE;
+		}
+		if (g_strcmp0(item, "help") == 0) {
+			found_help = TRUE;
+		}
+	}
+
+	
+	g_assert(found_undo == expect_undo);
+	g_assert(found_fullscreen == expect_fullscreen);
+	g_assert(found_preferences == expect_preferences);
+	g_assert(found_help == expect_help);
+
+	g_array_unref(toolbar);
+
+	return;
+}
+
 /* Find an item in the toolbar, undo */
 static void
 test_menus_model_toolbar_undo (void) 
@@ -570,41 +612,7 @@ test_menus_model_toolbar_dynamic (void)
 	hud_source_use(HUD_SOURCE(collector));
 
 	/* Test the base case */
-	if (TRUE) {
-		GArray * toolbar = g_array_new(TRUE, FALSE, sizeof(const gchar *));
-		hud_source_get_toolbar_entries(HUD_SOURCE(collector), toolbar);
-
-		g_assert_cmpint(toolbar->len, ==, 2);
-
-		gboolean found_undo = FALSE;
-		gboolean found_fullscreen = FALSE;
-		gboolean found_preferences = FALSE;
-		gboolean found_help = FALSE;
-
-		int i;
-		for (i = 0; i < toolbar->len; i++) {
-			const gchar * item = g_array_index(toolbar, const gchar *, i);
-			if (g_strcmp0(item, "undo") == 0) {
-				found_undo = TRUE;
-			}
-			if (g_strcmp0(item, "fullscreen") == 0) {
-				found_fullscreen = TRUE;
-			}
-			if (g_strcmp0(item, "preferences") == 0) {
-				found_preferences = TRUE;
-			}
-			if (g_strcmp0(item, "help") == 0) {
-				found_help = TRUE;
-			}
-		}
-
-		g_assert(found_undo);
-		g_assert(!found_fullscreen);
-		g_assert(found_preferences);
-		g_assert(!found_help);
-
-		g_array_unref(toolbar);
-	}
+	verify_toolbar(HUD_SOURCE(collector), 2, TRUE, FALSE, TRUE, FALSE);
 
 	hud_source_unuse(HUD_SOURCE(collector));
 
