@@ -98,22 +98,22 @@ static guint hud_query_changed_signal;
 /* Schema that is used in the DeeModel representing
    the results */
 static const gchar * results_model_schema[HUD_QUERY_RESULTS_COUNT] = {
-	"v", /* Command ID */
-	"s", /* Command Name */
-	"a(ii)", /* Highlights in command name */
-	"s", /* Description */
-	"a(ii)", /* Highlights in description */
-	"s", /* Shortcut */
-	"u", /* Distance */
-	"b", /* Parameterized */
+	HUD_QUERY_RESULTS_COMMAND_ID_TYPE,
+	HUD_QUERY_RESULTS_COMMAND_NAME_TYPE,
+	HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS_TYPE,
+	HUD_QUERY_RESULTS_DESCRIPTION_TYPE,
+	HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS_TYPE,
+	HUD_QUERY_RESULTS_SHORTCUT_TYPE,
+	HUD_QUERY_RESULTS_DISTANCE_TYPE,
+	HUD_QUERY_RESULTS_PARAMETERIZED_TYPE,
 };
 
 /* Schema that is used in the DeeModel representing
    the appstack */
 static const gchar * appstack_model_schema[HUD_QUERY_APPSTACK_COUNT] = {
-	"s", /* Application ID */
-	"s", /* Icon Name */
-	"i", /* Item Type */
+	HUD_QUERY_APPSTACK_APPLICATION_ID_TYPE,
+	HUD_QUERY_APPSTACK_ICON_NAME_TYPE,
+	HUD_QUERY_APPSTACK_ITEM_TYPE_TYPE,
 };
 
 static gint
@@ -442,7 +442,10 @@ hud_query_refresh (HudQuery *query)
   /* Get the list of all applications that have data that is relevant
      to the current query, but just the app info. */
   GHashTable * appstack_hash = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, appstack_item_free);
-  hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
+
+  if (g_getenv("HUD_ENABLE_APPSTACK") != NULL) {
+    hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
+  }
 
   /* If we've selected a source, make sure it's in the list */
   appstack_hash_add_source(appstack_hash, query->current_source, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
@@ -572,26 +575,11 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   gchar *search_string = g_utf8_strdown(voice_result, -1);
   g_free(voice_result);
 
-  g_debug("Updating Query to: '%s'", search_string);
-
-  /* Clear the last query */
-  g_clear_pointer(&query->search_string, g_free);
-  if (query->token_list != NULL) {
-    hud_token_list_free (query->token_list);
-    query->token_list = NULL;
-  }
-
-  query->search_string = search_string;
-
-  if (query->search_string[0] != '\0') {
-    query->token_list = hud_token_list_new_from_string (query->search_string);
-  }
-
-  /* Refresh it all */
-  hud_query_refresh (query);
+  hud_query_update_search(query, search_string);
+  g_free(search_string);
 
   /* Tell DBus everything is going to be A-OK */
-  hud_query_iface_com_canonical_hud_query_complete_voice_query(skel, invocation, 0, search_string);
+  hud_query_iface_com_canonical_hud_query_complete_voice_query(skel, invocation, 0, query->search_string);
 
   return TRUE;
 }
