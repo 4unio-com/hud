@@ -20,51 +20,88 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib-object.h>
 #include <gio/gio.h>
 
+GMenu * menu = NULL;
+GSimpleActionGroup * ag = NULL;
+
+GMenuItem * undo_item = NULL;
+GMenuItem * pref_item = NULL;
+GMenuItem * full_item = NULL;
+GMenuItem * help_item = NULL;
+
+GAction * undo_action = NULL;
+GAction * pref_action = NULL;
+GAction * full_action = NULL;
+GAction * help_action = NULL;
+
+void
+undo_activated (void)
+{
+	g_debug("Undo Activated");
+	g_simple_action_set_enabled(G_SIMPLE_ACTION(full_action), TRUE);
+	return;
+}
+
+void
+prefs_activated (void)
+{
+	g_debug("Preferences Activated");
+	g_menu_append_item(menu, help_item);
+	return;
+}
+
 int
 main (int argv, char ** argc)
 {
-	if (!(argv == 3 || argv == 4)) {
-		g_print("'%s <DBus name> <Object Path> [Is Application]' is how you should use this program.\n", argc[0]);
+	if (argv != 3) {
+		g_print("'%s <DBus name> <Object Path>' is how you should use this program.\n", argc[0]);
 		return 1;
 	}
 
 #ifndef GLIB_VERSION_2_36
 	g_type_init ();
 #endif
+	g_debug("Dynamic Toolbar Starting");
 
-	gboolean is_application = (argv == 4 && !g_strcmp0(argc[3], "TRUE"));
+	menu = g_menu_new();
+	ag = g_simple_action_group_new();
 
-	GMenu * menu = g_menu_new();
+	/* UNDO, enables full item */
+	undo_item = g_menu_item_new("Undo Item", "undo");
+	g_menu_item_set_attribute_value(undo_item, "hud-toolbar-item", g_variant_new_string("undo"));
+	g_menu_append_item(menu, undo_item);
 
-	gchar * toolbars[4] = {
-		"undo",
-		"preferences",
-		"fullscreen",
-		"help",
-	};
+	undo_action = G_ACTION(g_simple_action_new("undo", NULL));
+	g_signal_connect(G_OBJECT(undo_action), "activate", G_CALLBACK(undo_activated), NULL);
+	g_simple_action_group_insert(ag, undo_action);
 
-	int i;
-	for (i = 0; i < 4; i++) {
-		gchar * name = g_strdup_printf("Simple %d", i);
+	/* Peferences, adds the help item */
+	pref_item = g_menu_item_new("Preferences Item", "preferences");
+	g_menu_item_set_attribute_value(pref_item, "hud-toolbar-item", g_variant_new_string("preferences"));
+	g_menu_append_item(menu, pref_item);
 
-		GMenuItem * item = NULL;
-		if (is_application)
-		  item = g_menu_item_new(name, "app.simple");
-		else
-		  item = g_menu_item_new(name, "simple");
+	pref_action = G_ACTION(g_simple_action_new("preferences", NULL));
+	g_signal_connect(G_OBJECT(pref_action), "activate", G_CALLBACK(prefs_activated), NULL);
+	g_simple_action_group_insert(ag, pref_action);
 
-		g_free(name);
+	/* Fullscreen, starts disabled */
+	full_item = g_menu_item_new("Fullscreen Item", "fullscreen");
+	g_menu_item_set_attribute_value(full_item, "hud-toolbar-item", g_variant_new_string("fullscreen"));
+	g_menu_append_item(menu, full_item);
 
-		g_menu_item_set_attribute_value(item, "hud-toolbar-item", g_variant_new_string(toolbars[i]));
-		g_menu_append_item(menu, item);
-	}
+	full_action = G_ACTION(g_simple_action_new("fullscreen", NULL));
+	g_simple_action_set_enabled(G_SIMPLE_ACTION(full_action), FALSE);
+	g_simple_action_group_insert(ag, full_action);
 
-	GSimpleActionGroup * ag = g_simple_action_group_new();
-	if (is_application)
-	  g_simple_action_group_insert(ag, G_ACTION(g_simple_action_new("app.simple", G_VARIANT_TYPE_BOOLEAN)));
-	else
-	  g_simple_action_group_insert(ag, G_ACTION(g_simple_action_new("simple", G_VARIANT_TYPE_BOOLEAN)));
+	/* Help, not added at first */
+	help_item = g_menu_item_new("Help Item", "help");
+	g_menu_item_set_attribute_value(help_item, "hud-toolbar-item", g_variant_new_string("help"));
+	/* NO!  Can't you read!  g_menu_append_item(menu, help_item); */
 
+	help_action = G_ACTION(g_simple_action_new("help", NULL));
+	g_simple_action_group_insert(ag, help_action);
+
+
+	/* All the rest of the boring stuff */
 	GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 
 	g_dbus_connection_export_action_group(session, argc[2], G_ACTION_GROUP(ag), NULL);
