@@ -74,6 +74,10 @@ test_source_create_proxy (TestSourceThreadData* thread_data)
     g_error_free (error);
     return NULL ;
   }
+  else
+  {
+    g_debug("Created Proxy to the query: %s", thread_data->object_path);
+  }
 
   /* Make sure we have a connection through the life
      of this thread. */
