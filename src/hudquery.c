@@ -85,6 +85,9 @@ struct _HudQuery
 
   HudVoice *voice;
   guint voice_idle;
+
+  gchar * client;
+  guint client_watch;
 };
 
 typedef GObjectClass HudQueryClass;
@@ -96,22 +99,22 @@ static guint hud_query_changed_signal;
 /* Schema that is used in the DeeModel representing
    the results */
 static const gchar * results_model_schema[HUD_QUERY_RESULTS_COUNT] = {
-	"v", /* Command ID */
-	"s", /* Command Name */
-	"a(ii)", /* Highlights in command name */
-	"s", /* Description */
-	"a(ii)", /* Highlights in description */
-	"s", /* Shortcut */
-	"u", /* Distance */
-	"b", /* Parameterized */
+	HUD_QUERY_RESULTS_COMMAND_ID_TYPE,
+	HUD_QUERY_RESULTS_COMMAND_NAME_TYPE,
+	HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS_TYPE,
+	HUD_QUERY_RESULTS_DESCRIPTION_TYPE,
+	HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS_TYPE,
+	HUD_QUERY_RESULTS_SHORTCUT_TYPE,
+	HUD_QUERY_RESULTS_DISTANCE_TYPE,
+	HUD_QUERY_RESULTS_PARAMETERIZED_TYPE,
 };
 
 /* Schema that is used in the DeeModel representing
    the appstack */
 static const gchar * appstack_model_schema[HUD_QUERY_APPSTACK_COUNT] = {
-	"s", /* Application ID */
-	"s", /* Icon Name */
-	"i", /* Item Type */
+	HUD_QUERY_APPSTACK_APPLICATION_ID_TYPE,
+	HUD_QUERY_APPSTACK_ICON_NAME_TYPE,
+	HUD_QUERY_APPSTACK_ITEM_TYPE_TYPE,
 };
 
 static gint
@@ -336,7 +339,10 @@ hud_query_refresh (HudQuery *query)
   /* Get the list of all applications that have data that is relevant
      to the current query, but just the app info. */
   GHashTable * appstack_hash = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, appstack_item_free);
-  hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
+
+  if (g_getenv("HUD_ENABLE_APPSTACK") != NULL) {
+    hud_source_list_applications (query->all_sources, query->token_list, app_results_list_populate, appstack_hash);
+  }
 
   /* If we've selected a source, make sure it's in the list */
   appstack_hash_add_source(appstack_hash, query->current_source, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
@@ -391,7 +397,7 @@ hud_query_finalize (GObject *object)
 
   g_debug ("Destroyed query '%s'", query->search_string);
 
-  /* TODO: move to destroy */
+  /* TODO: move to dispose */
   if (query->voice_idle != 0)
   {
     g_source_remove(query->voice_idle);
@@ -402,6 +408,11 @@ hud_query_finalize (GObject *object)
   {
     hud_source_unuse(query->last_used_source);
     g_clear_object(&query->last_used_source);
+  }
+
+  if (query->client_watch != 0) {
+    g_bus_unwatch_name(query->client_watch);
+    query->client_watch = 0;
   }
 
   g_clear_object(&query->skel);
@@ -424,6 +435,7 @@ hud_query_finalize (GObject *object)
   g_clear_pointer(&query->object_path, g_free);
   g_clear_pointer(&query->results_name, g_free);
   g_clear_pointer(&query->appstack_name, g_free);
+  g_clear_pointer(&query->client, g_free);
 
   g_clear_object(&query->voice);
   g_clear_object(&query->watchdog);
@@ -492,36 +504,21 @@ handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
   gchar *search_string = g_utf8_strdown(voice_result, -1);
   g_free(voice_result);
 
-  g_debug("Updating Query to: '%s'", search_string);
-
-  /* Clear the last query */
-  g_clear_pointer(&query->search_string, g_free);
-  if (query->token_list != NULL) {
-    hud_token_list_free (query->token_list);
-    query->token_list = NULL;
-  }
-
-  query->search_string = search_string;
-
-  if (query->search_string[0] != '\0') {
-    query->token_list = hud_token_list_new_from_string (query->search_string);
-  }
-
-  /* Refresh it all */
-  hud_query_refresh (query);
+  hud_query_update_search(query, search_string);
+  g_free(search_string);
 
   /* Tell DBus everything is going to be A-OK */
-  hud_query_iface_com_canonical_hud_query_complete_voice_query(skel, invocation, 0, search_string);
+  hud_query_iface_com_canonical_hud_query_complete_voice_query(skel, invocation, 0, query->search_string);
 
   return TRUE;
 }
 
-/* Handle the DBus function UpdateQuery */
-static gboolean
-handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, const gchar * search_string, gpointer user_data)
+/* Nice API for changing the search string */
+void
+hud_query_update_search (HudQuery * query, const gchar * search_string)
 {
-	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
-	HudQuery * query = HUD_QUERY(user_data);
+	g_return_if_fail(HUD_IS_QUERY(query));
+
 	hud_watchdog_ping(query->watchdog);
 
 	g_debug("Updating Query to: '%s'", search_string);
@@ -543,6 +540,18 @@ handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvoca
 
 	/* Refresh it all */
 	hud_query_refresh (query);
+
+	return;
+}
+
+/* Handle the DBus function UpdateQuery */
+static gboolean
+handle_update_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, const gchar * search_string, gpointer user_data)
+{
+	g_return_val_if_fail(HUD_IS_QUERY(user_data), FALSE);
+	HudQuery * query = HUD_QUERY(user_data);
+
+	hud_query_update_search(query, search_string);
 
 	/* Tell DBus everything is going to be A-OK */
 	hud_query_iface_com_canonical_hud_query_complete_update_query(skel, invocation, 0);
@@ -738,12 +747,33 @@ handle_close_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocat
 	return TRUE;
 }
 
+/* Called when our name watcher finds the client has disappeared.  Time for us to
+   go as well. */
 static void
-hud_query_init_real (HudQuery *query, GDBusConnection *connection, const guint querynumber)
+client_disappeared (GDBusConnection * connection, const gchar * name, gpointer user_data)
+{
+	/* Close the query */
+	hud_query_close(HUD_QUERY(user_data));
+	return;
+}
+
+static void
+hud_query_init_real (HudQuery *query, GDBusConnection *connection, const gchar * client, const guint querynumber)
 {
   GError *error = NULL;
 
   query->querynumber = querynumber;
+  query->client = g_strdup(client);
+
+  if (query->client != NULL && connection != NULL) {
+    query->client_watch = g_bus_watch_name_on_connection(connection,
+                                query->client, 
+                                G_BUS_NAME_WATCHER_FLAGS_NONE,
+                                NULL, /* appeared */
+                                client_disappeared,
+                                query,
+                                NULL); /* free func */
+  }
 
   query->skel = hud_query_iface_com_canonical_hud_query_skeleton_new();
 
@@ -836,6 +866,7 @@ hud_query_new (HudSource   *all_sources,
                const gchar *search_string,
                gint         num_results,
                GDBusConnection *connection,
+               const gchar * sender,
                const guint  query_count)
 {
   HudQuery *query;
@@ -843,7 +874,7 @@ hud_query_new (HudSource   *all_sources,
   g_debug ("Created query '%s'", search_string);
 
   query = g_object_new (HUD_TYPE_QUERY, NULL);
-  hud_query_init_real(query, connection, query_count);
+  hud_query_init_real(query, connection, sender, query_count);
   query->all_sources = g_object_ref (all_sources);
   query->app_list = g_object_ref (application_list);
   query->search_string = g_strdup (search_string);

@@ -42,9 +42,12 @@ HudQuery *              hud_query_new                                   (HudSour
                                                                          const gchar *search_string,
                                                                          gint         num_results,
                                                                          GDBusConnection *connection,
+                                                                         const gchar * sender,
                                                                          const guint  query_count);
 
 void                    hud_query_close                                 (HudQuery    *query);
+void                    hud_query_update_search                         (HudQuery    *  query,
+                                                                         const gchar *  search_string);
 
 const gchar *           hud_query_get_path                              (HudQuery    *query);
 const gchar *           hud_query_get_results_name                      (HudQuery    *query);
