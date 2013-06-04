@@ -448,13 +448,7 @@ test_menus_model_toolbar_undo (void)
 
 	hud_source_use(HUD_SOURCE(collector));
 
-	GArray * toolbar = g_array_new(TRUE, FALSE, sizeof(const gchar *));
-	hud_source_get_toolbar_entries(HUD_SOURCE(collector), toolbar);
-
-	g_assert_cmpint(toolbar->len, ==, 1);
-	g_assert_cmpstr(g_array_index(toolbar, const gchar *, 0), ==, "undo");
-
-	g_array_unref(toolbar);
+	verify_toolbar(HUD_SOURCE(collector), 1, TRUE, FALSE, FALSE, FALSE);
 
 	hud_source_unuse(HUD_SOURCE(collector));
 
@@ -494,12 +488,7 @@ test_menus_model_toolbar_unknown (void)
 
 	hud_source_use(HUD_SOURCE(collector));
 
-	GArray * toolbar = g_array_new(TRUE, FALSE, sizeof(const gchar *));
-	hud_source_get_toolbar_entries(HUD_SOURCE(collector), toolbar);
-
-	g_assert_cmpint(toolbar->len, ==, 0);
-
-	g_array_unref(toolbar);
+	verify_toolbar(HUD_SOURCE(collector), 0, FALSE, FALSE, FALSE, FALSE);
 
 	hud_source_unuse(HUD_SOURCE(collector));
 
@@ -539,39 +528,7 @@ test_menus_model_toolbar_all (void)
 
 	hud_source_use(HUD_SOURCE(collector));
 
-	GArray * toolbar = g_array_new(TRUE, FALSE, sizeof(const gchar *));
-	hud_source_get_toolbar_entries(HUD_SOURCE(collector), toolbar);
-
-	g_assert_cmpint(toolbar->len, ==, 4);
-
-	gboolean found_undo = FALSE;
-	gboolean found_fullscreen = FALSE;
-	gboolean found_preferences = FALSE;
-	gboolean found_help = FALSE;
-
-	int i;
-	for (i = 0; i < toolbar->len; i++) {
-		const gchar * item = g_array_index(toolbar, const gchar *, i);
-		if (g_strcmp0(item, "undo") == 0) {
-			found_undo = TRUE;
-		}
-		if (g_strcmp0(item, "fullscreen") == 0) {
-			found_fullscreen = TRUE;
-		}
-		if (g_strcmp0(item, "preferences") == 0) {
-			found_preferences = TRUE;
-		}
-		if (g_strcmp0(item, "help") == 0) {
-			found_help = TRUE;
-		}
-	}
-
-	g_assert(found_undo);
-	g_assert(found_fullscreen);
-	g_assert(found_preferences);
-	g_assert(found_help);
-
-	g_array_unref(toolbar);
+	verify_toolbar(HUD_SOURCE(collector), 4, TRUE, TRUE, TRUE, TRUE);
 
 	hud_source_unuse(HUD_SOURCE(collector));
 
