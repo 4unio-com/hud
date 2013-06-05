@@ -390,7 +390,7 @@ query_creation_timeout (gpointer user_data)
 	if (results_sync && appstack_sync) {
 		g_dbus_method_invocation_return_value (G_DBUS_METHOD_INVOCATION(user_data), describe_query(HUD_QUERY(pquery)));
 	} else {
-		g_critical("Query unable to be sync'd to bus in under a second.");
+		g_critical("Query unable to be sync'd to bus in under five seconds.");
 
 		if (pquery != NULL && HUD_IS_QUERY(pquery)) {
 			/* In this case there's no way for the client to close
@@ -403,7 +403,7 @@ query_creation_timeout (gpointer user_data)
 			G_DBUS_METHOD_INVOCATION(user_data),
 			error(),
 			3,
-			"Query unable to be sync'd to bus in under a second.");
+			"Query unable to be sync'd to bus in under five seconds.");
 	}
 
 	return FALSE;
@@ -504,7 +504,7 @@ bus_method (GDBusConnection       *connection,
 		}
 
 		if (set_timeout) {
-			guint timeoutid = g_timeout_add_seconds(1, query_creation_timeout, invocation);
+			guint timeoutid = g_timeout_add_seconds(5, query_creation_timeout, invocation);
 			g_object_set_data(G_OBJECT(invocation), QUERY_CREATE_TIMEOUT, GUINT_TO_POINTER(timeoutid));
 			g_object_set_data_full(G_OBJECT(invocation), QUERY_CREATE_QUERY, g_object_ref(query), g_object_unref);
 		} else {
