@@ -571,6 +571,16 @@ voice_idle_init (gpointer user_data)
 	return FALSE;
 }
 
+/* Handle a small pause to make sure the DeeModels can get
+   out the gate on the phone. */
+static gboolean
+voice_idle_pause (gpointer user_data)
+{
+	HudQuery * query = HUD_QUERY(user_data);
+	query->voice_idle = g_idle_add(voice_idle_init, user_data);
+	return FALSE;
+}
+
 /* Handle the DBus function UpdateQuery */
 static gboolean
 handle_voice_query (HudQueryIfaceComCanonicalHudQuery * skel, GDBusMethodInvocation * invocation, gpointer user_data)
@@ -922,7 +932,7 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const gchar *
 
   if (G_LIKELY(g_getenv("HUD_DISABLE_VOICE") == NULL))
   {
-    query->voice_idle = g_idle_add(voice_idle_init, query);
+    query->voice_idle = g_timeout_add_seconds(1, voice_idle_pause, query);
   }
   else
   {
