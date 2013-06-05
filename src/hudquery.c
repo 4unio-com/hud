@@ -259,6 +259,85 @@ results_list_max_usage (gpointer data, gpointer user_data)
 	return;
 }
 
+/* Look to see if this check is a match */
+static gboolean
+find_highlights_match (GVariantBuilder * highlights, const gchar * needle, const gchar * haystack, guint start, guint current)
+{
+	/* We've matched everything in the needle, we're good! */
+	if (needle[0] == '\0') {
+		g_variant_builder_add(highlights, "(ii)", start, current);
+		g_debug("Highlight match: %d to %d", start, current);
+		return TRUE;
+	}
+
+	/* If we've gotten to the end of the haystack first, just return */
+	if (haystack[0] == '\0') {
+		return FALSE;
+	}
+
+	/* Get the first character on each string */
+	gunichar n = g_utf8_get_char(needle);
+	gunichar h = g_utf8_get_char(haystack);
+
+	/* Put them in the same case */
+	n = g_unichar_tolower(n);
+	h = g_unichar_tolower(h);
+
+	/* No match, we're done */
+	if (n != h) {
+		return FALSE;
+	}
+
+	/* We've got a match, keep going! */
+	const gchar * haystack_next = g_utf8_next_char(haystack);
+	const gchar * needle_next = g_utf8_next_char(needle);
+
+	return find_highlights_match (highlights, needle_next, haystack_next, start, current + 1);
+}
+
+/* Find the highlights of needle in haystack */
+static guint
+find_highlights (GVariantBuilder * highlights, const gchar * needle, const gchar * haystack, guint location, guint count)
+{
+	if (haystack == NULL || needle == NULL || needle[0] == '\0') {
+		return count;
+	}
+
+	/* We've looked throughout the haystack, all the answer we'll
+	   find have been added to the builder already */
+	if (haystack[0] == '\0') {
+		return count;
+	}
+
+	if (location == 0) {
+		g_debug("Searching for highlights of '%s' in '%s'", needle, haystack);
+	}
+
+	/* Get the first character on each string */
+	gunichar n = g_utf8_get_char(needle);
+	gunichar h = g_utf8_get_char(haystack);
+
+	/* Put them in the same case */
+	n = g_unichar_tolower(n);
+	h = g_unichar_tolower(h);
+
+	/* We need this value in both cases below, let's grab it now */
+	const gchar * haystack_next = g_utf8_next_char(haystack);
+
+	/* We could have a match */
+	if (n == h) {
+		const gchar * needle_next = g_utf8_next_char(needle);
+
+		/* recurse this match */
+		if (find_highlights_match(highlights, needle_next, haystack_next, location, location + 1)) {
+			count++;
+		}
+	}
+
+	/* Go further down the haystack */
+	return find_highlights(highlights, needle, haystack_next, location + 1, count);
+}
+
 /* Turn the results list into a DeeModel. It assumes the results are already sorted. */
 static void
 results_list_to_model (gpointer data, gpointer user_data)
@@ -267,12 +346,37 @@ results_list_to_model (gpointer data, gpointer user_data)
 	HudQuery * query = (HudQuery *)user_data;
 	HudItem * item = hud_result_get_item(result);
 
+	GVariantBuilder action_highlights;
+	g_variant_builder_init(&action_highlights, G_VARIANT_TYPE("a(ii)"));
+	GVariantBuilder description_highlights;
+	g_variant_builder_init(&description_highlights, G_VARIANT_TYPE("a(ii)"));
+
+	guint actioncnt = find_highlights(&action_highlights, query->search_string, hud_item_get_command(item), 0, 0);
+	GVariant * actionh = NULL; 
+
+	if (actioncnt > 0) {
+		actionh = g_variant_builder_end(&action_highlights);
+	} else {
+		actionh = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+		g_variant_builder_clear(&action_highlights);
+	}
+
+	guint desccnt = find_highlights(&description_highlights, query->search_string, hud_item_get_description(item), 0, 0);
+	GVariant * desch = NULL;
+
+	if (desccnt > 0) {
+		desch = g_variant_builder_end(&description_highlights);
+	} else {
+		desch = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+		g_variant_builder_clear(&description_highlights);
+	}
+
 	GVariant * columns[HUD_QUERY_RESULTS_COUNT + 1];
 	columns[HUD_QUERY_RESULTS_COMMAND_ID]             = g_variant_new_variant(g_variant_new_uint64(hud_item_get_id(item)));
 	columns[HUD_QUERY_RESULTS_COMMAND_NAME]           = g_variant_new_string(hud_item_get_command(item));
-	columns[HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS]     = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+	columns[HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS]     = actionh;
 	columns[HUD_QUERY_RESULTS_DESCRIPTION]            = g_variant_new_string(hud_item_get_description(item));
-	columns[HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS] = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+	columns[HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS] = desch;
 	columns[HUD_QUERY_RESULTS_SHORTCUT]               = g_variant_new_string(hud_item_get_shortcut(item));
 	columns[HUD_QUERY_RESULTS_DISTANCE]               = g_variant_new_uint32(hud_result_get_distance(result, query->max_usage));
 	columns[HUD_QUERY_RESULTS_PARAMETERIZED]          = g_variant_new_boolean(HUD_IS_MODEL_ITEM(item) ? hud_model_item_is_parameterized(HUD_MODEL_ITEM(item)) : FALSE);
@@ -816,7 +920,14 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const gchar *
 
   g_dbus_interface_skeleton_flush(G_DBUS_INTERFACE_SKELETON(query->skel));
 
-  query->voice_idle = g_idle_add(voice_idle_init, query);
+  if (G_LIKELY(g_getenv("HUD_DISABLE_VOICE") == NULL))
+  {
+    query->voice_idle = g_idle_add(voice_idle_init, query);
+  }
+  else
+  {
+    g_warning("HUD's voice support has been disabled");
+  }
 
   error = NULL;
 }
