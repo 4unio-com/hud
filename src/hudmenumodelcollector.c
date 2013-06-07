@@ -1222,18 +1222,21 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
     {
       GDBusActionGroup * ag = g_dbus_action_group_get (collector->session, collector->unique_bus_name, application_object_path);
       hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), "app");
+      g_object_unref(ag);
     }
 
   if (window_object_path)
     {
       GDBusActionGroup * ag = g_dbus_action_group_get (collector->session, collector->unique_bus_name, window_object_path);
       hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), "win");
+      g_object_unref(ag);
     }
 
   if (unity_object_path)
     {
       GDBusActionGroup * ag = g_dbus_action_group_get (collector->session, collector->unique_bus_name, unity_object_path);
       hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), "unity");
+      g_object_unref(ag);
     }
 
   /* when the action groups change, we could end up having items
