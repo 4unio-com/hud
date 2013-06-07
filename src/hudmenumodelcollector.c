@@ -1167,9 +1167,6 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   gchar *menubar_object_path;
   gchar *unity_object_path = NULL;
 
-  GDBusMenuModel * app_menu;
-  GDBusMenuModel * menubar;
-
   unique_bus_name = bamf_window_get_utf8_prop (window, "_GTK_UNIQUE_BUS_NAME");
 
   if (!unique_bus_name)
@@ -1200,6 +1197,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
 
   if (app_menu_object_path)
     {
+      GDBusMenuModel * app_menu;
       app_menu = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, app_menu_object_path);
       hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
       g_object_unref(app_menu);
@@ -1207,6 +1205,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
 
   if (menubar_object_path)
     {
+      GDBusMenuModel * menubar;
       menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, menubar_object_path);
       hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
       g_object_unref(menubar);
@@ -1220,13 +1219,22 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
     }
 
   if (application_object_path)
-    hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, collector->unique_bus_name, application_object_path)), "app");
+    {
+      GDBusActionGroup * ag = g_dbus_action_group_get (collector->session, collector->unique_bus_name, application_object_path);
+      hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), "app");
+    }
 
   if (window_object_path)
-    hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, collector->unique_bus_name, window_object_path)), "win");
+    {
+      GDBusActionGroup * ag = g_dbus_action_group_get (collector->session, collector->unique_bus_name, window_object_path);
+      hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), "win");
+    }
 
   if (unity_object_path)
-    hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, collector->unique_bus_name, unity_object_path)), "unity");
+    {
+      GDBusActionGroup * ag = g_dbus_action_group_get (collector->session, collector->unique_bus_name, unity_object_path);
+      hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), "unity");
+    }
 
   /* when the action groups change, we could end up having items
    * enabled/disabled.  how to deal with that?
