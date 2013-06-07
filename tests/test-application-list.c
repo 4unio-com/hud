@@ -91,7 +91,8 @@ test_window_source_menu_model ()
         "       '_GTK_APP_MENU_OBJECT_PATH': '/app/dbus/menu/path',\n"
         "       '_GTK_MENUBAR_OBJECT_PATH': '',\n"
         "       '_GTK_APPLICATION_OBJECT_PATH': '/app/dbus/menu/path',\n"
-        "       '_GTK_WINDOW_OBJECT_PATH': ''\n"
+        "       '_GTK_WINDOW_OBJECT_PATH': '',\n"
+        "       '_UNITY_OBJECT_PATH': ''\n"
         "       }\n"
         "ret = dict[args[0]]");
     dbus_mock_add_object (connection, BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
