@@ -1243,8 +1243,11 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
    * enabled/disabled.  how to deal with that?
    */
 
+  g_free (app_menu_object_path);
+  g_free (menubar_object_path);
   g_free (application_object_path);
   g_free (window_object_path);
+  g_free (unity_object_path);
 
   return;
 }
