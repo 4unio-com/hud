@@ -1020,3 +1020,37 @@ source_get_items (HudSource * object)
 
 	return retval;
 }
+
+/**
+ * hud_application_source_set_context:
+ * @app: A #HudApplicationSource
+ * @context: Context to set as the current context
+ *
+ * This functions sets the current context for the application
+ * which may cause a changed signal.
+ */
+void
+hud_application_source_set_context (HudApplicationSource * app, const gchar * context)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
+
+
+	return;
+}
+
+/**
+ * hud_application_source_get_context:
+ * @app: A #HudApplicationSource
+ *
+ * Returns the current context of the application.
+ *
+ * Return value: The current context
+ */
+const gchar *
+hud_application_source_get_context (HudApplicationSource * app)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), NULL);
+
+
+	return NULL;
+}
