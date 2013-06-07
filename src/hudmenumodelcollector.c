@@ -1165,6 +1165,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   gchar *window_object_path;
   gchar *app_menu_object_path;
   gchar *menubar_object_path;
+  gchar *unity_object_path = NULL;
 
   GDBusMenuModel * app_menu;
   GDBusMenuModel * menubar;
@@ -1195,6 +1196,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   menubar_object_path = bamf_window_get_utf8_prop (window, "_GTK_MENUBAR_OBJECT_PATH");
   application_object_path = bamf_window_get_utf8_prop (window, "_GTK_APPLICATION_OBJECT_PATH");
   window_object_path = bamf_window_get_utf8_prop (window, "_GTK_WINDOW_OBJECT_PATH");
+  unity_object_path = bamf_window_get_utf8_prop (window, "_UNITY_OBJECT_PATH");
 
   if (app_menu_object_path)
     {
@@ -1210,11 +1212,21 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
       g_object_unref(menubar);
     }
 
+  if (unity_object_path)
+    {
+      GDBusMenuModel * menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, unity_object_path);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), unity_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
+      g_object_unref(menubar);
+    }
+
   if (application_object_path)
     hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, collector->unique_bus_name, application_object_path)), "app");
 
   if (window_object_path)
     hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, collector->unique_bus_name, window_object_path)), "win");
+
+  if (unity_object_path)
+    hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, collector->unique_bus_name, unity_object_path)), "unity");
 
   /* when the action groups change, we could end up having items
    * enabled/disabled.  how to deal with that?
