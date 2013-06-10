@@ -570,21 +570,19 @@ source_use (HudSource *hud_source)
 
 	HudApplicationSource * source = NULL;
 
-#ifdef HAVE_BAMF
-	AbstractApplication * app = NULL;
-	app = bamf_matcher_get_active_application(list->priv->matcher);
-
-	if (app != NULL) {
-		source = bamf_app_to_source(list, app);
-	}
-#endif
-
-#ifdef HAVE_PLATFORM_API
-	/* Hybris doesn't allow us to query what is currently focused,
-	   we'll just have to hope we've tracked it perfectly.  Hopefully
-	   there are no races in the API, we can't protect ourselves against
-	   them in any way. */
+	/* First see if we've already got it */
 	source = list->priv->last_focused_main_stage_source;
+
+#ifdef HAVE_BAMF
+	if (source == NULL) {
+		/* Try using the application first */
+		AbstractApplication * app = NULL;
+		app = bamf_matcher_get_active_application(list->priv->matcher);
+
+		if (app != NULL) {
+			source = bamf_app_to_source(list, app);
+		}
+	}
 #endif
 
 	/* If we weren't able to use BAMF, let's try to find a source
