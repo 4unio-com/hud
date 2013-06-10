@@ -50,6 +50,13 @@ FILES
 DESTINATION "/usr/share/upstart/sessions"
 )
 
+install(
+PROGRAMS
+"dbus-activation-hack.sh"
+DESTINATION
+"${CMAKE_INSTALL_FULL_LIBEXECDIR}/hud"
+)
+
 ###########################
 # GSettings
 ###########################
