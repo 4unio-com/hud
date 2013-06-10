@@ -1024,13 +1024,14 @@ source_get_items (HudSource * object)
 /**
  * hud_application_source_set_context:
  * @app: A #HudApplicationSource
+ * @xid: Window Identifier
  * @context: Context to set as the current context
  *
  * This functions sets the current context for the application
  * which may cause a changed signal.
  */
 void
-hud_application_source_set_context (HudApplicationSource * app, const gchar * context)
+hud_application_source_set_context (HudApplicationSource * app, guint32 xid, const gchar * context)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
 
@@ -1041,13 +1042,14 @@ hud_application_source_set_context (HudApplicationSource * app, const gchar * co
 /**
  * hud_application_source_get_context:
  * @app: A #HudApplicationSource
+ * @xid: Window Identifier
  *
  * Returns the current context of the application.
  *
  * Return value: The current context
  */
 const gchar *
-hud_application_source_get_context (HudApplicationSource * app)
+hud_application_source_get_context (HudApplicationSource * app, guint32 xid)
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), NULL);
 
