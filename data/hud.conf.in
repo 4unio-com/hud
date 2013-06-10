@@ -1,0 +1,7 @@
+description "Unity HUD"
+author "Ted Gould <ted@ubuntu.com>"
+
+# Currently started by the dbus service file
+stop on desktop-end
+
+exec @pkglibexecdir@/hud-service
