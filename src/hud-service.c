@@ -257,7 +257,7 @@ describe_legacy_query (HudQuery * query)
 		int i;
 
 		/* Parse through either the first five results or the full list */
-		for (i = 0; i < 5 && iter != NULL; i++, iter = dee_model_next(results, iter)) {
+		for (i = 0; i < 5 && !dee_model_is_last(results, iter); i++, iter = dee_model_next(results, iter)) {
 			/* Don't show parameterized actions */
 			if (dee_model_get_bool(results, iter, 7)) {
 				i--;
