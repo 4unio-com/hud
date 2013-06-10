@@ -365,12 +365,6 @@ window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_wi
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
 
-	/* We care where we're going, not where we've been */
-	if (new_win == NULL) {
-		g_clear_object(&list->priv->last_focused_main_stage_source);
-		return;
-	}
-
 	if (hud_application_list_name_in_ignore_list (new_win))
 	    return;
 
