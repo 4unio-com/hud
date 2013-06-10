@@ -573,6 +573,13 @@ source_use (HudSource *hud_source)
 	/* First see if we've already got it */
 	source = list->priv->last_focused_main_stage_source;
 
+#ifdef HAVE_PLATFORM_API
+	/* Check the side stage */
+	if (source == NULL) {
+		source = list->priv->last_focused_side_stage_source;
+	}
+#endif
+
 #ifdef HAVE_BAMF
 	if (source == NULL) {
 		/* Try using the application first */
