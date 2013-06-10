@@ -634,23 +634,11 @@ dbus_set_context (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(user_data), FALSE);
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(user_data);
 
-	gboolean was_used = app->priv->used;
-
-	/* Make sure we clear the old contexts if we could have one */
-	if (was_used && window_id == app->priv->focused_window) {
-		hud_source_unuse(HUD_SOURCE(app));
+	if (context[0] == '\0') {
+		context = NULL;
 	}
 
-	/* Swap the context for this window */
-	g_hash_table_insert(app->priv->window_contexts, GUINT_TO_POINTER(window_id), g_strdup(context));
-
-	/* Return our used state */
-	if (was_used && window_id == app->priv->focused_window) {
-		hud_source_use(HUD_SOURCE(app));
-
-		/* If we did change, make sure to signal it */
-		hud_source_changed(HUD_SOURCE(app));
-	}
+	hud_application_source_set_context(app, window_id, context);
 
 	g_dbus_method_invocation_return_value(invocation, NULL);
 	return TRUE;
@@ -1035,6 +1023,23 @@ hud_application_source_set_context (HudApplicationSource * app, guint32 xid, con
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
 
+	gboolean was_used = app->priv->used;
+
+	/* Make sure we clear the old contexts if we could have one */
+	if (was_used && xid == app->priv->focused_window) {
+		hud_source_unuse(HUD_SOURCE(app));
+	}
+
+	/* Swap the context for this window */
+	g_hash_table_insert(app->priv->window_contexts, GUINT_TO_POINTER(xid), g_strdup(context));
+
+	/* Return our used state */
+	if (was_used && xid == app->priv->focused_window) {
+		hud_source_use(HUD_SOURCE(app));
+
+		/* If we did change, make sure to signal it */
+		hud_source_changed(HUD_SOURCE(app));
+	}
 
 	return;
 }
