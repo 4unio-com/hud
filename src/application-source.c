@@ -1058,6 +1058,5 @@ hud_application_source_get_context (HudApplicationSource * app, guint32 xid)
 {
 	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), NULL);
 
-
-	return NULL;
+	return g_hash_table_loopup(app->priv->window_contexts, GUINT_TO_POINTER(xid));
 }
