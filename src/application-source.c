@@ -752,12 +752,6 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 	hud_application_source_add_window(app, window);
 
 	hud_application_source_set_focused_win(app, abstract_window_get_id(window));
-#ifdef HAVE_BAMF
-	app->priv->focused_window = bamf_window_get_xid(window);
-#endif
-#ifdef HAVE_PLATFORM_API
-	app->priv->focused_window = _ubuntu_ui_session_properties_get_window_id(window);
-#endif
 
 	return;
 }
@@ -1096,7 +1090,17 @@ hud_application_source_set_focused_win (HudApplicationSource * app, guint32 xid)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
 
+	gboolean used = (xid == app->priv->focused_window && app->priv->used);
+
+	if (used) {
+		hud_source_unuse(HUD_SOURCE(app));
+	}
+
 	app->priv->focused_window = xid;
+
+	if (used) {
+		hud_source_use(HUD_SOURCE(app));
+	}
 
 	return;
 }
