@@ -50,6 +50,12 @@ FILES
 DESTINATION "/usr/share/upstart/sessions"
 )
 
+set(pkglibexecdir "${CMAKE_INSTALL_FULL_LIBEXECDIR}/hud")
+configure_file("dbus-activation-hack.sh.in"
+  "dbus-activation-hack.sh"
+  @ONLY
+)
+
 install(
 PROGRAMS
 "dbus-activation-hack.sh"
