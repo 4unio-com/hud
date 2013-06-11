@@ -172,6 +172,25 @@ test_application_source_add_context (void)
 	g_assert(!found_bush);
 	hud_source_unuse(HUD_SOURCE(source));
 
+	/* Cleanup */
+	g_object_add_weak_pointer(G_OBJECT(simple_group), (gpointer *)&simple_group);
+	g_object_unref(simple_group);
+	g_assert(simple_group != NULL);
+
+	g_object_add_weak_pointer(G_OBJECT(menu_none), (gpointer *)&menu_none);
+	g_object_unref(menu_none);
+	g_assert(menu_none != NULL);
+
+	g_object_add_weak_pointer(G_OBJECT(menu_plants), (gpointer *)&menu_plants);
+	g_object_unref(menu_plants);
+	g_assert(menu_plants != NULL);
+
+	g_object_unref(source);
+
+	g_assert(simple_group == NULL);
+	g_assert(menu_none == NULL);
+	g_assert(menu_plants == NULL);
+
 	return;
 }
 
