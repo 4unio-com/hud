@@ -1,0 +1,8 @@
+description "Unity HUD"
+author "Ted Gould <ted@ubuntu.com>"
+
+# Currently started by the dbus service file
+# start on dbus-activation com.canonical.hud
+stop on desktop-end
+
+exec @pkglibexecdir@/hud-service

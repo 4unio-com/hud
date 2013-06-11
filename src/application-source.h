@@ -61,6 +61,12 @@ void                     hud_application_source_add_window        (HudApplicatio
 gboolean                 hud_application_source_has_xid           (HudApplicationSource *   app,
                                                                    guint32                  xid);
 
+void                     hud_application_source_set_context       (HudApplicationSource *   app,
+                                                                   guint32                  xid,
+                                                                   const gchar *            context);
+const gchar *            hud_application_source_get_context       (HudApplicationSource *   app,
+                                                                   guint32                  xid);
+
 /* Helper functions */
 gchar *                  hud_application_source_bamf_app_id       (AbstractApplication *    bapp);
 

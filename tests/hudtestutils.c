@@ -102,7 +102,7 @@ dbus_mock_add_object (GDBusConnection *connection, const gchar* bus_name,
   g_variant_builder_unref (builder);
   if (error)
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The AddObject request failed:", error->message);
     g_error_free (error);
   }
 
@@ -126,7 +126,7 @@ dbus_mock_add_method (GDBusConnection *connection,
       G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
   if (error)
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The AddMethod request failed:", error->message);
     g_error_free (error);
   }
 }
@@ -179,7 +179,7 @@ dbus_mock_get_method_calls (GDBusConnection *connection,
       G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
   if (error)
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The GetMethodCalls request failed:", error->message);
     g_error_free (error);
   }
 }
@@ -197,7 +197,7 @@ dbus_mock_clear_method_calls (GDBusConnection *connection,
       G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
   if (error)
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The ClearCalls request failed:", error->message);
     g_error_free (error);
   }
 }
@@ -262,7 +262,7 @@ dbus_mock_emit_signal (GDBusConnection *connection,
   g_ptr_array_free(args, TRUE);
   if (error)
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The EmitSignal request failed:", error->message);
     g_error_free (error);
   }
 }

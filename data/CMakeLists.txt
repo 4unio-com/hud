@@ -31,6 +31,33 @@ DESTINATION ${DBUSSERVICEDIR}
 )
 
 ###########################
+# Upstart Job
+###########################
+
+set(HUD_UPSTART
+"${CMAKE_CURRENT_BINARY_DIR}/hud.conf"
+)
+
+set(pkglibexecdir "${CMAKE_INSTALL_FULL_LIBEXECDIR}/hud")
+configure_file("hud.conf.in"
+  "${HUD_UPSTART}"
+  @ONLY
+)
+
+install(
+FILES
+"${HUD_UPSTART}"
+DESTINATION "/usr/share/upstart/sessions"
+)
+
+install(
+PROGRAMS
+"dbus-activation-hack.sh"
+DESTINATION
+"${CMAKE_INSTALL_FULL_LIBEXECDIR}/hud"
+)
+
+###########################
 # GSettings
 ###########################
 

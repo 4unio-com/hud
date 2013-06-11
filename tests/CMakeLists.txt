@@ -119,6 +119,7 @@ macro(hudtest tname tfilename rfilename)
     "${CMAKE_CURRENT_BINARY_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}/${tname}"
     "${CMAKE_CURRENT_BINARY_DIR}/${rfilename}"
+    "${ENABLE_VOICE_TESTS}"
   )
 endmacro()
 
@@ -207,12 +208,12 @@ add_dependencies(test-keyword-mapping keyword-files)
 hudtest(test-string-list test-string-list.c test-string-list.xml)
 hudtest(test-pronounce-dict test-pronounce-dict.c test-pronounce-dict.xml)
 # FIXME: Disabled temporarily on platform-api systems due to some platform-api problems
-if(!${ENABLE_PLATFORM_API})
+if(NOT(${ENABLE_PLATFORM_API}))
   hudtest(test-source test-source.c test-source.xml)
 endif()
 hudtest(test-app-indicator-source test-app-indicator-source.c test-app-indicator-source.xml)
 hudtest(test-indicator-source test-indicator-source.c test-indicator-source.xml)
-if(!${ENABLE_PLATFORM_API})
+if(NOT(${ENABLE_PLATFORM_API}))
   hudtest(test-application-list test-application-list.c test-application-list.xml)
 endif()
 #test-usage-db-simple.xml

@@ -653,23 +653,11 @@ dbus_set_context (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(user_data), FALSE);
 	HudApplicationSource * app = HUD_APPLICATION_SOURCE(user_data);
 
-	gboolean was_used = app->priv->used;
-
-	/* Make sure we clear the old contexts if we could have one */
-	if (was_used && window_id == app->priv->focused_window) {
-		hud_source_unuse(HUD_SOURCE(app));
+	if (context[0] == '\0') {
+		context = NULL;
 	}
 
-	/* Swap the context for this window */
-	g_hash_table_insert(app->priv->window_contexts, GUINT_TO_POINTER(window_id), g_strdup(context));
-
-	/* Return our used state */
-	if (was_used && window_id == app->priv->focused_window) {
-		hud_source_use(HUD_SOURCE(app));
-
-		/* If we did change, make sure to signal it */
-		hud_source_changed(HUD_SOURCE(app));
-	}
+	hud_application_source_set_context(app, window_id, context);
 
 	g_dbus_method_invocation_return_value(invocation, NULL);
 	return TRUE;
@@ -1038,4 +1026,56 @@ source_get_items (HudSource * object)
 	}
 
 	return retval;
+}
+
+/**
+ * hud_application_source_set_context:
+ * @app: A #HudApplicationSource
+ * @xid: Window Identifier
+ * @context: Context to set as the current context
+ *
+ * This functions sets the current context for the application
+ * which may cause a changed signal.
+ */
+void
+hud_application_source_set_context (HudApplicationSource * app, guint32 xid, const gchar * context)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
+
+	gboolean was_used = app->priv->used;
+
+	/* Make sure we clear the old contexts if we could have one */
+	if (was_used && xid == app->priv->focused_window) {
+		hud_source_unuse(HUD_SOURCE(app));
+	}
+
+	/* Swap the context for this window */
+	g_hash_table_insert(app->priv->window_contexts, GUINT_TO_POINTER(xid), g_strdup(context));
+
+	/* Return our used state */
+	if (was_used && xid == app->priv->focused_window) {
+		hud_source_use(HUD_SOURCE(app));
+
+		/* If we did change, make sure to signal it */
+		hud_source_changed(HUD_SOURCE(app));
+	}
+
+	return;
+}
+
+/**
+ * hud_application_source_get_context:
+ * @app: A #HudApplicationSource
+ * @xid: Window Identifier
+ *
+ * Returns the current context of the application.
+ *
+ * Return value: The current context
+ */
+const gchar *
+hud_application_source_get_context (HudApplicationSource * app, guint32 xid)
+{
+	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), NULL);
+
+	return g_hash_table_lookup(app->priv->window_contexts, GUINT_TO_POINTER(xid));
 }

@@ -205,7 +205,6 @@ source_get_toolbar_entries (HudSource * hud_source, GArray * toolbar)
 	return;
 }
 
-
 /* Pass down toolbar activations */
 static void
 source_activate_toolbar (HudSource * hud_source, HudClientQueryToolbarItems item, GVariant * platform_data)
@@ -375,7 +374,12 @@ hud_application_source_context_add_window (HudApplicationSourceContext * context
 	if (context->priv->window_menus_dbus == NULL) {
 		context->priv->window_menus_dbus = hud_dbusmenu_collector_new_for_window(window, context->priv->app_id, context->priv->icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
 	} else {
-		g_warning("Adding a second DBus Menu window to a context.");
+		guint32 oldid = hud_dbusmenu_collector_get_xid(context->priv->window_menus_dbus);
+		guint32 newid = abstract_window_get_id(window);
+
+		if (oldid != newid) {
+			g_warning("Adding a second DBus Menu window (%X) to a context.  Current window (%X).", newid, oldid);
+		}
 	}
 
 	return;

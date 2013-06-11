@@ -104,6 +104,96 @@ describe_query (HudQuery *query)
   return g_variant_builder_end (&builder);
 }
 
+/* We need markers because we need something that'll go through the
+   markup parser. */
+#define HIGHLIGHT_START_MARKER  "000"
+#define HIGHLIGHT_STOP_MARKER   "1111"
+
+/* Escapes the strings and adds in highlights */
+static gchar *
+legacy_add_highlights (const gchar * input, GVariant * highlight_array)
+{
+	g_return_val_if_fail(input != NULL, NULL);
+
+	/* Most common case is no highlights, take care of it right away */
+	if (highlight_array == NULL || g_variant_n_children(highlight_array) == 0) {
+		return g_markup_escape_text(input, -1);
+	}
+
+	/* We need a string where we can insert the <b></b> tags and still
+	   have space left over */
+	guint bytes = strlen(input);
+	gchar * spaced_input = g_new0(gchar, bytes + 1 + (g_variant_n_children(highlight_array) * 7));
+
+	guint character = 0;
+	GVariantIter iter;
+	g_variant_iter_init(&iter, highlight_array);
+	gint start, stop;
+	gchar * spaced_current = spaced_input;
+	const gchar * input_current = input;
+
+	while (g_variant_iter_loop(&iter, "(ii)", &start, &stop)) {
+		/* In theory there should be no overlapping, but we
+		   want to make sure */
+		if (start < character) {
+			g_warning("Overlapping highlighting.  At character %d and asked to highlight from %d to %d.", character, start, stop);
+			continue;
+		}
+
+		/* Get to the start of the highlight */
+		guint initial_skip = start - character;
+		if (initial_skip > 0) {
+			g_utf8_strncpy(spaced_current, input_current, initial_skip);
+			spaced_current = g_utf8_offset_to_pointer(spaced_current, initial_skip);
+			input_current = g_utf8_offset_to_pointer(input_current, initial_skip);
+		}
+
+		/* Put the highlight start marker */
+		g_utf8_strncpy(spaced_current, HIGHLIGHT_START_MARKER, g_utf8_strlen(HIGHLIGHT_START_MARKER, -1));
+		spaced_current = g_utf8_offset_to_pointer(spaced_current, g_utf8_strlen(HIGHLIGHT_START_MARKER, -1));
+
+		/* Copy the characters in the highlight */
+		guint highlight_skip = stop - start;
+		if (highlight_skip > 0) {
+			g_utf8_strncpy(spaced_current, input_current, highlight_skip);
+			spaced_current = g_utf8_offset_to_pointer(spaced_current, highlight_skip);
+			input_current = g_utf8_offset_to_pointer(input_current, highlight_skip);
+		} else {
+			g_warning("Zero character highlight!");
+		}
+
+		/* Put the highlight stop marker */
+		g_utf8_strncpy(spaced_current, HIGHLIGHT_STOP_MARKER, g_utf8_strlen(HIGHLIGHT_STOP_MARKER, -1));
+		spaced_current = g_utf8_offset_to_pointer(spaced_current, g_utf8_strlen(HIGHLIGHT_STOP_MARKER, -1));
+
+		/* Move the start */
+		character = stop;
+	}
+
+	/* Final copy */
+	guint final_cnt = g_utf8_strlen(input, -1) - character;
+	if (final_cnt > 0) {
+		g_utf8_strncpy(spaced_current, input_current, final_cnt);
+	}
+
+	gchar * ret = g_markup_escape_text(spaced_input, -1);
+	g_free(spaced_input);
+
+	gchar * start_search = g_strstr_len(ret, -1, HIGHLIGHT_START_MARKER);
+	while (start_search != NULL) {
+		memcpy(start_search, "<b>", 3);
+		start_search = g_strstr_len(start_search, -1, HIGHLIGHT_START_MARKER);
+	}
+
+	gchar * stop_search = g_strstr_len(ret, -1, HIGHLIGHT_STOP_MARKER);
+	while (stop_search != NULL) {
+		memcpy(stop_search, "</b>", 4);
+		stop_search = g_strstr_len(stop_search, -1, HIGHLIGHT_STOP_MARKER);
+	}
+
+	return ret;
+}
+
 /* Builds a single line pango formated description for
    the legacy HUD UI */
 static gchar *
@@ -112,23 +202,30 @@ build_legacy_description (DeeModel * model, DeeModelIter * iter)
 	const gchar * command_name = dee_model_get_string(model, iter, HUD_QUERY_RESULTS_COMMAND_NAME);
 	const gchar * description = dee_model_get_string(model, iter, HUD_QUERY_RESULTS_DESCRIPTION);
 
+	GVariant * command_harray = dee_model_get_value(model, iter, HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS);
+	GVariant * desc_harray = dee_model_get_value(model, iter, HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS);
+
+	gchar * command_highlights = legacy_add_highlights(command_name, command_harray);
+	gchar * desc_highlights = legacy_add_highlights(description, desc_harray);
+
+	g_variant_unref(command_harray);
+	g_variant_unref(desc_harray);
+
 	gchar * combined;
 	if (description != NULL && strlen(description) > 1) {
 		/* TRANSLATORS: This is what is shown for Unity Nux in
 		   the HUD entries.  The first %s is the command name and
 		   the second is a description or list of keywords that
 		   was used to find the entry. */
-		combined = g_strdup_printf(_("%s\xE2\x80\x82(%s)"), command_name, description);
+		combined = g_strdup_printf(_("%s\xE2\x80\x82(%s)"), command_highlights, desc_highlights);
 	} else {
 		combined = g_strdup(command_name);
 	}
 
-	gchar * retval = g_markup_escape_text(combined, -1);
-	g_free(combined);
+	g_free(command_highlights);
+	g_free(desc_highlights);
 
-	/* TODO: Highlights */
-
-	return retval;
+	return combined;
 }
 
 /* Describe the legacy query */
