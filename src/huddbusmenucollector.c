@@ -868,3 +868,18 @@ hud_dbusmenu_collector_get_app_icon (HudSource *collector)
 	g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(collector), NULL);
 	return HUD_DBUSMENU_COLLECTOR(collector)->icon;
 }
+
+/**
+ * hud_dbusmenu_collector_get_xid:
+ * @collector: a #HudDbusmenuCollector
+ *
+ * Gets the XID for this collector if it has one.
+ *
+ * Return value: XID or 0
+ */
+guint32
+hud_dbusmenu_collector_get_xid (HudDbusmenuCollector * collector)
+{
+	g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(collector), 0);
+	return collector->xid;
+}
