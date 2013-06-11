@@ -1100,6 +1100,7 @@ hud_application_source_set_focused_win (HudApplicationSource * app, guint32 xid)
 
 	if (used) {
 		hud_source_use(HUD_SOURCE(app));
+		hud_source_changed(HUD_SOURCE(app));
 	}
 
 	return;
