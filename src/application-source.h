@@ -21,6 +21,7 @@
 
 #include <glib-object.h>
 #include "abstract-app.h"
+#include "application-source-context.h"
 
 G_BEGIN_DECLS
 
@@ -66,6 +67,8 @@ void                     hud_application_source_set_context       (HudApplicatio
                                                                    const gchar *            context);
 const gchar *            hud_application_source_get_context       (HudApplicationSource *   app,
                                                                    guint32                  xid);
+void                     hud_application_source_add_context       (HudApplicationSource *   app,
+                                                                   HudApplicationSourceContext * context);
 
 /* Helper functions */
 gchar *                  hud_application_source_bamf_app_id       (AbstractApplication *    bapp);

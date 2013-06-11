@@ -553,8 +553,7 @@ find_context (HudApplicationSource * app, GPtrArray * contexts, guint32 winid, c
 	/* Can't find, must build */
 	if (retval == NULL) {
 		retval = hud_application_source_context_new(winid, conid, app->priv->app_id, hud_application_source_get_app_icon(app), app->priv->path);
-		g_signal_connect(G_OBJECT(retval), "changed", G_CALLBACK(window_source_changed), app);
-		g_ptr_array_add(contexts, retval);
+		hud_application_source_add_context(app, retval);
 	}
 
 	return retval;
@@ -1059,4 +1058,24 @@ hud_application_source_get_context (HudApplicationSource * app, guint32 xid)
 	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), NULL);
 
 	return g_hash_table_lookup(app->priv->window_contexts, GUINT_TO_POINTER(xid));
+}
+
+/**
+ * hud_application_source_add_context:
+ * @app: A #HudApplicationSource
+ * @context: An Application Context
+ * 
+ * Adds a context to the application source.  Interface used for
+ * testing.
+ */
+void
+hud_application_source_add_context (HudApplicationSource * app, HudApplicationSourceContext * context)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
+
+	g_signal_connect(G_OBJECT(context), "changed", G_CALLBACK(window_source_changed), app);
+	g_ptr_array_add(app->priv->contexts, context);
+
+	return;
 }
