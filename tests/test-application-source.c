@@ -17,6 +17,7 @@
 #define G_LOG_DOMAIN "test-application-source"
 
 #include "hudtestutils.h"
+#include "libdbustest/dbus-test.h"
 
 #include "application-source.h"
 #include "hudsource.h"
@@ -25,6 +26,10 @@
 static void
 test_application_source_set_context (void)
 {
+	DbusTestService * service = dbus_test_service_new(NULL);
+	dbus_test_service_start_tasks(service);
+	GDBusConnection * con = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+
 	HudApplicationSource * source = hud_application_source_new_for_id("bob");
 
 	g_assert(HUD_IS_APPLICATION_SOURCE(source));
@@ -40,6 +45,9 @@ test_application_source_set_context (void)
 	g_object_add_weak_pointer(G_OBJECT(source), (gpointer *)&source);
 	g_object_unref(source);
 	g_assert(source == NULL);
+
+	g_object_unref(service);
+	hud_test_utils_wait_for_connection_close(con);
 
 	return;
 }
@@ -90,6 +98,10 @@ app_source_find_bush (HudResult * result, gpointer user_data)
 static void
 test_application_source_add_context (void)
 {
+	DbusTestService * service = dbus_test_service_new(NULL);
+	dbus_test_service_start_tasks(service);
+	GDBusConnection * con = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+
 	HudApplicationSource * source = hud_application_source_new_for_id("bob");
 	hud_application_source_set_focused_win(source, 1);
 
@@ -194,6 +206,9 @@ test_application_source_add_context (void)
 	g_assert(simple_group == NULL);
 	g_assert(menu_none == NULL);
 	g_assert(menu_plants == NULL);
+
+	g_object_unref(service);
+	hud_test_utils_wait_for_connection_close(con);
 
 	return;
 }
