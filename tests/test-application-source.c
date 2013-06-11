@@ -16,6 +16,8 @@
 
 #define G_LOG_DOMAIN "test-application-source"
 
+#include "hudtestutils.h"
+
 #include "application-source.h"
 #include "hudsource.h"
 
@@ -186,6 +188,8 @@ test_application_source_add_context (void)
 	g_assert(menu_plants != NULL);
 
 	g_object_unref(source);
+
+	hud_test_utils_process_mainloop(500);
 
 	g_assert(simple_group == NULL);
 	g_assert(menu_none == NULL);
