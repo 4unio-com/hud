@@ -751,6 +751,7 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 
 	hud_application_source_add_window(app, window);
 
+	hud_application_source_set_focused_win(app, abstract_window_get_id(window));
 #ifdef HAVE_BAMF
 	app->priv->focused_window = bamf_window_get_xid(window);
 #endif
@@ -1077,6 +1078,25 @@ hud_application_source_add_context (HudApplicationSource * app, HudApplicationSo
 
 	g_signal_connect(G_OBJECT(context), "changed", G_CALLBACK(window_source_changed), app);
 	g_ptr_array_add(app->priv->contexts, context);
+
+	return;
+}
+
+/**
+ * hud_application_source_set_focused_win:
+ * @app: A #HudApplicationSource
+ * @xid: A window
+ *
+ * Sets which window the application source thinks has focus.  This
+ * is exposed for testing and generally set_focus() should be used
+ * by external users.
+ */
+void
+hud_application_source_set_focused_win (HudApplicationSource * app, guint32 xid)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
+
+	app->priv->focused_window = xid;
 
 	return;
 }

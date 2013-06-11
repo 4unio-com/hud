@@ -69,6 +69,8 @@ const gchar *            hud_application_source_get_context       (HudApplicatio
                                                                    guint32                  xid);
 void                     hud_application_source_add_context       (HudApplicationSource *   app,
                                                                    HudApplicationSourceContext * context);
+void                     hud_application_source_set_focused_win   (HudApplicationSource *   app,
+                                                                   guint32                  xid);
 
 /* Helper functions */
 gchar *                  hud_application_source_bamf_app_id       (AbstractApplication *    bapp);
