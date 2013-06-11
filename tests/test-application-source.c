@@ -129,8 +129,8 @@ test_application_source_add_context (void)
 
 	HudApplicationSourceContext * context_plants = hud_application_source_context_new(1, "plants", "bob", "bob-icon", "/app/bob");
 
-	hud_application_source_context_add_action_group(context_none, group, "plants");
-	hud_application_source_context_add_model(context_none, G_MENU_MODEL(menu_plants));
+	hud_application_source_context_add_action_group(context_plants, group, "plants");
+	hud_application_source_context_add_model(context_plants, G_MENU_MODEL(menu_plants));
 
 	hud_application_source_add_context(source, context_plants);
 
