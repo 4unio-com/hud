@@ -31,6 +31,9 @@ test_application_source_set_context (void)
 	g_assert_cmpstr(hud_application_source_get_context(source, 1), ==, "bob-context");
 	g_assert(hud_application_source_get_context(source, 2) == NULL);
 
+	hud_application_source_set_context(source, 1, NULL);
+	g_assert(hud_application_source_get_context(source, 1) == NULL);
+
 	g_object_add_weak_pointer(G_OBJECT(source), (gpointer *)&source);
 	g_object_unref(source);
 	g_assert(source == NULL);
