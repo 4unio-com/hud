@@ -140,7 +140,6 @@ test_window_source_menu_model ()
           "ret = '/org/ayatana/bamf/application00000001'");
   }
 
-#if 0
   /* Set up the app registrar */
   {
     dbus_mock_add_method (connection,
@@ -148,15 +147,6 @@ test_window_source_menu_model ()
         REGISTRAR_INTERFACE_NAME, "GetMenus", "", "a(uso)",
           "ret = [(1, 'app.dbus.name.two', '/menu')]");
   }
-#else
-  /* Set up the app registrar */
-  {
-    dbus_mock_add_method (connection,
-        REGISTRAR_BUS_NAME, REGISTRAR_OBJECT_PATH,
-        REGISTRAR_INTERFACE_NAME, "GetMenus", "", "a(uso)",
-          "ret = []");
-  }
-#endif
 
   hud_test_utils_process_mainloop (100);
 
