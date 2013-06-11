@@ -26,6 +26,8 @@
 typedef BamfWindow AbstractWindow;
 typedef BamfApplication AbstractApplication;
 
+#define abstract_window_get_id(win)  bamf_window_get_xid(win)
+
 #endif /* HAVE_BAMF */
 
 #ifdef HAVE_PLATFORM_API
@@ -39,6 +41,8 @@ typedef ubuntu_ui_session_properties AbstractWindow;
 typedef ubuntu_ui_session_properties AbstractApplication;
 
 #define _ubuntu_ui_session_properties_get_window_id(props) WINDOW_ID_CONSTANT
+
+#define abstract_window_get_id(win)  WINDOW_ID_CONSTANT
 
 #endif /* HAVE_PLATFORM_API */
 
