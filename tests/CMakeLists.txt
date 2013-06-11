@@ -167,6 +167,7 @@ hudtest(test-indicator-source test-indicator-source.c test-indicator-source.xml)
 if(NOT(${ENABLE_PLATFORM_API}))
   hudtest(test-application-list test-application-list.c test-application-list.xml)
 endif()
+hudtest(test-application-source test-application-source.c test-application-source.xml)
 #test-usage-db-simple.xml
 #test-usage-db-old.xml
 #test-usage-db-testapp.xml
