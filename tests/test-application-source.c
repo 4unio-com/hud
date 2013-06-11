@@ -63,11 +63,33 @@ app_source_find_elephant (HudResult * result, gpointer user_data)
 	return;
 }
 
+/* Find Bush */
+static void
+app_source_find_bush (HudResult * result, gpointer user_data)
+{
+	g_assert(result != NULL);
+	g_assert(HUD_IS_RESULT(result));
+
+	HudItem * item = hud_result_get_item(result);
+	g_assert(item != NULL);
+	g_assert(HUD_IS_ITEM(item));
+
+	if (g_strcmp0(hud_item_get_command(item), "Bush") == 0) {
+		gboolean * found = (gboolean *)user_data;
+		*found = TRUE;
+	}
+
+	g_object_unref(result);
+
+	return;
+}
+
 /* Creates a simple source and sets its context */
 static void
 test_application_source_add_context (void)
 {
 	HudApplicationSource * source = hud_application_source_new_for_id("bob");
+	hud_application_source_set_focused_win(source, 1);
 
 	GSimpleActionGroup * simple_group = g_simple_action_group_new();
 	g_simple_action_group_insert(simple_group, G_ACTION(g_simple_action_new("action-name", NULL)));
@@ -91,13 +113,63 @@ test_application_source_add_context (void)
 	g_assert(hud_application_source_has_xid(source, 1));
 
 	/* Search for our animals! */
-	hud_application_source_set_focused_win(source, 1);
 	hud_source_use(HUD_SOURCE(source));
 
 	gboolean found_elephant = FALSE;
 	hud_source_search(HUD_SOURCE(source), NULL, app_source_find_elephant, &found_elephant);
 
 	g_assert(found_elephant);
+	hud_source_unuse(HUD_SOURCE(source));
+
+	/* Build some plants */
+	GMenu * menu_plants = g_menu_new();
+	g_menu_append(menu_plants, "Tree", "plants.action-name");
+	g_menu_append(menu_plants, "Flowers", "plants.action-name");
+	g_menu_append(menu_plants, "Bush", "plants.action-name");
+
+	HudApplicationSourceContext * context_plants = hud_application_source_context_new(1, "plants", "bob", "bob-icon", "/app/bob");
+
+	hud_application_source_context_add_action_group(context_none, group, "plants");
+	hud_application_source_context_add_model(context_none, G_MENU_MODEL(menu_plants));
+
+	hud_application_source_add_context(source, context_plants);
+
+	/* Make sure we can still find the elephant */
+	hud_source_use(HUD_SOURCE(source));
+
+	found_elephant = FALSE;
+	hud_source_search(HUD_SOURCE(source), NULL, app_source_find_elephant, &found_elephant);
+
+	g_assert(found_elephant);
+	hud_source_unuse(HUD_SOURCE(source));
+
+	/* Switch to plants and find Bush */
+	hud_application_source_set_context(source, 1, "plants");
+	hud_source_use(HUD_SOURCE(source));
+
+	gboolean found_bush = FALSE;
+	hud_source_search(HUD_SOURCE(source), NULL, app_source_find_bush, &found_bush);
+
+	g_assert(found_bush);
+	hud_source_unuse(HUD_SOURCE(source));
+
+	/* Go back and find Elephant */
+	hud_application_source_set_context(source, 1, NULL);
+	hud_source_use(HUD_SOURCE(source));
+
+	found_elephant = FALSE;
+	hud_source_search(HUD_SOURCE(source), NULL, app_source_find_elephant, &found_elephant);
+
+	g_assert(found_elephant);
+	hud_source_unuse(HUD_SOURCE(source));
+
+	/* And no Bush */
+	hud_source_use(HUD_SOURCE(source));
+
+	found_bush = FALSE;
+	hud_source_search(HUD_SOURCE(source), NULL, app_source_find_bush, &found_bush);
+
+	g_assert(!found_bush);
 	hud_source_unuse(HUD_SOURCE(source));
 
 	return;
