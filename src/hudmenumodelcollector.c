@@ -1210,6 +1210,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
       hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH, collector->type);
       g_object_unref(app_menu);
 
+      g_debug("Adding menu model: %s", app_menu_object_path);
       g_hash_table_insert(collector->base_models, g_strdup(app_menu_object_path), GINT_TO_POINTER(TRUE));
     }
 
@@ -1220,6 +1221,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
       hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH, collector->type);
       g_object_unref(menubar);
 
+      g_debug("Adding menu model: %s", menubar_object_path);
       g_hash_table_insert(collector->base_models, g_strdup(menubar_object_path), GINT_TO_POINTER(TRUE));
     }
 
@@ -1229,6 +1231,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
       hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), unity_object_path, NULL, NULL, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH, collector->type);
       g_object_unref(menubar);
 
+      g_debug("Adding menu model: %s", unity_object_path);
       g_hash_table_insert(collector->base_models, g_strdup(unity_object_path), GINT_TO_POINTER(TRUE));
     }
 
