@@ -7,5 +7,9 @@
 #
 # This can go away if we get DBus Activation for Upstart
 
-start hud
-sleep 10
+if [ "x$UPSTART_SESSION" != "x" ]; then
+	start hud
+	sleep 10
+else
+	@pkglibexecdir@/hud-service
+fi
