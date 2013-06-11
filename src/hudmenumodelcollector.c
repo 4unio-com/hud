@@ -110,6 +110,10 @@ struct _HudMenuModelCollector
   guint muxer_export;
 
   HudSourceItemType type;
+
+  /* Track what we have to not add it twice */
+  GHashTable * base_models;
+  GHashTable * base_actions;
 };
 
 /* Structure for when we're tracking a model, all the info
@@ -1021,6 +1025,8 @@ hud_menu_model_collector_finalize (GObject *object)
   g_ptr_array_unref (collector->items);
 
   g_clear_pointer(&collector->base_export_path, g_free);
+  g_clear_pointer(&collector->base_models, g_hash_table_destroy);
+  g_clear_pointer(&collector->base_actions, g_hash_table_destroy);
 
   G_OBJECT_CLASS (hud_menu_model_collector_parent_class)
     ->finalize (object);
@@ -1033,6 +1039,8 @@ hud_menu_model_collector_init (HudMenuModelCollector *collector)
   collector->cancellable = g_cancellable_new ();
   collector->muxer = g_action_muxer_new();
   collector->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+  collector->base_models = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+  collector->base_actions = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 }
 
 static void
