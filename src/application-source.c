@@ -527,9 +527,10 @@ add_id_to_connection (HudApplicationSource * app, GDBusConnection * session, con
 }
 
 /* Either find the context or build one */
-HudApplicationSourceContext *
-find_context (HudApplicationSource * app, GPtrArray * contexts, guint32 winid, const gchar * conid)
+static HudApplicationSourceContext *
+find_context (HudApplicationSource * app, guint32 winid, const gchar * conid)
 {
+	GPtrArray * contexts = app->priv->contexts;
 	HudApplicationSourceContext * retval = NULL;
 
 	int i;
@@ -592,7 +593,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 			refinedcontext = context;
 		}
 
-		HudApplicationSourceContext * ctx = find_context(app, app->priv->contexts, idn, refinedcontext);
+		HudApplicationSourceContext * ctx = find_context(app, idn, refinedcontext);
 
 		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
 		hud_application_source_context_add_action_group(ctx, G_ACTION_GROUP(ag), prefix);
@@ -612,7 +613,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		idn = WINDOW_ID_CONSTANT;
 #endif
 
-		HudApplicationSourceContext * ctx = find_context(app, app->priv->contexts, idn, NULL);
+		HudApplicationSourceContext * ctx = find_context(app, idn, NULL);
 
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
 		hud_application_source_context_add_model(ctx, G_MENU_MODEL(model));
@@ -929,7 +930,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	g_object_weak_ref(G_OBJECT(window), window_destroyed, window_info);
 #endif
 
-	HudApplicationSourceContext * context = find_context(app, app->priv->contexts, xid, NULL);
+	HudApplicationSourceContext * context = find_context(app, xid, NULL);
 
 	/* We're managing the lifecycle of the window info here as
 	   that allows it to have some sort of destroy function */
