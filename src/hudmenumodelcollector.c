@@ -1214,7 +1214,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   if (unity_object_path)
     {
       GDBusMenuModel * menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, unity_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), unity_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), unity_object_path, NULL, NULL, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH, collector->type);
       g_object_unref(menubar);
     }
 
