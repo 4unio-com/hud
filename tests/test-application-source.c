@@ -17,6 +17,7 @@
 #define G_LOG_DOMAIN "test-application-source"
 
 #include "application-source.h"
+#include "hudsource.h"
 
 /* Creates a simple source and sets its context */
 static void
@@ -41,6 +42,27 @@ test_application_source_set_context (void)
 	return;
 }
 
+/* Find the Elephant */
+static void
+app_source_find_elephant (HudResult * result, gpointer user_data)
+{
+	g_assert(result != NULL);
+	g_assert(HUD_IS_RESULT(result));
+
+	HudItem * item = hud_result_get_item(result);
+	g_assert(item != NULL);
+	g_assert(HUD_IS_ITEM(item));
+
+	if (g_strcmp0(hud_item_get_command(item), "Elephant") == 0) {
+		gboolean * found = (gboolean *)user_data;
+		*found = TRUE;
+	}
+
+	g_object_unref(result);
+
+	return;
+}
+
 /* Creates a simple source and sets its context */
 static void
 test_application_source_add_context (void)
@@ -61,12 +83,22 @@ test_application_source_add_context (void)
 	HudApplicationSourceContext * context_none = hud_application_source_context_new(1, NULL, "bob", "bob-icon", "/app/bob");
 	g_assert(HUD_IS_APPLICATION_SOURCE_CONTEXT(context_none));
 
-	hud_application_source_context_add_model(context_none, G_MENU_MODEL(menu_none));
 	hud_application_source_context_add_action_group(context_none, group, NULL);
+	hud_application_source_context_add_model(context_none, G_MENU_MODEL(menu_none));
 
 	hud_application_source_add_context(source, context_none);
 
 	g_assert(hud_application_source_has_xid(source, 1));
+
+	/* Search for our animals! */
+	hud_application_source_set_focused_win(source, 1);
+	hud_source_use(HUD_SOURCE(source));
+
+	gboolean found_elephant = FALSE;
+	hud_source_search(HUD_SOURCE(source), NULL, app_source_find_elephant, &found_elephant);
+
+	g_assert(found_elephant);
+	hud_source_unuse(HUD_SOURCE(source));
 
 	return;
 }
