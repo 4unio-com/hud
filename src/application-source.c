@@ -982,7 +982,7 @@ hud_application_source_has_xid (HudApplicationSource * app, guint32 xid)
 		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
 
 		guint32 ctx_winid = hud_application_source_context_get_window_id(context);
-		if (ctx_winid != xid) {
+		if (ctx_winid == xid) {
 			return TRUE;
 		}
 	}
