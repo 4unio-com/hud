@@ -71,6 +71,27 @@ static guint hud_client_query_signal_voice_query_heard_something;
 static guint hud_client_query_signal_voice_query_finished;
 static guint hud_client_query_signal_models_changed = 0;
 
+/* Schema that is used in the DeeModel representing
+   the results */
+static const gchar * results_model_schema[HUD_QUERY_RESULTS_COUNT] = {
+	HUD_QUERY_RESULTS_COMMAND_ID_TYPE,
+	HUD_QUERY_RESULTS_COMMAND_NAME_TYPE,
+	HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS_TYPE,
+	HUD_QUERY_RESULTS_DESCRIPTION_TYPE,
+	HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS_TYPE,
+	HUD_QUERY_RESULTS_SHORTCUT_TYPE,
+	HUD_QUERY_RESULTS_DISTANCE_TYPE,
+	HUD_QUERY_RESULTS_PARAMETERIZED_TYPE,
+};
+
+/* Schema that is used in the DeeModel representing
+   the appstack */
+static const gchar * appstack_model_schema[HUD_QUERY_APPSTACK_COUNT] = {
+	HUD_QUERY_APPSTACK_APPLICATION_ID_TYPE,
+	HUD_QUERY_APPSTACK_ICON_NAME_TYPE,
+	HUD_QUERY_APPSTACK_ITEM_TYPE_TYPE,
+};
+
 static void
 hud_client_query_class_init (HudClientQueryClass *klass)
 {
@@ -93,7 +114,7 @@ hud_client_query_class_init (HudClientQueryClass *klass)
 	                                 g_param_spec_string(PROP_QUERY_S, "Query to the HUD service",
 	                                              "HUD query",
 	                                              NULL,
-	                                              G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * HudClientQuery::toolbar-updated:
@@ -304,7 +325,9 @@ new_query_cb (HudClientConnection * connection, const gchar * path, const gchar 
 
 	/* Set up our models */
 	cquery->priv->results = dee_shared_model_new(results);
+	dee_model_set_schema_full(cquery->priv->results, results_model_schema, G_N_ELEMENTS(results_model_schema));
 	cquery->priv->appstack = dee_shared_model_new(appstack);
+	dee_model_set_schema_full(cquery->priv->appstack, appstack_model_schema, G_N_ELEMENTS(appstack_model_schema));
 
 	/* Watch for voice signals */
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-loading",
