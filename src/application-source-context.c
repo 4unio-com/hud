@@ -239,6 +239,10 @@ source_get_items (HudSource * object)
 HudApplicationSourceContext *
 hud_application_source_context_new (guint32 window_id, const gchar * context_id, const gchar * app_id, const gchar * icon, const gchar * app_path)
 {
+	g_return_val_if_fail(app_id != NULL && app_id[0] != '\0', NULL);
+	g_return_val_if_fail(context_id == NULL || context_id[0] != '\0', NULL);
+	g_return_val_if_fail(g_variant_is_object_path(app_path), NULL);
+
 	HudApplicationSourceContext * context = g_object_new(HUD_TYPE_APPLICATION_SOURCE_CONTEXT, NULL);
 
 	context->priv->window_id = window_id;
