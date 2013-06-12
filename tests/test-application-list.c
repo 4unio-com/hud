@@ -209,16 +209,23 @@ test_window_source_menu_model ()
         "/com/canonical/hud/applications/name");
   }
 
+  g_debug("Unusing Source");
   hud_source_unuse(HUD_SOURCE(source));
 
+  g_debug("Freeing Token lists");
   hud_token_list_free(search);
   hud_token_list_free(search_two);
+
+  g_debug("Unreferencing the source");
   g_object_unref (source);
 
+  g_debug("Waiting for things to settle");
   hud_test_utils_process_mainloop (100);
 
-  g_object_unref (service);
+  g_debug("Taking down the connection");
   g_object_unref (connection);
+  g_debug("Taking down the dbus service");
+  g_object_unref (service);
   /* FIXME: We would like to do this here, but dbus makes us exit with a non-zero code
   hud_test_utils_wait_for_connection_close(connection);
   */
