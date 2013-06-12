@@ -272,7 +272,7 @@ hud_application_list_dispose (GObject *object)
 	g_clear_object(&self->priv->last_focused_side_stage_source);
 #endif
 
-	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
+	g_hash_table_remove_all(self->priv->applications);
 
 	G_OBJECT_CLASS (hud_application_list_parent_class)->dispose (object);
 	return;
@@ -282,6 +282,9 @@ hud_application_list_dispose (GObject *object)
 static void
 hud_application_list_finalize (GObject *object)
 {
+	HudApplicationList * self = HUD_APPLICATION_LIST(object);
+
+	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
 
 	G_OBJECT_CLASS (hud_application_list_parent_class)->finalize (object);
 	return;
