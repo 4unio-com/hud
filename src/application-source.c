@@ -593,6 +593,13 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 			refinedcontext = context;
 		}
 
+		/* FIXME: Currently the Qt API uses this context but yet,
+		   doesn't set one.  So this makes things seem less broken.  It
+		   should go away when the Qt API gets updated */
+		if (g_strcmp0(context, "/context_0") == 0) {
+			refinedcontext = NULL;
+		}
+
 		HudApplicationSourceContext * ctx = find_context(app, idn, refinedcontext);
 
 		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
@@ -617,6 +624,13 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		gchar * refinedcontext = NULL;
 		if (context != NULL && context[0] != '\0') {
 			refinedcontext = context;
+		}
+
+		/* FIXME: Currently the Qt API uses this context but yet,
+		   doesn't set one.  So this makes things seem less broken.  It
+		   should go away when the Qt API gets updated */
+		if (g_strcmp0(context, "/context_0") == 0) {
+			refinedcontext = NULL;
 		}
 
 		HudApplicationSourceContext * ctx = find_context(app, idn, refinedcontext);
