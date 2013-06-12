@@ -463,13 +463,12 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 static void
 session_unfocused (ubuntu_ui_session_properties props, void * context)
 {
-	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+	/* HudApplicationList * list = HUD_APPLICATION_LIST(context); */
 
-	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
-	if (stage_hint == U_MAIN_STAGE)
-		g_clear_object(&list->priv->last_focused_main_stage_source);
-	else if (stage_hint == U_SIDE_STAGE)
-		g_clear_object(&list->priv->last_focused_side_stage_source);
+	/* NOTE: We don't clear on unfocus because we don't know who
+	   the next focus will be, and it could be blocked.  We'll always
+	   just search the last focus. */
+
 	return;
 }
 
