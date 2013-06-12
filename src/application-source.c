@@ -613,6 +613,12 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		idn = WINDOW_ID_CONSTANT;
 #endif
 
+		/* Catch the NULL string case */
+		gchar * refinedcontext = NULL;
+		if (context != NULL && context[0] != '\0') {
+			refinedcontext = context;
+		}
+
 		HudApplicationSourceContext * ctx = find_context(app, idn, NULL);
 
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
