@@ -596,6 +596,18 @@ hud_dbusmenu_collector_setup_endpoint (HudDbusmenuCollector *collector,
       g_clear_object (&collector->client);
     }
 
+  if (bus_name && !g_dbus_is_name(bus_name))
+    {
+      g_warning("Bus name '%s' is not a valid bus name", bus_name);
+      bus_name = NULL;
+    }
+
+  if (object_path && !g_variant_is_object_path(object_path))
+    {
+      g_warning("Object Path '%s' is not a valid object path", object_path);
+      object_path = NULL;
+    }
+
   if (bus_name && object_path)
     {
       collector->client = dbusmenu_client_new (bus_name, object_path);

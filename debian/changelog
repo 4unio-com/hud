@@ -1,3 +1,51 @@
+hud (13.10.1daily13.06.05.1-0ubuntu1) saucy; urgency=low
+
+  [ Pete Woods ]
+  * Merge the remaining HUD 2.0 branch contents.
+  * Fix voice on the device Have to duplicate the call to cmd_ln_init to
+    handle each case, it won't accept NULL arguments. (LP: #1177226)
+  * Switch acoustic model over to using voxforge-sphinx now that it's in
+    the archive.
+
+  [ Ted Gould ]
+  * Make sure the paren always has data to show. (LP: #1172228)
+  * Test that pinging the watchdog with NULL isn't an error.
+  * Allow applications to define a context for actions.
+  * If the service has disappeared request a start when updating the
+    query. (LP: #1181289)
+  * Ensuring the models are sync'd before reporting the query is built.
+    (LP: #1183520)
+  * Destroy queries when the client disappears off DBus.
+  * Remove unused test and cleanup dependencies.
+  * Load model schema to ensure matching with service.
+  * Use shared search update function in voice search.
+  * Diable appstack search by default.
+  * Make sure we get the query parameter before construct is called.
+  * Lazily load voice engine when doing voice queries.
+  * Adds in detection of the highlights in both the command and the
+    description.
+
+  [ Łukasz 'sil2100' Zemczak ]
+  * Fixes related to unit tests - increase the number of session waits
+    (SESSION_MAX_WAIT) to 20.
+  * Temporarily disable the test-source unit test since it's failing on
+    non-Android armhf systems. Also, tweak up a bit some of the timeouts
+    for slower systems.
+
+  [ Albert Astals ]
+  * Return true instead of false It is still un-implemented but this way
+    the Shell can start using this function and have the same behaviour
+    it had.
+
+  [ Ricardo Mendoza ]
+  * * Remove libhybris dep * Update platform API includes * Update
+    platform API usage * Get rid of hybris references.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 270
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 05 Jun 2013 12:33:44 +0000
+
 hud (13.10.1daily13.05.30ubuntu.unity.next-0ubuntu1) raring; urgency=low
 
   [ Ted Gould ]
