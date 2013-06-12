@@ -456,6 +456,8 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 		list->priv->last_focused_side_stage_source = g_object_ref(source);
 	}
 
+	hud_source_changed(HUD_SOURCE(list));
+
 	return;
 }
 
