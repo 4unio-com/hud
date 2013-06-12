@@ -575,6 +575,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	gchar * context = NULL;
 	gchar * prefix = NULL;
 	gchar * object = NULL;
+	gboolean changed = FALSE;
 
 	/* NOTE: We are doing actions first as there are cases where
 	   the models need the actions, but it'd be hard to update them
@@ -601,6 +602,9 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		}
 
 		HudApplicationSourceContext * ctx = find_context(app, idn, refinedcontext);
+		if (!changed && context_is_current(app, ctx)) {
+			changed = TRUE;
+		}
 
 		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
 		hud_application_source_context_add_action_group(ctx, G_ACTION_GROUP(ag), prefix);
@@ -634,6 +638,9 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		}
 
 		HudApplicationSourceContext * ctx = find_context(app, idn, refinedcontext);
+		if (!changed && context_is_current(app, ctx)) {
+			changed = TRUE;
+		}
 
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
 		hud_application_source_context_add_model(ctx, G_MENU_MODEL(model));
@@ -643,7 +650,14 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		g_object_unref(model);
 	}
 
+	/* Send reply so they don't have to wait */
 	g_dbus_method_invocation_return_value(invocation, NULL);
+
+	if (changed) {
+		/* Update based on this new data */
+		hud_source_changed(HUD_SOURCE(app));
+	}
+
 	return TRUE;
 }
 
