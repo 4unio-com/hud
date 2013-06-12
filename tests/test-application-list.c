@@ -86,7 +86,7 @@ test_window_source_menu_model ()
     dbus_mock_methods_append (methods, "GetXid", "", "u", "ret = 1");
     dbus_mock_methods_append (methods, "Monitor", "", "i", "ret = 0");
     dbus_mock_methods_append (methods, "Maximized", "", "i", "ret = 1");
-    dbus_mock_methods_append (methods, "WindowType", "", "i", "ret = 0");
+    dbus_mock_methods_append (methods, "WindowType", "", "u", "ret = 0");
     dbus_mock_methods_append (methods, "Xprop", "s", "s", ""
         "dict = {'_GTK_UNIQUE_BUS_NAME': 'app.dbus.name',\n"
         "       '_GTK_APP_MENU_OBJECT_PATH': '/app/dbus/menu/path',\n"
