@@ -256,6 +256,10 @@ source_get_items (HudSource * object)
 HudApplicationSourceContext *
 hud_application_source_context_new (guint32 window_id, const gchar * context_id, const gchar * app_id, const gchar * icon, const gchar * app_path)
 {
+	g_return_val_if_fail(app_id != NULL && app_id[0] != '\0', NULL);
+	g_return_val_if_fail(context_id == NULL || context_id[0] != '\0', NULL);
+	g_return_val_if_fail(g_variant_is_object_path(app_path), NULL);
+
 	HudApplicationSourceContext * context = g_object_new(HUD_TYPE_APPLICATION_SOURCE_CONTEXT, NULL);
 
 	context->priv->window_id = window_id;
@@ -345,13 +349,18 @@ hud_application_source_context_add_action_group (HudApplicationSourceContext * c
  * Adds a model to the items indexed by this context.
  */
 void
-hud_application_source_context_add_model (HudApplicationSourceContext * context, GMenuModel * model)
+hud_application_source_context_add_model (HudApplicationSourceContext * context, GMenuModel * model, HudApplicationSourceContextModelType type)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
 	g_return_if_fail(G_IS_MENU_MODEL(model));
 	check_for_menu_model(context);
 
-	hud_menu_model_collector_add_model(context->priv->model_collector, model, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH);
+	gint depth = HUD_MENU_MODEL_DEFAULT_DEPTH;
+	if (type == HUD_APPLICATION_SOURCE_CONTEXT_MODEL_DBUS) {
+		depth = 1;
+	}
+
+	hud_menu_model_collector_add_model(context->priv->model_collector, model, NULL, depth);
 
 	return;
 }

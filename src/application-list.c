@@ -71,6 +71,9 @@ static void window_changed                  (BamfMatcher *             matcher,
 static void view_opened                     (BamfMatcher *             matcher,
                                              BamfView *                view,
                                              gpointer                  user_data);
+static void view_closed                     (BamfMatcher *             matcher,
+                                             BamfView *                view,
+                                             gpointer                  user_data);
 #endif
 #ifdef HAVE_PLATFORM_API
 static void session_requested               (ubuntu_ui_well_known_application app,
@@ -174,6 +177,9 @@ matching_setup_bamf (HudApplicationList * self)
 	self->priv->matcher_view_open_sig = g_signal_connect(self->priv->matcher,
 		"view-opened",
 		G_CALLBACK(view_opened), self);
+	self->priv->matcher_view_close_sig = g_signal_connect(self->priv->matcher,
+		"view-closed",
+		G_CALLBACK(view_closed), self);
 
 	GList * apps = bamf_matcher_get_applications(self->priv->matcher);
 	GList * app = NULL;
@@ -234,6 +240,7 @@ static void
 hud_application_list_dispose (GObject *object)
 {
 	HudApplicationList * self = HUD_APPLICATION_LIST(object);
+	g_debug("Application List Dispose Start");
 
 	if (self->priv->used_source != NULL) {
 		hud_source_unuse(self->priv->used_source);
@@ -264,7 +271,9 @@ hud_application_list_dispose (GObject *object)
 #endif
 
 #ifdef HAVE_BAMF
+	g_debug("Unrefing BAMF matcher");
 	g_clear_object(&self->priv->matcher);
+	g_debug("Unref'd BAMF matcher");
 #endif
 
 #ifdef HAVE_PLATFORM_API
@@ -272,9 +281,11 @@ hud_application_list_dispose (GObject *object)
 	g_clear_object(&self->priv->last_focused_side_stage_source);
 #endif
 
-	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
+	g_hash_table_remove_all(self->priv->applications);
 
+	g_debug("Application List Dispose Recurse");
 	G_OBJECT_CLASS (hud_application_list_parent_class)->dispose (object);
+	g_debug("Application List Dispose Stop");
 	return;
 }
 
@@ -282,8 +293,14 @@ hud_application_list_dispose (GObject *object)
 static void
 hud_application_list_finalize (GObject *object)
 {
+	HudApplicationList * self = HUD_APPLICATION_LIST(object);
+	g_debug("Application List Finalize Start");
 
+	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
+
+	g_debug("Application List Finalize Recurse");
 	G_OBJECT_CLASS (hud_application_list_parent_class)->finalize (object);
+	g_debug("Application List Finalize Stop");
 	return;
 }
 
@@ -456,6 +473,8 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 		list->priv->last_focused_side_stage_source = g_object_ref(source);
 	}
 
+	hud_source_changed(HUD_SOURCE(list));
+
 	return;
 }
 
@@ -463,13 +482,12 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 static void
 session_unfocused (ubuntu_ui_session_properties props, void * context)
 {
-	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+	/* HudApplicationList * list = HUD_APPLICATION_LIST(context); */
 
-	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
-	if (stage_hint == U_MAIN_STAGE)
-		g_clear_object(&list->priv->last_focused_main_stage_source);
-	else if (stage_hint == U_SIDE_STAGE)
-		g_clear_object(&list->priv->last_focused_side_stage_source);
+	/* NOTE: We don't clear on unfocus because we don't know who
+	   the next focus will be, and it could be blocked.  We'll always
+	   just search the last focus. */
+
 	return;
 }
 
@@ -539,6 +557,31 @@ view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 	}
 
 	hud_application_source_add_window(source, BAMF_WINDOW(view));
+
+	return;
+}
+
+/* A view has been closed by BAMF */
+static void
+view_closed (BamfMatcher * matcher, BamfView * view, gpointer user_data)
+{
+	if (!BAMF_IS_WINDOW(view)) {
+		/* We only want windows.  Sorry. */
+		return;
+	}
+
+	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
+	BamfApplication * app = bamf_matcher_get_application_for_window(list->priv->matcher, BAMF_WINDOW(view));
+	if (app == NULL) {
+		return;
+	}
+
+	HudApplicationSource * source = bamf_app_to_source(list, app);
+	if (source == NULL) {
+		return;
+	}
+
+	hud_application_source_window_closed(source, BAMF_WINDOW(view));
 
 	return;
 }

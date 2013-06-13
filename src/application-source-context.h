@@ -35,6 +35,7 @@ G_BEGIN_DECLS
 typedef struct _HudApplicationSourceContext          HudApplicationSourceContext;
 typedef struct _HudApplicationSourceContextClass     HudApplicationSourceContextClass;
 typedef struct _HudApplicationSourceContextPrivate   HudApplicationSourceContextPrivate;
+typedef enum   _HudApplicationSourceContextModelType HudApplicationSourceContextModelType;
 
 struct _HudApplicationSourceContextClass {
 	GObjectClass parent_class;
@@ -43,6 +44,11 @@ struct _HudApplicationSourceContextClass {
 struct _HudApplicationSourceContext {
 	GObject parent;
 	HudApplicationSourceContextPrivate * priv;
+};
+
+enum _HudApplicationSourceContextModelType {
+	HUD_APPLICATION_SOURCE_CONTEXT_MODEL_WINDOW,
+	HUD_APPLICATION_SOURCE_CONTEXT_MODEL_DBUS,
 };
 
 GType                           hud_application_source_context_get_type          (void);
@@ -57,7 +63,8 @@ void                            hud_application_source_context_add_action_group 
                                                                                   GActionGroup *                  group,
                                                                                   const gchar *                   prefix);
 void                            hud_application_source_context_add_model         (HudApplicationSourceContext *   context,
-                                                                                  GMenuModel *                    model);
+                                                                                  GMenuModel *                    model,
+                                                                                  HudApplicationSourceContextModelType type);
 void                            hud_application_source_context_add_window        (HudApplicationSourceContext *   context,
                                                                                   AbstractWindow *                window);
 

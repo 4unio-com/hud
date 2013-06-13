@@ -437,6 +437,8 @@ hud_query_refresh (HudQuery *query)
   g_sequence_free(query->results_list);
   query->results_list = NULL;
 
+  dee_shared_model_flush_revision_queue(DEE_SHARED_MODEL(query->results_model));
+
   /* Reset for new data */
   dee_model_clear(query->appstack_model);
 
@@ -465,6 +467,8 @@ hud_query_refresh (HudQuery *query)
 
   /* Thanks hash ol' friend */
   g_hash_table_unref(appstack_hash);
+
+  dee_shared_model_flush_revision_queue(DEE_SHARED_MODEL(query->appstack_model));
 
   /* Get the list of toolbar items */
   if (search_source != NULL) {
@@ -586,6 +590,16 @@ voice_idle_init (gpointer user_data)
 		query->voice_idle = 0;
 	}
 
+	return FALSE;
+}
+
+/* Handle a small pause to make sure the DeeModels can get
+   out the gate on the phone. */
+static gboolean
+voice_idle_pause (gpointer user_data)
+{
+	HudQuery * query = HUD_QUERY(user_data);
+	query->voice_idle = g_idle_add(voice_idle_init, user_data);
 	return FALSE;
 }
 
@@ -940,7 +954,7 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const gchar *
 
   if (G_LIKELY(g_getenv("HUD_DISABLE_VOICE") == NULL))
   {
-    query->voice_idle = g_idle_add(voice_idle_init, query);
+    query->voice_idle = g_timeout_add_seconds(1, voice_idle_pause, query);
   }
   else
   {

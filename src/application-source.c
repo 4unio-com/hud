@@ -168,13 +168,15 @@ hud_application_source_dispose (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
-	g_clear_pointer(&self->priv->contexts, g_ptr_array_unref);
-	g_clear_pointer(&self->priv->connections, g_hash_table_unref);
-
 	if (self->priv->skel != NULL) {
 		g_dbus_interface_skeleton_unexport(G_DBUS_INTERFACE_SKELETON(self->priv->skel));
 		g_clear_object(&self->priv->skel);
 	}
+
+	if (self->priv->contexts->len > 0) {
+		g_ptr_array_remove_range(self->priv->contexts, 0, self->priv->contexts->len);
+	}
+	g_hash_table_remove_all(self->priv->connections);
 
 #ifdef HAVE_BAMF
 	g_clear_object(&self->priv->bamf_app);
@@ -190,6 +192,9 @@ static void
 hud_application_source_finalize (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
+
+	g_clear_pointer(&self->priv->contexts, g_ptr_array_unref);
+	g_clear_pointer(&self->priv->connections, g_hash_table_unref);
 
 	g_clear_pointer(&self->priv->app_id, g_free);
 	g_clear_pointer(&self->priv->path, g_free);
@@ -546,9 +551,10 @@ add_id_to_connection (HudApplicationSource * app, GDBusConnection * session, con
 }
 
 /* Either find the context or build one */
-HudApplicationSourceContext *
-find_context (HudApplicationSource * app, GPtrArray * contexts, guint32 winid, const gchar * conid)
+static HudApplicationSourceContext *
+find_context (HudApplicationSource * app, guint32 winid, const gchar * conid)
 {
+	GPtrArray * contexts = app->priv->contexts;
 	HudApplicationSourceContext * retval = NULL;
 
 	int i;
@@ -572,8 +578,7 @@ find_context (HudApplicationSource * app, GPtrArray * contexts, guint32 winid, c
 	/* Can't find, must build */
 	if (retval == NULL) {
 		retval = hud_application_source_context_new(winid, conid, app->priv->app_id, hud_application_source_get_app_icon(app), app->priv->path);
-		g_signal_connect(G_OBJECT(retval), "changed", G_CALLBACK(window_source_changed), app);
-		g_ptr_array_add(contexts, retval);
+		hud_application_source_add_context(app, retval);
 	}
 
 	return retval;
@@ -594,6 +599,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	gchar * context = NULL;
 	gchar * prefix = NULL;
 	gchar * object = NULL;
+	gboolean changed = FALSE;
 
 	/* NOTE: We are doing actions first as there are cases where
 	   the models need the actions, but it'd be hard to update them
@@ -612,7 +618,17 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 			refinedcontext = context;
 		}
 
-		HudApplicationSourceContext * ctx = find_context(app, app->priv->contexts, idn, refinedcontext);
+		/* FIXME: Currently the Qt API uses this context but yet,
+		   doesn't set one.  So this makes things seem less broken.  It
+		   should go away when the Qt API gets updated */
+		if (g_strcmp0(context, "/context_0") == 0) {
+			refinedcontext = NULL;
+		}
+
+		HudApplicationSourceContext * ctx = find_context(app, idn, refinedcontext);
+		if (!changed && context_is_current(app, ctx)) {
+			changed = TRUE;
+		}
 
 		GDBusActionGroup * ag = g_dbus_action_group_get(session, sender, object);
 		hud_application_source_context_add_action_group(ctx, G_ACTION_GROUP(ag), prefix);
@@ -632,17 +648,40 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		idn = WINDOW_ID_CONSTANT;
 #endif
 
-		HudApplicationSourceContext * ctx = find_context(app, app->priv->contexts, idn, NULL);
+		/* Catch the NULL string case */
+		gchar * refinedcontext = NULL;
+		if (context != NULL && context[0] != '\0') {
+			refinedcontext = context;
+		}
+
+		/* FIXME: Currently the Qt API uses this context but yet,
+		   doesn't set one.  So this makes things seem less broken.  It
+		   should go away when the Qt API gets updated */
+		if (g_strcmp0(context, "/context_0") == 0) {
+			refinedcontext = NULL;
+		}
+
+		HudApplicationSourceContext * ctx = find_context(app, idn, refinedcontext);
+		if (!changed && context_is_current(app, ctx)) {
+			changed = TRUE;
+		}
 
 		GDBusMenuModel * model = g_dbus_menu_model_get(session, sender, object);
-		hud_application_source_context_add_model(ctx, G_MENU_MODEL(model));
+		hud_application_source_context_add_model(ctx, G_MENU_MODEL(model), HUD_APPLICATION_SOURCE_CONTEXT_MODEL_DBUS);
 
 		add_id_to_connection(app, session, sender, idn);
 
 		g_object_unref(model);
 	}
 
+	/* Send reply so they don't have to wait */
 	g_dbus_method_invocation_return_value(invocation, NULL);
+
+	if (changed) {
+		/* Update based on this new data */
+		hud_source_changed(HUD_SOURCE(app));
+	}
+
 	return TRUE;
 }
 
@@ -770,12 +809,7 @@ hud_application_source_focus (HudApplicationSource * app, AbstractApplication * 
 
 	hud_application_source_add_window(app, window);
 
-#ifdef HAVE_BAMF
-	app->priv->focused_window = bamf_window_get_xid(window);
-#endif
-#ifdef HAVE_PLATFORM_API
-	app->priv->focused_window = _ubuntu_ui_session_properties_get_window_id(window);
-#endif
+	hud_application_source_set_focused_win(app, abstract_window_get_id(window));
 
 	return;
 }
@@ -843,65 +877,36 @@ hud_application_source_get_app_icon (HudApplicationSource * app)
 	return icon;
 }
 
-typedef struct _window_info_t window_info_t;
-struct _window_info_t {
-	HudApplicationSource * source;  /* Not a ref */
-#ifdef HAVE_BAMF
-	AbstractWindow * window;        /* Not a ref */
-#endif
-	guint32 xid;                    /* Can't be a ref */
-};
-
-#ifdef HAVE_BAMF
-/* When I window gets destroyed we want to clean up it's collectors
-   and all that jazz. */
-static void
-window_destroyed (gpointer data, GObject * old_address)
+/**
+ * hud_application_source_window_closed:
+ * @app: A #HudApplicationSource object
+ * @window: The window to be removed from the application
+ *
+ * Signal that a window has been closed and the source should clean
+ * up data associated with it.
+ */
+void
+hud_application_source_window_closed (HudApplicationSource * app, AbstractWindow * window)
 {
-	window_info_t * window_info = (window_info_t *)data;
-
-	window_info->window = NULL;
-	HudApplicationSource * source = window_info->source;
-	guint32 xid = window_info->xid;
+	guint32 xid = abstract_window_get_id(window);
 
 	int i;
-	for (i = 0; i < source->priv->contexts->len; i++) {
-		HudApplicationSourceContext * context = g_ptr_array_index(source->priv->contexts, i);
+	for (i = 0; i < app->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
 
 		guint32 ctx_winid = hud_application_source_context_get_window_id(context);
 		if (ctx_winid != xid) {
 			continue;
 		}
 
-		g_ptr_array_remove_index(source->priv->contexts, i);
+		g_ptr_array_remove_index(app->priv->contexts, i);
 		i--;
 	}
 
-	if (xid == source->priv->focused_window) {
-		hud_source_changed(HUD_SOURCE(window_info->source));
+	if (xid == app->priv->focused_window) {
+		hud_source_changed(HUD_SOURCE(app));
 	}
 
-	/* NOTE: DO NOT use the window_info after this point as
-	   it may be free'd by the remove above. */
-
-	return;
-}
-#endif
-
-/* If the collector gets free'd first we need to deallocate the memory
-   and make sure we don't keep the weak reference. */
-static void
-free_window_info (gpointer data)
-{
-	window_info_t * window_info = (window_info_t *)data;
-
-#ifdef HAVE_BAMF
-	if (window_info->window != NULL) {
-		g_object_weak_unref(G_OBJECT(window_info->window), window_destroyed, window_info);
-	}
-#endif
-
-	g_free(window_info);
 	return;
 }
 
@@ -939,21 +944,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	}
 #endif
 
-	window_info_t * window_info = g_new0(window_info_t, 1);
-	window_info->xid = xid;
-	window_info->source = app;
-
-#ifdef HAVE_BAMF
-	/* Uhm, this is how we were managing this memory... uhg, hybris */
-	window_info->window = window;
-	g_object_weak_ref(G_OBJECT(window), window_destroyed, window_info);
-#endif
-
-	HudApplicationSourceContext * context = find_context(app, app->priv->contexts, xid, NULL);
-
-	/* We're managing the lifecycle of the window info here as
-	   that allows it to have some sort of destroy function */
-	g_object_set_data_full(G_OBJECT(context), "hud-application-source-window-info", window_info, free_window_info);
+	HudApplicationSourceContext * context = find_context(app, xid, NULL);
 
 #ifdef HAVE_BAMF
 	gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
@@ -1001,7 +992,7 @@ hud_application_source_has_xid (HudApplicationSource * app, guint32 xid)
 		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
 
 		guint32 ctx_winid = hud_application_source_context_get_window_id(context);
-		if (ctx_winid != xid) {
+		if (ctx_winid == xid) {
 			return TRUE;
 		}
 	}
@@ -1078,4 +1069,54 @@ hud_application_source_get_context (HudApplicationSource * app, guint32 xid)
 	g_return_val_if_fail(HUD_IS_APPLICATION_SOURCE(app), NULL);
 
 	return g_hash_table_lookup(app->priv->window_contexts, GUINT_TO_POINTER(xid));
+}
+
+/**
+ * hud_application_source_add_context:
+ * @app: A #HudApplicationSource
+ * @context: An Application Context
+ * 
+ * Adds a context to the application source.  Interface used for
+ * testing.
+ */
+void
+hud_application_source_add_context (HudApplicationSource * app, HudApplicationSourceContext * context)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
+
+	g_signal_connect(G_OBJECT(context), "changed", G_CALLBACK(window_source_changed), app);
+	g_ptr_array_add(app->priv->contexts, context);
+
+	return;
+}
+
+/**
+ * hud_application_source_set_focused_win:
+ * @app: A #HudApplicationSource
+ * @xid: A window
+ *
+ * Sets which window the application source thinks has focus.  This
+ * is exposed for testing and generally set_focus() should be used
+ * by external users.
+ */
+void
+hud_application_source_set_focused_win (HudApplicationSource * app, guint32 xid)
+{
+	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
+
+	gboolean used = (xid == app->priv->focused_window && app->priv->used);
+
+	if (used) {
+		hud_source_unuse(HUD_SOURCE(app));
+	}
+
+	app->priv->focused_window = xid;
+
+	if (used) {
+		hud_source_use(HUD_SOURCE(app));
+		hud_source_changed(HUD_SOURCE(app));
+	}
+
+	return;
 }
