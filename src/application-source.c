@@ -858,65 +858,36 @@ hud_application_source_get_app_icon (HudApplicationSource * app)
 	return icon;
 }
 
-typedef struct _window_info_t window_info_t;
-struct _window_info_t {
-	HudApplicationSource * source;  /* Not a ref */
-#ifdef HAVE_BAMF
-	AbstractWindow * window;        /* Not a ref */
-#endif
-	guint32 xid;                    /* Can't be a ref */
-};
-
-#ifdef HAVE_BAMF
-/* When I window gets destroyed we want to clean up it's collectors
-   and all that jazz. */
-static void
-window_destroyed (gpointer data, GObject * old_address)
+/**
+ * hud_application_source_window_closed:
+ * @app: A #HudApplicationSource object
+ * @window: The window to be removed from the application
+ *
+ * Signal that a window has been closed and the source should clean
+ * up data associated with it.
+ */
+void
+hud_application_source_window_closed (HudApplicationSource * app, AbstractWindow * window)
 {
-	window_info_t * window_info = (window_info_t *)data;
-
-	window_info->window = NULL;
-	HudApplicationSource * source = window_info->source;
-	guint32 xid = window_info->xid;
+	guint32 xid = abstract_window_get_id(window);
 
 	int i;
-	for (i = 0; i < source->priv->contexts->len; i++) {
-		HudApplicationSourceContext * context = g_ptr_array_index(source->priv->contexts, i);
+	for (i = 0; i < app->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
 
 		guint32 ctx_winid = hud_application_source_context_get_window_id(context);
 		if (ctx_winid != xid) {
 			continue;
 		}
 
-		g_ptr_array_remove_index(source->priv->contexts, i);
+		g_ptr_array_remove_index(app->priv->contexts, i);
 		i--;
 	}
 
-	if (xid == source->priv->focused_window) {
-		hud_source_changed(HUD_SOURCE(window_info->source));
+	if (xid == app->priv->focused_window) {
+		hud_source_changed(HUD_SOURCE(app));
 	}
 
-	/* NOTE: DO NOT use the window_info after this point as
-	   it may be free'd by the remove above. */
-
-	return;
-}
-#endif
-
-/* If the collector gets free'd first we need to deallocate the memory
-   and make sure we don't keep the weak reference. */
-static void
-free_window_info (gpointer data)
-{
-	window_info_t * window_info = (window_info_t *)data;
-
-#ifdef HAVE_BAMF
-	if (window_info->window != NULL) {
-		g_object_weak_unref(G_OBJECT(window_info->window), window_destroyed, window_info);
-	}
-#endif
-
-	g_free(window_info);
 	return;
 }
 
@@ -954,21 +925,7 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	}
 #endif
 
-	window_info_t * window_info = g_new0(window_info_t, 1);
-	window_info->xid = xid;
-	window_info->source = app;
-
-#ifdef HAVE_BAMF
-	/* Uhm, this is how we were managing this memory... uhg, hybris */
-	window_info->window = window;
-	g_object_weak_ref(G_OBJECT(window), window_destroyed, window_info);
-#endif
-
 	HudApplicationSourceContext * context = find_context(app, xid, NULL);
-
-	/* We're managing the lifecycle of the window info here as
-	   that allows it to have some sort of destroy function */
-	g_object_set_data_full(G_OBJECT(context), "hud-application-source-window-info", window_info, free_window_info);
 
 #ifdef HAVE_BAMF
 	gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
