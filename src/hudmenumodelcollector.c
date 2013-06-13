@@ -29,7 +29,6 @@
 #include <gio/gio.h>
 #include <string.h>
 
-#define DEFAULT_MENU_DEPTH  10
 #define RECURSE_DATA        "hud-menu-model-recurse-level"
 #define EXPORT_PATH         "hud-menu-model-export-path"
 #define EXPORT_MENU         "hud-menu-model-export-menu"
@@ -78,6 +77,7 @@ struct _HudMenuModelCollector
 
   /* GActionGroup's indexed by their prefix */
   GActionMuxer * muxer;
+  GArray * agroups;
 
   /* Boring details about the app/indicator we are showing. */
   gchar *app_id;
@@ -111,6 +111,9 @@ struct _HudMenuModelCollector
   guint muxer_export;
 
   HudSourceItemType type;
+
+  /* Track what we have to not add it twice */
+  GHashTable * base_models;
 };
 
 /* Structure for when we're tracking a model, all the info
@@ -125,6 +128,16 @@ struct _model_data_t {
 	gchar * path;
 	gchar * label;
 	guint recurse;
+};
+
+/* Signals on the action group to know when it changes */
+typedef struct _action_group_signals_t action_group_signals_t;
+struct _action_group_signals_t {
+	GActionGroup * group;
+	gulong action_added;
+	gulong action_enabled_changed;
+	gulong action_removed;
+	gulong action_state_changed;
 };
 
 /* Structure to pass two values in a single pointer, amazing! */
@@ -1010,6 +1023,7 @@ hud_menu_model_collector_finalize (GObject *object)
     collector->muxer_export = 0;
   }
 
+  g_array_free(collector->agroups, TRUE);
   g_slist_free_full (collector->models, model_data_free);
   g_clear_object (&collector->muxer);
 
@@ -1022,9 +1036,31 @@ hud_menu_model_collector_finalize (GObject *object)
   g_ptr_array_unref (collector->items);
 
   g_clear_pointer(&collector->base_export_path, g_free);
+  g_clear_pointer(&collector->base_models, g_hash_table_destroy);
 
   G_OBJECT_CLASS (hud_menu_model_collector_parent_class)
     ->finalize (object);
+}
+
+/* Disconnect all the signals and unreference the group */
+static void
+agroup_clear (gpointer data)
+{
+	action_group_signals_t * sigs = (action_group_signals_t *)data;
+
+	g_signal_handler_disconnect(sigs->group, sigs->action_added);
+	g_signal_handler_disconnect(sigs->group, sigs->action_enabled_changed);
+	g_signal_handler_disconnect(sigs->group, sigs->action_removed);
+	g_signal_handler_disconnect(sigs->group, sigs->action_state_changed);
+	g_object_unref(sigs->group);
+
+	sigs->group = NULL;
+	sigs->action_added = 0;
+	sigs->action_enabled_changed = 0;
+	sigs->action_removed = 0;
+	sigs->action_state_changed = 0;
+
+	return;
 }
 
 static void
@@ -1033,7 +1069,10 @@ hud_menu_model_collector_init (HudMenuModelCollector *collector)
   collector->items = g_ptr_array_new_with_free_func (g_object_unref);
   collector->cancellable = g_cancellable_new ();
   collector->muxer = g_action_muxer_new();
+  collector->agroups = g_array_new(FALSE, FALSE, sizeof(action_group_signals_t));
+  g_array_set_clear_func(collector->agroups, agroup_clear);
   collector->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+  collector->base_models = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 }
 
 static void
@@ -1145,7 +1184,6 @@ hud_menu_model_collector_new (const gchar *application_id,
 	return collector;
 }
 
-#ifdef HAVE_BAMF
 /**
  * hud_menu_model_collector_add_window:
  * @window: a #BamfWindow
@@ -1157,10 +1195,11 @@ hud_menu_model_collector_new (const gchar *application_id,
  **/
 void
 hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
-                                     BamfWindow  *window)
+                                     AbstractWindow  *window)
 {
   g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
+#ifdef HAVE_BAMF
   gchar *unique_bus_name;
   gchar *application_object_path;
   gchar *window_object_path;
@@ -1196,27 +1235,36 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   window_object_path = bamf_window_get_utf8_prop (window, "_GTK_WINDOW_OBJECT_PATH");
   unity_object_path = bamf_window_get_utf8_prop (window, "_UNITY_OBJECT_PATH");
 
-  if (app_menu_object_path)
+  if (app_menu_object_path && !g_hash_table_lookup(collector->base_models, app_menu_object_path))
     {
       GDBusMenuModel * app_menu;
       app_menu = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, app_menu_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH, collector->type);
       g_object_unref(app_menu);
+
+      g_debug("Adding menu model: %s", app_menu_object_path);
+      g_hash_table_insert(collector->base_models, g_strdup(app_menu_object_path), GINT_TO_POINTER(TRUE));
     }
 
-  if (menubar_object_path)
+  if (menubar_object_path && !g_hash_table_lookup(collector->base_models, menubar_object_path))
     {
       GDBusMenuModel * menubar;
       menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, menubar_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH, collector->type);
       g_object_unref(menubar);
+
+      g_debug("Adding menu model: %s", menubar_object_path);
+      g_hash_table_insert(collector->base_models, g_strdup(menubar_object_path), GINT_TO_POINTER(TRUE));
     }
 
-  if (unity_object_path)
+  if (unity_object_path && !g_hash_table_lookup(collector->base_models, unity_object_path))
     {
       GDBusMenuModel * menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, unity_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), unity_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), unity_object_path, NULL, NULL, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH, collector->type);
       g_object_unref(menubar);
+
+      g_debug("Adding menu model: %s", unity_object_path);
+      g_hash_table_insert(collector->base_models, g_strdup(unity_object_path), GINT_TO_POINTER(TRUE));
     }
 
   if (application_object_path)
@@ -1249,10 +1297,10 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   g_free (application_object_path);
   g_free (window_object_path);
   g_free (unity_object_path);
+#endif
 
   return;
 }
-#endif
 
 /**
  * hud_menu_model_collector_add_endpoint:
@@ -1289,7 +1337,7 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
   g_object_unref(group);
 
   GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, menu_path);
-  hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix, DEFAULT_MENU_DEPTH);
+  hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix, HUD_MENU_MODEL_DEFAULT_DEPTH);
   g_object_unref(app_menu);
 
   return;
@@ -1313,6 +1361,26 @@ hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuMode
 	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix, recurse, collector->type);
 }
 
+/* When the action groups change let's pass that up as a change to
+   this source. */
+static void
+action_group_changed (GActionGroup * group, const gchar * action, gpointer user_data)
+{
+	hud_source_changed(HUD_SOURCE(user_data));
+}
+
+static void
+action_group_enabled (GActionGroup * group, const gchar * action, gboolean enabled, gpointer user_data)
+{
+	hud_source_changed(HUD_SOURCE(user_data));
+}
+
+static void
+action_group_state (GActionGroup * group, const gchar * action, GVariant * value, gpointer user_data)
+{
+	hud_source_changed(HUD_SOURCE(user_data));
+}
+
 /**
  * hud_menu_model_collector_add_actions:
  * @collector: A #HudMenuModelCollector object
@@ -1326,6 +1394,16 @@ hud_menu_model_collector_add_actions (HudMenuModelCollector * collector, GAction
 {
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_ACTION_GROUP(group));
+
+	action_group_signals_t sigs;
+
+	sigs.group = g_object_ref(group);
+	sigs.action_added = g_signal_connect(G_OBJECT(group), "action-added", G_CALLBACK(action_group_changed), collector);
+	sigs.action_enabled_changed = g_signal_connect(G_OBJECT(group), "action-enabled-changed", G_CALLBACK(action_group_enabled), collector);
+	sigs.action_removed = g_signal_connect(G_OBJECT(group), "action-removed", G_CALLBACK(action_group_changed), collector);
+	sigs.action_state_changed = g_signal_connect(G_OBJECT(group), "action-state-changed", G_CALLBACK(action_group_state), collector);
+
+	g_array_append_val(collector->agroups, sigs);
 
 	g_action_muxer_insert(collector->muxer, prefix, group);
 

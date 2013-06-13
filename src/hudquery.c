@@ -437,6 +437,8 @@ hud_query_refresh (HudQuery *query)
   g_sequence_free(query->results_list);
   query->results_list = NULL;
 
+  dee_shared_model_flush_revision_queue(DEE_SHARED_MODEL(query->results_model));
+
   /* Reset for new data */
   dee_model_clear(query->appstack_model);
 
@@ -465,6 +467,8 @@ hud_query_refresh (HudQuery *query)
 
   /* Thanks hash ol' friend */
   g_hash_table_unref(appstack_hash);
+
+  dee_shared_model_flush_revision_queue(DEE_SHARED_MODEL(query->appstack_model));
 
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
 
