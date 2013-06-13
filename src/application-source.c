@@ -165,13 +165,15 @@ hud_application_source_dispose (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
-	g_clear_pointer(&self->priv->contexts, g_ptr_array_unref);
-	g_clear_pointer(&self->priv->connections, g_hash_table_unref);
-
 	if (self->priv->skel != NULL) {
 		g_dbus_interface_skeleton_unexport(G_DBUS_INTERFACE_SKELETON(self->priv->skel));
 		g_clear_object(&self->priv->skel);
 	}
+
+	if (self->priv->contexts->len > 0) {
+		g_ptr_array_remove_range(self->priv->contexts, 0, self->priv->contexts->len);
+	}
+	g_hash_table_remove_all(self->priv->connections);
 
 #ifdef HAVE_BAMF
 	g_clear_object(&self->priv->bamf_app);
@@ -187,6 +189,9 @@ static void
 hud_application_source_finalize (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
+
+	g_clear_pointer(&self->priv->contexts, g_ptr_array_unref);
+	g_clear_pointer(&self->priv->connections, g_hash_table_unref);
 
 	g_clear_pointer(&self->priv->app_id, g_free);
 	g_clear_pointer(&self->priv->path, g_free);

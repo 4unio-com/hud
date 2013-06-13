@@ -234,6 +234,7 @@ static void
 hud_application_list_dispose (GObject *object)
 {
 	HudApplicationList * self = HUD_APPLICATION_LIST(object);
+	g_debug("Application List Dispose Start");
 
 	if (self->priv->used_source != NULL) {
 		hud_source_unuse(self->priv->used_source);
@@ -264,7 +265,9 @@ hud_application_list_dispose (GObject *object)
 #endif
 
 #ifdef HAVE_BAMF
+	g_debug("Unrefing BAMF matcher");
 	g_clear_object(&self->priv->matcher);
+	g_debug("Unref'd BAMF matcher");
 #endif
 
 #ifdef HAVE_PLATFORM_API
@@ -272,9 +275,11 @@ hud_application_list_dispose (GObject *object)
 	g_clear_object(&self->priv->last_focused_side_stage_source);
 #endif
 
-	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
+	g_hash_table_remove_all(self->priv->applications);
 
+	g_debug("Application List Dispose Recurse");
 	G_OBJECT_CLASS (hud_application_list_parent_class)->dispose (object);
+	g_debug("Application List Dispose Stop");
 	return;
 }
 
@@ -282,8 +287,14 @@ hud_application_list_dispose (GObject *object)
 static void
 hud_application_list_finalize (GObject *object)
 {
+	HudApplicationList * self = HUD_APPLICATION_LIST(object);
+	g_debug("Application List Finalize Start");
 
+	g_clear_pointer(&self->priv->applications, g_hash_table_unref);
+
+	g_debug("Application List Finalize Recurse");
 	G_OBJECT_CLASS (hud_application_list_parent_class)->finalize (object);
+	g_debug("Application List Finalize Stop");
 	return;
 }
 
