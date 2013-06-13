@@ -71,6 +71,9 @@ static void window_changed                  (BamfMatcher *             matcher,
 static void view_opened                     (BamfMatcher *             matcher,
                                              BamfView *                view,
                                              gpointer                  user_data);
+static void view_closed                     (BamfMatcher *             matcher,
+                                             BamfView *                view,
+                                             gpointer                  user_data);
 #endif
 #ifdef HAVE_PLATFORM_API
 static void session_requested               (ubuntu_ui_well_known_application app,
@@ -174,6 +177,9 @@ matching_setup_bamf (HudApplicationList * self)
 	self->priv->matcher_view_open_sig = g_signal_connect(self->priv->matcher,
 		"view-opened",
 		G_CALLBACK(view_opened), self);
+	self->priv->matcher_view_close_sig = g_signal_connect(self->priv->matcher,
+		"view-closed",
+		G_CALLBACK(view_closed), self);
 
 	GList * apps = bamf_matcher_get_applications(self->priv->matcher);
 	GList * app = NULL;
@@ -551,6 +557,33 @@ view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 	}
 
 	hud_application_source_add_window(source, BAMF_WINDOW(view));
+
+	return;
+}
+
+/* A view has been closed by BAMF */
+static void
+view_closed (BamfMatcher * matcher, BamfView * view, gpointer user_data)
+{
+	if (!BAMF_IS_WINDOW(view)) {
+		/* We only want windows.  Sorry. */
+		return;
+	}
+
+	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
+	BamfApplication * app = bamf_matcher_get_application_for_window(list->priv->matcher, BAMF_WINDOW(view));
+	if (app == NULL) {
+		return;
+	}
+
+	HudApplicationSource * source = bamf_app_to_source(list, app);
+	if (source == NULL) {
+		return;
+	}
+
+	/*
+	hud_application_source_window_closed(source, BAMF_WINDOW(view));
+	*/
 
 	return;
 }
