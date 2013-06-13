@@ -59,6 +59,8 @@ const gchar *            hud_application_source_get_id            (HudApplicatio
 const gchar *            hud_application_source_get_app_icon      (HudApplicationSource *   app);
 void                     hud_application_source_add_window        (HudApplicationSource *   app,
                                                                    AbstractWindow *         window);
+void                     hud_application_source_window_closed     (HudApplicationSource *   app,
+                                                                   AbstractWindow *         window);
 gboolean                 hud_application_source_has_xid           (HudApplicationSource *   app,
                                                                    guint32                  xid);
 

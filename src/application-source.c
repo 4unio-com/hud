@@ -921,6 +921,22 @@ free_window_info (gpointer data)
 }
 
 /**
+ * hud_application_source_window_closed:
+ * @app: A #HudApplicationSource object
+ * @window: The window to be removed from the application
+ *
+ * Signal that a window has been closed and the source should clean
+ * up data associated with it.
+ */
+void
+hud_application_source_window_closed (HudApplicationSource * app, AbstractWindow * window)
+{
+
+
+	return;
+}
+
+/**
  * hud_application_source_add_window:
  * @app: A #HudApplicationSource object
  * @window: The window to be added to the application

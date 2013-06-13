@@ -581,9 +581,7 @@ view_closed (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 		return;
 	}
 
-	/*
 	hud_application_source_window_closed(source, BAMF_WINDOW(view));
-	*/
 
 	return;
 }
