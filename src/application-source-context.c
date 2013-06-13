@@ -332,13 +332,18 @@ hud_application_source_context_add_action_group (HudApplicationSourceContext * c
  * Adds a model to the items indexed by this context.
  */
 void
-hud_application_source_context_add_model (HudApplicationSourceContext * context, GMenuModel * model)
+hud_application_source_context_add_model (HudApplicationSourceContext * context, GMenuModel * model, HudApplicationSourceContextModelType type)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
 	g_return_if_fail(G_IS_MENU_MODEL(model));
 	check_for_menu_model(context);
 
-	hud_menu_model_collector_add_model(context->priv->model_collector, model, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH);
+	gint depth = HUD_MENU_MODEL_DEFAULT_DEPTH;
+	if (type == HUD_APPLICATION_SOURCE_CONTEXT_MODEL_DBUS) {
+		depth = 1;
+	}
+
+	hud_menu_model_collector_add_model(context->priv->model_collector, model, NULL, depth);
 
 	return;
 }

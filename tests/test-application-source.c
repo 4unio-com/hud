@@ -120,7 +120,7 @@ test_application_source_add_context (void)
 	g_assert(HUD_IS_APPLICATION_SOURCE_CONTEXT(context_none));
 
 	hud_application_source_context_add_action_group(context_none, group, NULL);
-	hud_application_source_context_add_model(context_none, G_MENU_MODEL(menu_none));
+	hud_application_source_context_add_model(context_none, G_MENU_MODEL(menu_none), HUD_APPLICATION_SOURCE_CONTEXT_MODEL_WINDOW);
 
 	hud_application_source_add_context(source, context_none);
 
@@ -144,7 +144,7 @@ test_application_source_add_context (void)
 	HudApplicationSourceContext * context_plants = hud_application_source_context_new(1, "plants", "bob", "bob-icon", "/app/bob");
 
 	hud_application_source_context_add_action_group(context_plants, group, "plants");
-	hud_application_source_context_add_model(context_plants, G_MENU_MODEL(menu_plants));
+	hud_application_source_context_add_model(context_plants, G_MENU_MODEL(menu_plants), HUD_APPLICATION_SOURCE_CONTEXT_MODEL_WINDOW);
 
 	hud_application_source_add_context(source, context_plants);
 
