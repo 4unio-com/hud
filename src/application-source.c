@@ -931,7 +931,24 @@ free_window_info (gpointer data)
 void
 hud_application_source_window_closed (HudApplicationSource * app, AbstractWindow * window)
 {
+	guint32 xid = abstract_window_get_id(window);
 
+	int i;
+	for (i = 0; i < app->priv->contexts->len; i++) {
+		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
+
+		guint32 ctx_winid = hud_application_source_context_get_window_id(context);
+		if (ctx_winid != xid) {
+			continue;
+		}
+
+		g_ptr_array_remove_index(app->priv->contexts, i);
+		i--;
+	}
+
+	if (xid == app->priv->focused_window) {
+		hud_source_changed(HUD_SOURCE(app));
+	}
 
 	return;
 }
