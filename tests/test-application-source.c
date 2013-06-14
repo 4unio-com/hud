@@ -16,11 +16,11 @@
 
 #define G_LOG_DOMAIN "test-application-source"
 
-#include "hudtestutils.h"
+#include "test-utils.h"
 #include "libdbustest/dbus-test.h"
 
 #include "application-source.h"
-#include "hudsource.h"
+#include "source.h"
 
 /* Creates a simple source and sets its context */
 static void

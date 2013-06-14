@@ -21,9 +21,9 @@
 #endif
 
 #include "application-source-context.h"
-#include "hudsource.h"
-#include "huddbusmenucollector.h"
-#include "hudmenumodelcollector.h"
+#include "source.h"
+#include "dbusmenu-collector.h"
+#include "menumodel-collector.h"
 
 /* GObject Basis funcs */
 static void hud_application_source_context_class_init (HudApplicationSourceContextClass *klass);

@@ -78,25 +78,25 @@ application-source-context.h
 application-source.h
 dump-app-info.h
 shared-values.h
-hudsettings.h
-hudappmenuregistrar.h
-huddbusmenucollector.h
-hudmenumodelcollector.h
-hudappindicatorsource.h
-hudwebappsource.h
-hudindicatorsource.h
-huddebugsource.h
-hudsourcelist.h
-hudsource.h
-hudtoken.h
-hudquery.h
-hudstringlist.h
-hudvoice.h
-hudsphinx.h
-hudjulius.h
-huditem.h
-hudkeywordmapping.h
-hudresult.h
+settings.h
+appmenu-registrar.h
+dbusmenu-collector.h
+menumodel-collector.h
+appindicator-source.h
+webapp-source.h
+indicator-source.h
+debug-source.h
+source-list.h
+source.h
+token.h
+query.h
+string-list.h
+voice.h
+sphinx.h
+julius.h
+item.h
+keyword-mapping.h
+result.h
 load-app-info.h
 pronounce-dict.h
 query-columns.h
@@ -110,25 +110,25 @@ application-list.c
 application-source-context.c
 application-source.c
 dump-app-info.c
-hudsettings.c
-hudappmenuregistrar.c
-huddbusmenucollector.c
-hudmenumodelcollector.c
-hudappindicatorsource.c
-hudwebappsource.c
-hudindicatorsource.c
-huddebugsource.c
-hudsourcelist.c
-hudsource.c
-hudtoken.c
-hudquery.c
-hudstringlist.c
-hudvoice.c
-hudsphinx.c
-hudjulius.c
-huditem.c
-hudkeywordmapping.c
-hudresult.c
+settings.c
+appmenu-registrar.c
+dbusmenu-collector.c
+menumodel-collector.c
+appindicator-source.c
+webapp-source.c
+indicator-source.c
+debug-source.c
+source-list.c
+source.c
+token.c
+query.c
+string-list.c
+voice.c
+sphinx.c
+julius.c
+item.c
+keyword-mapping.c
+result.c
 load-app-info.c
 pronounce-dict.c
 usage-tracker.c
@@ -162,7 +162,7 @@ ${PHABLET_LIBRARIES}
 # Hud Service Executable
 ###########################
 
-add_executable(hud-service-exec hud-service.c)
+add_executable(hud-service-exec service.c)
 
 set_target_properties(hud-service-exec PROPERTIES OUTPUT_NAME "hud-service")
 

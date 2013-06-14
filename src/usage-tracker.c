@@ -34,7 +34,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sqlite3.h>
 #include "load-app-info.h"
 #include "create-db.h"
-#include "hudsettings.h"
+#include "settings.h"
 
 struct _UsageTrackerPrivate {
 	gchar * cachefile;

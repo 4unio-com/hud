@@ -22,8 +22,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib.h>
 #include <glib-object.h>
 
-#include "hudsettings.h"
-#include "hudtoken.h"
+#include "settings.h"
+#include "token.h"
 
 /* hardcode some parameters so the test doesn't fail if the user
  * has bogus things in GSettings.

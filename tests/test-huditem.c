@@ -17,8 +17,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib.h>
 #include <glib-object.h>
 
-#include "huditem.h"
-#include "hudstringlist.h"
+#include "item.h"
+#include "string-list.h"
 
 static void
 test_hud_item_get_command_null_tokens (void)

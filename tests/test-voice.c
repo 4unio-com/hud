@@ -19,9 +19,9 @@
 #include <pulse/pulseaudio.h>
 #include <pulse/glib-mainloop.h>
 
-#include "hudvoice.h"
-#include "hudsource.h"
-#include "hudmanualsource.h"
+#include "voice.h"
+#include "source.h"
+#include "manual-source.h"
 #include "hud-query-iface.h"
 
 typedef struct

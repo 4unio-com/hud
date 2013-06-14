@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glib.h>
 #include <glib-object.h>
 
-#include "hudsettings.h"
+#include "settings.h"
 #include "load-app-info.h"
 #include "usage-tracker.h"
 
