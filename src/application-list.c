@@ -221,10 +221,19 @@ matching_setup_bamf (HudApplicationList * self)
 		window_changed(self->priv->matcher, NULL, focused, self);
 	} else {
 		GList * stack = bamf_matcher_get_window_stack_for_monitor(self->priv->matcher, -1);
-		if (stack != NULL) {
-			window_changed(self->priv->matcher, NULL, stack->data, self);
-			g_list_free(stack);
+
+		GList * last = g_list_last(stack);
+		while (last != NULL) {
+			if (hud_application_list_name_in_ignore_list(last->data)) {
+				last = g_list_previous(last);
+				continue;
+			}
+
+			window_changed(self->priv->matcher, NULL, last->data, self);
+			break;
 		}
+
+		g_list_free(stack);
 	}
 }
 #endif
