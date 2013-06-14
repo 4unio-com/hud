@@ -102,6 +102,7 @@ static HudSource * source_get               (HudSource *               hud_sourc
 static GList * source_get_items             (HudSource *               list);
 static void application_source_changed      (HudSource *               source,
                                              gpointer                  user_data);
+static gboolean hud_application_list_name_in_ignore_list (AbstractWindow *window);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationList, hud_application_list, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -213,6 +214,26 @@ matching_setup_bamf (HudApplicationList * self)
 		}
 
 		view_opened(self->priv->matcher, BAMF_VIEW(window->data), self);
+	}
+
+	BamfWindow * focused = bamf_matcher_get_active_window(self->priv->matcher);
+	if (focused != NULL && !hud_application_list_name_in_ignore_list(focused)) {
+		window_changed(self->priv->matcher, NULL, focused, self);
+	} else {
+		GList * stack = bamf_matcher_get_window_stack_for_monitor(self->priv->matcher, -1);
+
+		GList * last = g_list_last(stack);
+		while (last != NULL) {
+			if (hud_application_list_name_in_ignore_list(last->data)) {
+				last = g_list_previous(last);
+				continue;
+			}
+
+			window_changed(self->priv->matcher, NULL, last->data, self);
+			break;
+		}
+
+		g_list_free(stack);
 	}
 }
 #endif
@@ -347,7 +368,11 @@ hud_application_list_name_in_ignore_list (AbstractWindow *window)
     "Dash",
     "panel",
     "hud",
-    "unity-2d-shell"
+    "unity-2d-shell",
+    "unity-dash",
+    "unity-panel",
+    "unity-launcher",
+    "XdndCollectionWindowImp",
   };
   gboolean ignored = FALSE;
   gchar *window_name = NULL;
@@ -378,11 +403,11 @@ hud_application_list_name_in_ignore_list (AbstractWindow *window)
 #ifdef HAVE_BAMF
 /* Called each time the focused application changes */
 static void
-window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_win, gpointer user_data)
+window_changed (BamfMatcher * matcher, G_GNUC_UNUSED BamfWindow * old_win, BamfWindow * new_win, gpointer user_data)
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
 
-	if (hud_application_list_name_in_ignore_list (new_win))
+	if (new_win == NULL || hud_application_list_name_in_ignore_list (new_win))
 	    return;
 
 	/* Clear the last source, as we've obviously changed */
