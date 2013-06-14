@@ -102,6 +102,7 @@ static HudSource * source_get               (HudSource *               hud_sourc
 static GList * source_get_items             (HudSource *               list);
 static void application_source_changed      (HudSource *               source,
                                              gpointer                  user_data);
+static gboolean hud_application_list_name_in_ignore_list (AbstractWindow *window);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationList, hud_application_list, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -216,8 +217,14 @@ matching_setup_bamf (HudApplicationList * self)
 	}
 
 	BamfWindow * focused = bamf_matcher_get_active_window(self->priv->matcher);
-	if (focused != NULL) {
+	if (focused != NULL && !hud_application_list_name_in_ignore_list(focused)) {
 		window_changed(self->priv->matcher, NULL, focused, self);
+	} else {
+		GList * stack = bamf_matcher_get_window_stack_for_monitor(self->priv->matcher, -1);
+		if (stack != NULL) {
+			window_changed(self->priv->matcher, NULL, stack->data, self);
+			g_list_free(stack);
+		}
 	}
 }
 #endif
