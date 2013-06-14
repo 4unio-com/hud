@@ -86,12 +86,14 @@ test_window_source_menu_model ()
     dbus_mock_methods_append (methods, "GetXid", "", "u", "ret = 1");
     dbus_mock_methods_append (methods, "Monitor", "", "i", "ret = 0");
     dbus_mock_methods_append (methods, "Maximized", "", "i", "ret = 1");
+    dbus_mock_methods_append (methods, "WindowType", "", "u", "ret = 0");
     dbus_mock_methods_append (methods, "Xprop", "s", "s", ""
         "dict = {'_GTK_UNIQUE_BUS_NAME': 'app.dbus.name',\n"
         "       '_GTK_APP_MENU_OBJECT_PATH': '/app/dbus/menu/path',\n"
         "       '_GTK_MENUBAR_OBJECT_PATH': '',\n"
         "       '_GTK_APPLICATION_OBJECT_PATH': '/app/dbus/menu/path',\n"
-        "       '_GTK_WINDOW_OBJECT_PATH': ''\n"
+        "       '_GTK_WINDOW_OBJECT_PATH': '',\n"
+        "       '_UNITY_OBJECT_PATH': ''\n"
         "       }\n"
         "ret = dict[args[0]]");
     dbus_mock_add_object (connection, BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
@@ -207,16 +209,23 @@ test_window_source_menu_model ()
         "/com/canonical/hud/applications/name");
   }
 
+  g_debug("Unusing Source");
   hud_source_unuse(HUD_SOURCE(source));
 
+  g_debug("Freeing Token lists");
   hud_token_list_free(search);
   hud_token_list_free(search_two);
+
+  g_debug("Unreferencing the source");
   g_object_unref (source);
 
+  g_debug("Waiting for things to settle");
   hud_test_utils_process_mainloop (100);
 
-  g_object_unref (service);
+  g_debug("Taking down the connection");
   g_object_unref (connection);
+  g_debug("Taking down the dbus service");
+  g_object_unref (service);
   /* FIXME: We would like to do this here, but dbus makes us exit with a non-zero code
   hud_test_utils_wait_for_connection_close(connection);
   */

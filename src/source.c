@@ -200,6 +200,29 @@ hud_source_get (HudSource   *source,
 }
 
 /**
+ * hud_source_get_toolbar_entries:
+ * @source: Source in question
+ * @toolbar: (element-type string): Array of the toolbar entries enabled
+ *
+ * Figures out which toolbar entries are available for a
+ * given source so they can be enabled in the UI.
+ */
+void
+hud_source_get_toolbar_entries (HudSource * source, GArray * toolbar)
+{
+  g_return_if_fail (HUD_IS_SOURCE (source));
+
+  g_debug ("get toolbar entries on %s %p", G_OBJECT_TYPE_NAME (source), source);
+
+  HudSourceInterface * iface = HUD_SOURCE_GET_IFACE (source);
+  if (iface->get_toolbar_entries != NULL) {
+    return iface->get_toolbar_entries(source, toolbar);
+  }
+
+  return;
+}
+
+/**
  * hud_source_activate_toolbar:
  * @source; a #HudSource
  *

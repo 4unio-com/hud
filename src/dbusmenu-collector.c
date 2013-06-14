@@ -596,6 +596,18 @@ hud_dbusmenu_collector_setup_endpoint (HudDbusmenuCollector *collector,
       g_clear_object (&collector->client);
     }
 
+  if (bus_name && !g_dbus_is_name(bus_name))
+    {
+      g_warning("Bus name '%s' is not a valid bus name", bus_name);
+      bus_name = NULL;
+    }
+
+  if (object_path && !g_variant_is_object_path(object_path))
+    {
+      g_warning("Object Path '%s' is not a valid object path", object_path);
+      object_path = NULL;
+    }
+
   if (bus_name && object_path)
     {
       collector->client = dbusmenu_client_new (bus_name, object_path);
@@ -855,4 +867,19 @@ hud_dbusmenu_collector_get_app_icon (HudSource *collector)
 {
 	g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(collector), NULL);
 	return HUD_DBUSMENU_COLLECTOR(collector)->icon;
+}
+
+/**
+ * hud_dbusmenu_collector_get_xid:
+ * @collector: a #HudDbusmenuCollector
+ *
+ * Gets the XID for this collector if it has one.
+ *
+ * Return value: XID or 0
+ */
+guint32
+hud_dbusmenu_collector_get_xid (HudDbusmenuCollector * collector)
+{
+	g_return_val_if_fail(HUD_IS_DBUSMENU_COLLECTOR(collector), 0);
+	return collector->xid;
 }

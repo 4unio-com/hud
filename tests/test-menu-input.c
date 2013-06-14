@@ -376,6 +376,220 @@ test_menus_model_deep (void)
 	hud_test_utils_process_mainloop(100);
 }
 
+/* Helper to verify the toolbar state */
+static void
+verify_toolbar (HudSource * source, guint count, gboolean expect_undo, gboolean expect_fullscreen, gboolean expect_preferences, gboolean expect_help)
+{
+	GArray * toolbar = g_array_new(TRUE, FALSE, sizeof(const gchar *));
+	hud_source_get_toolbar_entries(source, toolbar);
+
+	g_assert_cmpint(toolbar->len, ==, count);
+
+	gboolean found_undo = FALSE;
+	gboolean found_fullscreen = FALSE;
+	gboolean found_preferences = FALSE;
+	gboolean found_help = FALSE;
+
+	int i;
+	for (i = 0; i < toolbar->len; i++) {
+		const gchar * item = g_array_index(toolbar, const gchar *, i);
+		if (g_strcmp0(item, "undo") == 0) {
+			found_undo = TRUE;
+		}
+		if (g_strcmp0(item, "fullscreen") == 0) {
+			found_fullscreen = TRUE;
+		}
+		if (g_strcmp0(item, "preferences") == 0) {
+			found_preferences = TRUE;
+		}
+		if (g_strcmp0(item, "help") == 0) {
+			found_help = TRUE;
+		}
+	}
+
+	
+	g_assert(found_undo == expect_undo);
+	g_assert(found_fullscreen == expect_fullscreen);
+	g_assert(found_preferences == expect_preferences);
+	g_assert(found_help == expect_help);
+
+	g_array_unref(toolbar);
+
+	return;
+}
+
+/* Find an item in the toolbar, undo */
+static void
+test_menus_model_toolbar_undo (void) 
+{
+	DbusTestService * service = NULL;
+	GDBusConnection * session = NULL;
+
+	hud_test_utils_start_model_mock_app(&service, &session, MODEL_TOOLBAR_UNDO);
+
+	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
+	                                                                 "no-icon",
+	                                                                 0, /* penalty */
+	                                                                 "/test/collector",
+	                                                                 HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+
+	g_assert(collector != NULL);
+	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	hud_test_utils_process_mainloop(100);
+	
+	hud_menu_model_collector_add_endpoint(collector,
+	                                      "Prefix",
+	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH,
+	                                      HUD_TEST_UTILS_LOADER_PATH);
+
+	hud_test_utils_process_mainloop(100);
+
+	hud_source_use(HUD_SOURCE(collector));
+
+	verify_toolbar(HUD_SOURCE(collector), 1, TRUE, FALSE, FALSE, FALSE);
+
+	hud_source_unuse(HUD_SOURCE(collector));
+
+	g_object_unref(collector);
+	g_object_unref(service);
+
+	hud_test_utils_wait_for_connection_close(session);
+}
+
+/* Find no items in the toolbar */
+static void
+test_menus_model_toolbar_unknown (void) 
+{
+	DbusTestService * service = NULL;
+	GDBusConnection * session = NULL;
+
+	hud_test_utils_start_model_mock_app(&service, &session, MODEL_TOOLBAR_UNKNOWN);
+
+	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
+	                                                                 "no-icon",
+	                                                                 0, /* penalty */
+	                                                                 "/test/collector",
+	                                                                 HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+
+	g_assert(collector != NULL);
+	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	hud_test_utils_process_mainloop(100);
+	
+	hud_menu_model_collector_add_endpoint(collector,
+	                                      "Prefix",
+	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH,
+	                                      HUD_TEST_UTILS_LOADER_PATH);
+
+	hud_test_utils_process_mainloop(100);
+
+	hud_source_use(HUD_SOURCE(collector));
+
+	verify_toolbar(HUD_SOURCE(collector), 0, FALSE, FALSE, FALSE, FALSE);
+
+	hud_source_unuse(HUD_SOURCE(collector));
+
+	g_object_unref(collector);
+	g_object_unref(service);
+
+	hud_test_utils_wait_for_connection_close(session);
+}
+
+/* Find all the items in the toolbar */
+static void
+test_menus_model_toolbar_all (void) 
+{
+	DbusTestService * service = NULL;
+	GDBusConnection * session = NULL;
+
+	hud_test_utils_start_model_mock_app(&service, &session, MODEL_TOOLBAR_ALL);
+
+	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
+	                                                                 "no-icon",
+	                                                                 0, /* penalty */
+	                                                                 "/test/collector",
+	                                                                 HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+
+	g_assert(collector != NULL);
+	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	hud_test_utils_process_mainloop(100);
+	
+	hud_menu_model_collector_add_endpoint(collector,
+	                                      "Prefix",
+	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH,
+	                                      HUD_TEST_UTILS_LOADER_PATH);
+
+	hud_test_utils_process_mainloop(100);
+
+	hud_source_use(HUD_SOURCE(collector));
+
+	verify_toolbar(HUD_SOURCE(collector), 4, TRUE, TRUE, TRUE, TRUE);
+
+	hud_source_unuse(HUD_SOURCE(collector));
+
+	g_object_unref(collector);
+	g_object_unref(service);
+
+	hud_test_utils_wait_for_connection_close(session);
+}
+
+/* Find and change the items in the toolbar */
+static void
+test_menus_model_toolbar_dynamic (void) 
+{
+	DbusTestService * service = NULL;
+	GDBusConnection * session = NULL;
+
+	hud_test_utils_start_model_mock_app(&service, &session, MODEL_TOOLBAR_DYNAMIC);
+
+	HudMenuModelCollector * collector = hud_menu_model_collector_new("test-id",
+	                                                                 "no-icon",
+	                                                                 0, /* penalty */
+	                                                                 "/test/collector",
+	                                                                 HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+
+	g_assert(collector != NULL);
+	g_assert(HUD_IS_MENU_MODEL_COLLECTOR(collector));
+
+	hud_test_utils_process_mainloop(100);
+	
+	hud_menu_model_collector_add_endpoint(collector,
+	                                      "Prefix",
+	                                      HUD_TEST_UTILS_LOADER_NAME,
+	                                      HUD_TEST_UTILS_LOADER_PATH,
+	                                      HUD_TEST_UTILS_LOADER_PATH);
+
+	hud_test_utils_process_mainloop(100);
+
+	hud_source_use(HUD_SOURCE(collector));
+
+	/* Test the base case */
+	verify_toolbar(HUD_SOURCE(collector), 2, TRUE, FALSE, TRUE, FALSE);
+
+	/* Activate Undo, wait and verify that we have a new item */
+	hud_source_activate_toolbar(HUD_SOURCE(collector), HUD_CLIENT_QUERY_TOOLBAR_UNDO, g_variant_new_array(G_VARIANT_TYPE("{sv}"), NULL, 0));
+	hud_test_utils_process_mainloop(100);
+	verify_toolbar(HUD_SOURCE(collector), 3, TRUE, TRUE, TRUE, FALSE);
+
+	/* Activate prefs, wait and verify that we have a new item */
+	hud_source_activate_toolbar(HUD_SOURCE(collector), HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES, g_variant_new_array(G_VARIANT_TYPE("{sv}"), NULL, 0));
+	hud_test_utils_process_mainloop(100);
+	verify_toolbar(HUD_SOURCE(collector), 4, TRUE, TRUE, TRUE, TRUE);
+
+	/* Clean up */
+	hud_source_unuse(HUD_SOURCE(collector));
+
+	g_object_unref(collector);
+	g_object_unref(service);
+
+	hud_test_utils_wait_for_connection_close(session);
+}
+
 
 /* Build the test suite */
 static void
@@ -386,6 +600,10 @@ test_menu_input_suite (void)
 	g_test_add_func ("/hud/menus/model/base",             test_menus_model_base);
 	g_test_add_func ("/hud/menus/model/shortcuts",        test_menus_model_shortcuts);
 	g_test_add_func ("/hud/menus/model/deep",             test_menus_model_deep);
+	g_test_add_func ("/hud/menus/model/toolbar/undo",     test_menus_model_toolbar_undo);
+	g_test_add_func ("/hud/menus/model/toolbar/unknown",  test_menus_model_toolbar_unknown);
+	g_test_add_func ("/hud/menus/model/toolbar/all",      test_menus_model_toolbar_all);
+	g_test_add_func ("/hud/menus/model/toolbar/dynamic",  test_menus_model_toolbar_dynamic);
 
 	return;
 }

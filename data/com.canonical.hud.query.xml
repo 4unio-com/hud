@@ -7,6 +7,7 @@
 		<!-- Note, this is read only, to update use the update function so
 		     that you get the model revision to ensure you've got the data -->
 		<property name="CurrentQuery" type="s" access="read" />
+		<property name="ToolbarItems" type="as" access="read" />
 
 <!-- Functions -->
 		<method name="UpdateQuery">

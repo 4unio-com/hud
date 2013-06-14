@@ -31,6 +31,8 @@
 #define HUD_IS_MENU_MODEL_COLLECTOR(inst)                   (G_TYPE_CHECK_INSTANCE_TYPE ((inst),                     \
                                                              HUD_TYPE_MENU_MODEL_COLLECTOR))
 
+#define HUD_MENU_MODEL_DEFAULT_DEPTH   10
+
 typedef struct _HudMenuModelCollector                       HudMenuModelCollector;
 
 GType                   hud_menu_model_collector_get_type               (void);

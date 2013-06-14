@@ -91,9 +91,9 @@ const gchar *
 @enum_name@_get_value_from_nick (const gchar * nick)
 {
 	GEnumClass * class = G_ENUM_CLASS(g_type_class_ref(@enum_name@_get_type()));
-	g_return_val_if_fail(class != NULL, 0);
+	g_return_val_if_fail(class != NULL, -1);
 
-	@EnumName@ ret = 0;
+	@EnumName@ ret = -1;
 	GEnumValue * val = g_enum_get_value_by_nick(class, nick);
 	if (val != NULL) {
 		ret = val->value;

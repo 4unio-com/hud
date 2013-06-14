@@ -29,7 +29,6 @@
 #include <gio/gio.h>
 #include <string.h>
 
-#define DEFAULT_MENU_DEPTH  10
 #define RECURSE_DATA        "hud-menu-model-recurse-level"
 #define EXPORT_PATH         "hud-menu-model-export-path"
 #define EXPORT_MENU         "hud-menu-model-export-menu"
@@ -78,6 +77,7 @@ struct _HudMenuModelCollector
 
   /* GActionGroup's indexed by their prefix */
   GActionMuxer * muxer;
+  GArray * agroups;
 
   /* Boring details about the app/indicator we are showing. */
   gchar *app_id;
@@ -111,6 +111,9 @@ struct _HudMenuModelCollector
   guint muxer_export;
 
   HudSourceItemType type;
+
+  /* Track what we have to not add it twice */
+  GHashTable * base_models;
 };
 
 /* Structure for when we're tracking a model, all the info
@@ -127,11 +130,23 @@ struct _model_data_t {
 	guint recurse;
 };
 
+/* Signals on the action group to know when it changes */
+typedef struct _action_group_signals_t action_group_signals_t;
+struct _action_group_signals_t {
+	GActionGroup * group;
+	gulong action_added;
+	gulong action_enabled_changed;
+	gulong action_removed;
+	gulong action_state_changed;
+};
+
 /* Structure to pass two values in a single pointer, amazing! */
 typedef struct _exported_menu_id_t exported_menu_id_t;
 struct _exported_menu_id_t {
 	guint id;
 	GDBusConnection * bus;
+	GMenu * export;
+	gchar * path;
 };
 
 struct _HudModelItem {
@@ -155,6 +170,8 @@ static void hud_menu_model_collector_hud_awareness_cb (GObject      *source,
                                                        GAsyncResult *result,
                                                        gpointer      user_data);
 static GList * hud_menu_model_collector_get_items (HudSource * source);
+static void hud_menu_model_collector_get_toolbar_entries (HudSource * source,
+                                                          GArray * toolbar);
 static void hud_menu_model_collector_activate_toolbar (HudSource *   source,
                                                        HudClientQueryToolbarItems titem,
                                                        GVariant  *   platform_data);
@@ -710,8 +727,13 @@ unexport_menu (gpointer user_data)
 {
 	exported_menu_id_t * idt = (exported_menu_id_t *)user_data;
 
+	g_debug("Unexport: %s", idt->path);
+
 	g_dbus_connection_unexport_menu_model(idt->bus, idt->id);
 	g_object_unref(idt->bus);
+
+	g_clear_object(&idt->export);
+	g_free(idt->path);
 
 	g_free(user_data);
 	return;
@@ -734,24 +756,20 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   /* We don't want to parse this one, just export it so that
      the UI could use it if needed */
   if (recurse == 0 && collector->base_export_path != NULL) {
-    /* Create the exported model */
-    GMenu * export = g_menu_new();
-    GMenuItem * item = g_menu_item_new_submenu("Root Export", model);
-    g_menu_append_item(export, item);
-    g_object_unref(item);
-
 	/* Build a struct for all the info we need */
 	exported_menu_id_t * idt = g_new0(exported_menu_id_t, 1);
 	idt->bus = g_object_ref(collector->session);
 
+    /* Create the exported model */
+    idt->export = g_menu_new();
+    GMenuItem * item = g_menu_item_new_submenu("Root Export", model);
+    g_menu_append_item(idt->export, item);
+    g_object_unref(item);
+
 	/* Export */
     gchar * menu_path = g_strdup_printf("%s/menu%X", collector->base_export_path, GPOINTER_TO_UINT(model));
     g_debug("Exporting menu model: %s", menu_path);
-    idt->id = g_dbus_connection_export_menu_model(collector->session, menu_path, G_MENU_MODEL(export), NULL);
-
-	/* Make sure we're ready to clean up */
-    g_object_set_data_full(G_OBJECT(model), EXPORT_PATH, menu_path, g_free);
-    g_object_set_data_full(G_OBJECT(model), EXPORT_MENU, export, g_object_unref);
+    idt->id = g_dbus_connection_export_menu_model(idt->bus, menu_path, G_MENU_MODEL(idt->export), NULL);
 
     /* All the callers of this function assume that we take the responsibility
      * to manage the lifecycle of the model. Or in other words, HudMenuModelCollector
@@ -822,7 +840,8 @@ static void
 hud_menu_model_collector_disconnect (gpointer data,
                                      gpointer user_data)
 {
-  g_signal_handlers_disconnect_by_func (data, hud_menu_model_collector_model_changed, user_data);
+  model_data_t * info = (model_data_t *)data;
+  g_signal_handlers_disconnect_by_func (info->model, hud_menu_model_collector_model_changed, user_data);
 }
 
 /* Sends an awareness to a model that needs it */
@@ -958,6 +977,35 @@ hud_menu_model_collector_get (HudSource   *source,
   return NULL;
 }
 
+/* Go through the items, find those with toolbar fields that are enabled
+   and add them to the list */
+static void
+hud_menu_model_collector_get_toolbar_entries (HudSource * source, GArray * toolbar)
+{
+  HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
+
+  gint i;
+  for (i = 0; i < collector->items->len; i++) {
+    HudModelItem * item = g_ptr_array_index(collector->items, i);
+    if (item->toolbar_item == -1) continue;
+    if (!g_action_group_get_action_enabled(G_ACTION_GROUP(item->group), item->action_name)) continue;
+
+    const gchar * nick = hud_client_query_toolbar_items_get_nick(item->toolbar_item);
+    int i;
+    for (i = 0; i < toolbar->len; i++) {
+      if (g_array_index(toolbar, const gchar *, i) == nick) {
+        break;
+      }
+    }
+
+    if (i == toolbar->len) {
+      g_array_append_val(toolbar, nick);
+    }
+  }
+
+  return;
+}
+
 static void
 hud_menu_model_collector_activate_toolbar (HudSource * source,
                               HudClientQueryToolbarItems titem,
@@ -1009,6 +1057,7 @@ hud_menu_model_collector_finalize (GObject *object)
     collector->muxer_export = 0;
   }
 
+  g_array_free(collector->agroups, TRUE);
   g_slist_free_full (collector->models, model_data_free);
   g_clear_object (&collector->muxer);
 
@@ -1021,9 +1070,31 @@ hud_menu_model_collector_finalize (GObject *object)
   g_ptr_array_unref (collector->items);
 
   g_clear_pointer(&collector->base_export_path, g_free);
+  g_clear_pointer(&collector->base_models, g_hash_table_destroy);
 
   G_OBJECT_CLASS (hud_menu_model_collector_parent_class)
     ->finalize (object);
+}
+
+/* Disconnect all the signals and unreference the group */
+static void
+agroup_clear (gpointer data)
+{
+	action_group_signals_t * sigs = (action_group_signals_t *)data;
+
+	g_signal_handler_disconnect(sigs->group, sigs->action_added);
+	g_signal_handler_disconnect(sigs->group, sigs->action_enabled_changed);
+	g_signal_handler_disconnect(sigs->group, sigs->action_removed);
+	g_signal_handler_disconnect(sigs->group, sigs->action_state_changed);
+	g_object_unref(sigs->group);
+
+	sigs->group = NULL;
+	sigs->action_added = 0;
+	sigs->action_enabled_changed = 0;
+	sigs->action_removed = 0;
+	sigs->action_state_changed = 0;
+
+	return;
 }
 
 static void
@@ -1032,7 +1103,10 @@ hud_menu_model_collector_init (HudMenuModelCollector *collector)
   collector->items = g_ptr_array_new_with_free_func (g_object_unref);
   collector->cancellable = g_cancellable_new ();
   collector->muxer = g_action_muxer_new();
+  collector->agroups = g_array_new(FALSE, FALSE, sizeof(action_group_signals_t));
+  g_array_set_clear_func(collector->agroups, agroup_clear);
   collector->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+  collector->base_models = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 }
 
 static void
@@ -1044,6 +1118,7 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->list_applications = hud_menu_model_collector_list_applications;
   iface->get = hud_menu_model_collector_get;
   iface->get_items = hud_menu_model_collector_get_items;
+  iface->get_toolbar_entries = hud_menu_model_collector_get_toolbar_entries;
   iface->activate_toolbar = hud_menu_model_collector_activate_toolbar;
   iface->get_app_id = hud_menu_model_collector_get_app_id;
   iface->get_app_icon = hud_menu_model_collector_get_app_icon;
@@ -1144,7 +1219,6 @@ hud_menu_model_collector_new (const gchar *application_id,
 	return collector;
 }
 
-#ifdef HAVE_BAMF
 /**
  * hud_menu_model_collector_add_window:
  * @window: a #BamfWindow
@@ -1156,18 +1230,17 @@ hud_menu_model_collector_new (const gchar *application_id,
  **/
 void
 hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
-                                     BamfWindow  *window)
+                                     AbstractWindow  *window)
 {
   g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 
+#ifdef HAVE_BAMF
   gchar *unique_bus_name;
   gchar *application_object_path;
   gchar *window_object_path;
   gchar *app_menu_object_path;
   gchar *menubar_object_path;
-
-  GDBusMenuModel * app_menu;
-  GDBusMenuModel * menubar;
+  gchar *unity_object_path = NULL;
 
   unique_bus_name = bamf_window_get_utf8_prop (window, "_GTK_UNIQUE_BUS_NAME");
 
@@ -1195,37 +1268,74 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
   menubar_object_path = bamf_window_get_utf8_prop (window, "_GTK_MENUBAR_OBJECT_PATH");
   application_object_path = bamf_window_get_utf8_prop (window, "_GTK_APPLICATION_OBJECT_PATH");
   window_object_path = bamf_window_get_utf8_prop (window, "_GTK_WINDOW_OBJECT_PATH");
+  unity_object_path = bamf_window_get_utf8_prop (window, "_UNITY_OBJECT_PATH");
 
-  if (app_menu_object_path)
+  if (app_menu_object_path && !g_hash_table_lookup(collector->base_models, app_menu_object_path))
     {
+      GDBusMenuModel * app_menu;
       app_menu = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, app_menu_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (app_menu), app_menu_object_path, NULL, NULL, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH, collector->type);
       g_object_unref(app_menu);
+
+      g_debug("Adding menu model: %s", app_menu_object_path);
+      g_hash_table_insert(collector->base_models, g_strdup(app_menu_object_path), GINT_TO_POINTER(TRUE));
     }
 
-  if (menubar_object_path)
+  if (menubar_object_path && !g_hash_table_lookup(collector->base_models, menubar_object_path))
     {
+      GDBusMenuModel * menubar;
       menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, menubar_object_path);
-      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, DEFAULT_MENU_DEPTH, collector->type);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), menubar_object_path, NULL, NULL, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH, collector->type);
       g_object_unref(menubar);
+
+      g_debug("Adding menu model: %s", menubar_object_path);
+      g_hash_table_insert(collector->base_models, g_strdup(menubar_object_path), GINT_TO_POINTER(TRUE));
+    }
+
+  if (unity_object_path && !g_hash_table_lookup(collector->base_models, unity_object_path))
+    {
+      GDBusMenuModel * menubar = g_dbus_menu_model_get (collector->session, collector->unique_bus_name, unity_object_path);
+      hud_menu_model_collector_add_model_internal (collector, G_MENU_MODEL (menubar), unity_object_path, NULL, NULL, NULL, HUD_MENU_MODEL_DEFAULT_DEPTH, collector->type);
+      g_object_unref(menubar);
+
+      g_debug("Adding menu model: %s", unity_object_path);
+      g_hash_table_insert(collector->base_models, g_strdup(unity_object_path), GINT_TO_POINTER(TRUE));
     }
 
   if (application_object_path)
-    hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, collector->unique_bus_name, application_object_path)), "app");
+    {
+      GDBusActionGroup * ag = g_dbus_action_group_get (collector->session, collector->unique_bus_name, application_object_path);
+      hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), "app");
+      g_object_unref(ag);
+    }
 
   if (window_object_path)
-    hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(g_dbus_action_group_get (collector->session, collector->unique_bus_name, window_object_path)), "win");
+    {
+      GDBusActionGroup * ag = g_dbus_action_group_get (collector->session, collector->unique_bus_name, window_object_path);
+      hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), "win");
+      g_object_unref(ag);
+    }
+
+  if (unity_object_path)
+    {
+      GDBusActionGroup * ag = g_dbus_action_group_get (collector->session, collector->unique_bus_name, unity_object_path);
+      hud_menu_model_collector_add_actions(collector, G_ACTION_GROUP(ag), "unity");
+      g_object_unref(ag);
+    }
 
   /* when the action groups change, we could end up having items
    * enabled/disabled.  how to deal with that?
    */
 
+  g_free (app_menu_object_path);
+  g_free (menubar_object_path);
   g_free (application_object_path);
   g_free (window_object_path);
+  g_free (unity_object_path);
+#endif
 
   return;
 }
-#endif
 
 /**
  * hud_menu_model_collector_add_endpoint:
@@ -1262,7 +1372,7 @@ hud_menu_model_collector_add_endpoint (HudMenuModelCollector * collector,
   g_object_unref(group);
 
   GDBusMenuModel * app_menu = g_dbus_menu_model_get (collector->session, bus_name, menu_path);
-  hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix, DEFAULT_MENU_DEPTH);
+  hud_menu_model_collector_add_model(collector, G_MENU_MODEL (app_menu), prefix, HUD_MENU_MODEL_DEFAULT_DEPTH);
   g_object_unref(app_menu);
 
   return;
@@ -1286,6 +1396,26 @@ hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuMode
 	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix, recurse, collector->type);
 }
 
+/* When the action groups change let's pass that up as a change to
+   this source. */
+static void
+action_group_changed (GActionGroup * group, const gchar * action, gpointer user_data)
+{
+	hud_source_changed(HUD_SOURCE(user_data));
+}
+
+static void
+action_group_enabled (GActionGroup * group, const gchar * action, gboolean enabled, gpointer user_data)
+{
+	hud_source_changed(HUD_SOURCE(user_data));
+}
+
+static void
+action_group_state (GActionGroup * group, const gchar * action, GVariant * value, gpointer user_data)
+{
+	hud_source_changed(HUD_SOURCE(user_data));
+}
+
 /**
  * hud_menu_model_collector_add_actions:
  * @collector: A #HudMenuModelCollector object
@@ -1299,6 +1429,16 @@ hud_menu_model_collector_add_actions (HudMenuModelCollector * collector, GAction
 {
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_ACTION_GROUP(group));
+
+	action_group_signals_t sigs;
+
+	sigs.group = g_object_ref(group);
+	sigs.action_added = g_signal_connect(G_OBJECT(group), "action-added", G_CALLBACK(action_group_changed), collector);
+	sigs.action_enabled_changed = g_signal_connect(G_OBJECT(group), "action-enabled-changed", G_CALLBACK(action_group_enabled), collector);
+	sigs.action_removed = g_signal_connect(G_OBJECT(group), "action-removed", G_CALLBACK(action_group_changed), collector);
+	sigs.action_state_changed = g_signal_connect(G_OBJECT(group), "action-state-changed", G_CALLBACK(action_group_state), collector);
+
+	g_array_append_val(collector->agroups, sigs);
 
 	g_action_muxer_insert(collector->muxer, prefix, group);
 

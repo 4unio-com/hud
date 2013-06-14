@@ -53,6 +53,55 @@ target_link_libraries(test-menu-input-model-shortcuts
   ${GIO2_LIBRARIES}
 )
 
+####################################
+# Menu input model toolbar undo item
+####################################
+
+add_definitions(-DMODEL_TOOLBAR_UNDO="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-toolbar-undo")
+
+add_executable(test-menu-input-model-toolbar-undo test-menu-input-model-toolbar-undo.c)
+target_link_libraries(test-menu-input-model-toolbar-undo
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
+#######################################
+# Menu input model toolbar unknown item
+#######################################
+
+add_definitions(-DMODEL_TOOLBAR_UNKNOWN="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-toolbar-unknown")
+
+add_executable(test-menu-input-model-toolbar-unknown test-menu-input-model-toolbar-unknown.c)
+target_link_libraries(test-menu-input-model-toolbar-unknown
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
+####################################
+# Menu input model toolbar all items
+####################################
+
+add_definitions(-DMODEL_TOOLBAR_ALL="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-toolbar-all")
+
+add_executable(test-menu-input-model-toolbar-all test-menu-input-model-toolbar-all.c)
+target_link_libraries(test-menu-input-model-toolbar-all
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
+########################################
+# Menu input model toolbar dynamic items
+########################################
+
+add_definitions(-DMODEL_TOOLBAR_DYNAMIC="${CMAKE_CURRENT_BINARY_DIR}/test-menu-input-model-toolbar-dynamic")
+
+add_executable(test-menu-input-model-toolbar-dynamic test-menu-input-model-toolbar-dynamic.c)
+target_link_libraries(test-menu-input-model-toolbar-dynamic
+  ${GOBJECT2_LIBRARIES}
+  ${GIO2_LIBRARIES}
+)
+
+
 #######################
 # TEST MACRO
 #######################
@@ -70,6 +119,7 @@ macro(hudtest tname tfilename rfilename)
     "${CMAKE_CURRENT_BINARY_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}/${tname}"
     "${CMAKE_CURRENT_BINARY_DIR}/${rfilename}"
+    "${ENABLE_VOICE_TESTS}"
   )
 endmacro()
 
@@ -158,14 +208,15 @@ add_dependencies(test-keyword-mapping keyword-files)
 hudtest(test-string-list test-string-list.c test-string-list.xml)
 hudtest(test-pronounce-dict test-pronounce-dict.c test-pronounce-dict.xml)
 # FIXME: Disabled temporarily on platform-api systems due to some platform-api problems
-if(!${ENABLE_PLATFORM_API})
+if(NOT(${ENABLE_PLATFORM_API}))
   hudtest(test-source test-source.c test-source.xml)
 endif()
 hudtest(test-app-indicator-source test-app-indicator-source.c test-app-indicator-source.xml)
 hudtest(test-indicator-source test-indicator-source.c test-indicator-source.xml)
-if(!${ENABLE_PLATFORM_API})
+if(NOT(${ENABLE_PLATFORM_API}))
   hudtest(test-application-list test-application-list.c test-application-list.xml)
 endif()
+hudtest(test-application-source test-application-source.c test-application-source.xml)
 #test-usage-db-simple.xml
 #test-usage-db-old.xml
 #test-usage-db-testapp.xml
@@ -178,7 +229,6 @@ endif()
 #test-bad-app-info-missing-menus
 #test-bad-app-info-multiple-menus
 #test-good-app-info-tons-of-entries
-#test-dbus-message-count
 
 ####################################
 # Voice tests (needs working pulse)

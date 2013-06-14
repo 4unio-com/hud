@@ -102,7 +102,7 @@ dbus_mock_add_object (GDBusConnection *connection, const gchar* bus_name,
   g_variant_builder_unref (builder);
   if (error)
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The AddObject request failed:", error->message);
     g_error_free (error);
   }
 
@@ -126,9 +126,42 @@ dbus_mock_add_method (GDBusConnection *connection,
       G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
   if (error)
   {
+    g_warning("%s %s\n", "The AddMethod request failed:", error->message);
+    g_error_free (error);
+  }
+}
+
+void
+dbus_mock_update_property (GDBusConnection *connection,
+    const gchar *bus_name, const gchar *path, const gchar *interface,
+    const gchar *name, GVariant * value)
+{
+  GError *error;
+
+  g_variant_ref_sink(value);
+
+  /* interface, name, in_sig, out_sig, code */
+  error = NULL;
+  g_dbus_connection_call_sync (connection, bus_name, path,
+      "org.freedesktop.DBus.Properties", "Set",
+      g_variant_new("(ssv)", interface, name, value), NULL,
+      G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+  if (error)
+  {
     g_warning("%s %s\n", "The request failed:", error->message);
     g_error_free (error);
   }
+
+  DBusMockSignalArgs * args = dbus_mock_new_signal_args();
+  dbus_mock_signal_args_append(args, g_variant_new_string(interface));
+  GVariant * entry = g_variant_new_dict_entry(g_variant_new_string(name), g_variant_new_variant(value));
+  dbus_mock_signal_args_append(args, g_variant_new_array(G_VARIANT_TYPE("{sv}"), &entry, 1));
+  dbus_mock_signal_args_append(args, g_variant_new_array(G_VARIANT_TYPE_STRING, NULL, 0));
+
+  dbus_mock_emit_signal(connection, bus_name, path, "org.freedesktop.DBus.Properties",
+    "PropertiesChanged", "sa{sv}as", args);
+
+  g_variant_unref(value);
 }
 
 void
@@ -146,7 +179,7 @@ dbus_mock_get_method_calls (GDBusConnection *connection,
       G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
   if (error)
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The GetMethodCalls request failed:", error->message);
     g_error_free (error);
   }
 }
@@ -164,7 +197,7 @@ dbus_mock_clear_method_calls (GDBusConnection *connection,
       G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
   if (error)
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The ClearCalls request failed:", error->message);
     g_error_free (error);
   }
 }
@@ -229,7 +262,7 @@ dbus_mock_emit_signal (GDBusConnection *connection,
   g_ptr_array_free(args, TRUE);
   if (error)
   {
-    g_warning("%s %s\n", "The request failed:", error->message);
+    g_warning("%s %s\n", "The EmitSignal request failed:", error->message);
     g_error_free (error);
   }
 }
@@ -516,6 +549,8 @@ hud_test_utils_start_hud_service (DbusTestService **service,
         g_variant_new_string ("com.canonical.hud.query0.results"));
     dbus_mock_property_append (properties, "AppstackModel",
         g_variant_new_string ("com.canonical.hud.query0.appstack"));
+    dbus_mock_property_append (properties, "ToolbarItems",
+        g_variant_new_array (G_VARIANT_TYPE_STRING, NULL, 0));
     DBusMockMethods* methods = dbus_mock_new_methods ();
     dbus_mock_methods_append (methods, "UpdateQuery", "s", "i", "ret = 1");
     dbus_mock_methods_append (methods, "VoiceQuery", "", "is", "ret = (1, 'voice query')");
