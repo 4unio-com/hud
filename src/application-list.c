@@ -214,6 +214,11 @@ matching_setup_bamf (HudApplicationList * self)
 
 		view_opened(self->priv->matcher, BAMF_VIEW(window->data), self);
 	}
+
+	BamfWindow * focused = bamf_matcher_get_active_window(self->priv->matcher);
+	if (focused != NULL) {
+		window_changed(self->priv->matcher, NULL, focused, self);
+	}
 }
 #endif
 
