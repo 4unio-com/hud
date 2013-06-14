@@ -390,11 +390,11 @@ hud_application_list_name_in_ignore_list (AbstractWindow *window)
 #ifdef HAVE_BAMF
 /* Called each time the focused application changes */
 static void
-window_changed (BamfMatcher * matcher, BamfWindow * old_win, BamfWindow * new_win, gpointer user_data)
+window_changed (BamfMatcher * matcher, G_GNUC_UNUSED BamfWindow * old_win, BamfWindow * new_win, gpointer user_data)
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
 
-	if (hud_application_list_name_in_ignore_list (new_win))
+	if (new_win == NULL || hud_application_list_name_in_ignore_list (new_win))
 	    return;
 
 	/* Clear the last source, as we've obviously changed */
