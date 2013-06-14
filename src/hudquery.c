@@ -470,6 +470,24 @@ hud_query_refresh (HudQuery *query)
 
   dee_shared_model_flush_revision_queue(DEE_SHARED_MODEL(query->appstack_model));
 
+  /* Get the list of toolbar items */
+  if (search_source != NULL) {
+    /* Note: 5 is here because we know that's the highest number today, it's
+       probably going to be for the forseeable future.  But things could change
+       and it's kinda arbitrary.  Feel free to change it, but update this
+       comment when you do. */
+    GArray * toolbars = g_array_sized_new(TRUE, FALSE, sizeof(const gchar *), 5);
+
+    hud_source_get_toolbar_entries(search_source, toolbars);
+
+    hud_query_iface_com_canonical_hud_query_set_toolbar_items(query->skel, (const gchar* const*)toolbars->data);
+    g_array_unref(toolbars);	
+  } else {
+    /* No source no toolbar */
+    const gchar * nulllist[1] = {NULL};
+    hud_query_iface_com_canonical_hud_query_set_toolbar_items(query->skel, nulllist);
+  }
+
   g_debug ("query took %dus\n", (int) (g_get_monotonic_time () - start_time));
 
   g_object_set(G_OBJECT(query->skel), "current-query", query->search_string, NULL);
@@ -803,8 +821,8 @@ handle_execute_toolbar (HudQueryIfaceComCanonicalHudQuery *object, GDBusMethodIn
 
 	HudClientQueryToolbarItems item = hud_client_query_toolbar_items_get_value_from_nick(arg_item);
 
-	if (item != HUD_CLIENT_QUERY_TOOLBAR_QUIT) {
-		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, "TODO");
+	if (item == -1) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED, "Unable to resolve nick '%s'", arg_item);
 		return TRUE;
 	}
 

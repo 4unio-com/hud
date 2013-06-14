@@ -60,6 +60,10 @@ void dbus_mock_add_method (GDBusConnection *connection, const gchar *bus_name,
     const gchar *path, const gchar *interface, const gchar *name,
     const gchar *in_sig, const gchar *out_sig, const gchar *code);
 
+void dbus_mock_update_property (GDBusConnection *connection,
+    const gchar *bus_name, const gchar *path, const gchar *interface,
+    const gchar *name, GVariant * value);
+
 void dbus_mock_emit_signal (GDBusConnection *connection,
     const gchar *bus_name, const gchar *path, const gchar *interface,
     const gchar *signal_name, const gchar *signature, DBusMockSignalArgs *args);

@@ -145,6 +145,8 @@ typedef struct _exported_menu_id_t exported_menu_id_t;
 struct _exported_menu_id_t {
 	guint id;
 	GDBusConnection * bus;
+	GMenu * export;
+	gchar * path;
 };
 
 struct _HudModelItem {
@@ -168,6 +170,8 @@ static void hud_menu_model_collector_hud_awareness_cb (GObject      *source,
                                                        GAsyncResult *result,
                                                        gpointer      user_data);
 static GList * hud_menu_model_collector_get_items (HudSource * source);
+static void hud_menu_model_collector_get_toolbar_entries (HudSource * source,
+                                                          GArray * toolbar);
 static void hud_menu_model_collector_activate_toolbar (HudSource *   source,
                                                        HudClientQueryToolbarItems titem,
                                                        GVariant  *   platform_data);
@@ -723,8 +727,13 @@ unexport_menu (gpointer user_data)
 {
 	exported_menu_id_t * idt = (exported_menu_id_t *)user_data;
 
+	g_debug("Unexport: %s", idt->path);
+
 	g_dbus_connection_unexport_menu_model(idt->bus, idt->id);
 	g_object_unref(idt->bus);
+
+	g_clear_object(&idt->export);
+	g_free(idt->path);
 
 	g_free(user_data);
 	return;
@@ -747,24 +756,20 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   /* We don't want to parse this one, just export it so that
      the UI could use it if needed */
   if (recurse == 0 && collector->base_export_path != NULL) {
-    /* Create the exported model */
-    GMenu * export = g_menu_new();
-    GMenuItem * item = g_menu_item_new_submenu("Root Export", model);
-    g_menu_append_item(export, item);
-    g_object_unref(item);
-
 	/* Build a struct for all the info we need */
 	exported_menu_id_t * idt = g_new0(exported_menu_id_t, 1);
 	idt->bus = g_object_ref(collector->session);
 
+    /* Create the exported model */
+    idt->export = g_menu_new();
+    GMenuItem * item = g_menu_item_new_submenu("Root Export", model);
+    g_menu_append_item(idt->export, item);
+    g_object_unref(item);
+
 	/* Export */
     gchar * menu_path = g_strdup_printf("%s/menu%X", collector->base_export_path, GPOINTER_TO_UINT(model));
     g_debug("Exporting menu model: %s", menu_path);
-    idt->id = g_dbus_connection_export_menu_model(collector->session, menu_path, G_MENU_MODEL(export), NULL);
-
-	/* Make sure we're ready to clean up */
-    g_object_set_data_full(G_OBJECT(model), EXPORT_PATH, menu_path, g_free);
-    g_object_set_data_full(G_OBJECT(model), EXPORT_MENU, export, g_object_unref);
+    idt->id = g_dbus_connection_export_menu_model(idt->bus, menu_path, G_MENU_MODEL(idt->export), NULL);
 
     /* All the callers of this function assume that we take the responsibility
      * to manage the lifecycle of the model. Or in other words, HudMenuModelCollector
@@ -972,6 +977,35 @@ hud_menu_model_collector_get (HudSource   *source,
   return NULL;
 }
 
+/* Go through the items, find those with toolbar fields that are enabled
+   and add them to the list */
+static void
+hud_menu_model_collector_get_toolbar_entries (HudSource * source, GArray * toolbar)
+{
+  HudMenuModelCollector *collector = HUD_MENU_MODEL_COLLECTOR (source);
+
+  gint i;
+  for (i = 0; i < collector->items->len; i++) {
+    HudModelItem * item = g_ptr_array_index(collector->items, i);
+    if (item->toolbar_item == -1) continue;
+    if (!g_action_group_get_action_enabled(G_ACTION_GROUP(item->group), item->action_name)) continue;
+
+    const gchar * nick = hud_client_query_toolbar_items_get_nick(item->toolbar_item);
+    int i;
+    for (i = 0; i < toolbar->len; i++) {
+      if (g_array_index(toolbar, const gchar *, i) == nick) {
+        break;
+      }
+    }
+
+    if (i == toolbar->len) {
+      g_array_append_val(toolbar, nick);
+    }
+  }
+
+  return;
+}
+
 static void
 hud_menu_model_collector_activate_toolbar (HudSource * source,
                               HudClientQueryToolbarItems titem,
@@ -1084,6 +1118,7 @@ hud_menu_model_collector_iface_init (HudSourceInterface *iface)
   iface->list_applications = hud_menu_model_collector_list_applications;
   iface->get = hud_menu_model_collector_get;
   iface->get_items = hud_menu_model_collector_get_items;
+  iface->get_toolbar_entries = hud_menu_model_collector_get_toolbar_entries;
   iface->activate_toolbar = hud_menu_model_collector_activate_toolbar;
   iface->get_app_id = hud_menu_model_collector_get_app_id;
   iface->get_app_icon = hud_menu_model_collector_get_app_icon;

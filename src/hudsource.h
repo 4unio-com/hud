@@ -54,6 +54,8 @@ struct _HudSourceInterface
                        const gchar *application_id);
 
   GList * (* get_items) (HudSource    *source);
+  void (* get_toolbar_entries) (HudSource    *source,
+                                GArray       *toolbar);
   void (* activate_toolbar) (HudSource *                source,
                              HudClientQueryToolbarItems item,
                              GVariant                  *platform_data);
@@ -90,6 +92,9 @@ HudSource *             hud_source_get                                  (HudSour
 GList *                 hud_source_get_items                            (HudSource    *source);
 
 void                    hud_source_changed                              (HudSource    *source);
+
+void                    hud_source_get_toolbar_entries                  (HudSource    *source,
+                                                                         GArray       *toolbar);
 
 void                    hud_source_activate_toolbar                     (HudSource *   source,
                                                                          HudClientQueryToolbarItems item,

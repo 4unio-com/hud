@@ -37,6 +37,7 @@ struct _HudClientQueryPrivate {
 	gchar * query;
 	DeeModel * results;
 	DeeModel * appstack;
+	GArray * toolbar;
 };
 
 #define HUD_CLIENT_QUERY_GET_PRIVATE(o) \
@@ -193,6 +194,10 @@ hud_client_query_init (HudClientQuery *self)
 {
 	self->priv = HUD_CLIENT_QUERY_GET_PRIVATE(self);
 
+	self->priv->toolbar = g_array_new(FALSE, /* zero terminated */
+	                                  FALSE, /* clear */
+	                                  sizeof(HudClientQueryToolbarItems));
+
 	return;
 }
 
@@ -296,6 +301,29 @@ connection_status (HudClientConnection * connection, gboolean connected, HudClie
 	return;
 }
 
+/* Go through the toolbar and put the right items in the array */
+static void
+parse_toolbar (_HudQueryComCanonicalHudQuery * proxy, G_GNUC_UNUSED GParamSpec * paramspec, HudClientQuery * query)
+{
+	if (query->priv->toolbar->len > 0) {
+		g_array_remove_range(query->priv->toolbar, 0, query->priv->toolbar->len);
+	}
+
+	const gchar * const * items = NULL;
+	items = _hud_query_com_canonical_hud_query_get_toolbar_items(proxy);
+
+	int i;
+	for (i = 0; items[i] != NULL; i++) {
+		HudClientQueryToolbarItems item = hud_client_query_toolbar_items_get_value_from_nick(items[i]);
+		if (item == -1) continue;
+		g_array_append_val(query->priv->toolbar, item);
+	}
+
+	g_signal_emit(G_OBJECT(query), signal_toolbar_updated, 0, NULL);
+
+	return;
+}
+
 static void
 new_query_cb (HudClientConnection * connection, const gchar * path, const gchar * results, const gchar * appstack, gpointer user_data)
 {
@@ -309,7 +337,7 @@ new_query_cb (HudClientConnection * connection, const gchar * path, const gchar 
 
 	cquery->priv->proxy = _hud_query_com_canonical_hud_query_proxy_new_for_bus_sync(
 		G_BUS_TYPE_SESSION,
-		G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+		G_DBUS_PROXY_FLAGS_NONE,
 		hud_client_connection_get_address(cquery->priv->connection),
 		path,
 		NULL, /* GCancellable */
@@ -336,6 +364,12 @@ new_query_cb (HudClientConnection * connection, const gchar * path, const gchar 
 		G_CALLBACK (hud_client_query_voice_query_listening), G_OBJECT(cquery), 0);
 	g_signal_connect_object (cquery->priv->proxy, "voice-query-heard-something",
 	    G_CALLBACK (hud_client_query_voice_query_heard_something), G_OBJECT(cquery), 0);
+
+	/* Watch for toolbar callbacks */
+	g_signal_connect (cquery->priv->proxy, "notify::toolbar-items", G_CALLBACK(parse_toolbar), cquery);
+
+	/* Figure out toolbar */
+	parse_toolbar(cquery->priv->proxy, NULL, cquery);
 
 	g_signal_emit(G_OBJECT(cquery), hud_client_query_signal_models_changed, 0);
 
@@ -374,6 +408,7 @@ hud_client_query_finalize (GObject *object)
 	HudClientQuery * self = HUD_CLIENT_QUERY(object);
 
 	g_clear_pointer(&self->priv->query, g_free);
+	g_clear_pointer(&self->priv->toolbar, g_array_unref);
 
 	G_OBJECT_CLASS (hud_client_query_parent_class)->finalize (object);
 	return;
@@ -589,8 +624,16 @@ hud_client_query_toolbar_item_active (HudClientQuery * cquery, HudClientQueryToo
 {
 	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), FALSE);
 
+	int i = 0;
+	for (i = 0; i < cquery->priv->toolbar->len; i++) {
+		HudClientQueryToolbarItems local = g_array_index(cquery->priv->toolbar, HudClientQueryToolbarItems, i);
 
-	return TRUE;
+		if (local == item) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }
 
 /**
@@ -608,8 +651,7 @@ hud_client_query_get_active_toolbar (HudClientQuery * cquery)
 {
 	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
 
-
-	return NULL;
+	return g_array_ref(cquery->priv->toolbar);
 }
 
 /**
