@@ -368,7 +368,11 @@ hud_application_list_name_in_ignore_list (AbstractWindow *window)
     "Dash",
     "panel",
     "hud",
-    "unity-2d-shell"
+    "unity-2d-shell",
+    "unity-dash",
+    "unity-panel",
+    "unity-launcher",
+    "XdndCollectionWindowImp",
   };
   gboolean ignored = FALSE;
   gchar *window_name = NULL;
