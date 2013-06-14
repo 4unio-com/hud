@@ -587,7 +587,10 @@ hud_dbusmenu_collector_setup_endpoint (HudDbusmenuCollector *collector,
                                        const gchar          *bus_name,
                                        const gchar          *object_path)
 {
-  g_debug ("endpoint is %s %s", bus_name, object_path);
+  if (bus_name != NULL && object_path != NULL)
+    g_debug ("endpoint is %s %s", bus_name, object_path);
+  else
+    g_debug ("removing endpoint");
 
   if (collector->client)
     {
@@ -626,7 +629,13 @@ hud_dbusmenu_collector_registrar_observer_func (HudAppMenuRegistrar *registrar,
 {
   HudDbusmenuCollector *collector = user_data;
 
+  if (bus_name == NULL || bus_name[0] == '\0')
+    return;
+  if (object_path == NULL || object_path[0] == '\0')
+    return;
+
   hud_dbusmenu_collector_setup_endpoint (collector, bus_name, object_path);
+  return;
 }
 
 
