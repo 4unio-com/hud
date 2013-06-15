@@ -542,6 +542,8 @@ hud_menu_model_collector_refresh (gpointer user_data)
   HudMenuModelCollector *collector = user_data;
   GSList *free_list;
 
+  collector->refresh_id = 0;
+
   g_ptr_array_set_size (collector->items, 0);
   free_list = collector->models;
   collector->models = NULL;
