@@ -65,7 +65,7 @@ test_manager_create_with_application ()
 
   dbus_mock_assert_method_call_results (connection, DBUS_NAME, "/app/object",
       "AddSources",
-      "\\(\\[\\(\\d+, \\[<\\[\\(uint32 0, 'action-publisher-context-0', 'app', objectpath '\\/app\\/id'\\)\\]>, <\\[\\(uint32 0, 'action-publisher-context-0', objectpath '\\/com\\/canonical\\/hud\\/publisher0'\\)\\]>\\]\\)\\],\\)");
+      "\\(\\[\\(\\d+, \\[<\\[\\(uint32 0, 'action-publisher-context-0', 'app', objectpath '\\/app\\/id'\\)\\]>, <\\[\\(uint32 0, 'action-publisher-context-0', objectpath '\\/com\\/canonical\\/hud\\/publisher'\\)\\]>\\]\\)\\],\\)");
 
   g_object_unref (application);
 
@@ -102,7 +102,7 @@ test_manager_add_actions ()
 
   dbus_mock_assert_method_call_results (connection, DBUS_NAME, "/app/object",
         "AddSources",
-        "\\(\\[\\(\\d+, \\[<\\[\\(uint32 0, 'test-add-context', 'app', objectpath '\\/app\\/object'\\)\\]>, <\\[\\(uint32 0, 'test-add-context', objectpath '\\/com\\/canonical\\/hud\\/publisher'\\)\\]>\\]\\)\\],\\)");
+        "\\(\\[\\(\\d+, \\[<\\[\\(uint32 0, 'test-add-context', 'app', objectpath '\\/app\\/object'\\)\\]>, <\\[\\(uint32 0, 'test-add-context', objectpath '\\/com\\/canonical\\/hud\\/publisher1'\\)\\]>\\]\\)\\],\\)");
 
   g_object_unref (publisher);
   g_object_unref (manager);
@@ -144,7 +144,7 @@ test_manager_remove_actions ()
 
   dbus_mock_assert_method_call_results (connection, DBUS_NAME, "/app/object",
         "AddSources",
-        "\\(\\[\\(\\d+, \\[<\\[\\(uint32 0, 'test-context', 'app', objectpath '\\/app\\/object'\\)\\]>, <\\[\\(uint32 0, 'test-context', objectpath '\\/com\\/canonical\\/hud\\/publisher'\\)\\]>\\]\\)\\],\\)");
+        "\\(\\[\\(\\d+, \\[<\\[\\(uint32 0, 'test-context', 'app', objectpath '\\/app\\/object'\\)\\]>, <\\[\\(uint32 0, 'test-context', objectpath '\\/com\\/canonical\\/hud\\/publisher2'\\)\\]>\\]\\)\\],\\)");
   dbus_mock_clear_method_calls(connection, DBUS_NAME, "/app/object");
 
   hud_manager_remove_actions(manager, publisher);
