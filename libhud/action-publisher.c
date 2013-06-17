@@ -210,19 +210,25 @@ hud_action_publisher_init (HudActionPublisher *publisher)
   do
     {
       guint64 id = next_id++;
+      GError *error = NULL;
 
-      if (id)
+      if (id == 0)
         publisher->path = g_strdup_printf ("/com/canonical/hud/publisher");
       else
         publisher->path = g_strdup_printf ("/com/canonical/hud/publisher%" G_GUINT64_FORMAT, id);
 
       publisher->export_id = g_dbus_connection_export_menu_model (publisher->bus, publisher->path,
-                                                                  G_MENU_MODEL (publisher->aux), NULL);
+                                                                  G_MENU_MODEL (publisher->aux), &error);
       g_debug("Exporting menu model at [%s] with id [%d]", publisher->path, publisher->export_id);
 
-      if (!publisher->export_id)
+      if (!publisher->export_id) {
         /* try again... */
+        g_debug("Exporting failed: %s", error->message);
+        g_error_free(error);
+        error = NULL;
         g_free (publisher->path);
+        publisher->path = NULL;
+      }
     }
   while (publisher->path == NULL);
 }
