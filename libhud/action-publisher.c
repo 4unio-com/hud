@@ -156,6 +156,15 @@ hud_aux_init_remote_action_group_iface (GRemoteActionGroupInterface *iface)
 }
 
 static void
+hud_action_publisher_action_group_set_destroy (gpointer data)
+{
+  HudActionPublisherActionGroupSet *group = data;
+  g_free(group->prefix);
+  g_free(group->path);
+  g_free(group);
+}
+
+static void
 _hud_aux_class_init (HudAuxClass *class)
 {
   class->is_mutable = hud_aux_is_mutable;
@@ -178,7 +187,7 @@ hud_action_publisher_dispose (GObject *object)
   g_clear_pointer(&self->path, g_free);
   g_clear_pointer(&self->descriptions, g_sequence_free);
 
-  g_list_free_full(self->action_groups, g_free);
+  g_list_free_full(self->action_groups, (GDestroyNotify)hud_action_publisher_action_group_set_destroy);
 
   g_clear_object(&self->bus);
 
