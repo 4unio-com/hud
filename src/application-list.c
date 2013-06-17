@@ -595,18 +595,22 @@ view_closed (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 		return;
 	}
 
+	guint32 xid = abstract_window_get_id(BAMF_WINDOW(view));
+	g_debug("Closing Window: %d", xid);
+
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
-	BamfApplication * app = bamf_matcher_get_application_for_window(list->priv->matcher, BAMF_WINDOW(view));
-	if (app == NULL) {
-		return;
-	}
 
-	HudApplicationSource * source = bamf_app_to_source(list, app);
-	if (source == NULL) {
-		return;
-	}
+	GList * sources = g_hash_table_get_values(list->priv->applications);
+	GList * lsource = NULL;
 
-	hud_application_source_window_closed(source, BAMF_WINDOW(view));
+	for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
+		HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
+		if (appsource == NULL) continue;
+
+		if (hud_application_source_has_xid(appsource, xid)) {
+			hud_application_source_window_closed(appsource, BAMF_WINDOW(view));
+		}
+	}
 
 	return;
 }
