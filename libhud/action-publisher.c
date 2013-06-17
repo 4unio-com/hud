@@ -156,6 +156,15 @@ hud_aux_init_remote_action_group_iface (GRemoteActionGroupInterface *iface)
 }
 
 static void
+hud_action_publisher_action_group_set_destroy (gpointer data)
+{
+  HudActionPublisherActionGroupSet *group = data;
+  g_free(group->prefix);
+  g_free(group->path);
+  g_free(group);
+}
+
+static void
 _hud_aux_class_init (HudAuxClass *class)
 {
   class->is_mutable = hud_aux_is_mutable;
@@ -178,7 +187,7 @@ hud_action_publisher_dispose (GObject *object)
   g_clear_pointer(&self->path, g_free);
   g_clear_pointer(&self->descriptions, g_sequence_free);
 
-  g_list_free_full(self->action_groups, g_free);
+  g_list_free_full(self->action_groups, (GDestroyNotify)hud_action_publisher_action_group_set_destroy);
 
   g_clear_object(&self->bus);
 
@@ -210,19 +219,25 @@ hud_action_publisher_init (HudActionPublisher *publisher)
   do
     {
       guint64 id = next_id++;
+      GError *error = NULL;
 
-      if (id)
+      if (id == 0)
         publisher->path = g_strdup_printf ("/com/canonical/hud/publisher");
       else
         publisher->path = g_strdup_printf ("/com/canonical/hud/publisher%" G_GUINT64_FORMAT, id);
 
       publisher->export_id = g_dbus_connection_export_menu_model (publisher->bus, publisher->path,
-                                                                  G_MENU_MODEL (publisher->aux), NULL);
+                                                                  G_MENU_MODEL (publisher->aux), &error);
       g_debug("Exporting menu model at [%s] with id [%d]", publisher->path, publisher->export_id);
 
-      if (!publisher->export_id)
+      if (!publisher->export_id) {
         /* try again... */
+        g_debug("Exporting failed: %s", error->message);
+        g_error_free(error);
+        error = NULL;
         g_free (publisher->path);
+        publisher->path = NULL;
+      }
     }
   while (publisher->path == NULL);
 }
