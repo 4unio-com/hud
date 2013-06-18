@@ -94,6 +94,27 @@ app_source_find_bush (HudResult * result, gpointer user_data)
 	return;
 }
 
+/* Find Marble */
+static void
+app_source_find_marble (HudResult * result, gpointer user_data)
+{
+	g_assert(result != NULL);
+	g_assert(HUD_IS_RESULT(result));
+
+	HudItem * item = hud_result_get_item(result);
+	g_assert(item != NULL);
+	g_assert(HUD_IS_ITEM(item));
+
+	if (g_strcmp0(hud_item_get_command(item), "Marble") == 0) {
+		gboolean * found = (gboolean *)user_data;
+		*found = TRUE;
+	}
+
+	g_object_unref(result);
+
+	return;
+}
+
 /* Creates a simple source and sets its context */
 static void
 test_application_source_add_context (void)
@@ -148,6 +169,24 @@ test_application_source_add_context (void)
 
 	hud_application_source_add_context(source, context_plants);
 
+	/* Build some rocks */
+	GMenu * menu_rocks = g_menu_new();
+	g_menu_append(menu_rocks, "Marble", "rocks.action-name");
+
+	HudApplicationSourceContext * context_rocks;
+	context_rocks = hud_application_source_context_new(0, /* set as ALL_WINDOWS context*/
+							   "rocks",
+							   "daisy",
+							   "daisy-icon",
+							   "/app/daisy");
+
+	hud_application_source_context_add_action_group(context_rocks, group, "rocks");
+	hud_application_source_context_add_model(context_rocks, G_MENU_MODEL(menu_rocks), HUD_APPLICATION_SOURCE_CONTEXT_MODEL_WINDOW);
+
+	hud_application_source_add_context(source, context_rocks);
+	// set rocks as the active context for ALL_WINDOWS
+	hud_application_source_set_context(source, 0, "rocks");
+
 	/* Make sure we can still find the elephant */
 	hud_source_use(HUD_SOURCE(source));
 
@@ -156,6 +195,17 @@ test_application_source_add_context (void)
 
 	g_assert(found_elephant);
 	hud_source_unuse(HUD_SOURCE(source));
+
+
+	/* Make sure we can find marble */
+	hud_source_use(HUD_SOURCE(source));
+
+	gboolean found_marble = FALSE;
+	hud_source_search(HUD_SOURCE(source), NULL, app_source_find_marble, &found_marble);
+
+	g_assert(found_marble);
+	hud_source_unuse(HUD_SOURCE(source));
+
 
 	/* Switch to plants and find Bush */
 	hud_application_source_set_context(source, 1, "plants");
@@ -166,6 +216,16 @@ test_application_source_add_context (void)
 
 	g_assert(found_bush);
 	hud_source_unuse(HUD_SOURCE(source));
+
+	/* Make sure we can still find marble */
+	hud_source_use(HUD_SOURCE(source));
+
+	found_marble = FALSE;
+	hud_source_search(HUD_SOURCE(source), NULL, app_source_find_marble, &found_marble);
+
+	g_assert(found_marble);
+	hud_source_unuse(HUD_SOURCE(source));
+
 
 	/* Go back and find Elephant */
 	hud_application_source_set_context(source, 1, NULL);
@@ -186,6 +246,15 @@ test_application_source_add_context (void)
 	g_assert(!found_bush);
 	hud_source_unuse(HUD_SOURCE(source));
 
+	/* Make sure we can find marble */
+	hud_source_use(HUD_SOURCE(source));
+
+	found_marble = FALSE;
+	hud_source_search(HUD_SOURCE(source), NULL, app_source_find_marble, &found_marble);
+
+	g_assert(found_marble);
+	hud_source_unuse(HUD_SOURCE(source));
+
 	/* Cleanup */
 	g_object_add_weak_pointer(G_OBJECT(simple_group), (gpointer *)&simple_group);
 	g_object_unref(simple_group);
@@ -199,6 +268,10 @@ test_application_source_add_context (void)
 	g_object_unref(menu_plants);
 	g_assert(menu_plants != NULL);
 
+	g_object_add_weak_pointer(G_OBJECT(menu_rocks), (gpointer *)&menu_rocks);
+	g_object_unref(menu_rocks);
+	g_assert(menu_plants != NULL);
+
 	g_object_unref(source);
 
 	hud_test_utils_process_mainloop(500);
@@ -206,6 +279,7 @@ test_application_source_add_context (void)
 	g_assert(simple_group == NULL);
 	g_assert(menu_none == NULL);
 	g_assert(menu_plants == NULL);
+	g_assert(menu_rocks == NULL);
 
 	g_object_unref(service);
 	hud_test_utils_wait_for_connection_close(con);

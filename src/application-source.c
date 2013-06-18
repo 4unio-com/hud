@@ -296,6 +296,17 @@ source_search (HudSource *     hud_source,
 		if (context_is_current(app, context)) {
 			hud_source_search(HUD_SOURCE(context), search_string, append_func, user_data);
 		}
+		// search also the ALL_WINDOWS context if one exists
+		if (hud_application_source_context_get_window_id(context)
+		    == WINDOW_ID_ALL_WINDOWS &&
+		    g_strcmp0(hud_application_source_context_get_context_id(context),
+			      hud_application_source_get_context(app, WINDOW_ID_ALL_WINDOWS))
+		    == 0) {
+			hud_source_search(HUD_SOURCE(context),
+					  search_string,
+					  append_func,
+					  user_data);
+		}
 	}
 
 	return;
@@ -609,7 +620,8 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
 
 #ifdef HAVE_PLATFORM_API
-		idn = WINDOW_ID_CONSTANT;
+		if (idn != WINDOW_ID_ALL_WINDOWS)
+			idn = WINDOW_ID_CONSTANT;
 #endif
 
 		/* Catch the NULL string case */
@@ -622,7 +634,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		   doesn't set one.  So this makes things seem less broken.  It
 		   should go away when the Qt API gets updated */
 		if (g_strcmp0(context, "/context_0") == 0) {
-			refinedcontext = NULL;
+			hud_application_source_set_context(app, WINDOW_ID_ALL_WINDOWS, context);
 		}
 
 		HudApplicationSourceContext * ctx = find_context(app, idn, refinedcontext);
@@ -645,7 +657,8 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		g_debug("Adding descriptions: %s", object);
 
 #ifdef HAVE_PLATFORM_API
-		idn = WINDOW_ID_CONSTANT;
+		if (idn != WINDOW_ID_ALL_WINDOWS)
+			idn = WINDOW_ID_CONSTANT;
 #endif
 
 		/* Catch the NULL string case */
@@ -658,7 +671,7 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		   doesn't set one.  So this makes things seem less broken.  It
 		   should go away when the Qt API gets updated */
 		if (g_strcmp0(context, "/context_0") == 0) {
-			refinedcontext = NULL;
+			hud_application_source_set_context(app, WINDOW_ID_ALL_WINDOWS, context);
 		}
 
 		HudApplicationSourceContext * ctx = find_context(app, idn, refinedcontext);
