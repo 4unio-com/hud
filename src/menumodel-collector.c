@@ -548,9 +548,9 @@ hud_menu_model_collector_refresh (gpointer user_data)
   free_list = collector->models;
   collector->models = NULL;
 
+  g_slist_foreach(free_list, hud_menu_model_collector_disconnect, collector);
   g_slist_foreach(free_list, readd_models, collector);
 
-  g_slist_foreach (free_list, hud_menu_model_collector_disconnect, collector);
   g_slist_free_full (free_list, model_data_free);
 
   return G_SOURCE_REMOVE;
