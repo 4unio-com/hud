@@ -532,7 +532,11 @@ readd_models (gpointer data, gpointer user_data)
 	HudMenuModelCollector *collector = user_data;
 	model_data_t * model_data = data;
 
-    hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label, model_data->recurse, collector->type);
+	g_debug("Refreshing model: %s", model_data->path);
+	if (model_data->path != NULL) {
+		hud_menu_model_collector_add_model_internal (collector, model_data->model, model_data->path, NULL, NULL, model_data->label, model_data->recurse, collector->type);
+	}
+
 	return;
 }
 
@@ -542,16 +546,20 @@ hud_menu_model_collector_refresh (gpointer user_data)
   HudMenuModelCollector *collector = user_data;
   GSList *free_list;
 
+  g_debug(" **** Refresh Idle Trigger **** ");
+
   collector->refresh_id = 0;
 
   g_ptr_array_set_size (collector->items, 0);
   free_list = collector->models;
   collector->models = NULL;
 
+  g_slist_foreach(free_list, hud_menu_model_collector_disconnect, collector);
   g_slist_foreach(free_list, readd_models, collector);
 
-  g_slist_foreach (free_list, hud_menu_model_collector_disconnect, collector);
   g_slist_free_full (free_list, model_data_free);
+
+  g_debug(" **** Refresh Idle Complete **** ");
 
   return G_SOURCE_REMOVE;
 }
@@ -813,7 +821,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   /* Add to our list of models */
   collector->models = g_slist_prepend (collector->models, model_data);
 
-  if (path != NULL) {
+  if (path != NULL && g_variant_is_object_path(path)) {
     g_dbus_connection_call (collector->session, collector->unique_bus_name, path,
                             "com.canonical.hud.Awareness", "CheckAwareness",
                             NULL, G_VARIANT_TYPE_UNIT, G_DBUS_CALL_FLAGS_NONE, -1, model_data->cancellable,
@@ -1395,7 +1403,7 @@ hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuMode
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_MENU_MODEL(model));
 
-	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix, recurse, collector->type);
+	return hud_menu_model_collector_add_model_internal(collector, model, "", NULL, NULL, prefix, recurse, collector->type);
 }
 
 /* When the action groups change let's pass that up as a change to
