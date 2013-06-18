@@ -821,7 +821,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
   /* Add to our list of models */
   collector->models = g_slist_prepend (collector->models, model_data);
 
-  if (path != NULL) {
+  if (path != NULL && g_variant_is_object_path(path)) {
     g_dbus_connection_call (collector->session, collector->unique_bus_name, path,
                             "com.canonical.hud.Awareness", "CheckAwareness",
                             NULL, G_VARIANT_TYPE_UNIT, G_DBUS_CALL_FLAGS_NONE, -1, model_data->cancellable,
@@ -1403,7 +1403,7 @@ hud_menu_model_collector_add_model (HudMenuModelCollector * collector, GMenuMode
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
 	g_return_if_fail(G_IS_MENU_MODEL(model));
 
-	return hud_menu_model_collector_add_model_internal(collector, model, NULL, NULL, NULL, prefix, recurse, collector->type);
+	return hud_menu_model_collector_add_model_internal(collector, model, "", NULL, NULL, prefix, recurse, collector->type);
 }
 
 /* When the action groups change let's pass that up as a change to
