@@ -1,3 +1,42 @@
+hud (13.10.1daily13.06.19-0ubuntu1) saucy; urgency=low
+
+  [ Ted Gould ]
+  * Support unity-gtk-module exported menus.
+  * Don't clear the last focused pointer when we get a NULL new window.
+  * Don't create an endpoint with bad names.
+  * Upstart job, dbus activation hack.
+  * When failing to start the proxy, don't cause criticals.
+  * Fixing critical messages from Dee and GSignal.
+  * Extending dbus-activation hack to non-upstart sessions.
+  * Adding a WindowType to the BAMF Window Mock.
+  * Increase timeouts and further push out voice init for the phone.
+  * Adds the ability to switch contexts in the application sources. This
+    required splitting out a bunch code into a new context object.
+    Unfortunately a big change.
+  * Complete toolbar support.
+  * Making file naming consistent.
+  * When creating a new matcher get the focused window.
+  * Don't trust BAMF to give us a correct application when windows are
+    being closed.
+  * Clear the refresh id when running the idle function.
+  * Refresh models who are base models not leaf models.
+
+  [ Antti Kaijanmäki ]
+  * Adds the ability to switch contexts in the application sources. This
+    required splitting out a bunch code into a new context object.
+    Unfortunately a big change.
+  * libhud/action-publisher.c: * fix use-after-free if exporting of a
+    publisher fails * fix the overall publisher export logic * fix
+    memory leak when freeing HudActionPublisherActionGroupSet.
+
+  [ Didier Roche ]
+  * remove julius, we have sphinx-voxforge now.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 289
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 19 Jun 2013 03:53:18 +0000
+
 hud (13.10.1daily13.06.05.1-0ubuntu1) saucy; urgency=low
 
   [ Pete Woods ]
