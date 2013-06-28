@@ -227,8 +227,17 @@ hud_webapp_application_source_new (HudSource *source,
   name = path = NULL;
 
 #ifdef HAVE_BAMF
+  /*
+   * This function is deprecated in upstream libbamf.
+   *
+   * Let's just ignore the warnings and hope that the whole BAMF
+   * get's deprecated by MIR before they actually remove this function
+   * altogether. ;)
+   */
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   bamf_application_get_application_menu (application,
 					 &name, &path);
+#pragma GCC diagnostic warning "-Wdeprecated-declarations"
 #endif
   
   if (name == NULL || *name == '\0')
