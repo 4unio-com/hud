@@ -31,7 +31,6 @@
 
 #define RECURSE_DATA        "hud-menu-model-recurse-level"
 #define EXPORT_PATH         "hud-menu-model-export-path"
-#define EXPORT_MENU         "hud-menu-model-export-menu"
 
 /**
  * SECTION:hudmenumodelcollector
@@ -779,6 +778,7 @@ hud_menu_model_collector_add_model_internal (HudMenuModelCollector *collector,
 	/* Export */
     gchar * menu_path = g_strdup_printf("%s/menu%X", collector->base_export_path, GPOINTER_TO_UINT(model));
     g_debug("Exporting menu model: %s", menu_path);
+    g_object_set_data_full(G_OBJECT(model), EXPORT_PATH, g_strdup(menu_path), g_free);
     idt->id = g_dbus_connection_export_menu_model(idt->bus, menu_path, G_MENU_MODEL(idt->export), NULL);
 
     /* All the callers of this function assume that we take the responsibility
