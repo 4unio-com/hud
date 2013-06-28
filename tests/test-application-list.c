@@ -133,6 +133,13 @@ test_window_source_menu_model ()
           "ret = ['/org/ayatana/bamf/application00000001']");
     dbus_mock_add_method (connection,
         BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
+        MATCHER_INTERFACE_NAME, "WindowStackForMonitor", "i", "as",
+          "if args[0] == -1:\n"
+          "    ret = ['/org/ayatana/bamf/window00000001']\n"
+          "else:\n"
+          "    ret = []");
+    dbus_mock_add_method (connection,
+        BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
         MATCHER_INTERFACE_NAME, "WindowPaths", "", "as",
           "ret = ['/org/ayatana/bamf/window00000001']");
     dbus_mock_add_method (connection,
