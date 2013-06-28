@@ -49,13 +49,27 @@ static const gchar* REGISTRAR_OBJECT_PATH = "/com/canonical/AppMenu/Registrar";
 static const gchar* REGISTRAR_INTERFACE_NAME = "com.canonical.AppMenu.Registrar";
 
 static void
-test_window_source_add_view_methods (GDBusConnection* connection,
-    const gchar *object_path)
+test_window_source_add_view_properties (DBusMockProperties* properties,
+                                        const gchar *object_path)
 {
+  dbus_mock_property_append (properties, "Name", g_variant_new_string("name"));
+  dbus_mock_property_append (properties, "Icon", g_variant_new_string("icon.png"));
+
+}
+
+static void
+test_window_source_add_view_methods (GDBusConnection* connection,
+                                     const gchar *object_path)
+{
+ dbus_mock_add_method (connection, BAMF_BUS_NAME, object_path,
+      VIEW_INTERFACE_NAME, "Children", "", "as", "ret = []");
+
+  /* As of 13.10 the methods below are deprecated and these all handled with
+   * properties above. Once we stop supporting (or at least testing) older
+   * releases these can be removed.
+   */
   dbus_mock_add_method (connection, BAMF_BUS_NAME, object_path,
       VIEW_INTERFACE_NAME, "Name", "", "s", "ret = 'name'");
-  dbus_mock_add_method (connection, BAMF_BUS_NAME, object_path,
-      VIEW_INTERFACE_NAME, "Children", "", "as", "ret = []");
   dbus_mock_add_method (connection, BAMF_BUS_NAME, object_path,
       VIEW_INTERFACE_NAME, "Icon", "", "s", "ret = 'icon.png'");
 }
@@ -96,10 +110,13 @@ test_window_source_menu_model ()
         "       '_UNITY_OBJECT_PATH': ''\n"
         "       }\n"
         "ret = dict[args[0]]");
+    test_window_source_add_view_properties (properties,
+					    "/org/ayatana/bamf/window00000001");
     dbus_mock_add_object (connection, BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
         "/org/ayatana/bamf/window00000001", WINDOW_INTERFACE_NAME, properties,
         methods);
-    test_window_source_add_view_methods (connection, "/org/ayatana/bamf/window00000001");
+    test_window_source_add_view_methods (connection,
+					 "/org/ayatana/bamf/window00000001");
   }
 
   /* Define the mock application */
@@ -108,10 +125,14 @@ test_window_source_menu_model ()
       DBusMockMethods* methods = dbus_mock_new_methods ();
       dbus_mock_methods_append (methods, "DesktopFile", "", "s",
           "ret = '/usr/share/applications/name.desktop'");
+      test_window_source_add_view_properties (properties,
+					      "/org/ayatana/bamf/application00000001");
+
       dbus_mock_add_object (connection, BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
           "/org/ayatana/bamf/application00000001", APPLICATION_INTERFACE_NAME,
           properties, methods);
-      test_window_source_add_view_methods (connection, "/org/ayatana/bamf/application00000001");
+      test_window_source_add_view_methods (connection,
+					   "/org/ayatana/bamf/application00000001");
     }
 
   /* Set up the BAMF matcher */
