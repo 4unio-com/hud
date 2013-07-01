@@ -186,8 +186,8 @@ hud_manager_dispose (GObject *object)
 	g_clear_object(&manager->priv->app_proxy);
 
 	g_list_free_full(manager->priv->publishers, g_object_unref);
-	g_clear_object(&manager->priv->todo_active_contexts);
-	g_clear_object(&manager->priv->active_contexts);
+	g_clear_pointer(&manager->priv->todo_active_contexts, g_hash_table_destroy);
+	g_clear_pointer(&manager->priv->active_contexts, g_hash_table_destroy);
 
 	g_clear_object(&manager->priv->app_pub);
 	g_clear_object(&manager->priv->application);
