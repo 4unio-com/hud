@@ -313,7 +313,7 @@ parse_toolbar (_HudQueryComCanonicalHudQuery * proxy, G_GNUC_UNUSED GParamSpec *
 	items = _hud_query_com_canonical_hud_query_get_toolbar_items(proxy);
 
 	int i;
-	for (i = 0; items[i] != NULL; i++) {
+	for (i = 0; items != NULL && items[i] != NULL; i++) {
 		HudClientQueryToolbarItems item = hud_client_query_toolbar_items_get_value_from_nick(items[i]);
 		if (item == -1) continue;
 		g_array_append_val(query->priv->toolbar, item);
