@@ -19,6 +19,8 @@
 #ifndef __HUD_ABSTRACT_APP_H__
 #define __HUD_ABSTRACT_APP_H__
 
+#define WINDOW_ID_ALL_WINDOWS (0)
+
 #ifdef HAVE_BAMF
 
 #include <libbamf/libbamf.h>
