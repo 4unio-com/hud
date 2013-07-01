@@ -132,6 +132,33 @@ dbus_mock_add_method (GDBusConnection *connection,
 }
 
 void
+dbus_mock_add_property (GDBusConnection *connection,
+    const gchar *bus_name, const gchar *path, const gchar *interface,
+    const gchar *name, GVariant *value)
+{
+  GError *error;
+  GVariantBuilder *builder;
+
+  /* interface, name, value */
+  builder = g_variant_builder_new (G_VARIANT_TYPE ("(ssv)"));
+  g_variant_builder_add (builder, "s", interface);
+  g_variant_builder_add (builder, "s", name);
+  g_variant_builder_add (builder, "v", value);
+
+  error = NULL;
+  g_dbus_connection_call_sync (connection, bus_name, path,
+      "org.freedesktop.DBus.Mock", "AddProperty",
+      g_variant_builder_end (builder), NULL,
+      G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+  if (error)
+  {
+    g_warning("%s %s\n", "The AddProperty request failed:", error->message);
+    g_error_free (error);
+  }
+}
+
+
+void
 dbus_mock_update_property (GDBusConnection *connection,
     const gchar *bus_name, const gchar *path, const gchar *interface,
     const gchar *name, GVariant * value)
