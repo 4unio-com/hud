@@ -117,7 +117,7 @@ hud_manager_init (HudManager *self)
 								 g_direct_equal,
 								 NULL,
 								 g_object_unref);
-	self->priv->active_contexts = g_hash_table_new(g_direct_hash,
+	self->priv->active_contexts = g_hash_table_new_full(g_direct_hash,
 						       g_direct_equal,
 						       NULL,
 						       g_object_unref);
