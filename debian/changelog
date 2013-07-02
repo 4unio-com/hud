@@ -1,3 +1,20 @@
+hud (13.10.1+13.10.20130702-0ubuntu1) saucy; urgency=low
+
+  [ Ted Gould ]
+  * Checking for the NULL return.
+
+  [ Antti Kaijanmäki ]
+  * * Ignore deprecation warning with
+    bamf_application_get_application_menu(). * add WindowStackForMonitor
+    to test-application-list.c dbusmock.
+  * Fix parameterized actions which were broken by r283.
+  * Search also ALL_WINDOWS context.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 294
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 02 Jul 2013 03:03:11 +0000
+
 hud (13.10.1daily13.06.19-0ubuntu1) saucy; urgency=low
 
   [ Ted Gould ]
