@@ -709,6 +709,10 @@ dbus_set_context (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		context = NULL;
 	}
 
+	g_debug("%s: setting context for window %u to %s",
+		hud_application_source_get_id(app),
+		window_id,
+		context);
 	hud_application_source_set_context(app, window_id, context);
 
 	g_dbus_method_invocation_return_value(invocation, NULL);

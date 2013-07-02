@@ -44,9 +44,11 @@ struct _HudManagerPrivate {
 
 	GVariantBuilder * todo_add_acts;
 	GVariantBuilder * todo_add_desc;
+	GHashTable      * todo_active_contexts;
 	guint todo_idle;
 
 	GList * publishers;
+	GHashTable * active_contexts;
 };
 
 #define HUD_MANAGER_GET_PRIVATE(o) \
@@ -110,6 +112,15 @@ hud_manager_init (HudManager *self)
 	          self->priv->connection_cancel,
 	          bus_get_cb,
 	          self);
+
+	self->priv->todo_active_contexts = g_hash_table_new_full(g_direct_hash,
+								 g_direct_equal,
+								 NULL,
+								 g_object_unref);
+	self->priv->active_contexts = g_hash_table_new_full(g_direct_hash,
+						       g_direct_equal,
+						       NULL,
+						       g_object_unref);
 
 	return;
 }
@@ -175,6 +186,8 @@ hud_manager_dispose (GObject *object)
 	g_clear_object(&manager->priv->app_proxy);
 
 	g_list_free_full(manager->priv->publishers, g_object_unref);
+	g_hash_table_remove_all(manager->priv->todo_active_contexts);
+	g_hash_table_remove_all(manager->priv->active_contexts);
 
 	g_clear_object(&manager->priv->app_pub);
 	g_clear_object(&manager->priv->application);
@@ -190,6 +203,9 @@ hud_manager_finalize (GObject *object)
 	HudManager * manager = HUD_MANAGER(object);
 
 	g_clear_pointer(&manager->priv->application_id, g_free);
+
+	g_clear_pointer(&manager->priv->todo_active_contexts, g_hash_table_destroy);
+	g_clear_pointer(&manager->priv->active_contexts, g_hash_table_destroy);
 
 	G_OBJECT_CLASS (hud_manager_parent_class)->finalize (object);
 	return;
@@ -267,11 +283,24 @@ add_sources_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	return;
 }
 
+static gboolean
+activate_todo_context (gpointer key,
+		       gpointer value,
+                       gpointer user_data)
+{
+	HudManager * manager = HUD_MANAGER(user_data);
+	HudActionPublisher *pub = HUD_ACTION_PUBLISHER(value);
+	hud_manager_switch_window_context(manager, pub);
+	return TRUE;
+}
+
 /* Take the todo queues and make them into DBus messages */
 static void
 process_todo_queues (HudManager * manager)
 {
-	if (manager->priv->todo_add_acts == NULL && manager->priv->todo_add_desc == NULL) {
+	if (manager->priv->todo_add_acts == NULL
+	    && manager->priv->todo_add_desc == NULL
+	    && g_hash_table_size(manager->priv->todo_active_contexts) == 0) {
 		/* Nothing to process */
 		return;
 	}
@@ -312,6 +341,10 @@ process_todo_queues (HudManager * manager)
 		NULL, /* cancelable */
 		add_sources_cb,
 		manager);
+
+	g_hash_table_foreach_remove(manager->priv->todo_active_contexts,
+				    activate_todo_context,
+				    manager);
 
 	return;
 }
@@ -371,6 +404,19 @@ register_app_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	return;
 }
 
+static gboolean
+insert_active_context_to_todo (gpointer key,
+			       gpointer value,
+			       gpointer user_data)
+{
+	HudManager * manager = HUD_MANAGER(user_data);
+	HudActionPublisher *pub = HUD_ACTION_PUBLISHER(value);
+	g_hash_table_insert(manager->priv->todo_active_contexts,
+			    GUINT_TO_POINTER(hud_action_publisher_get_window_id(pub)),
+			    g_object_ref(pub));
+	return TRUE;
+}
+
 /* Watch the name change to make sure we're robust to it */
 static void
 notify_name_owner (GObject * gobject, GParamSpec * pspec, gpointer user_data)
@@ -399,6 +445,10 @@ notify_name_owner (GObject * gobject, GParamSpec * pspec, gpointer user_data)
 		}
 
 		g_list_free_full(old_publishers, g_object_unref);
+
+		g_hash_table_foreach_remove(manager->priv->active_contexts,
+					    insert_active_context_to_todo,
+					    manager);
 		return;
 	}
 
@@ -608,6 +658,8 @@ hud_manager_remove_actions (HudManager * manager, HudActionPublisher * pub)
 	g_return_if_fail(HUD_IS_MANAGER(manager));
 
 	/* TODO: We need DBus API for this */
+	/* TODO: make sure to check if the removed publisher was in the active_contexts
+	         or todo_active_contexts */
 
 	return;
 }
@@ -643,14 +695,18 @@ hud_manager_switch_window_context (HudManager * manager, HudActionPublisher * pu
 	g_return_if_fail(HUD_IS_MANAGER(manager));
 	g_return_if_fail(HUD_IS_ACTION_PUBLISHER(pub));
 
-	/* TODO: Need to cache contexts for reconnection case */
-
 	if (manager->priv->app_proxy == NULL) {
 		g_debug("Unable to send context change now, caching for reconnection");
+		g_hash_table_insert(manager->priv->todo_active_contexts,
+				    GUINT_TO_POINTER(hud_action_publisher_get_window_id(pub)),
+				    g_object_ref(pub));
 		return;
 	}
 
 
+	g_hash_table_insert(manager->priv->active_contexts,
+			    GUINT_TO_POINTER(hud_action_publisher_get_window_id(pub)),
+			    g_object_ref(pub));
 	_hud_app_iface_com_canonical_hud_application_call_set_window_context(manager->priv->app_proxy,
 		hud_action_publisher_get_window_id(pub),
 		hud_action_publisher_get_context_id(pub),
