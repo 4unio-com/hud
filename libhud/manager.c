@@ -186,8 +186,8 @@ hud_manager_dispose (GObject *object)
 	g_clear_object(&manager->priv->app_proxy);
 
 	g_list_free_full(manager->priv->publishers, g_object_unref);
-	g_clear_pointer(&manager->priv->todo_active_contexts, g_hash_table_destroy);
-	g_clear_pointer(&manager->priv->active_contexts, g_hash_table_destroy);
+	g_hash_table_remove_all(manager->priv->todo_active_contexts);
+	g_hash_table_remove_all(manager->priv->active_contexts);
 
 	g_clear_object(&manager->priv->app_pub);
 	g_clear_object(&manager->priv->application);
@@ -203,6 +203,9 @@ hud_manager_finalize (GObject *object)
 	HudManager * manager = HUD_MANAGER(object);
 
 	g_clear_pointer(&manager->priv->application_id, g_free);
+
+	g_clear_pointer(&manager->priv->todo_active_contexts, g_hash_table_destroy);
+	g_clear_pointer(&manager->priv->active_contexts, g_hash_table_destroy);
 
 	G_OBJECT_CLASS (hud_manager_parent_class)->finalize (object);
 	return;
