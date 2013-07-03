@@ -1,3 +1,15 @@
+hud (13.10.1+13.10.20130703-0ubuntu1) saucy; urgency=low
+
+  [ Antti Kaijanmäki ]
+  * * libhud: - cache active contexts so that they can be restored on
+    (re)connect * hud-service: - add debug information on window context
+    switching.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 296
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 03 Jul 2013 03:01:12 +0000
+
 hud (13.10.1+13.10.20130702-0ubuntu1) saucy; urgency=low
 
   [ Ted Gould ]
