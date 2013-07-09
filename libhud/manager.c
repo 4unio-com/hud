@@ -472,7 +472,7 @@ service_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	_HudServiceIfaceComCanonicalHud * proxy = _hud_service_iface_com_canonical_hud_proxy_new_finish(res, &error);
 
 	if (error != NULL) {
-		g_error("Unable to get session bus: %s", error->message);
+		g_critical("Unable to get session bus: %s", error->message);
 		g_error_free(error);
 		return;
 	}
@@ -494,7 +494,7 @@ bus_get_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 	GDBusConnection * con = g_bus_get_finish(res, &error);
 
 	if (error != NULL) {
-		g_error("Unable to get session bus: %s", error->message);
+		g_critical("Unable to get session bus: %s", error->message);
 		g_error_free(error);
 		return;
 	}
