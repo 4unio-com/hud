@@ -1,3 +1,14 @@
+hud (13.10.1+13.10.20130710-0ubuntu1) saucy; urgency=low
+
+  [ Antti Kaijanmäki ]
+  * libhud: * Don't try to unexport menu model if it's exporting failed.
+    * g_critical() instead of g_error().
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 298
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 10 Jul 2013 06:24:02 +0000
+
 hud (13.10.1+13.10.20130703-0ubuntu1) saucy; urgency=low
 
   [ Antti Kaijanmäki ]
