@@ -1,3 +1,14 @@
+hud (13.10.1+13.10.20130715-0ubuntu1) saucy; urgency=low
+
+  [ Jeremy Bicha ]
+  * * Drop explicit build-depends on gir1.2-dee-1.0 * Build against
+    default valac.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 300
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 15 Jul 2013 03:16:53 +0000
+
 hud (13.10.1+13.10.20130710-0ubuntu1) saucy; urgency=low
 
   [ Antti Kaijanmäki ]
