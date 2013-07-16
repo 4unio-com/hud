@@ -528,11 +528,11 @@ bus_method (GDBusConnection       *connection,
 		if (query == NULL) {
 			query = build_query (all_sources, application_list, connection, g_dbus_method_invocation_get_sender(invocation), search_string);
 			g_object_set_data_full(G_OBJECT(query), LEGACY_QUERY_SENDER, g_strdup(g_dbus_method_invocation_get_sender(invocation)), g_free);
+			g_signal_connect(query, "changed", G_CALLBACK(legacy_update), connection);
 		} else {
 			hud_query_update_search(query, search_string);
 		}
 
-		g_signal_connect(query, "changed", G_CALLBACK(legacy_update), connection);
 		g_dbus_method_invocation_return_value (invocation, describe_legacy_query (query));
 
 		g_variant_unref(vsearch);
