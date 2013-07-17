@@ -1,3 +1,13 @@
+hud (13.10.1+13.10.20130717-0ubuntu1) saucy; urgency=low
+
+  [ Antti Kaijanmäki ]
+  * Fix hud-service emitting multiple UpdatedQuery signals.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 302
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 17 Jul 2013 03:06:37 +0000
+
 hud (13.10.1+13.10.20130715-0ubuntu1) saucy; urgency=low
 
   [ Jeremy Bicha ]
