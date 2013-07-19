@@ -1,3 +1,14 @@
+hud (13.10.1+13.10.20130719-0ubuntu1) saucy; urgency=low
+
+  [ Łukasz 'sil2100' Zemczak ]
+  * Do not install hud-tools tests, it's not needed. Especially that the
+    test install directory is sooo wrong.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 304
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 19 Jul 2013 03:01:43 +0000
+
 hud (13.10.1+13.10.20130717-0ubuntu1) saucy; urgency=low
 
   [ Antti Kaijanmäki ]
