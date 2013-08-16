@@ -129,12 +129,18 @@ namespace HudGtk {
 		public Window (Gtk.Application application) {
 			Object (application: application, title: "Hud");
 			set_default_size (500, 300);
-
+			
+			query = new HudClient.Query("");
+			query.models_changed.connect ( models_changed );
+    }			
+			
+		void models_changed(HudClient.Query proxy) {
+		  query.models_changed.disconnect ( models_changed );
+		  
 			var builder = new Gtk.Builder ();
 			try {
 				new CellRendererVariant ();
 				builder.add_from_file (HUD_GTK_DATADIR + "/hud-gtk.ui");
-				query = new HudClient.Query("");
 			} catch (Error e) {
 				error (e.message);
 			}

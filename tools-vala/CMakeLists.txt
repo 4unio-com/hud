@@ -5,7 +5,7 @@ if(${INTROSPECTION_FOUND})
 set(HEADER_PATH "${CMAKE_CURRENT_BINARY_DIR}/hud-gtk.h")
 set(SYMBOLS_PATH "${CMAKE_CURRENT_BINARY_DIR}/hud-gtk.def")
 
-set(HUD_GTK_DATADIR "${CMAKE_INSTALL_DATADIR}/hud-gtk")
+set(HUD_GTK_DATADIR "${CMAKE_INSTALL_FULL_DATADIR}/hud-gtk")
 
 ###########################
 # HUD Gtk Vala Generation
