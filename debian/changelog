@@ -1,3 +1,13 @@
+hud (13.10.1+13.10.20130816.1-0ubuntu1) saucy; urgency=low
+
+  [ Pete Woods ]
+  * Patch up hud-gtk.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 309
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 16 Aug 2013 22:09:30 +0000
+
 hud (13.10.1+13.10.20130812-0ubuntu1) saucy; urgency=low
 
   * New rebuild forced
