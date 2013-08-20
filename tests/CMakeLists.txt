@@ -198,7 +198,7 @@ add_custom_target(keyword-files DEPENDS "${KEYWORD_LOCALE_DIR}/en_FAKELANG/LC_ME
 # HUD Test Suite
 #######################
 
-hudtest(test-watchdog test-watchdog.c test-watchdog.xml)
+#hudtest(test-watchdog test-watchdog.c test-watchdog.xml)
 hudtest(test-distance test-distance.c test-distance.xml)
 hudtest(test-hud-item test-huditem.c test-hud-item.xml)
 hudtest(test-result-highlighting test-result-highlighting.c test-result-highlighting.xml)

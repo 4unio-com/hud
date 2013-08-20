@@ -391,6 +391,20 @@ results_list_to_model (gpointer data, gpointer user_data)
 }
 
 static void
+print_item (HudItem * item, gpointer user_data)
+{
+	g_return_if_fail(HUD_IS_ITEM(item));
+
+	HudStringList *tokens = hud_item_get_tokens(item);
+
+	gchar* str = hud_string_list_pretty_print(tokens, " ");
+	g_debug("CONTENTS OF SOURCE: %s", str);
+	g_free(str);
+
+	return;
+}
+
+static void
 hud_query_refresh (HudQuery *query)
 {
   guint64 start_time;
@@ -421,6 +435,17 @@ hud_query_refresh (HudQuery *query)
 
   if (search_source != NULL) {
     hud_source_search (search_source, query->token_list, results_list_populate, query);
+
+    g_debug("hello");
+    GList *items = hud_source_get_items(search_source);
+      if (items != NULL) {
+    	  g_debug("hello 2");
+        g_list_foreach (items, (GFunc) print_item,
+                NULL);
+        g_list_free_full(items, g_object_unref);
+      }
+
+
   } else {
     g_debug("Current source was null. This should usually not happen outside tests in regular user use");
   }
