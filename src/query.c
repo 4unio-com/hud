@@ -80,7 +80,6 @@ struct _HudQuery
   DeeModel * appstack_model;
   gchar * appstack_name;
 
-  GSequence * results_list; /* Should almost always be NULL except when refreshing the query */
   guint max_usage; /* Used to make the GList search easier */
 
   HudVoice *voice;
@@ -132,10 +131,10 @@ compare_func (gconstpointer a, gconstpointer b, gpointer user_data)
 static void
 results_list_populate (HudResult * result, gpointer user_data)
 {
-	HudQuery * query = (HudQuery *)user_data;
+	GSequence *results_list = (GSequence *)user_data;
 	// TODO: Change back to prepend after we have action sort priorities
 	// g_sequence_insert_before(g_sequence_get_begin_iter(query->results_list), result);
-	g_sequence_append(query->results_list, result);
+	g_sequence_append(results_list, result);
 	return;
 }
 
@@ -391,20 +390,6 @@ results_list_to_model (gpointer data, gpointer user_data)
 }
 
 static void
-print_item (HudItem * item, gpointer user_data)
-{
-	g_return_if_fail(HUD_IS_ITEM(item));
-
-	HudStringList *tokens = hud_item_get_tokens(item);
-
-	gchar* str = hud_string_list_pretty_print(tokens, " ");
-	g_debug("CONTENTS OF SOURCE: %s", str);
-	g_free(str);
-
-	return;
-}
-
-static void
 hud_query_refresh (HudQuery *query)
 {
   guint64 start_time;
@@ -413,7 +398,7 @@ hud_query_refresh (HudQuery *query)
   start_time = g_get_monotonic_time ();
 
   dee_model_clear(query->results_model);
-  query->results_list = g_sequence_new(NULL);
+  GSequence * results_list= g_sequence_new(NULL);
   query->max_usage = 0;
 
   /* Note that the results are kept sorted as they are collected using a GSequence */
@@ -434,33 +419,21 @@ hud_query_refresh (HudQuery *query)
   }
 
   if (search_source != NULL) {
-    hud_source_search (search_source, query->token_list, results_list_populate, query);
-
-    g_debug("hello");
-    GList *items = hud_source_get_items(search_source);
-      if (items != NULL) {
-    	  g_debug("hello 2");
-        g_list_foreach (items, (GFunc) print_item,
-                NULL);
-        g_list_free_full(items, g_object_unref);
-      }
-
-
+    hud_source_search (search_source, query->token_list, results_list_populate, results_list);
   } else {
     g_debug("Current source was null. This should usually not happen outside tests in regular user use");
   }
-  g_debug("Num results: %d", g_sequence_get_length(query->results_list));
+  g_debug("Num results: %d", g_sequence_get_length(results_list));
 
-  g_sequence_foreach(query->results_list, results_list_max_usage, &query->max_usage);
+  g_sequence_foreach(results_list, results_list_max_usage, &query->max_usage);
   g_debug("Max Usage: %d", query->max_usage);
 
   /* Now that we have the max usage we can sort */
-  g_sequence_sort(query->results_list, compare_func, query);
-  g_sequence_foreach(query->results_list, results_list_to_model, query);
+  g_sequence_sort(results_list, compare_func, query);
+  g_sequence_foreach(results_list, results_list_to_model, query);
 
   /* NOTE: Not freeing the items as the references are picked up by the DeeModel */
-  g_sequence_free(query->results_list);
-  query->results_list = NULL;
+  g_sequence_free(results_list);
 
   dee_shared_model_flush_revision_queue(DEE_SHARED_MODEL(query->results_model));
 
@@ -521,12 +494,15 @@ hud_query_refresh (HudQuery *query)
 static gboolean
 hud_query_dispatch_refresh (gpointer user_data)
 {
+  g_debug("hud_query_dispatch_refresh");
+
   HudQuery *query = user_data;
 
   hud_query_refresh (query);
 
   g_signal_emit (query, hud_query_changed_signal, 0);
 
+  g_debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!! hud_query_dispatch_refresh - allowing next refresh");
   query->refresh_id = 0;
 
   return G_SOURCE_REMOVE;
@@ -537,8 +513,9 @@ hud_query_source_changed (HudSource *source,
 {
   HudQuery *query = user_data;
 
-  if (!query->refresh_id)
-    query->refresh_id = g_idle_add (hud_query_dispatch_refresh, query);
+  if (!query->refresh_id) {
+      query->refresh_id = g_timeout_add (0, hud_query_dispatch_refresh, query);
+  }
 }
 
 static void
@@ -624,7 +601,7 @@ static gboolean
 voice_idle_pause (gpointer user_data)
 {
 	HudQuery * query = HUD_QUERY(user_data);
-	query->voice_idle = g_idle_add(voice_idle_init, user_data);
+	query->voice_idle = g_timeout_add (0, voice_idle_init, user_data);
 	return FALSE;
 }
 
@@ -922,6 +899,9 @@ static void
 hud_query_init_real (HudQuery *query, GDBusConnection *connection, const gchar * client, const guint querynumber)
 {
   GError *error = NULL;
+
+  query->refresh_id = 0;
+  query->voice_idle = 0;
 
   query->querynumber = querynumber;
   query->client = g_strdup(client);

@@ -131,6 +131,8 @@ hud_manager_constructed (GObject * object)
 {
 	HudManager * manager = HUD_MANAGER(object);
 
+	manager->priv->todo_idle = 0;
+
 	if (manager->priv->application) {
 		manager->priv->app_pub = hud_action_publisher_new(HUD_ACTION_PUBLISHER_ALL_WINDOWS, HUD_ACTION_PUBLISHER_NO_CONTEXT);
 
@@ -634,7 +636,7 @@ hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
 
 	/* Should be if we're all set up */
 	if (manager->priv->connection_cancel == NULL && manager->priv->todo_idle == 0) {
-		manager->priv->todo_idle = g_idle_add(todo_handler, manager);
+		manager->priv->todo_idle = g_timeout_add (0, todo_handler, manager);
 	}
 
 	g_variant_unref(winid);  winid = NULL;
