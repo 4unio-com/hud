@@ -28,8 +28,10 @@
 #include "application-source.h"
 #include "source.h"
 
+#ifdef HAVE_PLATFORM_API
 #include <ubuntu/ui/ubuntu_ui_session_service.h>
 #include <ubuntu/application/ui/stage.h>
+#endif
 
 typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
 
