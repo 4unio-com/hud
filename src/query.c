@@ -511,7 +511,7 @@ hud_query_source_changed (HudSource *source,
   HudQuery *query = user_data;
 
   if (!query->refresh_id)
-    query->refresh_id = g_idle_add(hud_query_dispatch_refresh, query);
+    query->refresh_id = g_idle_add (hud_query_dispatch_refresh, query);
 }
 
 static void
