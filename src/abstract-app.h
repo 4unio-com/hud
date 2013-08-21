@@ -34,15 +34,19 @@ typedef BamfApplication AbstractApplication;
 
 #ifdef HAVE_PLATFORM_API
 
-#include <ubuntu/ui/ubuntu_ui_session_service.h>
-#include <ubuntu/application/ui/stage.h>
+#include <glib.h>
 
 #define WINDOW_ID_CONSTANT (5)
 
-typedef ubuntu_ui_session_properties AbstractWindow;
-typedef ubuntu_ui_session_properties AbstractApplication;
+typedef struct {
+  gchar *desktop_file_hint;
+  int    stage_hint;
+} SessionProperties;
 
-#define _ubuntu_ui_session_properties_get_window_id(props) WINDOW_ID_CONSTANT
+typedef SessionProperties AbstractWindow;
+typedef SessionProperties AbstractApplication;
+
+#define session_properties_get_window_id(props) WINDOW_ID_CONSTANT
 
 #define abstract_window_get_id(win)  WINDOW_ID_CONSTANT
 
