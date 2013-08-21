@@ -494,15 +494,12 @@ hud_query_refresh (HudQuery *query)
 static gboolean
 hud_query_dispatch_refresh (gpointer user_data)
 {
-  g_debug("hud_query_dispatch_refresh");
-
   HudQuery *query = user_data;
 
   hud_query_refresh (query);
 
   g_signal_emit (query, hud_query_changed_signal, 0);
 
-  g_debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!! hud_query_dispatch_refresh - allowing next refresh");
   query->refresh_id = 0;
 
   return G_SOURCE_REMOVE;
