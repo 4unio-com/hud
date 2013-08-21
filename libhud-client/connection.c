@@ -251,8 +251,10 @@ name_owner_changed (G_GNUC_UNUSED GObject * object, G_GNUC_UNUSED GParamSpec * p
 	self->priv->connected = connected;
 
 	/* Cancel anything we had running */
-	if (!self->priv->connected && self->priv->cancellable != NULL) {
+	if (!self->priv->connected) {
 		g_cancellable_cancel(self->priv->cancellable);
+	} else {
+		g_cancellable_reset(self->priv->cancellable);
 	}
 
 	/* If there was a change, make sure others know about it */
