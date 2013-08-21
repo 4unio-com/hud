@@ -28,6 +28,11 @@
 #include "application-source.h"
 #include "source.h"
 
+#ifdef HAVE_PLATFORM_API
+#include <ubuntu/ui/ubuntu_ui_session_service.h>
+#include <ubuntu/application/ui/stage.h>
+#endif
+
 typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
 
 struct _HudApplicationListPrivate {
@@ -462,24 +467,56 @@ window_changed (BamfMatcher * matcher, G_GNUC_UNUSED BamfWindow * old_win, BamfW
 #endif
 
 #ifdef HAVE_PLATFORM_API
-/* When a session gets focus */
-static void
-session_focused (ubuntu_ui_session_properties props, void * context)
+
+typedef struct {
+  HudApplicationList *list;
+  SessionProperties  *props;
+} SessionCallbackData;
+
+static SessionCallbackData *
+create_session_callback_data(ubuntu_ui_session_properties props, void *context)
 {
-	int stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
+  SessionCallbackData *data = g_new(SessionCallbackData, 1);
+
+  data->list = HUD_APPLICATION_LIST(context);
+
+  data->props = g_new(SessionProperties, 1);
+  data->props->desktop_file_hint
+    = g_strdup(ubuntu_ui_session_properties_get_desktop_file_hint(props));
+  data->props->stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
+    
+  return data;
+}
+
+static void
+destroy_session_callback_data(SessionCallbackData *data)
+{
+  g_free(data->props->desktop_file_hint);
+  g_free(data->props);
+  g_free(data);
+}
+
+
+/* When a session gets focus */
+static gboolean
+handle_session_focused (gpointer user_data)
+{
+	SessionCallbackData *data = user_data;
+	SessionProperties *props = data->props;
+	HudApplicationList *list = data->list;
+
 	// Do not care about anything not main or side stage
-	if (stage_hint != U_MAIN_STAGE && stage_hint != U_SIDE_STAGE)
-		return;
+	if (props->stage_hint != U_MAIN_STAGE && props->stage_hint != U_SIDE_STAGE)
+		return G_SOURCE_REMOVE;
+ 
 
-	HudApplicationList * list = HUD_APPLICATION_LIST(context);
-
-	if (hud_application_list_name_in_ignore_list(&props)) {
-		return;
+	if (hud_application_list_name_in_ignore_list(props)) {
+		return G_SOURCE_REMOVE;
 	}
 
-	HudApplicationSource * source = bamf_app_to_source(list, &props);
+	HudApplicationSource * source = bamf_app_to_source(list, props);
 	if (source == NULL) {
-		return;
+		return G_SOURCE_REMOVE;
 	}
 
 	g_debug("Changing focus to: %s", hud_application_source_get_id(source));
@@ -488,9 +525,9 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 	   also adjusts focus, which is how we're passing it down.  So
 	   what'll happen is that this'll trigger the dummy function since
 	   we can't get window IDs anyway. */
-	hud_application_source_focus(source, &props, &props);
+	hud_application_source_focus(source, props, props);
 
-	if (stage_hint == U_MAIN_STAGE) {
+	if (props->stage_hint == U_MAIN_STAGE) {
 		g_clear_object(&list->priv->last_focused_main_stage_source);
 		list->priv->last_focused_main_stage_source = g_object_ref(source);
 	} else { /*U_SIDE_STAGE*/
@@ -500,7 +537,18 @@ session_focused (ubuntu_ui_session_properties props, void * context)
 
 	hud_source_changed(HUD_SOURCE(list));
 
-	return;
+	return G_SOURCE_REMOVE;
+}
+
+
+static void
+session_focused (ubuntu_ui_session_properties props, void * context)
+{
+	SessionCallbackData *data = create_session_callback_data(props, context);
+	g_idle_add_full(G_PRIORITY_DEFAULT,
+			handle_session_focused,
+			data,
+			(GDestroyNotify)destroy_session_callback_data);
 }
 
 /* When something looses focus, hopefully everything is paired */
@@ -526,14 +574,17 @@ session_requested (ubuntu_ui_well_known_application app, void * context)
 
 /* Finds the application object for the session and unref's it so
    we'll assume it is gone, gone, gone. */
-static void
-session_died (ubuntu_ui_session_properties props, void * context)
+/* When a session gets focus */
+static gboolean
+handle_session_died (gpointer user_data)
 {
-	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+	SessionCallbackData *data = user_data;
+	SessionProperties *props = data->props;
+	HudApplicationList *list = data->list;
 
-	HudApplicationSource * source = bamf_app_to_source(list, &props);
+	HudApplicationSource * source = bamf_app_to_source(list, props);
 	if (source == NULL) {
-		return;
+		return G_SOURCE_REMOVE;
 	}
 
 	gchar * app_id = g_strdup(hud_application_source_get_id(source));
@@ -556,8 +607,19 @@ session_died (ubuntu_ui_session_properties props, void * context)
 
 	hud_source_changed(HUD_SOURCE(list));
 
-	return;
+	return G_SOURCE_REMOVE;
 }
+
+static void
+session_died (ubuntu_ui_session_properties props, void * context)
+{
+	SessionCallbackData *data = create_session_callback_data(props, context);
+	g_idle_add_full(G_PRIORITY_DEFAULT,
+			handle_session_died,
+			data,
+			(GDestroyNotify)destroy_session_callback_data);
+}
+
 #endif
 
 #ifdef HAVE_BAMF
@@ -618,14 +680,16 @@ view_closed (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 
 #ifdef HAVE_PLATFORM_API
 /* When a new session gets created */
-static void
-session_born (ubuntu_ui_session_properties props, void * context)
+static gboolean
+handle_session_born (gpointer user_data)
 {
-	HudApplicationList * list = HUD_APPLICATION_LIST(context);
+	SessionCallbackData *data = user_data;
+	SessionProperties *props = data->props;
+	HudApplicationList *list = data->list;
 
-	HudApplicationSource * source = bamf_app_to_source(list, &props);
+	HudApplicationSource * source = bamf_app_to_source(list, props);
 	if (source == NULL) {
-		return;
+		return G_SOURCE_REMOVE;
 	}
 
 	/* NOTE: Nothing to do here, since there are no windows and no
@@ -633,7 +697,17 @@ session_born (ubuntu_ui_session_properties props, void * context)
 	   from them or anything.  But we can makes sure that the appliction
 	   exists in the DBus representation. */
 
-	return;
+	return G_SOURCE_REMOVE;
+}
+
+static void
+session_born (ubuntu_ui_session_properties props, void * context)
+{
+	SessionCallbackData *data = create_session_callback_data(props, context);
+	g_idle_add_full(G_PRIORITY_DEFAULT,
+			handle_session_born,
+			data,
+			(GDestroyNotify)destroy_session_callback_data);
 }
 #endif
 
