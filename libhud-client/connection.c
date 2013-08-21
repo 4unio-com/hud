@@ -247,7 +247,7 @@ name_owner_changed (G_GNUC_UNUSED GObject * object, G_GNUC_UNUSED GParamSpec * p
 	}
 
 	/* Make sure we set the internal variable before signaling */
-	gboolean change = (connected == self->priv->connected);
+	gboolean change = (connected != self->priv->connected);
 	self->priv->connected = connected;
 
 	/* Cancel anything we had running */

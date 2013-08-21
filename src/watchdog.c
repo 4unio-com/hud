@@ -101,13 +101,13 @@ static gboolean
 fire_watchdog (gpointer user_data)
 {
 	g_return_val_if_fail(IS_HUD_WATCHDOG(user_data), TRUE);
-//	HudWatchdog * self = HUD_WATCHDOG(user_data);
+	HudWatchdog * self = HUD_WATCHDOG(user_data);
 
-//	g_debug("Firing Watchdog");
+	g_debug("Firing Watchdog");
 
-//	if (self->priv->loop != NULL) {
-//		g_main_loop_quit(self->priv->loop);
-//	}
+	if (self->priv->loop != NULL) {
+		g_main_loop_quit(self->priv->loop);
+	}
 
 	return FALSE;
 }
