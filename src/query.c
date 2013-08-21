@@ -398,7 +398,7 @@ hud_query_refresh (HudQuery *query)
   start_time = g_get_monotonic_time ();
 
   dee_model_clear(query->results_model);
-  GSequence * results_list= g_sequence_new(NULL);
+  GSequence *results_list = g_sequence_new(NULL);
   query->max_usage = 0;
 
   /* Note that the results are kept sorted as they are collected using a GSequence */
@@ -510,9 +510,8 @@ hud_query_source_changed (HudSource *source,
 {
   HudQuery *query = user_data;
 
-  if (!query->refresh_id) {
-      query->refresh_id = g_timeout_add (0, hud_query_dispatch_refresh, query);
-  }
+  if (!query->refresh_id)
+    query->refresh_id = g_idle_add (hud_query_dispatch_refresh, query);
 }
 
 static void
@@ -598,7 +597,7 @@ static gboolean
 voice_idle_pause (gpointer user_data)
 {
 	HudQuery * query = HUD_QUERY(user_data);
-	query->voice_idle = g_timeout_add (0, voice_idle_init, user_data);
+	query->voice_idle = g_idle_add (voice_idle_init, user_data);
 	return FALSE;
 }
 

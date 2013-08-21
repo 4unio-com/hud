@@ -646,7 +646,7 @@ hud_menu_model_collector_model_changed (GMenuModel *model,
        *
        * ps: refresh_id is never set at this point (look up)
        */
-      collector->refresh_id = g_timeout_add (0, hud_menu_model_collector_refresh, collector);
+      collector->refresh_id = g_idle_add (hud_menu_model_collector_refresh, collector);
       return;
     }
 
