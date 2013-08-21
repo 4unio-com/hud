@@ -511,7 +511,7 @@ hud_query_source_changed (HudSource *source,
   HudQuery *query = user_data;
 
   if (!query->refresh_id)
-    query->refresh_id = g_idle_add (hud_query_dispatch_refresh, query);
+    query->refresh_id = g_idle_add(hud_query_dispatch_refresh, query);
 }
 
 static void
@@ -597,7 +597,7 @@ static gboolean
 voice_idle_pause (gpointer user_data)
 {
 	HudQuery * query = HUD_QUERY(user_data);
-	query->voice_idle = g_idle_add (voice_idle_init, user_data);
+	query->voice_idle = g_idle_add(voice_idle_init, user_data);
 	return FALSE;
 }
 
