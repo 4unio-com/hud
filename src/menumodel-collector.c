@@ -1117,6 +1117,7 @@ hud_menu_model_collector_init (HudMenuModelCollector *collector)
   g_array_set_clear_func(collector->agroups, agroup_clear);
   collector->session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
   collector->base_models = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+  collector->refresh_id = 0;
 }
 
 static void
