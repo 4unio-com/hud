@@ -127,7 +127,7 @@ test_application_source_add_context (void)
 	hud_application_source_set_focused_win(source, 1);
 
 	GSimpleActionGroup * simple_group = g_simple_action_group_new();
-	g_simple_action_group_insert(simple_group, G_ACTION(g_simple_action_new("action-name", NULL)));
+	g_action_map_add_action(G_ACTION_MAP(simple_group), G_ACTION(g_simple_action_new("action-name", NULL)));
 	GActionGroup * group = G_ACTION_GROUP(simple_group);
 	g_assert(group);
 	g_assert(g_simple_action_group_lookup(simple_group, "action-name"));

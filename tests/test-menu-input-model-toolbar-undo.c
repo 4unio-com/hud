@@ -46,9 +46,9 @@ main (int argv, char ** argc)
 
 	GSimpleActionGroup * ag = g_simple_action_group_new();
 	if (is_application)
-	  g_simple_action_group_insert(ag, G_ACTION(g_simple_action_new("app.simple", G_VARIANT_TYPE_BOOLEAN)));
+	  g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("app.simple", G_VARIANT_TYPE_BOOLEAN)));
 	else
-	  g_simple_action_group_insert(ag, G_ACTION(g_simple_action_new("simple", G_VARIANT_TYPE_BOOLEAN)));
+	  g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("simple", G_VARIANT_TYPE_BOOLEAN)));
 
 	GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 
