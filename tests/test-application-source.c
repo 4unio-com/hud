@@ -130,7 +130,7 @@ test_application_source_add_context (void)
 	g_action_map_add_action(G_ACTION_MAP(simple_group), G_ACTION(g_simple_action_new("action-name", NULL)));
 	GActionGroup * group = G_ACTION_GROUP(simple_group);
 	g_assert(group);
-	g_assert(g_simple_action_group_lookup(simple_group, "action-name"));
+	g_assert(g_action_map_lookup_action(G_ACTION_MAP(simple_group), "action-name"));
 
 	GMenu * menu_none = g_menu_new();
 	g_menu_append(menu_none, "Elephant", "action-name");
