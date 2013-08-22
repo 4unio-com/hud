@@ -72,7 +72,7 @@ main (int argv, char ** argc)
 
 	undo_action = G_ACTION(g_simple_action_new("undo", NULL));
 	g_signal_connect(G_OBJECT(undo_action), "activate", G_CALLBACK(undo_activated), NULL);
-	g_simple_action_group_insert(ag, undo_action);
+	g_action_map_add_action(G_ACTION_MAP(ag), undo_action);
 
 	/* Peferences, adds the help item */
 	pref_item = g_menu_item_new("Preferences Item", "preferences");
@@ -81,7 +81,7 @@ main (int argv, char ** argc)
 
 	pref_action = G_ACTION(g_simple_action_new("preferences", NULL));
 	g_signal_connect(G_OBJECT(pref_action), "activate", G_CALLBACK(prefs_activated), NULL);
-	g_simple_action_group_insert(ag, pref_action);
+	g_action_map_add_action(G_ACTION_MAP(ag), pref_action);
 
 	/* Fullscreen, starts disabled */
 	full_item = g_menu_item_new("Fullscreen Item", "fullscreen");
@@ -90,7 +90,7 @@ main (int argv, char ** argc)
 
 	full_action = G_ACTION(g_simple_action_new("fullscreen", NULL));
 	g_simple_action_set_enabled(G_SIMPLE_ACTION(full_action), FALSE);
-	g_simple_action_group_insert(ag, full_action);
+	g_action_map_add_action(G_ACTION_MAP(ag), full_action);
 
 	/* Help, not added at first */
 	help_item = g_menu_item_new("Help Item", "help");
@@ -98,7 +98,7 @@ main (int argv, char ** argc)
 	/* NO!  Can't you read!  g_menu_append_item(menu, help_item); */
 
 	help_action = G_ACTION(g_simple_action_new("help", NULL));
-	g_simple_action_group_insert(ag, help_action);
+	g_action_map_add_action(G_ACTION_MAP(ag), help_action);
 
 
 	/* All the rest of the boring stuff */
