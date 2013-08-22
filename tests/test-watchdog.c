@@ -106,7 +106,7 @@ test_watchdog_timing (void)
 	gboolean two_sec_hit = FALSE;
 	doggie = hud_watchdog_new(loop);
 
-	final = g_timeout_add_seconds(6, final_fail, loop);
+	final = g_timeout_add_seconds(15, final_fail, loop);
 	g_timeout_add(1000, ping_watchdog, doggie);
 	g_timeout_add(2000, hit_two_sec, &two_sec_hit);
 
