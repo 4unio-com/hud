@@ -1,3 +1,34 @@
+hud (13.10.1+13.10.20130822.4-0ubuntu1) saucy; urgency=low
+
+  [ Pete Woods ]
+  * Fix hud client-reconnects on the phone This branch fixes hud-
+    clients's ability to seamlessly reconnect to HUD. (LP: #1205097)
+
+  [ Ted Gould ]
+  * Migrate from g_simple_action_group_insert to
+    g_action_map_add_action. (LP: #1215180)
+
+  [ Antti Kaijanmäki ]
+  * Fix Ubuntu UI Session callbacks. On Touch Images where we use Ubuntu
+    UI Session API to get notifications when active window changes. The
+    callbacks are being invoked from a separate thread. We have to pass
+    the callbacks through g_idle_add() to process them in main
+    gmaincontext. This also requires to change the type of
+    AbstractWindow and AbstractApp as we can't pass on the
+    ubuntu_ui_session_properties accross different threads. (LP:
+    #1205097, #1203772, #1214996)
+  * Fix hud client-reconnects on the phone This branch fixes hud-
+    clients's ability to seamlessly reconnect to HUD. (LP: #1205097)
+  * g_simple_action_group_lookup() was deprecated. use
+    g_action_map_lookup_action() instead.
+  * Adjust watchdog test limits to get rid of random timing failures.
+    (LP: #1215180)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 315
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 22 Aug 2013 18:12:30 +0000
+
 hud (13.10.1+13.10.20130816.1-0ubuntu1) saucy; urgency=low
 
   [ Pete Woods ]
