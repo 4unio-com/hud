@@ -76,10 +76,10 @@ ping_watchdog (gpointer pwatchdog)
 }
 
 static gboolean
-hit_one_sec (gpointer pboolean)
+hit_two_sec (gpointer pboolean)
 {
-	gboolean * onesec = (gboolean *)pboolean;
-	*onesec = TRUE;
+	gboolean * twosec = (gboolean *)pboolean;
+	*twosec = TRUE;
 	return FALSE;
 }
 
@@ -102,17 +102,18 @@ test_watchdog_timing (void)
 	g_clear_object(&doggie);
 
 	/* Test a single ping */
-	gboolean one_sec_hit = FALSE;
+	g_setenv("HUD_SERVICE_TIMEOUT", "3", TRUE);	
+	gboolean two_sec_hit = FALSE;
 	doggie = hud_watchdog_new(loop);
 
-	final = g_timeout_add_seconds(3, final_fail, loop);
-	g_timeout_add(500, ping_watchdog, doggie);
-	g_timeout_add(1000, hit_one_sec, &one_sec_hit);
+	final = g_timeout_add_seconds(6, final_fail, loop);
+	g_timeout_add(1000, ping_watchdog, doggie);
+	g_timeout_add(2000, hit_two_sec, &two_sec_hit);
 
 	g_main_loop_run(loop);
 	g_source_remove(final);
 
-	g_assert(one_sec_hit);
+	g_assert(two_sec_hit);
 	g_clear_object(&doggie);
 
 
