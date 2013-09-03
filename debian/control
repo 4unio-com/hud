@@ -29,9 +29,10 @@ Build-Depends: bamfdaemon,
                libpocketsphinx-dev (>= 0.8),
                libsphinxbase-dev (>= 0.8),
                sphinx-voxforge-hmm-en,
-               sphinx-voxforge-lm-en,               
+               sphinx-voxforge-lm-en,
                pulseaudio,
                python-setuptools,
+               libnih-dbus-dev,
 Standards-Version: 3.9.4
 Homepage: http://launchpad.net/hud
 # If you aren't a member of ~indicator-applet-developers but need to upload

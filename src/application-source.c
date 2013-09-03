@@ -30,6 +30,9 @@
 #include "dbusmenu-collector.h"
 #include "source-list.h"
 
+#include <nih/alloc.h>
+#include <libnih-dbus.h>
+
 struct _HudApplicationSourcePrivate {
 	GDBusConnection * session;
 
@@ -442,14 +445,11 @@ hud_application_source_new_for_id (const gchar * id)
 
 	source->priv->skel = app_iface_com_canonical_hud_application_skeleton_new();
 
-	gchar * app_id_clean = g_strdup(id);
-	gchar * app_id_cleanp;
-	for (app_id_cleanp = app_id_clean; app_id_cleanp[0] != '\0'; app_id_cleanp++) {
-		if (!g_ascii_isalnum(app_id_cleanp[0])) {
-			app_id_cleanp[0] = '_';
-		}
-	}
-	source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s", app_id_clean);
+	char * app_id_path;
+	app_id_path = nih_dbus_path(NULL, "/com/canonical/hud/applications", id, NULL);
+	if (app_id_path == NULL) /* emulate glib memory handling and terminate */
+		g_error("Unable to allocate memory for nih_dbus_path()");
+	source->priv->path = g_strdup(app_id_path);
 
 	int i = 0;
 	GError * error = NULL;
@@ -472,7 +472,7 @@ hud_application_source_new_for_id (const gchar * id)
 		g_free(source->priv->path);
 		g_clear_object(&source->priv->skel);
 
-		source->priv->path = g_strdup_printf("/com/canonical/hud/applications/%s_%d", app_id_clean, ++i);
+		source->priv->path = g_strdup_printf("%s_%d", app_id_path, ++i);
 		source->priv->skel = app_iface_com_canonical_hud_application_skeleton_new();
 	}
 
@@ -480,7 +480,7 @@ hud_application_source_new_for_id (const gchar * id)
 	g_signal_connect(G_OBJECT(source->priv->skel), "handle-set-window-context", G_CALLBACK(dbus_set_context), source);
 
 	g_debug("Application ('%s') path: %s", id, source->priv->path);
-	g_free(app_id_clean);
+	nih_free(app_id_path);
 
 	return source;
 }

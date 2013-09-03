@@ -85,6 +85,15 @@ include_directories(${POCKETSPHINX_INCLUDE_DIRS})
 pkg_search_module(GTK3 REQUIRED gtk+-3.0)
 include_directories(${GTK3_INCLUDE_DIRS})
 
+pkg_check_modules(NIH REQUIRED libnih)
+include_directories(${NIH_INCLUDE_DIRS})
+
+pkg_check_modules(NIH_DBUS REQUIRED libnih-dbus)
+include_directories(${NIH_DBUS_INCLUDE_DIRS})
+
+pkg_check_modules(DBUS REQUIRED dbus-1)
+include_directories(${DBUS_INCLUDE_DIRS})
+
 find_package(Vala 0.12)
 
 find_package(GObjectIntrospection 0.9.12)
