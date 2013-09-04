@@ -1,3 +1,17 @@
+hud (13.10.1+13.10.20130904-0ubuntu1) saucy; urgency=low
+
+  [ Jamie Strandboge ]
+  * use libnih-dbus to generate object path name (LP: #1218107) -
+    CMakeLists.txt: add NIH_INCLUDE_DIRS and NIH_DBUS_INCLUDE_DIRS -
+    src/CMakeLists.txt: add NIH_LIBRARIES and NIH_DBUS_LIBRARIES -
+    src/application-source.c: use nih_dbus_path() - debian/control:
+    Build-Depends on libnih-dbus-dev. (LP: #1218107)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 317
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 04 Sep 2013 02:35:31 +0000
+
 hud (13.10.1+13.10.20130822.4-0ubuntu1) saucy; urgency=low
 
   [ Pete Woods ]
