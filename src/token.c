@@ -298,6 +298,9 @@ hud_token_list_free (HudTokenList *list)
 {
   gint i;
 
+  if (list == NULL)
+    return;
+
   for (i = 0; i < list->length; i++)
     hud_token_free (list->tokens[i]);
 
@@ -313,6 +316,9 @@ hud_token_list_distance (HudTokenList     *haystack,
 {
   static guint d[32][32];
   gint i, j;
+
+  if (needle == NULL || haystack == NULL)
+    return G_MAXUINT;
 
   if (needle->length > haystack->length)
     return G_MAXUINT;
