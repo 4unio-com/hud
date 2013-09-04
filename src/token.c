@@ -272,6 +272,13 @@ hud_token_list_new_from_string (const gchar *string)
 
   array = g_ptr_array_new ();
   hud_token_list_add_string_to_array (array, string);
+
+  if (array->len == 0)
+  {
+    g_ptr_array_free (array, TRUE);
+  	return NULL;
+  }
+
   return hud_token_list_new_consume_array (array);
 }
 
