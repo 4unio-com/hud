@@ -216,19 +216,23 @@ context_is_current (HudApplicationSource * self, HudApplicationSourceContext * c
 {
 	/* See if this window is the one we're looking at */
 	guint32 context_window = hud_application_source_context_get_window_id(context);
-	if (context_window != self->priv->focused_window && context_window != 0) {
-		return FALSE;
+	const gchar *context_id = hud_application_source_context_get_context_id(context);
+
+	if (context_window == WINDOW_ID_ALL_WINDOWS &&
+	    g_strcmp0(hud_application_source_get_context(self,
+							 WINDOW_ID_ALL_WINDOWS),
+		      context_id) == 0) { 
+		return TRUE;
 	}
 
-	/* Check the context too */
-	const gchar * context_context = hud_application_source_context_get_context_id(context);
-	const gchar * current_context = g_hash_table_lookup(self->priv->window_contexts, GINT_TO_POINTER(self->priv->focused_window));
-
-	if (context_context != NULL && g_strcmp0(context_context, current_context) != 0) {
-		return FALSE;
+	if (context_window == self->priv->focused_window &&
+	    g_strcmp0(hud_application_source_get_context(self,
+							 self->priv->focused_window),
+		      context_id) == 0) {
+		return TRUE;
 	}
 
-	return TRUE;
+	return FALSE;
 }
 
 /* Gets called when the items in a window's sources changes */
@@ -298,17 +302,6 @@ source_search (HudSource *     hud_source,
 		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
 		if (context_is_current(app, context)) {
 			hud_source_search(HUD_SOURCE(context), search_string, append_func, user_data);
-		}
-		// search also the ALL_WINDOWS context if one exists
-		if (hud_application_source_context_get_window_id(context)
-		    == WINDOW_ID_ALL_WINDOWS &&
-		    g_strcmp0(hud_application_source_context_get_context_id(context),
-			      hud_application_source_get_context(app, WINDOW_ID_ALL_WINDOWS))
-		    == 0) {
-			hud_source_search(HUD_SOURCE(context),
-					  search_string,
-					  append_func,
-					  user_data);
 		}
 	}
 
@@ -709,10 +702,6 @@ dbus_set_context (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 		context = NULL;
 	}
 
-	g_debug("%s: setting context for window %u to %s",
-		hud_application_source_get_id(app),
-		window_id,
-		context);
 	hud_application_source_set_context(app, window_id, context);
 
 	g_dbus_method_invocation_return_value(invocation, NULL);
@@ -1050,10 +1039,15 @@ hud_application_source_set_context (HudApplicationSource * app, guint32 xid, con
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
 
+	g_debug("%s: setting context for window %u to %s",
+		hud_application_source_get_id(app),
+		xid,
+		context);
+
 	gboolean was_used = app->priv->used;
 
 	/* Make sure we clear the old contexts if we could have one */
-	if (was_used && xid == app->priv->focused_window) {
+	if (was_used) {
 		hud_source_unuse(HUD_SOURCE(app));
 	}
 
@@ -1061,13 +1055,11 @@ hud_application_source_set_context (HudApplicationSource * app, guint32 xid, con
 	g_hash_table_insert(app->priv->window_contexts, GUINT_TO_POINTER(xid), g_strdup(context));
 
 	/* Return our used state */
-	if (was_used && xid == app->priv->focused_window) {
+	if (was_used) {
 		hud_source_use(HUD_SOURCE(app));
-
-		/* If we did change, make sure to signal it */
-		hud_source_changed(HUD_SOURCE(app));
 	}
 
+	hud_source_changed(HUD_SOURCE(app));
 	return;
 }
 
@@ -1122,7 +1114,7 @@ hud_application_source_set_focused_win (HudApplicationSource * app, guint32 xid)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
 
-	gboolean used = (xid == app->priv->focused_window && app->priv->used);
+	gboolean used = app->priv->used;
 
 	if (used) {
 		hud_source_unuse(HUD_SOURCE(app));
@@ -1132,8 +1124,8 @@ hud_application_source_set_focused_win (HudApplicationSource * app, guint32 xid)
 
 	if (used) {
 		hud_source_use(HUD_SOURCE(app));
-		hud_source_changed(HUD_SOURCE(app));
 	}
 
+	hud_source_changed(HUD_SOURCE(app));
 	return;
 }

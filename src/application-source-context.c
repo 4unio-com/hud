@@ -309,13 +309,29 @@ hud_application_source_context_get_context_id (HudApplicationSourceContext * con
 	return context->priv->context_id;
 }
 
+static void
+collector_source_changed (HudSource * source, gpointer user_data)
+{
+	HudApplicationSourceContext * self = HUD_APPLICATION_SOURCE_CONTEXT(user_data);
+	hud_source_changed(HUD_SOURCE(self));
+
+	return;
+}
+
 /* Check to ensure we have a menu model collector, if not, build
    us one. */
 static inline void
 check_for_menu_model (HudApplicationSourceContext * context)
 {
 	if (context->priv->model_collector == NULL) {
-		context->priv->model_collector = hud_menu_model_collector_new(context->priv->app_id, context->priv->icon, 0, context->priv->export_path, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+		context->priv->model_collector = hud_menu_model_collector_new(context->priv->app_id,
+									      context->priv->icon,
+									      0,
+									      context->priv->export_path,
+									      HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+		g_signal_connect(G_OBJECT(context->priv->model_collector),
+				 "changed",
+				 G_CALLBACK(collector_source_changed), context);
 	}
 	g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(context->priv->model_collector));
 
