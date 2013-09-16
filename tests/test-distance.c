@@ -240,6 +240,22 @@ test_distance_extra_terms (void)
                    calculate_distance ("save", (GStrv) save_as, NULL));
 }
 
+/* Checking to ensure that we can put separators in and don't screw things up */
+static void
+test_distance_separator_only (void)
+{
+	gchar * teststrings[] = {"One", "Two", NULL};
+
+	g_assert(calculate_distance("-", (GStrv) teststrings, NULL) != 0);
+	g_assert(calculate_distance(">", (GStrv) teststrings, NULL) != 0);
+	g_assert(calculate_distance(".", (GStrv) teststrings, NULL) != 0);
+	g_assert(calculate_distance(" ", (GStrv) teststrings, NULL) != 0);
+	g_assert(calculate_distance(" .->", (GStrv) teststrings, NULL) != 0);
+	g_assert(calculate_distance("", (GStrv) teststrings, NULL) != 0);
+
+	return;
+}
+
 /* Build the test suite */
 static void
 test_distance_suite (void)
@@ -252,6 +268,7 @@ test_distance_suite (void)
 	g_test_add_func ("/hud/distance/variety",       test_distance_variety);
 	g_test_add_func ("/hud/distance/french_pref",   test_distance_french_pref);
 	g_test_add_func ("/hud/distance/extra_terms",   test_distance_extra_terms);
+	g_test_add_func ("/hud/distance/separator_only",test_distance_separator_only);
 	return;
 }
 
