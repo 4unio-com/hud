@@ -1,3 +1,19 @@
+hud (13.10.1+13.10.20130918-0ubuntu1) saucy; urgency=low
+
+  [ Ted Gould ]
+  * Handle searches that result in no tokens as NULL searches. (LP:
+    #1193700)
+
+  [ Antti Kaijanmäki ]
+  * Fix search results when application starts and also include
+    ALL_WINDOWS context on different searches. (LP: #1205097). (LP:
+    #1205097)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 320
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 18 Sep 2013 07:10:50 +0000
+
 hud (13.10.1+13.10.20130904-0ubuntu1) saucy; urgency=low
 
   [ Jamie Strandboge ]
