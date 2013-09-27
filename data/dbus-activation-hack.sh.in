@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/python
 
 # This is a quick hack to make it so that DBus activation works as the
 # DBus daemon holds onto the PID until the name gets registered.  So we
@@ -7,9 +7,38 @@
 #
 # This can go away if we get DBus Activation for Upstart
 
-if [ "x$UPSTART_SESSION" != "x" ]; then
-	start hud
-	sleep 10
-else
-	@pkglibexecdir@/hud-service
-fi
+import os
+import subprocess
+from gi.repository import Gio, GLib
+
+class DBusListener(object):
+  def __init__(self):
+    self.success = False
+    self.mainloop = GLib.MainLoop()
+    subprocess.Popen(['start', 'hud'])
+    Gio.bus_watch_name(
+      Gio.BusType.SESSION,
+      'com.canonical.hud',
+      Gio.DBusProxyFlags.NONE,
+      self.connected,
+      None,
+    )
+    GLib.timeout_add_seconds(10, self.timeout)
+    self.mainloop.run()
+		
+  def connected(self, connection, name, owner):
+    self.mainloop.quit()
+    self.success = True
+    
+  def timeout(self):
+    self.mainloop.quit()
+    self.success = False
+
+if os.environ['UPSTART_SESSION']:
+  listener = DBusListener()
+  if listener.success:
+    exit(0)
+  else:
+    exit(1)
+else:
+  subprocess.Popen(['@pkglibexecdir@/hud-service'])

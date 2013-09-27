@@ -1,6 +1,11 @@
 description "Unity HUD"
 author "Ted Gould <ted@ubuntu.com>"
 
+pre-start script
+  export DBUS_SESSION_BUS_ADDRESS
+  . "${HOME}/.cache/upstart/dbus-session"
+end script
+
 # Currently started by the dbus service file
 # start on dbus-activation com.canonical.hud
 stop on desktop-end
