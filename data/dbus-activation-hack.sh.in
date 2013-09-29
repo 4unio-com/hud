@@ -12,13 +12,12 @@ import subprocess
 from gi.repository import Gio, GLib
 
 class DBusListener(object):
-  def __init__(self):
+  def __init__(self, serviceName):
     self.success = False
     self.mainloop = GLib.MainLoop()
-    subprocess.Popen(['start', 'hud'])
     Gio.bus_watch_name(
       Gio.BusType.SESSION,
-      'com.canonical.hud',
+      serviceName,
       Gio.DBusProxyFlags.NONE,
       self.connected,
       None,
@@ -35,7 +34,8 @@ class DBusListener(object):
     self.success = False
 
 if os.environ['UPSTART_SESSION']:
-  listener = DBusListener()
+  subprocess.Popen(['start', 'hud'])
+  listener = DBusListener('com.canonical.hud')
   if listener.success:
     exit(0)
   else:
