@@ -1,44 +1,14 @@
-#!/usr/bin/python
+#!/bin/bash
 
 # This is a quick hack to make it so that DBus activation works as the
 # DBus daemon holds onto the PID until the name gets registered.  So we
-# need the PID to exist until then.  10 seconds should be more that enough
-# time for the service to register the name.
+
 #
 # This can go away if we get DBus Activation for Upstart
 
-import os
-import subprocess
-from gi.repository import Gio, GLib
-
-class DBusListener(object):
-  def __init__(self, serviceName):
-    self.success = False
-    self.mainloop = GLib.MainLoop()
-    Gio.bus_watch_name(
-      Gio.BusType.SESSION,
-      serviceName,
-      Gio.DBusProxyFlags.NONE,
-      self.connected,
-      None,
-    )
-    GLib.timeout_add_seconds(10, self.timeout)
-    self.mainloop.run()
-		
-  def connected(self, connection, name, owner):
-    self.mainloop.quit()
-    self.success = True
-    
-  def timeout(self):
-    self.mainloop.quit()
-    self.success = False
-
-if os.environ['UPSTART_SESSION']:
-  subprocess.Popen(['start', 'hud'])
-  listener = DBusListener('com.canonical.hud')
-  if listener.success:
-    exit(0)
-  else:
-    exit(1)
-else:
-  subprocess.Popen(['@pkglibexecdir@/hud-service'])
+if [ "x$UPSTART_SESSION" != "x" ]; then
+	start hud
+	sleep 10
+else
+	@pkglibexecdir@/hud-service
+fi
