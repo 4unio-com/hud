@@ -4,3 +4,4 @@
 /.pydevproject
 /build
 
+./CMakeLists.txt.user

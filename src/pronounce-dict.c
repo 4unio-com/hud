@@ -91,7 +91,7 @@ load_dict (PronounceDict *dict, const gchar *dict_path, GError **error)
 	if (!g_file_test(dict_path, G_FILE_TEST_EXISTS)) {
 		g_warning("Unable to find dictionary '%s'!", dict_path);
 		if (error != NULL)
-		  *error = g_error_new(hud_pronounce_dict_error_quark (), 0, "Unable to find dictionary [%s]. Is julius-voxforge installed?", dict_path);
+          *error = g_error_new(hud_pronounce_dict_error_quark (), 0, "Unable to find dictionary [%s].", dict_path);
 		return FALSE;
 	}
 
@@ -271,18 +271,4 @@ pronounce_dict_get_sphinx (GError **error)
 	}
 
 	return global;
-}
-
-PronounceDict *
-pronounce_dict_get_julius (GError **error)
-{
-  static PronounceDict * global = NULL;
-
-  if (global == NULL) {
-    gchar *dict_path = g_build_filename(JULIUS_DICT_PATH, "dict", NULL);
-    global = pronounce_dict_new(dict_path, error);
-    g_free(dict_path);
-  }
-
-  return global;
 }

@@ -56,7 +56,6 @@ add_definitions( -DGETTEXT_PACKAGE="${GETTEXT_PACKAGE}" )
 add_definitions( -DLIBEXECDIR="${CMAKE_INSTALL_FULL_LIBEXECDIR}" )
 add_definitions( -DHMM_PATH="/usr/share/sphinx-voxforge-en/hmm/voxforge_en_sphinx.cd_cont_3000/" )
 add_definitions( -DDICT_PATH="/usr/share/sphinx-voxforge-en/lm/voxforge_en_sphinx.cd_cont_3000/voxforge_en_sphinx.dic" )
-add_definitions( -DJULIUS_DICT_PATH="/usr/share/julius-voxforge/acoustic/" )
 
 pkg_check_modules(GLIB2 REQUIRED glib-2.0)
 include_directories(${GLIB2_INCLUDE_DIRS})

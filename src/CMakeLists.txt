@@ -93,7 +93,6 @@ query.h
 string-list.h
 voice.h
 sphinx.h
-julius.h
 item.h
 keyword-mapping.h
 result.h
@@ -125,7 +124,6 @@ query.c
 string-list.c
 voice.c
 sphinx.c
-julius.c
 item.c
 keyword-mapping.c
 result.c
