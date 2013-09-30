@@ -18,7 +18,7 @@
 #define G_LOG_DOMAIN "hudvoice"
 
 #include "voice.h"
-#include "sphinx.h"
+#include "unity-voice.h"
 
 /**
  * HudVoiceace:
@@ -39,7 +39,7 @@ HudVoice *
 hud_voice_new (HudQueryIfaceComCanonicalHudQuery *skel, const gchar *device,
     GError **error)
 {
-  return HUD_VOICE(hud_sphinx_new (skel, device, error));
+  return HUD_VOICE(hud_unity_voice_new (skel, device, error));
 }
 
 

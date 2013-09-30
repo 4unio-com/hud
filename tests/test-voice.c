@@ -16,8 +16,6 @@
 
 #include <glib-object.h>
 #include <glib/gstdio.h>
-#include <pulse/pulseaudio.h>
-#include <pulse/glib-mainloop.h>
 
 #include "voice.h"
 #include "source.h"
@@ -26,9 +24,6 @@
 
 typedef struct
 {
-  pa_mainloop *mainloop;
-  pa_mainloop_api *api;
-  pa_context *context;
   gboolean operation_success;
   guint module_index;
   gchar *name;
@@ -94,202 +89,6 @@ test_hud_voice_query_empty_source ()
   g_object_unref(skel);
 }
 
-static void
-quit (int ret, pa_mainloop_api *mainloop_api)
-{
-  g_assert(mainloop_api);
-  mainloop_api->quit (mainloop_api, ret);
-}
-
-static void
-context_drain_complete (pa_context *c, void *userdata)
-{
-  pa_context_disconnect (c);
-}
-
-static void
-drain (pa_context *context)
-{
-  pa_operation *o;
-
-  if (!(o = pa_context_drain (context, context_drain_complete, NULL )))
-  {
-    g_debug("DRAIN: disconnecting");
-    pa_context_disconnect (context);
-  }
-  else
-  {
-    g_debug("DRAIN: unreffing");
-    pa_operation_unref (o);
-  }
-}
-
-static void
-index_callback (pa_context *c, uint32_t idx, void *userdata)
-{
-  if (idx == PA_INVALID_INDEX)
-  {
-    g_error("Pulse error: [%s]", pa_strerror(pa_context_errno(c)));
-  }
-
-  HudTestVoice *test_voice = (HudTestVoice *) userdata;
-  g_debug("index_callback: loaded module with index [%d]", idx);
-  test_voice->module_index = idx;
-
-  drain (c);
-}
-
-static void
-success_callback (pa_context *c, int success, void *userdata)
-{
-  HudTestVoice *test_voice = (HudTestVoice *) userdata;
-  test_voice->operation_success = success;
-  g_debug(
-      "index_callback_unload: unloaded module with index [%d]", test_voice->module_index);
-  test_voice->module_index = PA_INVALID_INDEX;
-
-  drain (c);
-}
-
-static void
-context_state_callback_load_module (pa_context *context,
-    void *userdata)
-{
-  HudTestVoice *test_voice = (HudTestVoice *) userdata;
-
-  gchar *arguments = NULL;
-
-  switch (pa_context_get_state (context))
-  {
-  case PA_CONTEXT_CONNECTING:
-  case PA_CONTEXT_AUTHORIZING:
-  case PA_CONTEXT_SETTING_NAME:
-    g_debug("PA_CONTEXT_CONNECTING");
-    break;
-
-  case PA_CONTEXT_READY:
-    arguments = g_strdup_printf (
-        "source_name=%s file=%s channels=1 format=s16le rate=16000",
-        test_voice->name, test_voice->path);
-    g_debug("Loading module with arguments=[%s]", arguments);
-    pa_operation_unref (
-        pa_context_load_module (context, "module-pipe-source", arguments,
-            index_callback, userdata));
-    g_free (arguments);
-    break;
-
-  case PA_CONTEXT_TERMINATED:
-    g_debug("PA_CONTEXT_TERMINATED");
-    quit (0, test_voice->api);
-    break;
-
-  case PA_CONTEXT_FAILED:
-  default:
-    g_error("PA_CONTEXT_FAILED: [%s]", pa_strerror(pa_context_errno(context)));
-    quit (1, test_voice->api);
-    break;
-  }
-}
-
-static void
-context_state_callback_unload_module (pa_context *context,
-    void *userdata)
-{
-  HudTestVoice *test_voice = (HudTestVoice *) userdata;
-
-  switch (pa_context_get_state (context))
-  {
-  case PA_CONTEXT_CONNECTING:
-  case PA_CONTEXT_AUTHORIZING:
-  case PA_CONTEXT_SETTING_NAME:
-    g_debug("PA_CONTEXT_CONNECTING");
-    break;
-
-  case PA_CONTEXT_READY:
-    g_debug("unload module [%d]", test_voice->module_index);
-    pa_operation_unref (
-        pa_context_unload_module (context, test_voice->module_index,
-            success_callback, userdata));
-    break;
-
-  case PA_CONTEXT_TERMINATED:
-    g_debug("PA_CONTEXT_TERMINATED");
-    quit (0, test_voice->api);
-    break;
-
-  case PA_CONTEXT_FAILED:
-  default:
-    g_error("PA_CONTEXT_FAILED: [%s]", pa_strerror(pa_context_errno(context)));
-    quit (1, test_voice->api);
-    break;
-  }
-}
-
-void
-unload_pipe_module (HudTestVoice* test_voice)
-{
-  test_voice->mainloop = pa_mainloop_new ();
-  g_assert(test_voice->mainloop);
-
-  test_voice->api = pa_mainloop_get_api (test_voice->mainloop);
-
-  test_voice->context = pa_context_new (test_voice->api, "hud.test");
-  g_assert(test_voice->context);
-
-  pa_context_set_state_callback (test_voice->context,
-      context_state_callback_unload_module, &*test_voice);
-
-  g_assert_cmpint(pa_context_connect (test_voice->context, NULL, 0, NULL ), >=,
-      0);
-
-  gint ret = 0;
-  g_assert_cmpint(pa_mainloop_run(test_voice->mainloop, &ret), >=, 0);
-  g_assert_cmpuint(test_voice->module_index, ==, PA_INVALID_INDEX);
-  g_assert(test_voice->operation_success);
-
-  if (test_voice->context)
-    pa_context_unref (test_voice->context);
-
-  if (test_voice->mainloop)
-  {
-    pa_signal_done ();
-    pa_mainloop_free (test_voice->mainloop);
-  }
-}
-
-void
-load_pipe_module (HudTestVoice* test_voice)
-{
-  {
-    test_voice->mainloop = pa_mainloop_new ();
-    g_assert(test_voice->mainloop);
-
-    test_voice->api = pa_mainloop_get_api (test_voice->mainloop);
-
-    test_voice->context = pa_context_new (test_voice->api, "hud.test");
-    g_assert(test_voice->context);
-
-    pa_context_set_state_callback (test_voice->context,
-        context_state_callback_load_module, &*test_voice);
-
-    g_assert_cmpint(pa_context_connect (test_voice->context, NULL, 0, NULL ),
-        >=, 0);
-
-    gint ret = 0;
-    g_assert_cmpint(pa_mainloop_run(test_voice->mainloop, &ret), >=, 0);
-    g_assert_cmpuint(test_voice->module_index, !=, PA_INVALID_INDEX);
-
-    if (test_voice->context)
-      pa_context_unref (test_voice->context);
-
-    if (test_voice->mainloop)
-    {
-      pa_signal_done ();
-      pa_mainloop_free (test_voice->mainloop);
-    }
-  }
-}
-
 void
 play_sound (const gchar *name, const gchar *to)
 {
@@ -325,7 +124,7 @@ test_hud_voice_query ()
       hud_query_iface_com_canonical_hud_query_skeleton_new ();
 
   HudTestVoice test_voice =
-  { NULL, NULL, NULL, FALSE, PA_INVALID_INDEX, NULL, NULL };
+  { FALSE, 0, NULL, NULL };
 
   GError *error = NULL;
   gint file_handle = g_file_open_tmp ("hud.test-voice-XXXXXX.source",
@@ -374,15 +173,11 @@ test_hud_voice_query ()
     hud_string_list_unref(tokens);
   }
 
-  load_pipe_module (&test_voice);
-
   test_sound (&test_voice, voice, source, "auto-adjust", "auto adjust");
   test_sound (&test_voice, voice, source, "color-balance", "color balance");
   test_sound (&test_voice, voice, source, "open-tab", "open tab");
   test_sound (&test_voice, voice, source, "open-terminal", "open terminal");
   test_sound (&test_voice, voice, source, "system-settings", "system settings");
-
-  unload_pipe_module (&test_voice);
 
   g_free (test_voice.name);
   g_free (test_voice.path);

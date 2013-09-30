@@ -13,7 +13,7 @@ main (int argc, char * argv[])
 #endif
 
 	GError *error = NULL;
-	PronounceDict * dict = pronounce_dict_get_sphinx(&error);
+    PronounceDict * dict = pronounce_dict_get_unity_voice(&error);
 	if (dict == NULL)
 	{
 	  g_error("%s", error->message);

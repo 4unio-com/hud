@@ -92,7 +92,7 @@ token.h
 query.h
 string-list.h
 voice.h
-sphinx.h
+unity-voice.h
 item.h
 keyword-mapping.h
 result.h
@@ -123,7 +123,7 @@ token.c
 query.c
 string-list.c
 voice.c
-sphinx.c
+unity-voice.c
 item.c
 keyword-mapping.c
 result.c
@@ -152,7 +152,6 @@ ${BAMF_LIBRARIES}
 ${DEE_LIBRARIES}
 ${DBUSMENU_GLIB_LIBRARIES}
 ${SQLITE3_LIBRARIES}
-${POCKETSPHINX_LIBRARIES}
 ${PHABLET_LIBRARIES}
 ${NIH_LIBRARIES}
 ${NIH_DBUS_LIBRARIES}

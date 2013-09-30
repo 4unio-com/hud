@@ -231,7 +231,7 @@ hudtest(test-application-source test-application-source.c test-application-sourc
 #test-good-app-info-tons-of-entries
 
 ####################################
-# Voice tests (needs working pulse)
+# Voice tests
 ####################################
 
 if(${ENABLE_VOICE_TESTS})

@@ -54,8 +54,6 @@ add_definitions( -DDATADIR="${CMAKE_INSTALL_FULL_DATADIR}" )
 add_definitions( -DGNOMELOCALEDIR="${CMAKE_INSTALL_FULL_DATADIR}/locale" )
 add_definitions( -DGETTEXT_PACKAGE="${GETTEXT_PACKAGE}" )
 add_definitions( -DLIBEXECDIR="${CMAKE_INSTALL_FULL_LIBEXECDIR}" )
-add_definitions( -DHMM_PATH="/usr/share/sphinx-voxforge-en/hmm/voxforge_en_sphinx.cd_cont_3000/" )
-add_definitions( -DDICT_PATH="/usr/share/sphinx-voxforge-en/lm/voxforge_en_sphinx.cd_cont_3000/voxforge_en_sphinx.dic" )
 
 pkg_check_modules(GLIB2 REQUIRED glib-2.0)
 include_directories(${GLIB2_INCLUDE_DIRS})
@@ -77,9 +75,6 @@ include_directories(${SQLITE3_INCLUDE_DIRS})
 
 pkg_check_modules(DBUSMENU_GLIB REQUIRED dbusmenu-glib-0.4)
 include_directories(${DBUSMENU_GLIB_INCLUDE_DIRS})
-
-pkg_check_modules(POCKETSPHINX REQUIRED pocketsphinx)
-include_directories(${POCKETSPHINX_INCLUDE_DIRS})
 
 pkg_search_module(GTK3 REQUIRED gtk+-3.0)
 include_directories(${GTK3_INCLUDE_DIRS})

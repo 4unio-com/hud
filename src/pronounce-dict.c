@@ -262,12 +262,12 @@ pronounce_dict_new (const gchar *dict_path, GError **error)
 }
 
 PronounceDict *
-pronounce_dict_get_sphinx (GError **error)
+pronounce_dict_get_unity_voice (GError **error)
 {
 	static PronounceDict * global = NULL;
 
 	if (global == NULL) {
-	  global = pronounce_dict_new(DICT_PATH, error);
+      //global = pronounce_dict_new(DICT_PATH, error);
 	}
 
 	return global;
