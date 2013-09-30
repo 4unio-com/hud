@@ -727,8 +727,8 @@ name_lost_cb (GDBusConnection *connection,
               const gchar     *name,
               gpointer         user_data)
 {
-  g_warning ("Unable to get name '%s'", name);
   g_main_loop_quit (mainloop);
+  g_error ("Unable to get name '%s'", name);
 }
 
 static void
