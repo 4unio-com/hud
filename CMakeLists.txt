@@ -46,6 +46,7 @@ endif()
 set(HUD_QUERY_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.query.xml)
 set(HUD_SERVICE_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.xml)
 set(HUD_APP_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.Application.xml)
+set(UNITY_VOICE_XML /usr/share/dbus-1/interfaces/com.canonical.Unity.Voice.xml)
 
 set(HUD_TOP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(HUD_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")

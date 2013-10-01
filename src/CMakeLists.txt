@@ -24,6 +24,7 @@ set(HUD_SERVICE_GENERATED_HEADERS
 app-iface.h
 hud-iface.h
 hud-query-iface.h
+unity-voice-iface.h
 )
 
 set(HUD_SERVICE_GENERATED_SOURCES
@@ -43,6 +44,14 @@ NAME hud-query-iface
 PREFIX com.canonical.hud.query.
 NAMESPACE HudQueryIface
 SERVICE_XML ${HUD_QUERY_XML}
+)
+
+add_gdbus_codegen(
+OUTFILES HUD_SERVICE_GENERATED_SOURCES
+NAME unity-voice-iface
+PREFIX com.canonical.Unity.Voice.
+NAMESPACE UnityVoiceIface
+SERVICE_XML ${UNITY_VOICE_XML}
 )
 
 add_gdbus_codegen(

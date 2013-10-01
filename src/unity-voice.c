@@ -18,6 +18,7 @@
 
 #include "voice.h"
 #include "unity-voice.h"
+#include "unity-voice-iface.h"
 #include "hud-query-iface.h"
 #include "source.h"
 #include "pronounce-dict.h"
@@ -54,6 +55,7 @@ struct _HudUnityVoice
   GObject parent_instance;
 
   HudQueryIfaceComCanonicalHudQuery *skel;
+  UnityVoiceIfaceComCanonicalUnityVoice *proxy;
   GRegex * alphanumeric_regex;
 };
 
@@ -92,6 +94,7 @@ hud_unity_voice_finalize (GObject *object)
   HudUnityVoice *self = HUD_UNITY_VOICE (object);
 
   g_clear_object(&self->skel);
+  g_clear_object(&self->proxy);
   g_clear_pointer(&self->alphanumeric_regex, g_regex_unref);
 
   G_OBJECT_CLASS (hud_unity_voice_parent_class)
@@ -104,13 +107,57 @@ hud_unity_voice_new (HudQueryIfaceComCanonicalHudQuery *skel, const gchar *devic
   HudUnityVoice *self = g_object_new (HUD_TYPE_UNITY_VOICE, NULL);
   self->skel = g_object_ref(skel);
 
+  // create proxy for unity-voice
+  GError * bus_error = NULL;
+  self->proxy = unity_voice_iface_com_canonical_unity_voice_proxy_new_for_bus_sync(
+    G_BUS_TYPE_SESSION,
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    "com.canonical.Unity.Voice",
+    "/com/canonical/Unity/Voice",
+    NULL,
+    &bus_error
+  );
+
   return self;
+}
+
+static GVariant*
+hud_unity_voice_build_commands_variant(GList *items)
+{
+  GVariant* commands;
+  GVariantBuilder builder;
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
+  for ( ; items != NULL; items = g_list_next (items))
+  {
+    GVariant* variant;
+    GVariantBuilder as_builder;
+
+    HudItem* item = (HudItem*) items->data;
+    HudStringList* list = hud_item_get_tokens( item );
+
+    g_variant_builder_init (&as_builder, G_VARIANT_TYPE_ARRAY);
+    while( list != NULL )
+    {
+      g_variant_builder_add_value (&as_builder, g_variant_new_string ( hud_string_list_get_head( list ) ));
+      list = hud_string_list_get_tail( list );
+    }
+
+    variant = g_variant_builder_end (&as_builder);
+
+    g_variant_builder_add_value (&builder, variant);
+  }
+
+  commands = g_variant_builder_end (&builder);
+
+  return commands;
 }
 
 static gboolean
 hud_unity_voice_query (HudVoice *voice, HudSource *source, gchar **result, GError **error)
 {
   g_return_val_if_fail(HUD_IS_UNITY_VOICE(voice), FALSE);
+  HudUnityVoice *self = HUD_UNITY_VOICE(voice);
 
   if (source == NULL) {
     /* No active window, that's fine, but we'll just move on */
@@ -126,7 +173,10 @@ hud_unity_voice_query (HudVoice *voice, HudSource *source, gchar **result, GErro
     return TRUE;
   }
 
-  gboolean success = TRUE;
+  // send commands via "listen" call to unity-voice API via DBus
+  // fill result with command heard
+  GVariant* commands = hud_unity_voice_build_commands_variant( items );
+  gboolean success = unity_voice_iface_com_canonical_unity_voice_call_listen_sync(self->proxy, commands, result, NULL, NULL);
 
   g_list_free_full(items, g_object_unref);
 
