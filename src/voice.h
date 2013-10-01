@@ -34,6 +34,15 @@ typedef struct _HudVoice                                   HudVoice;
 typedef struct _HudSource                                  HudSource;
 typedef struct _HudQueryIfaceComCanonicalHudQuery          HudQueryIfaceComCanonicalHudQuery;
 
+enum HUD_VOICE_ERROR_CODE
+{
+  HUD_VOICE_HUD_STATE_ERROR,
+  HUD_VOICE_INITIALISATION_ERROR,
+  HUD_VOICE_AUDIO_DEVICE_OPEN_ERROR,
+  HUD_VOICE_READ_ERROR,
+  HUD_VOICE_NO_AUDIO_ERROR,
+};
+
 struct _HudVoiceInterface
 {
   GTypeInterface g_iface;
