@@ -122,7 +122,7 @@ hud_sphinx_new (HudQueryIfaceComCanonicalHudQuery *skel, const gchar *device, GE
   gchar *hmm = HMM_PATH;
   gchar *dict = DICT_PATH;
 
-  if (device != NULL) { 
+  if (device != NULL) {
     self->config = cmd_ln_init(NULL, sphinx_cmd_ln, TRUE,
                                      "-hmm", hmm,
                                      "-dict", dict,
@@ -218,9 +218,24 @@ hud_sphinx_utterance_loop(HudSphinx *self, gchar **result, GError **error)
   hud_query_iface_com_canonical_hud_query_emit_voice_query_listening (
       HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY (self->skel));
 
+  int attempts = 0;
   /* Wait data for next utterance */
-  while ((k = cont_ad_read (cont, adbuf, 4096)) == 0)
+  while ((k = cont_ad_read (cont, adbuf, 4096)) == 0) {
+    ++attempts;
+    if(attempts == 100) {
+      break;
+    }
     sleep_msec (100);
+  }
+
+  if (k == 0)
+  {
+    g_warning("Nothing was heard");
+    *result = NULL;
+    g_set_error_literal (error, hud_sphinx_error_quark (), 0,
+        "Nothing was heard");
+    return FALSE;
+  }
 
   if (k < 0)
   {
@@ -249,8 +264,13 @@ hud_sphinx_utterance_loop(HudSphinx *self, gchar **result, GError **error)
   for (;;)
   {
     /* Read non-silence audio data, if any, from continuous listening module */
-    if ((k = cont_ad_read (cont, adbuf, 4096)) < 0)
-      g_error("Failed to read audio");
+    if ((k = cont_ad_read (cont, adbuf, 4096)) < 0) {
+      g_warning("Failed to read audio");
+      *result = NULL;
+      g_set_error_literal (error, hud_sphinx_error_quark (), 0,
+              "Failed to read audio");
+      return FALSE;
+    }
     if (k == 0)
     {
       /*
@@ -264,6 +284,15 @@ hud_sphinx_utterance_loop(HudSphinx *self, gchar **result, GError **error)
     {
       /* New speech data received; note current timestamp */
       ts = cont->read_ts;
+
+      /* Check for timeout */
+      if ((cont->read_ts - ts) > DEFAULT_SAMPLES_PER_SEC * 30) {
+        g_warning("Nothing was heard");
+        *result = NULL;
+        g_set_error_literal (error, hud_sphinx_error_quark (), 0,
+                "Nothing was heard");
+        return FALSE;
+      }
     }
 
     /*
