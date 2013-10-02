@@ -161,7 +161,8 @@ hud_unity_voice_query (HudVoice *voice, HudSource *source, gchar **result, GErro
   if (source == NULL) {
     /* No active window, that's fine, but we'll just move on */
     *result = NULL;
-    g_set_error_literal (error, hud_unity_voice_error_quark(), 0, "Active source is null");
+    g_set_error_literal (error, hud_unity_voice_error_quark(), HUD_VOICE_HUD_STATE_ERROR,
+            "Active source is null");
     return FALSE;
   }
 
