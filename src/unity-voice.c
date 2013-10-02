@@ -108,14 +108,13 @@ hud_unity_voice_new (HudQueryIfaceComCanonicalHudQuery *skel, const gchar *devic
   self->skel = g_object_ref(skel);
 
   // create proxy for unity-voice
-  GError * bus_error = NULL;
   self->proxy = unity_voice_iface_com_canonical_unity_voice_proxy_new_for_bus_sync(
     G_BUS_TYPE_SESSION,
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     "com.canonical.Unity.Voice",
     "/com/canonical/Unity/Voice",
     NULL,
-    &bus_error
+    error
   );
 
   return self;
@@ -136,7 +135,7 @@ hud_unity_voice_build_commands_variant(GList *items)
     HudItem* item = (HudItem*) items->data;
     HudStringList* list = hud_item_get_tokens( item );
 
-    g_variant_builder_init (&as_builder, G_VARIANT_TYPE_ARRAY);
+    g_variant_builder_init (&as_builder, G_VARIANT_TYPE_STRING_ARRAY);
     while( list != NULL )
     {
       g_variant_builder_add_value (&as_builder, g_variant_new_string ( hud_string_list_get_head( list ) ));
