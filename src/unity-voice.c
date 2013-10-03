@@ -130,33 +130,35 @@ hud_unity_voice_build_commands_variant(GList *items)
   GVariantBuilder builder;
 
   // use builder to construct aas of commands
-  g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
-  for ( ; items != NULL; items = g_list_next (items))
+  g_variant_builder_init( &builder, G_VARIANT_TYPE_ARRAY );
+  for( ; items != NULL; items = g_list_next( items ) )
   {
     GVariant* variant;
     GVariantBuilder as_builder;
 
     // get current item's token list
-    HudItem* item = (HudItem*) items->data;
-    HudStringList* list = hud_item_get_tokens( item );
+    HudItem* item = ( HudItem* ) items->data;
 
-    // use as_builder to construct a command as from token list
-    g_variant_builder_init (&as_builder, G_VARIANT_TYPE_STRING_ARRAY);
-    while( list != NULL )
+    // use as_builder to construct a command as from command
+    g_variant_builder_init( &as_builder, G_VARIANT_TYPE_STRING_ARRAY );
+
+    const gchar * command = hud_item_get_command( item );
+    gchar ** command_list = g_strsplit( command, " ", -1 );
+
+    for( int i = 0; command_list[i] != NULL ; i++ )
     {
-      g_variant_builder_add_value (&as_builder, g_variant_new_string ( hud_string_list_get_head( list ) ));
-
-      // shift to next token string
-      list = hud_string_list_get_tail( list );
+      g_variant_builder_add_value( &as_builder, g_variant_new_string ( command_list[i] ) );
     }
 
-    variant = g_variant_builder_end (&as_builder);
+    g_strfreev( command_list );
+
+    variant = g_variant_builder_end( &as_builder );
 
     // add command as to aas commands
-    g_variant_builder_add_value (&builder, variant);
+    g_variant_builder_add_value( &builder, variant );
   }
 
-  commands = g_variant_builder_end (&builder);
+  commands = g_variant_builder_end( &builder );
 
   return commands;
 }
