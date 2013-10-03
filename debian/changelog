@@ -1,3 +1,14 @@
+hud (13.10.1+13.10.20131002.1-0ubuntu1) saucy; urgency=low
+
+  [ Pete Woods ]
+  * Raise an error instead of a warning if we can't get our hands on the
+    HUD service name.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 322
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 02 Oct 2013 11:54:52 +0000
+
 hud (13.10.1+13.10.20130918-0ubuntu1) saucy; urgency=low
 
   [ Ted Gould ]
