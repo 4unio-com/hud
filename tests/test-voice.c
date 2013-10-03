@@ -106,7 +106,7 @@ test_sound (const HudTestVoice* test_voice, HudVoice* voice,
   GError *error = NULL;
 
   // call query and obtain result
-  hud_voice_query(voice, HUD_SOURCE(source), &result, &error);
+  g_assert(hud_voice_query(voice, HUD_SOURCE(source), &result, &error));
 
   g_assert(error == NULL);
   g_assert(result != NULL);
@@ -123,8 +123,6 @@ test_hud_voice_query ()
 
   hud_test_utils_dbus_mock_start (service, UNITY_VOICE_BUS_NAME,
       UNITY_VOICE_OBJECT_PATH, UNITY_VOICE_INTERFACE);
-
-  hud_test_utils_process_mainloop (300);
 
   GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
       UNITY_VOICE_BUS_NAME, NULL );
@@ -148,45 +146,15 @@ test_hud_voice_query ()
 
   HudManualSource* source = hud_manual_source_new ("test_id", "test_icon");
 
-  {
-    HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
-    tokens = hud_string_list_add_item ("auto adjust", tokens);
-    hud_manual_source_add (source, tokens, NULL, "shortcut1", TRUE);
-    hud_string_list_unref(tokens);
-  }
-  {
-    HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
-    tokens = hud_string_list_add_item ("color balance", tokens);
-    hud_manual_source_add (source, tokens, NULL, "shortcut2", TRUE);
-    hud_string_list_unref(tokens);
-  }
-  {
-    HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
-    tokens = hud_string_list_add_item ("open tab", tokens);
-    hud_manual_source_add (source, tokens, NULL, "shortcut3", TRUE);
-    hud_string_list_unref(tokens);
-  }
-  {
-    HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
-    tokens = hud_string_list_add_item ("open terminal", tokens);
-    hud_manual_source_add (source, tokens, NULL, "shortcut4", TRUE);
-    hud_string_list_unref(tokens);
-  }
-  {
-    HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
-    tokens = hud_string_list_add_item ("system settings", tokens);
-    hud_manual_source_add (source, tokens, NULL, "shortcut5", TRUE);
-    hud_string_list_unref(tokens);
-  }
+  HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
+  tokens = hud_string_list_add_item ("auto adjust", tokens);
+  hud_manual_source_add (source, tokens, NULL, "shortcut1", TRUE);
+  hud_string_list_unref(tokens);
 
   HudTestVoice test_voice =
   { FALSE, 0, NULL, NULL };
 
   test_sound (&test_voice, voice, source, "auto-adjust", "auto adjust");
-//  test_sound (&test_voice, voice, source, "color-balance", "color balance");
-//  test_sound (&test_voice, voice, source, "open-tab", "open tab");
-//  test_sound (&test_voice, voice, source, "open-terminal", "open terminal");
-//  test_sound (&test_voice, voice, source, "system-settings", "system settings");
 
   g_free (test_voice.name);
   g_free (test_voice.path);

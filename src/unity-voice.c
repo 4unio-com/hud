@@ -26,6 +26,9 @@
 #include <gio/gunixoutputstream.h>
 #include <glib/gstdio.h>
 
+static const gchar* UNITY_VOICE_BUS_NAME = "com.canonical.Unity.Voice";
+static const gchar* UNITY_VOICE_OBJECT_PATH = "/com/canonical/Unity/Voice";
+
 static GQuark
 hud_unity_voice_error_quark(void)
 {
@@ -111,8 +114,8 @@ hud_unity_voice_new (HudQueryIfaceComCanonicalHudQuery *skel, const gchar *devic
   self->proxy = unity_voice_iface_com_canonical_unity_voice_proxy_new_for_bus_sync(
     G_BUS_TYPE_SESSION,
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-    "com.canonical.Unity.Voice",
-    "/com/canonical/Unity/Voice",
+    UNITY_VOICE_BUS_NAME,
+    UNITY_VOICE_OBJECT_PATH,
     NULL,
     error
   );
@@ -126,24 +129,30 @@ hud_unity_voice_build_commands_variant(GList *items)
   GVariant* commands;
   GVariantBuilder builder;
 
+  // use builder to construct aas of commands
   g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
   for ( ; items != NULL; items = g_list_next (items))
   {
     GVariant* variant;
     GVariantBuilder as_builder;
 
+    // get current item's token list
     HudItem* item = (HudItem*) items->data;
     HudStringList* list = hud_item_get_tokens( item );
 
+    // use as_builder to construct a command as from token list
     g_variant_builder_init (&as_builder, G_VARIANT_TYPE_STRING_ARRAY);
     while( list != NULL )
     {
       g_variant_builder_add_value (&as_builder, g_variant_new_string ( hud_string_list_get_head( list ) ));
+
+      // shift to next token string
       list = hud_string_list_get_tail( list );
     }
 
     variant = g_variant_builder_end (&as_builder);
 
+    // add command as to aas commands
     g_variant_builder_add_value (&builder, variant);
   }
 
@@ -173,8 +182,7 @@ hud_unity_voice_query (HudVoice *voice, HudSource *source, gchar **result, GErro
     return TRUE;
   }
 
-  // send commands via "listen" call to unity-voice API via DBus
-  // fill result with command heard
+  // send commands via "listen" call to unity-voice API on DBus
   GVariant* commands = hud_unity_voice_build_commands_variant( items );
   gboolean success = unity_voice_iface_com_canonical_unity_voice_call_listen_sync(self->proxy, commands, result, NULL, NULL);
 
