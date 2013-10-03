@@ -25,6 +25,7 @@
 
 #include <gio/gunixoutputstream.h>
 #include <glib/gstdio.h>
+#include <string.h>
 
 static const gchar* UNITY_VOICE_BUS_NAME = "com.canonical.Unity.Voice";
 static const gchar* UNITY_VOICE_OBJECT_PATH = "/com/canonical/Unity/Voice";
@@ -120,6 +121,14 @@ hud_unity_voice_new (HudQueryIfaceComCanonicalHudQuery *skel, const gchar *devic
     error
   );
 
+  if (self->proxy == NULL) {
+    g_warning("Unity-Voice proxy failed to initialize");
+    g_set_error_literal (error, hud_unity_voice_error_quark (),
+        HUD_VOICE_INITIALISATION_ERROR,
+        "Unity-Voice proxy failed to initialize");
+    return NULL;
+  }
+
   return self;
 }
 
@@ -128,38 +137,47 @@ hud_unity_voice_build_commands_variant(GList *items)
 {
   GVariant* commands;
   GVariantBuilder builder;
+  gboolean builder_valid = FALSE;
 
-  // use builder to construct aas of commands
+  // use builder to construct "aas" of commands
   g_variant_builder_init( &builder, G_VARIANT_TYPE_ARRAY );
   for( ; items != NULL; items = g_list_next( items ) )
   {
     GVariant* variant;
     GVariantBuilder as_builder;
 
-    // get current item's token list
+    // get current item's command
     HudItem* item = ( HudItem* ) items->data;
-
-    // use as_builder to construct a command as from command
-    g_variant_builder_init( &as_builder, G_VARIANT_TYPE_STRING_ARRAY );
-
     const gchar * command = hud_item_get_command( item );
-    gchar ** command_list = g_strsplit( command, " ", -1 );
 
-    for( int i = 0; command_list[i] != NULL ; i++ )
+    // continue only if there is a command available
+    if (strcmp (command, "No Command") != 0)
     {
-      g_variant_builder_add_value( &as_builder, g_variant_new_string ( command_list[i] ) );
+      gchar ** command_words = g_strsplit( command, " ", -1 );
+
+      // use as_builder to construct a command "as" from command_words
+      g_variant_builder_init( &as_builder, G_VARIANT_TYPE_STRING_ARRAY );
+      for( int i = 0; command_words[i] != NULL ; i++ )
+      {
+        g_variant_builder_add_value( &as_builder, g_variant_new_string ( command_words[i] ) );
+      }
+
+      g_strfreev( command_words );
+
+      variant = g_variant_builder_end( &as_builder );
+
+      // add command "as" to commands "aas"
+      g_variant_builder_add_value( &builder, variant );
+      builder_valid = TRUE;
     }
+  }
 
-    g_strfreev( command_list );
-
-    variant = g_variant_builder_end( &as_builder );
-
-    // add command as to aas commands
-    g_variant_builder_add_value( &builder, variant );
+  if( !builder_valid )
+  {
+    return NULL;
   }
 
   commands = g_variant_builder_end( &builder );
-
   return commands;
 }
 
@@ -184,9 +202,16 @@ hud_unity_voice_query (HudVoice *voice, HudSource *source, gchar **result, GErro
     return TRUE;
   }
 
-  // send commands via "listen" call to unity-voice API on DBus
   GVariant* commands = hud_unity_voice_build_commands_variant( items );
-  gboolean success = unity_voice_iface_com_canonical_unity_voice_call_listen_sync(self->proxy, commands, result, NULL, NULL);
+  if (commands == NULL) {
+    *result = NULL;
+    g_set_error_literal (error, hud_unity_voice_error_quark(), HUD_VOICE_HUD_STATE_ERROR,
+            "No valid commands found in items supplied");
+    return FALSE;
+  }
+
+  // send commands via "listen" call to unity-voice API on DBus
+  gboolean success = unity_voice_iface_com_canonical_unity_voice_call_listen_sync(self->proxy, commands, result, NULL, error);
 
   g_list_free_full(items, g_object_unref);
 
