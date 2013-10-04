@@ -1,4 +1,4 @@
-project(hud C)
+project(hud C CXX)
 cmake_minimum_required(VERSION 2.8.9)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
@@ -47,6 +47,8 @@ set(HUD_QUERY_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.query.xml)
 set(HUD_SERVICE_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.xml)
 set(HUD_APP_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.Application.xml)
 
+set(WINDOW_STACK_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.Unity.WindowStack.xml")
+
 set(HUD_TOP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(HUD_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
@@ -94,6 +96,21 @@ include_directories(${NIH_DBUS_INCLUDE_DIRS})
 pkg_check_modules(DBUS REQUIRED dbus-1)
 include_directories(${DBUS_INCLUDE_DIRS})
 
+find_package(Qt5Core REQUIRED)
+include_directories(${Qt5Core_INCLUDE_DIRS})
+
+find_package(Qt5DBus REQUIRED)
+include_directories(${Qt5DBus_INCLUDE_DIRS})
+
+find_package(Qt5Test REQUIRED)
+include_directories(${Qt5Test_INCLUDE_DIRS})
+
+pkg_check_modules(QTDBUSTEST REQUIRED libqtdbustest-1 REQUIRED)
+include_directories(${QTDBUSTEST_INCLUDE_DIRS})
+
+pkg_check_modules(QTDBUSMOCK REQUIRED libqtdbusmock-1 REQUIRED)
+include_directories(${QTDBUSMOCK_INCLUDE_DIRS})
+
 find_package(Vala 0.12)
 
 find_package(GObjectIntrospection 0.9.12)
@@ -134,7 +151,11 @@ message("Installing DBus interfaces to ${DBUSIFACEDIR}")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_subdirectory(data)
 add_subdirectory(libhud-client)
@@ -156,6 +177,7 @@ if(${ENABLE_TESTS})
 endif()
 
 add_subdirectory(tools-vala)
+add_subdirectory(window-stack-bridge)
 if(${ENABLE_DOCUMENTATION})
   add_subdirectory(docs)
 endif()
