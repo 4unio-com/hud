@@ -30,6 +30,13 @@
 static const gchar* UNITY_VOICE_BUS_NAME = "com.canonical.Unity.Voice";
 static const gchar* UNITY_VOICE_OBJECT_PATH = "/com/canonical/Unity/Voice";
 
+static void
+hud_unity_voice_on_loading( UnityVoiceIfaceComCanonicalUnityVoice * proxy, gpointer user_data );
+static void
+hud_unity_voice_on_listening( UnityVoiceIfaceComCanonicalUnityVoice * proxy, gpointer user_data );
+static void
+hud_unity_voice_on_heard_something( UnityVoiceIfaceComCanonicalUnityVoice * proxy, gpointer user_data );
+
 static GQuark
 hud_unity_voice_error_quark(void)
 {
@@ -61,6 +68,16 @@ struct _HudUnityVoice
   HudQueryIfaceComCanonicalHudQuery *skel;
   UnityVoiceIfaceComCanonicalUnityVoice *proxy;
   GRegex * alphanumeric_regex;
+
+  glong loading_sig;
+  glong listening_sig;
+  glong heard_something_sig;
+
+  GMainLoop * voice_loop;
+
+  gchar **query_result;
+  GError **query_error;
+  gboolean query_success;
 };
 
 typedef GObjectClass HudUnityVoiceClass;
@@ -97,6 +114,12 @@ hud_unity_voice_finalize (GObject *object)
 {
   HudUnityVoice *self = HUD_UNITY_VOICE (object);
 
+  g_signal_handler_disconnect(G_OBJECT(self->proxy), self->loading_sig);
+  g_signal_handler_disconnect(G_OBJECT(self->proxy), self->listening_sig);
+  g_signal_handler_disconnect(G_OBJECT(self->proxy), self->heard_something_sig);
+
+  g_main_loop_unref (self->voice_loop);
+
   g_clear_object(&self->skel);
   g_clear_object(&self->proxy);
   g_clear_pointer(&self->alphanumeric_regex, g_regex_unref);
@@ -129,11 +152,24 @@ hud_unity_voice_new (HudQueryIfaceComCanonicalHudQuery *skel, const gchar *devic
     return NULL;
   }
 
+  self->loading_sig = g_signal_connect(G_OBJECT(self->proxy), "loading",
+      G_CALLBACK(hud_unity_voice_on_listening), self->skel);
+  self->listening_sig = g_signal_connect(G_OBJECT(self->proxy), "listening",
+      G_CALLBACK(hud_unity_voice_on_loading), self->skel);
+  self->heard_something_sig = g_signal_connect(G_OBJECT(self->proxy), "heard_something",
+      G_CALLBACK(hud_unity_voice_on_heard_something), self->skel);
+
+  self->voice_loop = g_main_loop_new (NULL, FALSE);
+
+  self->query_result = NULL;
+  self->query_error = NULL;
+  self->query_success = FALSE;
+
   return self;
 }
 
 static GVariant*
-hud_unity_voice_build_commands_variant(GList *items)
+hud_unity_voice_build_commands_variant( GList *items )
 {
   GVariant* commands;
   GVariantBuilder builder;
@@ -181,6 +217,47 @@ hud_unity_voice_build_commands_variant(GList *items)
   return commands;
 }
 
+static void
+hud_unity_voice_on_loading( UnityVoiceIfaceComCanonicalUnityVoice * proxy, gpointer user_data )
+{
+  // patch signal through to HUD
+  HudQueryIfaceComCanonicalHudQuery* skel = (HudQueryIfaceComCanonicalHudQuery*) user_data;
+  hud_query_iface_com_canonical_hud_query_emit_voice_query_loading(
+      HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY( skel ) );
+}
+
+static void
+hud_unity_voice_on_listening( UnityVoiceIfaceComCanonicalUnityVoice * proxy, gpointer user_data )
+{
+  // patch signal through to HUD
+  HudQueryIfaceComCanonicalHudQuery* skel = (HudQueryIfaceComCanonicalHudQuery*) user_data;
+  hud_query_iface_com_canonical_hud_query_emit_voice_query_listening(
+      HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY( skel ) );
+}
+
+static void
+hud_unity_voice_on_heard_something ( UnityVoiceIfaceComCanonicalUnityVoice * proxy, gpointer user_data )
+{
+  // patch signal through to HUD
+  HudQueryIfaceComCanonicalHudQuery* skel = (HudQueryIfaceComCanonicalHudQuery*) user_data;
+  hud_query_iface_com_canonical_hud_query_emit_voice_query_heard_something(
+      HUD_QUERY_IFACE_COM_CANONICAL_HUD_QUERY( skel ) );
+}
+
+static void
+hud_unity_voice_listen_callback( GObject *source, GAsyncResult *async_result, gpointer user_data )
+{
+  HudUnityVoice *self = HUD_UNITY_VOICE( user_data );
+
+  // attempt to retrieve listen result from proxy
+  if( unity_voice_iface_com_canonical_unity_voice_call_listen_finish( self->proxy, self->query_result, async_result, self->query_error ) )
+  {
+    self->query_success = TRUE;
+  }
+
+  g_main_loop_quit( self->voice_loop );
+}
+
 static gboolean
 hud_unity_voice_query (HudVoice *voice, HudSource *source, gchar **result, GError **error)
 {
@@ -210,10 +287,23 @@ hud_unity_voice_query (HudVoice *voice, HudSource *source, gchar **result, GErro
     return FALSE;
   }
 
-  // send commands via "listen" call to unity-voice API on DBus
-  gboolean success = unity_voice_iface_com_canonical_unity_voice_call_listen_sync(self->proxy, commands, result, NULL, error);
-
   g_list_free_full(items, g_object_unref);
 
-  return success;
+  // initialise query state members
+  self->query_success = FALSE;
+  self->query_error = error;
+  self->query_result = result;
+
+  // send commands via "listen" call to unity-voice API on DBus
+  unity_voice_iface_com_canonical_unity_voice_call_listen( self->proxy, commands, NULL,
+      hud_unity_voice_listen_callback, self );
+
+  // run voice loop
+  g_main_loop_run( self->voice_loop );
+
+  // clear query state members
+  self->query_result = NULL;
+  self->query_error = NULL;
+
+  return self->query_success;
 }
