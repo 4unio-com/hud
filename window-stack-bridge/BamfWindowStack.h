@@ -16,15 +16,22 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#ifndef WINDOWSTACK_H_
-#define WINDOWSTACK_H_
+#ifndef BAMFWINDOWSTACK_H_
+#define BAMFWINDOWSTACK_H_
 
-#ifdef HAVE_BAMF
-#include <BamfWindowStack.h>
-typedef BamfWindowStack WindowStack;
-#elif HAVE_PLATORM_API
-#include <PlatformApiWindowStack.h>
-typedef PlatformApiWindowStack WindowStack;
-#endif
+#include <AbstractWindowStack.h>
 
-#endif /* WINDOWSTACK_H_ */
+class BamfWindowStack: public AbstractWindowStack {
+public:
+	explicit BamfWindowStack(const QDBusConnection &connection,
+			QObject *parent = 0);
+
+	virtual ~BamfWindowStack();
+
+public Q_SLOTS:
+	virtual QString GetAppIdFromPid(uint pid);
+
+	virtual QList<WindowInfo> GetWindowStack();
+};
+
+#endif /* BAMFWINDOWSTACK_H_ */

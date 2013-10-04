@@ -1,16 +1,37 @@
 
+pkg_search_module(QTBAMF libqtbamf)
+if(${QTBAMF_FOUND})
+	include_directories(${QTBAMF_INCLUDE_DIRS})
+	add_definitions( -DENABLE_BAMF=1 )
+	set(ENABLE_BAMF true)
+else()
+	if(${ENABLE_PLATFORM_API})
+		include_directories(${QTBAMF_INCLUDE_DIRS})
+		add_definitions( -DENABLE_PLATFORM_API=1 )
+		#set(PHABLET_LIBRARIES "-lubuntu_application_api")
+	endif()
+endif()
 
+if(${ENABLE_BAMF} OR ${ENABLE_PLATFORM_API})
 
 set(
 	WINDOW_STACK_BRIDGE_SOURCES
-	WindowStack.cpp
+	AbstractWindowStack.cpp
 )
+
+if(${ENABLE_BAMF})
+	list(APPEND WINDOW_STACK_BRIDGE_SOURCES BamfWindowStack.cpp)
+endif()
+
+if(${ENABLE_PLATFORM_API})
+	#FIXME Add platform API implementation
+endif()
 
 qt5_add_dbus_adaptor(
 	WINDOW_STACK_BRIDGE_SOURCES
 	${WINDOW_STACK_XML}
-	WindowStack.h
-	WindowStack
+	AbstractWindowStack.h
+	AbstractWindowStack
 	WindowStackAdaptor
 )
 
@@ -57,3 +78,5 @@ install(
 	TARGETS window-stack-bridge-bin
 	RUNTIME DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}"
 )
+
+endif()

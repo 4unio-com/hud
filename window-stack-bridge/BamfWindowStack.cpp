@@ -16,15 +16,21 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#ifndef WINDOWSTACK_H_
-#define WINDOWSTACK_H_
-
-#ifdef HAVE_BAMF
 #include <BamfWindowStack.h>
-typedef BamfWindowStack WindowStack;
-#elif HAVE_PLATORM_API
-#include <PlatformApiWindowStack.h>
-typedef PlatformApiWindowStack WindowStack;
-#endif
 
-#endif /* WINDOWSTACK_H_ */
+BamfWindowStack::BamfWindowStack(const QDBusConnection &connection,
+		QObject *parent) :
+		AbstractWindowStack(connection, parent) {
+}
+
+BamfWindowStack::~BamfWindowStack() {
+}
+
+QString BamfWindowStack::GetAppIdFromPid(uint pid) {
+	return QString();
+}
+
+QList<WindowInfo> BamfWindowStack::GetWindowStack() {
+	return QList<WindowInfo>();
+}
+

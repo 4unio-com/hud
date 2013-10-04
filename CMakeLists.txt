@@ -123,15 +123,11 @@ endif()
 
 pkg_search_module(PANGO REQUIRED pango)
 
+#FIXME: Remove BAMF references
 pkg_search_module(BAMF libbamf3)
 if(${BAMF_FOUND})
   add_definitions( -DHAVE_BAMF=1 )
   include_directories(${BAMF_INCLUDE_DIRS})
-endif()
-
-if(${ENABLE_PLATFORM_API})
-  add_definitions( -DHAVE_PLATFORM_API=1 )
-  set(PHABLET_LIBRARIES "-lubuntu_application_api")
 endif()
 
 if(${LOCAL_INSTALL})
