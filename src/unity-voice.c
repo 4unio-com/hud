@@ -153,9 +153,9 @@ hud_unity_voice_new (HudQueryIfaceComCanonicalHudQuery *skel, const gchar *devic
   }
 
   self->loading_sig = g_signal_connect(G_OBJECT(self->proxy), "loading",
-      G_CALLBACK(hud_unity_voice_on_listening), self->skel);
-  self->listening_sig = g_signal_connect(G_OBJECT(self->proxy), "listening",
       G_CALLBACK(hud_unity_voice_on_loading), self->skel);
+  self->listening_sig = g_signal_connect(G_OBJECT(self->proxy), "listening",
+      G_CALLBACK(hud_unity_voice_on_listening), self->skel);
   self->heard_something_sig = g_signal_connect(G_OBJECT(self->proxy), "heard_something",
       G_CALLBACK(hud_unity_voice_on_heard_something), self->skel);
 
