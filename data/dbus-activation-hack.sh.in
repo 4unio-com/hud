@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This is a quick hack to make it so that DBus activation works as the
 # DBus daemon holds onto the PID until the name gets registered.  So we
