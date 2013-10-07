@@ -2,8 +2,8 @@ description "Unity HUD"
 author "Ted Gould <ted@ubuntu.com>"
 
 pre-start script
-  export DBUS_SESSION_BUS_ADDRESS
   . "${HOME}/.cache/upstart/dbus-session"
+  initctl set-env "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS"
 end script
 
 # Currently started by the dbus service file
