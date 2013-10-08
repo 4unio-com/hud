@@ -1,9 +1,11 @@
 description "Unity HUD"
-author "Ted Gould <ted@ubuntu.com>"
 
 pre-start script
-  . "${HOME}/.cache/upstart/dbus-session"
-  initctl set-env "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS"
+	if [ -z $DBUS_SESSION_BUS ]; then
+		printf "DuplicateSignature\0DBusSessionAddressNotSet" | /usr/share/apport/recoverable_problem -p `pidof -s -o 1 init`
+		. "${HOME}/.cache/upstart/dbus-session"
+		initctl set-env "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS"
+	fi
 end script
 
 # Currently started by the dbus service file
