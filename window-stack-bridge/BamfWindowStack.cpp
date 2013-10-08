@@ -30,7 +30,7 @@ BamfWindow::BamfWindow(const QString &path, const QDBusConnection &connection) :
 
 	QStringList parents(m_view.Parents());
 	if (parents.empty()) {
-		qDebug() << _("Window: ") << windowId() << m_view.name()
+		qWarning() << _("Window: ") << windowId() << m_view.name()
 				<< _("has no parents");
 	} else {
 		OrgAyatanaBamfApplicationInterface application(BAMF_DBUS_NAME,
@@ -39,7 +39,7 @@ BamfWindow::BamfWindow(const QString &path, const QDBusConnection &connection) :
 		if (desktopFile.exists()) {
 			m_applicationId = QFileInfo(desktopFile).baseName();
 		} else {
-			m_applicationId = m_view.name();
+			m_applicationId = QString::number(m_windowId);
 		}
 	}
 }
@@ -112,10 +112,19 @@ QList<WindowInfo> BamfWindowStack::GetWindowStack() {
 	QStringList stack(m_matcher.WindowStackForMonitor(-1));
 	for (const QString &path : stack) {
 		WindowPtr window(m_windows[path]);
-		WindowInfo windowInfo(window->windowId(), window->applicationId(),
-				false);
-		if (!windowInfo.app_id.isEmpty()) {
-			results << windowInfo;
+		results
+				<< WindowInfo(window->windowId(), window->applicationId(),
+						false);
+	}
+
+	WindowPtr window(m_windows[m_matcher.ActiveWindow()]);
+	if (!window.isNull()) {
+		uint windowId(window->windowId());
+
+		for (WindowInfo &windowInfo : results) {
+			if (windowInfo.window_id == windowId) {
+				windowInfo.focused = true;
+			}
 		}
 	}
 

@@ -57,6 +57,7 @@ void                     hud_application_source_focus             (HudApplicatio
 const gchar *            hud_application_source_get_path          (HudApplicationSource *   app);
 const gchar *            hud_application_source_get_id            (HudApplicationSource *   app);
 const gchar *            hud_application_source_get_app_icon      (HudApplicationSource *   app);
+HudApplicationInfo *     hud_application_source_get_application_info (HudApplicationSource *   app);
 void                     hud_application_source_add_window        (HudApplicationSource *   app,
                                                                    HudWindowInfo *          window);
 void                     hud_application_source_window_closed     (HudApplicationSource *   app,

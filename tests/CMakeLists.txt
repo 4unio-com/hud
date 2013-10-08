@@ -7,6 +7,12 @@ if(${FULL_WARNINGS})
 endif()
 
 #######################
+# BAMF Bridge
+#######################
+
+add_definitions(-DBAMF_BRIDGE="${CMAKE_BINARY_DIR}/window-stack-bridge/window-stack-bridge")
+
+#######################
 # Dbus JSON Loader
 #######################
 

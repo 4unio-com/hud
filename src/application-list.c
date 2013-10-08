@@ -167,68 +167,57 @@ matching_setup_bamf (HudApplicationList * self)
 		G_CALLBACK(view_closed), self);
 	g_debug("connected to window stack signals");
 
-	GVariant *stack = NULL;
+	GVariant *stack_variant = NULL;
 	error = NULL;
 	if (!dbus_window_stack_call_get_window_stack_sync(self->priv->window_stack,
-			&stack, NULL, &error)) {
+			&stack_variant, NULL, &error)) {
 		g_warning("Could not get window stack: %s", error->message);
 		g_error_free(error);
 		return;
 	}
 
-//	GList * apps = bamf_matcher_get_applications(self->priv->matcher);
-//	GList * app = NULL;
-//	for (app = apps; app != NULL; app = g_list_next(app)) {
-//		if (!BAMF_IS_APPLICATION(app->data)) {
-//			continue;
-//		}
-//
-//		BamfApplication * bapp = BAMF_APPLICATION(app->data);
-//		gchar * app_id = hud_application_source_bamf_app_id(bapp);
-//
-//		if (app_id == NULL) {
-//			continue;
-//		}
-//
-//		HudApplicationSource * appsource = hud_application_source_new_for_app(bapp);
-//		g_signal_connect(appsource, "changed", G_CALLBACK(application_source_changed), self);
-//
-//		if (!hud_application_source_is_empty(appsource)) {
-//			g_hash_table_insert(self->priv->applications, app_id, appsource);
-//		} else {
-//			g_object_unref(appsource);
-//		}
-//	}
-//
-//	GList * windows = bamf_matcher_get_windows(self->priv->matcher);
-//	GList * window = NULL;
-//	for (window = windows; window != NULL; window = g_list_next(window)) {
-//		if (!BAMF_IS_WINDOW(window->data)) {
-//			continue;
-//		}
-//
-//		view_opened(self->priv->matcher, BAMF_VIEW(window->data), self);
-//	}
-//
-//	BamfWindow * focused = bamf_matcher_get_active_window(self->priv->matcher);
-//	if (focused != NULL && !hud_application_list_name_in_ignore_list(focused)) {
-//		window_changed(self->priv->matcher, NULL, focused, self);
-//	} else {
-//		GList * stack = bamf_matcher_get_window_stack_for_monitor(self->priv->matcher, -1);
-//
-//		GList * last = g_list_last(stack);
-//		while (last != NULL) {
-//			if (hud_application_list_name_in_ignore_list(last->data)) {
-//				last = g_list_previous(last);
-//				continue;
-//			}
-//
-//			window_changed(self->priv->matcher, NULL, last->data, self);
-//			break;
-//		}
-//
-//		g_list_free(stack);
-//	}
+	GVariantIter iter;
+	g_variant_iter_init(&iter, stack_variant);
+
+	GVariant *window_info = NULL;
+	while ((window_info = g_variant_iter_next_value(&iter))) {
+		GVariantIter window_info_iter;
+		g_variant_iter_init(&window_info_iter, window_info);
+
+		GVariant *window_id_variant = g_variant_iter_next_value(&window_info_iter);
+		GVariant *app_id_variant = g_variant_iter_next_value(&window_info_iter);
+		GVariant *focused_variant = g_variant_iter_next_value(&window_info_iter);
+		GVariant *stage_variant = g_variant_iter_next_value(&window_info_iter);
+
+		view_opened(self->priv->window_stack,
+				g_variant_get_uint32(window_id_variant),
+				g_variant_get_string(app_id_variant, NULL),
+				/*g_variant_get_uint32(stage_variant),*/self);
+
+		if (g_variant_get_boolean(focused_variant)) {
+			HudApplicationSource *source = g_hash_table_lookup(
+					self->priv->applications,
+					g_variant_get_string(app_id_variant, NULL));
+
+			if (source
+					&& !hud_application_list_name_in_ignore_list(
+							hud_application_source_get_application_info(
+									source))) {
+				window_changed(self->priv->window_stack,
+						g_variant_get_uint32(window_id_variant),
+						g_variant_get_string(app_id_variant, NULL),
+						g_variant_get_uint32(stage_variant), self);
+			}
+		}
+
+		g_variant_unref (window_id_variant);
+		g_variant_unref (app_id_variant);
+		g_variant_unref (focused_variant);
+		g_variant_unref (stage_variant);
+		g_variant_unref (window_info);
+	}
+
+	g_variant_unref(stack_variant);
 }
 
 /* Clean up references */
@@ -329,9 +318,7 @@ hud_application_list_name_in_ignore_list (HudWindowInfo *window)
   const gchar *window_name = NULL;
   gint i;
 
-  //FIXME Can we get the name?
   window_name = hud_window_info_get_utf8_prop(window, "WM_NAME");
-//  window_name = hud_window_info_get_app_id(window);
   g_debug ("checking window name '%s'", window_name);
 
   /* sometimes bamf returns NULL here... protect ourselves */
@@ -419,11 +406,6 @@ view_opened (DBusWindowStack * window_stack, guint window_id, const gchar *app_i
 
 	HudWindowInfo *window = hud_window_info_new(list->priv->window_stack,
 			window_id, app_id, HUD_WINDOW_INFO_STAGE_MAIN);
-
-//	BamfApplication * app = bamf_matcher_get_application_for_window(list->priv->matcher, BAMF_WINDOW(view));
-//	if (app == NULL) {
-//		return;
-//	}
 
 	HudApplicationSource * source = bamf_app_to_source(list, window);
 	if (source == NULL) {

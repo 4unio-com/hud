@@ -342,6 +342,12 @@ source_get_app_icon (HudSource * hud_source)
 	return hud_application_source_get_app_icon(HUD_APPLICATION_SOURCE(hud_source));
 }
 
+HudApplicationInfo *
+hud_application_source_get_application_info (HudApplicationSource * app)
+{
+	return app->priv->bamf_app;
+}
+
 static void
 source_get_toolbar_entries (HudSource * hud_source, GArray * toolbar)
 {
@@ -844,12 +850,7 @@ hud_application_source_add_window (HudApplicationSource * app, HudWindowInfo * w
 
 	HudApplicationSourceContext * context = find_context(app, xid, NULL);
 
-	const gchar * icon = NULL;
-	//FIXME Can we get the icon?
-//	icon = bamf_view_get_icon(BAMF_VIEW(window));
-	if (icon == NULL) {
-		icon = hud_application_source_get_app_icon(app);
-	}
+	const gchar *icon = hud_application_source_get_app_icon(app);
 
 	if (icon != NULL) {
 		app_iface_com_canonical_hud_application_set_icon(app->priv->skel, icon);
