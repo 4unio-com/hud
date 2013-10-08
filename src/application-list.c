@@ -278,7 +278,7 @@ hud_application_list_finalize (GObject *object)
 
 /* Get a source from a BamfApp */
 static HudApplicationSource *
-bamf_app_to_source (HudApplicationList * list, HudApplicationInfo * bapp)
+application_info_to_source (HudApplicationList * list, HudApplicationInfo * bapp)
 {
 	const gchar * id = hud_window_info_get_app_id(bapp);
 
@@ -350,22 +350,9 @@ window_changed (DBusWindowStack *window_stack, guint window_id, const gchar *app
 	/* Clear the last source, as we've obviously changed */
 	g_clear_object(&list->priv->last_focused_main_stage_source);
 
-	/* Try to use BAMF */
-//	BamfApplication * new_app = bamf_matcher_get_application_for_window(list->priv->matcher, new_win);
-//	if (new_app == NULL || bamf_application_get_desktop_file(new_app) == NULL) {
-//		/* We can't handle things we can't identify */
-//		hud_source_changed(HUD_SOURCE(list));
-//		return;
-//	}
+	HudApplicationSource *source = application_info_to_source(list, window);
 
-	HudApplicationSource * source = NULL;
-
-	/* If we've got an app, we can find it easily */
-//	if (new_app != NULL) {
-		source = bamf_app_to_source(list, window);
-//	}
-
-	/* If we weren't able to use BAMF, let's try to find a source
+	/* If we weren't able to lookup the app, let's try to find a source
 	   for the window. */
 	if (source == NULL) {
 		guint xid = hud_window_info_get_window_id(window);
@@ -407,7 +394,7 @@ view_opened (DBusWindowStack * window_stack, guint window_id, const gchar *app_i
 	HudWindowInfo *window = hud_window_info_new(list->priv->window_stack,
 			window_id, app_id, HUD_WINDOW_INFO_STAGE_MAIN);
 
-	HudApplicationSource * source = bamf_app_to_source(list, window);
+	HudApplicationSource * source = application_info_to_source(list, window);
 	if (source == NULL) {
 		return;
 	}
@@ -451,37 +438,6 @@ source_use (HudSource *hud_source)
 
 	/* First see if we've already got it */
 	source = list->priv->last_focused_main_stage_source;
-
-//	if (source == NULL) {
-//		/* Try using the application first */
-//		HudApplicationInfo * app = NULL;
-//		app = bamf_matcher_get_active_application(list->priv->matcher);
-//
-//		if (app != NULL) {
-//			source = bamf_app_to_source(list, app);
-//		}
-//	}
-
-	/* If we weren't able to use BAMF, let's try to find a source
-	   for the window. */
-//	if (source == NULL) {
-//		guint32 xid = 0;
-//
-//		xid = bamf_window_get_xid(bamf_matcher_get_active_window(list->priv->matcher));
-//
-//		GList * sources = g_hash_table_get_values(list->priv->applications);
-//		GList * lsource = NULL;
-//
-//		for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
-//			HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
-//			if (appsource == NULL) continue;
-//
-//			if (hud_application_source_has_xid(appsource, xid)) {
-//				source = appsource;
-//				break;
-//			}
-//		}
-//	}
 
 	if (source == NULL) {
 		g_warning("Unable to find source for window");
@@ -673,7 +629,6 @@ hud_application_list_get_side_stage_focused_app (HudApplicationList * list)
     g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 
     return NULL;
-    //FIXME: return something like HUD_SOURCE(list->priv->last_focused_side_stage_source);
 }
 
 /**

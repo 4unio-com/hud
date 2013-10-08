@@ -7,7 +7,6 @@ struct _HudWindowInfo
   GObject parent_instance;
   guint32 window_id;
   gchar *app_id;
-//  gboolean focused;
   HudWindowInfoStage stage;
   DBusWindowStack *window_stack;
   gchar *desktop_file;

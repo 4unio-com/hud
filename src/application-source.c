@@ -805,8 +805,6 @@ hud_application_source_get_app_icon (HudApplicationSource * app)
 void
 hud_application_source_window_closed (HudApplicationSource * app, guint xid)
 {
-//	guint32 xid = hud_window_info_get_window_id(window);
-
 	int i;
 	for (i = 0; i < app->priv->contexts->len; i++) {
 		HudApplicationSourceContext * context = g_ptr_array_index(app->priv->contexts, i);
