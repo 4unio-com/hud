@@ -22,7 +22,6 @@
 #include <glib.h>
 
 typedef struct _HudStringList                               HudStringList;
-typedef struct _HudItemPronunciationData                    HudItemPronunciationData;
 
 void                    hud_string_list_unref                           (HudStringList *list);
 HudStringList *         hud_string_list_ref                             (HudStringList *list);

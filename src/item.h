@@ -38,8 +38,6 @@ typedef struct _HudItemPrivate                              HudItemPrivate;
 typedef struct _HudItemClass                                HudItemClass;
 typedef struct _HudItem                                     HudItem;
 
-typedef struct _HudItemPronunciationData                    HudItemPronunciationData;
-
 struct _HudItemClass
 {
   GObjectClass parent_class;
@@ -54,14 +52,6 @@ struct _HudItem
   GObject parent_instance;
 
   HudItemPrivate *priv;
-};
-
-struct _HudItemPronunciationData
-{
-  GHashTable *table;
-  GRegex *regex;
-  GPtrArray *list;
-  GHashTable *unique_commands;
 };
 
 GType                   hud_item_get_type                               (void);
