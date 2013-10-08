@@ -106,15 +106,6 @@ include_directories(${Qt5Core_INCLUDE_DIRS})
 find_package(Qt5DBus REQUIRED)
 include_directories(${Qt5DBus_INCLUDE_DIRS})
 
-find_package(Qt5Test REQUIRED)
-include_directories(${Qt5Test_INCLUDE_DIRS})
-
-pkg_check_modules(QTDBUSTEST libqtdbustest-1)
-include_directories(${QTDBUSTEST_INCLUDE_DIRS})
-
-pkg_check_modules(QTDBUSMOCK libqtdbusmock-1)
-include_directories(${QTDBUSMOCK_INCLUDE_DIRS})
-
 find_package(Vala 0.12)
 
 find_package(GObjectIntrospection 0.9.12)
