@@ -28,6 +28,11 @@ BamfWindow::BamfWindow(const QString &path, const QDBusConnection &connection) :
 		m_window(BAMF_DBUS_NAME, path, connection), m_view(BAMF_DBUS_NAME, path,
 				connection), m_windowId(m_window.GetXid()) {
 
+	QDBusConnectionInterface* interface = connection.interface();
+	if (!interface->isServiceRegistered(BAMF_DBUS_NAME)) {
+		QDBusReply<void> reply(interface->startService(BAMF_DBUS_NAME));
+	}
+
 	QStringList parents(m_view.Parents());
 	if (parents.empty()) {
 		qWarning() << _("Window: ") << windowId() << m_view.name()
