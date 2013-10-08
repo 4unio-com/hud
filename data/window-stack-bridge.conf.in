@@ -1,0 +1,6 @@
+description "Window Stack Bridge"
+
+start on started dbus
+stop on desktop-end
+
+exec @pkglibexecdir@/window-stack-bridge
