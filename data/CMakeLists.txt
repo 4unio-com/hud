@@ -74,7 +74,7 @@ configure_file(
 )
 
 install(
-  FILES "window-stack-bridge.conf"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/window-stack-bridge.conf"
   DESTINATION "/usr/share/upstart/sessions"
 )
 
