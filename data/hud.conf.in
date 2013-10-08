@@ -1,8 +1,8 @@
 description "Unity HUD"
 
 pre-start script
-	if [ -z $DBUS_SESSION_BUS ]; then
-		echo "Working around missing DBUS_SESSION_BUS variable"
+	if [ -z $DBUS_SESSION_BUS_ADDRESS ]; then
+		echo "Working around missing DBUS_SESSION_BUS_ADDRESS variable"
 		printf "DuplicateSignature\0DBusSessionAddressNotSet" | /usr/share/apport/recoverable_problem -p `pidof -s -o 1 init`
 		. "${HOME}/.cache/upstart/dbus-session"
 		initctl set-env "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS"
