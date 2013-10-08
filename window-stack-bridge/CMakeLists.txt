@@ -83,7 +83,7 @@ target_link_libraries(
 
 install(
 	TARGETS window-stack-bridge-bin
-	RUNTIME DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}"
+	RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_LIBEXECDIR}/hud"
 )
 
 endif()
