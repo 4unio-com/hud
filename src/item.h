@@ -38,7 +38,6 @@ typedef struct _HudItemPrivate                              HudItemPrivate;
 typedef struct _HudItemClass                                HudItemClass;
 typedef struct _HudItem                                     HudItem;
 
-typedef struct _PronounceDict                               PronounceDict;
 typedef struct _HudItemPronunciationData                    HudItemPronunciationData;
 
 struct _HudItemClass
@@ -62,7 +61,6 @@ struct _HudItemPronunciationData
   GHashTable *table;
   GRegex *regex;
   GPtrArray *list;
-  PronounceDict *dict;
   GHashTable *unique_commands;
 };
 
@@ -99,7 +97,5 @@ HudTokenList *          hud_item_get_token_list                         (HudItem
 const gchar *           hud_item_get_command                            (HudItem       *item);
 const gchar *           hud_item_get_description                        (HudItem       *item);
 const gchar *           hud_item_get_shortcut                           (HudItem       *item);
-void                    hud_item_insert_pronounciation                  (HudItem       * item,
-                                                                         HudItemPronunciationData    * user_data);
 
 #endif /* __HUD_ITEM_H__ */

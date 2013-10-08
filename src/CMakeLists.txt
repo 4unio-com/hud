@@ -106,7 +106,6 @@ item.h
 keyword-mapping.h
 result.h
 load-app-info.h
-pronounce-dict.h
 query-columns.h
 usage-tracker.h
 watchdog.h
@@ -137,7 +136,6 @@ item.c
 keyword-mapping.c
 result.c
 load-app-info.c
-pronounce-dict.c
 usage-tracker.c
 watchdog.c
 )

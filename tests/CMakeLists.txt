@@ -164,11 +164,6 @@ add_definitions(-DJSON_SOURCE_DATETIME="${CMAKE_CURRENT_SOURCE_DIR}/test-indicat
 add_definitions(-DJSON_SOURCE_SOUND="${CMAKE_CURRENT_SOURCE_DIR}/test-indicator-source-sound.json")
 add_definitions(-DJSON_SOURCE="${CMAKE_CURRENT_SOURCE_DIR}/test-source.json")
 
-add_definitions(-DPRONOUCE_DICT_HASHES="${CMAKE_CURRENT_SOURCE_DIR}/test-pronounce-dict-hashes.dic")
-add_definitions(-DPRONOUCE_DICT_SEMICOLON="${CMAKE_CURRENT_SOURCE_DIR}/test-pronounce-dict-semicolon.dic")
-add_definitions(-DPRONOUCE_DICT_LOWERCASE="${CMAKE_CURRENT_SOURCE_DIR}/test-pronounce-dict-lowercase.dic")
-add_definitions(-DPRONOUCE_DICT_HTK="${CMAKE_CURRENT_SOURCE_DIR}/test-pronounce-dict-htk.dic")
-
 #######################
 # Generated test fixtures
 #######################
@@ -204,7 +199,6 @@ hudtest(test-menu-input test-menu-input.c test-menu-input.xml)
 hudtest(test-keyword-mapping test-keyword-mapping.c test-keyword-mapping.xml)
 add_dependencies(test-keyword-mapping keyword-files)
 hudtest(test-string-list test-string-list.c test-string-list.xml)
-hudtest(test-pronounce-dict test-pronounce-dict.c test-pronounce-dict.xml)
 # FIXME: Disabled temporarily on platform-api systems due to some platform-api problems
 if(NOT(${ENABLE_PLATFORM_API}))
   hudtest(test-source test-source.c test-source.xml)

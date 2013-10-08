@@ -21,7 +21,6 @@
 #include "unity-voice-iface.h"
 #include "hud-query-iface.h"
 #include "source.h"
-#include "pronounce-dict.h"
 
 #include <gio/gunixoutputstream.h>
 #include <glib/gstdio.h>
