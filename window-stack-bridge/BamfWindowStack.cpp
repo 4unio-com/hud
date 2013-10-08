@@ -34,6 +34,7 @@ BamfWindow::BamfWindow(const QString &path, const QDBusConnection &connection) :
 	}
 
 	QStringList parents(m_view.Parents());
+
 	if (parents.empty()) {
 		qWarning() << _("Window: ") << windowId() << m_view.name()
 				<< _("has no parents");
@@ -43,9 +44,11 @@ BamfWindow::BamfWindow(const QString &path, const QDBusConnection &connection) :
 		QFile desktopFile(application.DesktopFile());
 		if (desktopFile.exists()) {
 			m_applicationId = QFileInfo(desktopFile).baseName();
-		} else {
-			m_applicationId = QString::number(m_windowId);
 		}
+	}
+
+	if (m_applicationId.isEmpty()) {
+		m_applicationId = QString::number(m_windowId);
 	}
 }
 
