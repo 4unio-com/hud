@@ -20,9 +20,40 @@
 #define BAMFWINDOWSTACK_H_
 
 #include <AbstractWindowStack.h>
+#include <BamfInterface.h>
+#include <BamfViewInterface.h>
 
-class BamfWindowStack: public AbstractWindowStack {
+#include <QMap>
+#include <QSharedPointer>
+
+class Q_DECL_EXPORT BamfWindow {
 public:
+	explicit BamfWindow(const QString &path, const QDBusConnection &connection);
+
+	~BamfWindow();
+
+	unsigned int windowId();
+
+	const QString & applicationId();
+
+	const QString xProp(const QString &property);
+
+protected:
+	OrgAyatanaBamfWindowInterface m_window;
+
+	OrgAyatanaBamfViewInterface m_view;
+
+	unsigned int m_windowId;
+
+	QString m_applicationId;
+};
+
+class Q_DECL_EXPORT BamfWindowStack: public AbstractWindowStack {
+Q_OBJECT
+
+public:
+	typedef QSharedPointer<BamfWindow> WindowPtr;
+
 	explicit BamfWindowStack(const QDBusConnection &connection,
 			QObject *parent = 0);
 
@@ -32,6 +63,28 @@ public Q_SLOTS:
 	virtual QString GetAppIdFromPid(uint pid);
 
 	virtual QList<WindowInfo> GetWindowStack();
+
+	virtual QString GetWindowProperty(uint windowId, const QString &appId,
+			const QString &name);
+
+protected Q_SLOTS:
+	void ActiveWindowChanged(const QString &oldWindow,
+			const QString &newWindow);
+
+	void ViewClosed(const QString &path, const QString &type);
+
+	void ViewOpened(const QString &path, const QString &type);
+
+	WindowPtr addWindow(const QString& path);
+
+	WindowPtr removeWindow(const QString& path);
+
+protected:
+	OrgAyatanaBamfMatcherInterface m_matcher;
+
+	QMap<QString, WindowPtr> m_windows;
+
+	QMap<unsigned int, WindowPtr> m_windowsById;
 };
 
 #endif /* BAMFWINDOWSTACK_H_ */

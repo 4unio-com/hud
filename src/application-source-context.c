@@ -389,18 +389,43 @@ hud_application_source_context_add_model (HudApplicationSourceContext * context,
  * Adds a window to the items indexed by this context.
  */
 void
-hud_application_source_context_add_window (HudApplicationSourceContext * context, AbstractWindow * window)
+hud_application_source_context_add_window (HudApplicationSourceContext * context, HudWindowInfo * window)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
 	check_for_menu_model(context);
 
-	hud_menu_model_collector_add_window(context->priv->model_collector, window);
+	gchar *unique_bus_name = hud_window_info_get_utf8_prop (window, "_GTK_UNIQUE_BUS_NAME");
+	/* If this isn't set, we won't get very far... */
+	if (unique_bus_name && *unique_bus_name != '\0') {
+		gchar *app_menu_object_path = hud_window_info_get_utf8_prop(window,
+				"_GTK_APP_MENU_OBJECT_PATH");
+		gchar *menubar_object_path = hud_window_info_get_utf8_prop(window,
+				"_GTK_MENUBAR_OBJECT_PATH");
+		gchar *application_object_path = hud_window_info_get_utf8_prop(window,
+				"_GTK_APPLICATION_OBJECT_PATH");
+		gchar *window_object_path = hud_window_info_get_utf8_prop(window,
+				"_GTK_WINDOW_OBJECT_PATH");
+		gchar *unity_object_path = hud_window_info_get_utf8_prop(window, "_UNITY_OBJECT_PATH");
+
+		hud_menu_model_collector_add_window(context->priv->model_collector,
+				unique_bus_name, app_menu_object_path, menubar_object_path,
+				application_object_path, window_object_path, unity_object_path);
+
+		g_free(unique_bus_name);
+		g_free(app_menu_object_path);
+		g_free(menubar_object_path);
+		g_free(application_object_path);
+		g_free(window_object_path);
+		g_free(unity_object_path);
+	}
 
 	if (context->priv->window_menus_dbus == NULL) {
-		context->priv->window_menus_dbus = hud_dbusmenu_collector_new_for_window(window, context->priv->app_id, context->priv->icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+		guint xid = hud_window_info_get_window_id(window);
+
+		context->priv->window_menus_dbus = hud_dbusmenu_collector_new_for_window(xid, context->priv->app_id, context->priv->icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
 	} else {
 		guint32 oldid = hud_dbusmenu_collector_get_xid(context->priv->window_menus_dbus);
-		guint32 newid = abstract_window_get_id(window);
+		guint32 newid = hud_window_info_get_window_id(window);
 
 		if (oldid != newid) {
 			g_warning("Adding a second DBus Menu window (%X) to a context.  Current window (%X).", newid, oldid);

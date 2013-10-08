@@ -697,14 +697,15 @@ bus_acquired_cb (GDBusConnection *connection,
     g_object_unref (source);
   }
 
-  {
-    HudWebappSource *source;
-
-    source = hud_webapp_source_new ();
-    hud_source_list_add (source_list, HUD_SOURCE (source));
-
-    g_object_unref (G_OBJECT (source));
-  }
+//  //FIXME Re-enable webapp source
+//  {
+//    HudWebappSource *source;
+//
+//    source = hud_webapp_source_new ();
+//    hud_source_list_add (source_list, HUD_SOURCE (source));
+//
+//    g_object_unref (G_OBJECT (source));
+//  }
 
   if (!g_dbus_connection_register_object (connection, DBUS_PATH, hud_iface_com_canonical_hud_interface_info (), &vtable, source_list, NULL, &error))
     {

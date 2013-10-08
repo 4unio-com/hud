@@ -1,15 +1,9 @@
 
-pkg_search_module(QTBAMF libqtbamf)
-if(${QTBAMF_FOUND})
-	include_directories(${QTBAMF_INCLUDE_DIRS})
+if(${ENABLE_BAMF})
 	add_definitions( -DENABLE_BAMF=1 )
-	set(ENABLE_BAMF true)
-else()
-	if(${ENABLE_PLATFORM_API})
-		include_directories(${QTBAMF_INCLUDE_DIRS})
-		add_definitions( -DENABLE_PLATFORM_API=1 )
-		#set(PHABLET_LIBRARIES "-lubuntu_application_api")
-	endif()
+elseif(${ENABLE_PLATFORM_API})
+	add_definitions( -DENABLE_PLATFORM_API=1 )
+	set(PLATFORM_API_LIBRARIES "-lubuntu_application_api")
 endif()
 
 if(${ENABLE_BAMF} OR ${ENABLE_PLATFORM_API})
@@ -21,10 +15,22 @@ set(
 
 if(${ENABLE_BAMF})
 	list(APPEND WINDOW_STACK_BRIDGE_SOURCES BamfWindowStack.cpp)
+	
+	qt5_add_dbus_interface(
+		WINDOW_STACK_BRIDGE_SOURCES
+		${BAMF_XML}
+		BamfInterface
+	)
+	
+	qt5_add_dbus_interface(
+		WINDOW_STACK_BRIDGE_SOURCES
+		${BAMF_VIEW_XML}
+		BamfViewInterface
+	)
 endif()
 
 if(${ENABLE_PLATFORM_API})
-	#FIXME Add platform API implementation
+	list(APPEND WINDOW_STACK_BRIDGE_SOURCES PlatformApiWindowStack.cpp)
 endif()
 
 qt5_add_dbus_adaptor(
@@ -72,6 +78,7 @@ qt5_use_modules(
 target_link_libraries(
 	window-stack-bridge-bin
 	window-stack-bridge
+	${PLATFORM_API_LIBRARIES}
 )
 
 install(

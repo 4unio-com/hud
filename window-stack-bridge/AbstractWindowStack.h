@@ -30,16 +30,34 @@ class WindowStackAdaptor;
 
 class WindowInfo {
 public:
+	enum Stage {
+		MAIN, SIDE, WINDOWED,
+	};
+
 	unsigned int window_id;
 	QString app_id;
 	bool focused;
 	unsigned int stage;
+
+	WindowInfo() :
+			window_id(0), focused(false), stage(MAIN) {
+	}
+
+	WindowInfo(unsigned int window_id, const QString &app_id, bool focused,
+			Stage stage = MAIN) :
+			window_id(window_id), app_id(app_id), focused(focused), stage(stage) {
+	}
 };
 
+Q_DECL_EXPORT
 QDBusArgument &operator<<(QDBusArgument &a, const WindowInfo &aidf);
+
+Q_DECL_EXPORT
 const QDBusArgument &operator>>(const QDBusArgument &a, WindowInfo &aidf);
 
-class AbstractWindowStack: public QObject, protected QDBusContext {
+class Q_DECL_EXPORT AbstractWindowStack: public QObject, protected QDBusContext {
+Q_OBJECT
+
 public:
 	explicit AbstractWindowStack(const QDBusConnection &connection,
 			QObject *parent = 0);
@@ -47,15 +65,22 @@ public:
 	virtual ~AbstractWindowStack();
 
 public:
+	Q_DECL_EXPORT
 	static const QString DBUS_NAME;
+
+	Q_DECL_EXPORT
 	static const QString DBUS_PATH;
 
+	Q_DECL_EXPORT
 	static void registerMetaTypes();
 
 public Q_SLOTS:
 	virtual QString GetAppIdFromPid(uint pid) = 0;
 
 	virtual QList<WindowInfo> GetWindowStack() = 0;
+
+	virtual QString GetWindowProperty(uint windowId, const QString &appId,
+			const QString &name) = 0;
 
 Q_SIGNALS:
 	void FocusedWindowChanged(uint windowId, const QString &appId, uint stage);

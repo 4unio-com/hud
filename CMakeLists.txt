@@ -13,6 +13,7 @@ option(ENABLE_SCALABILITY_TESTS "Additional scalability tests that are potential
 option(FULL_WARNINGS "Full compiler warnings." ON)
 option(DEBUG_MESSAGES "Print debug messages." OFF)
 option(LOCAL_INSTALL "Support local installation." OFF)
+option(ENABLE_BAMF "Enable building for BAMF." ON)
 option(ENABLE_PLATFORM_API "Enable building for platform API." OFF)
 
 # Trick the H10enable_coverage script into enabling coverage by including the text below:
@@ -48,6 +49,9 @@ set(HUD_SERVICE_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.xml)
 set(HUD_APP_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.Application.xml)
 
 set(WINDOW_STACK_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.Unity.WindowStack.xml")
+
+set(BAMF_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/org.ayatana.bamf.xml")
+set(BAMF_VIEW_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/org.ayatana.bamf.view.xml")
 
 set(HUD_TOP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(HUD_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -105,10 +109,10 @@ include_directories(${Qt5DBus_INCLUDE_DIRS})
 find_package(Qt5Test REQUIRED)
 include_directories(${Qt5Test_INCLUDE_DIRS})
 
-pkg_check_modules(QTDBUSTEST REQUIRED libqtdbustest-1 REQUIRED)
+pkg_check_modules(QTDBUSTEST libqtdbustest-1)
 include_directories(${QTDBUSTEST_INCLUDE_DIRS})
 
-pkg_check_modules(QTDBUSMOCK REQUIRED libqtdbusmock-1 REQUIRED)
+pkg_check_modules(QTDBUSMOCK libqtdbusmock-1)
 include_directories(${QTDBUSMOCK_INCLUDE_DIRS})
 
 find_package(Vala 0.12)
@@ -122,13 +126,6 @@ if(${HAVE_SIGNAL_H})
 endif()
 
 pkg_search_module(PANGO REQUIRED pango)
-
-#FIXME: Remove BAMF references
-pkg_search_module(BAMF libbamf3)
-if(${BAMF_FOUND})
-  add_definitions( -DHAVE_BAMF=1 )
-  include_directories(${BAMF_INCLUDE_DIRS})
-endif()
 
 if(${LOCAL_INSTALL})
   set(DBUSSERVICEDIR "${CMAKE_INSTALL_DATADIR}/dbus-1/services/")
@@ -159,6 +156,7 @@ add_subdirectory(libhud)
 add_subdirectory(libhud-gtk)
 add_subdirectory(src)
 add_subdirectory(tools)
+add_subdirectory(window-stack-bridge)
 
 if(${ENABLE_TESTS})
   enable_testing()
@@ -173,7 +171,6 @@ if(${ENABLE_TESTS})
 endif()
 
 add_subdirectory(tools-vala)
-add_subdirectory(window-stack-bridge)
 if(${ENABLE_DOCUMENTATION})
   add_subdirectory(docs)
 endif()

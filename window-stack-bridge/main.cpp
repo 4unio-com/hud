@@ -20,6 +20,7 @@
 #include <WindowStack.h>
 
 #include <QDBusConnection>
+#include <QDebug>
 #include <QCoreApplication>
 #include <csignal>
 
@@ -40,7 +41,11 @@ int main(int argc, char *argv[]) {
 	signal(SIGINT, &exitQt);
 	signal(SIGTERM, &exitQt);
 
-	WindowStack windowStack(QDBusConnection::sessionBus());
-
-	return application.exec();
+	try {
+		WindowStack windowStack(QDBusConnection::sessionBus());
+		return application.exec();
+	} catch (std::exception &e) {
+		qWarning() << _("Window Stack Bridge:") << e.what();
+		return application.exec();
+	}
 }

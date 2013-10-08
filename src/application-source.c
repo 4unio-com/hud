@@ -41,12 +41,7 @@ struct _HudApplicationSourcePrivate {
 	AppIfaceComCanonicalHudApplication * skel;
 	gboolean used;
 
-#ifdef HAVE_BAMF
-	AbstractApplication * bamf_app;
-#endif
-#ifdef HAVE_PLATFORM_API
-	gchar * desktop_file;
-#endif
+	HudApplicationInfo * bamf_app;
 
 	guint32 focused_window;
 	GHashTable * window_contexts;
@@ -181,9 +176,7 @@ hud_application_source_dispose (GObject *object)
 	}
 	g_hash_table_remove_all(self->priv->connections);
 
-#ifdef HAVE_BAMF
 	g_clear_object(&self->priv->bamf_app);
-#endif
 	g_clear_object(&self->priv->session);
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->dispose (object);
@@ -202,9 +195,6 @@ hud_application_source_finalize (GObject *object)
 	g_clear_pointer(&self->priv->app_id, g_free);
 	g_clear_pointer(&self->priv->path, g_free);
 	g_clear_pointer(&self->priv->window_contexts, g_hash_table_unref);
-#ifdef HAVE_PLATFORM_API
-	g_clear_pointer(&self->priv->desktop_file, g_free);
-#endif
 
 	G_OBJECT_CLASS (hud_application_source_parent_class)->finalize (object);
 	return;
@@ -394,25 +384,15 @@ source_activate_toolbar (HudSource * hud_source, HudClientQueryToolbarItems item
  * Return value: New #HudApplicationSource object
  */
 HudApplicationSource *
-hud_application_source_new_for_app (AbstractApplication * bapp)
+hud_application_source_new_for_app (HudApplicationInfo * bapp)
 {
-	gchar * id = hud_application_source_bamf_app_id(bapp);
-	if (id == NULL) {
-		return NULL;
-	}
+	const gchar * id = hud_window_info_get_app_id(bapp);
 
 	HudApplicationSource * source = hud_application_source_new_for_id(id);
-	g_free(id);
 
 	const gchar * desktop_file = NULL;
-#ifdef HAVE_BAMF
 	source->priv->bamf_app = g_object_ref(bapp);
-	desktop_file = bamf_application_get_desktop_file(bapp);
-#endif
-#ifdef HAVE_PLATFORM_API
-	source->priv->desktop_file = g_strdup(bapp->desktop_file_hint);
-	desktop_file = source->priv->desktop_file;
-#endif
+	desktop_file = hud_window_info_get_desktop_file(bapp);
 
 	app_iface_com_canonical_hud_application_set_desktop_path(source->priv->skel, desktop_file);
 
@@ -612,11 +592,6 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 	while (g_variant_iter_loop(&action_iter, "(usso)", &idn, &context, &prefix, &object)) {
 		g_debug("Adding prefix '%s' at path: %s", prefix, object);
 
-#ifdef HAVE_PLATFORM_API
-		if (idn != WINDOW_ID_ALL_WINDOWS)
-			idn = WINDOW_ID_CONSTANT;
-#endif
-
 		/* Catch the NULL string case */
 		gchar * refinedcontext = NULL;
 		if (context != NULL && context[0] != '\0') {
@@ -648,11 +623,6 @@ dbus_add_sources (AppIfaceComCanonicalHudApplication * skel, GDBusMethodInvocati
 
 	while (g_variant_iter_loop(&desc_iter, "(uso)", &idn, &context, &object)) {
 		g_debug("Adding descriptions: %s", object);
-
-#ifdef HAVE_PLATFORM_API
-		if (idn != WINDOW_ID_ALL_WINDOWS)
-			idn = WINDOW_ID_CONSTANT;
-#endif
 
 		/* Catch the NULL string case */
 		gchar * refinedcontext = NULL;
@@ -725,55 +695,6 @@ hud_application_source_is_empty (HudApplicationSource * app)
 }
 
 /**
- * hud_application_source_bamf_app_id:
- * @bapp: A #BamfApplication object
- *
- * A little helper function to genereate a constant app ID out of
- * BAMF Application objects.  Putting this here as it seems to make
- * the most sense, but isn't really part of the object.
- *
- * Return value: (transfer full): ID for the application
- */
-gchar *
-hud_application_source_bamf_app_id (AbstractApplication * bapp)
-{
-#ifdef HAVE_BAMF
-	g_return_val_if_fail(BAMF_IS_APPLICATION(bapp), NULL);
-#endif
-#ifdef HAVE_PLATFORM_API
-	/* Hybris has no way to check if the pointer is valid */
-#endif
-
-	const gchar * desktop_file = NULL;
-
-#ifdef HAVE_BAMF
-	desktop_file = bamf_application_get_desktop_file(bapp);
-#endif
-#ifdef HAVE_PLATFORM_API
-	desktop_file = bapp->desktop_file_hint;
-#endif
-	if (desktop_file == NULL) {
-		/* Some apps might not be identifiable.  Eh, don't care then */
-		return NULL;
-	}
-
-	gchar * basename = g_path_get_basename(desktop_file);
-	if (basename == NULL || basename[0] == '\0' || !g_str_has_suffix(basename, ".desktop")) {
-		/* Check to make sure it's not NULL and it returns a desktop file */
-		g_free(basename);
-		return NULL;
-	}
-
-	/* This is probably excessively clever, but I like it.  Basically we find
-	   the last instance of .desktop and put the null there.  For all practical
-	   purposes this is a NULL terminated string of the first part of the dekstop
-	   file name */
-	g_strrstr(basename, ".desktop")[0] = '\0';
-
-	return basename;
-}
-
-/**
  * hud_application_source_focus:
  * @app: A #HudApplicationSource object
  * @bapp: The #BamfApplication representing this @app
@@ -784,40 +705,29 @@ hud_application_source_bamf_app_id (AbstractApplication * bapp)
  * and make sure we're all good.
  */
 void
-hud_application_source_focus (HudApplicationSource * app, AbstractApplication * bapp, AbstractWindow * window)
+hud_application_source_focus (HudApplicationSource * app, HudApplicationInfo * bapp, HudWindowInfo * window)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
-#ifdef HAVE_BAMF
-	g_return_if_fail(BAMF_IS_APPLICATION(bapp));
-#endif
-#ifdef HAVE_PLATFORM_API
-	/* Hybris has no way to check if the pointer is valid */
-#endif
+	g_return_if_fail(HUD_IS_WINDOW_INFO(bapp));
 
-#ifdef HAVE_BAMF
 	if (app->priv->bamf_app == NULL) {
 		app->priv->bamf_app = g_object_ref(bapp);
 	}
 
+	const gchar *app_id_1 = hud_window_info_get_app_id(bapp);
+	const gchar *app_id_2 = hud_window_info_get_app_id(app->priv->bamf_app);
+
 	/* Check to make sure we're getting the right events */
-	if (G_UNLIKELY(app->priv->bamf_app != bapp)) {
-		g_critical("App '%s' has been given focus events for '%s'", bamf_application_get_desktop_file(app->priv->bamf_app), bamf_application_get_desktop_file(bapp));
+	if (g_strcmp0(app_id_1, app_id_2)) {
+		g_critical("App '%s' has been given focus events for '%s'",
+				hud_window_info_get_app_id(app->priv->bamf_app),
+				hud_window_info_get_app_id(bapp));
 		return;
 	}
 
-#endif
-#ifdef HAVE_PLATFORM_API
-	if (app->priv->desktop_file == NULL) {
-		app->priv->desktop_file = g_strdup(bapp->desktop_file_hint);
-		app_iface_com_canonical_hud_application_set_desktop_path(app->priv->skel, app->priv->desktop_file);
-	}
-#endif
-
 	hud_application_source_add_window(app, window);
 
-	hud_application_source_set_focused_win(app, abstract_window_get_id(window));
-
-	return;
+	hud_application_source_set_focused_win(app, hud_window_info_get_window_id(window));
 }
 
 /**
@@ -867,12 +777,7 @@ hud_application_source_get_app_icon (HudApplicationSource * app)
 
 	const gchar * icon = NULL;
 	const gchar * desktop_file = NULL;
-#ifdef HAVE_BAMF
-	desktop_file = bamf_application_get_desktop_file(app->priv->bamf_app);
-#endif
-#ifdef HAVE_PLATFORM_API
-	desktop_file = app->priv->desktop_file;
-#endif
+	desktop_file = hud_window_info_get_desktop_file(app->priv->bamf_app);
 	if (desktop_file != NULL) {
 		GKeyFile * kfile = g_key_file_new();
 		g_key_file_load_from_file(kfile, desktop_file, G_KEY_FILE_NONE, NULL);
@@ -892,9 +797,9 @@ hud_application_source_get_app_icon (HudApplicationSource * app)
  * up data associated with it.
  */
 void
-hud_application_source_window_closed (HudApplicationSource * app, AbstractWindow * window)
+hud_application_source_window_closed (HudApplicationSource * app, guint xid)
 {
-	guint32 xid = abstract_window_get_id(window);
+//	guint32 xid = hud_window_info_get_window_id(window);
 
 	int i;
 	for (i = 0; i < app->priv->contexts->len; i++) {
@@ -925,46 +830,23 @@ hud_application_source_window_closed (HudApplicationSource * app, AbstractWindow
  * have one BAMF listener in the application list.
  */
 void
-hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * window)
+hud_application_source_add_window (HudApplicationSource * app, HudWindowInfo * window)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
-#ifdef HAVE_BAMF
-	g_return_if_fail(BAMF_IS_WINDOW(window));
-#endif
-#ifdef HAVE_PLATFORM_API
-	/* Hybris has no way to check if the pointer is valid */
-#endif
 
 	guint32 xid = 0;
-#ifdef HAVE_BAMF
-	xid = bamf_window_get_xid(window);
-#endif
-#ifdef HAVE_PLATFORM_API
-	xid = session_properties_get_window_id(window);
-#endif
+	xid = hud_window_info_get_window_id(window);
 
-#ifdef HAVE_BAMF
 	if (app->priv->bamf_app == NULL) {
 		g_debug("No BAMF application object");
 		return;
 	}
-#endif
 
 	HudApplicationSourceContext * context = find_context(app, xid, NULL);
 
-#ifdef HAVE_BAMF
-	gchar * app_id = hud_application_source_bamf_app_id(app->priv->bamf_app);
-#endif
-#ifdef HAVE_PLATFORM_API
-	gchar * app_id = g_strdup(app->priv->app_id);
-#endif
 	const gchar * icon = NULL;
-#ifdef HAVE_BAMF
-	icon = bamf_view_get_icon(BAMF_VIEW(window));
-#endif
-#ifdef HAVE_BAMF
-	/* Hybris can't find window icons, so we want to pull it from the desktop file */
-#endif
+	//FIXME Can we get the icon?
+//	icon = bamf_view_get_icon(BAMF_VIEW(window));
 	if (icon == NULL) {
 		icon = hud_application_source_get_app_icon(app);
 	}
@@ -974,7 +856,6 @@ hud_application_source_add_window (HudApplicationSource * app, AbstractWindow * 
 	}
 
 	hud_application_source_context_add_window(context, window);
-	g_free (app_id);
 
 	return;
 }

@@ -17,20 +17,135 @@
  */
 
 #include <BamfWindowStack.h>
+#include <Localisation.h>
+
+#include <QFile>
+#include <QFileInfo>
+
+static const QString BAMF_DBUS_NAME("org.ayatana.bamf");
+
+BamfWindow::BamfWindow(const QString &path, const QDBusConnection &connection) :
+		m_window(BAMF_DBUS_NAME, path, connection), m_view(BAMF_DBUS_NAME, path,
+				connection), m_windowId(m_window.GetXid()) {
+
+	QStringList parents(m_view.Parents());
+	if (parents.empty()) {
+		qDebug() << _("Window: ") << windowId() << m_view.name()
+				<< _("has no parents");
+	} else {
+		OrgAyatanaBamfApplicationInterface application(BAMF_DBUS_NAME,
+				parents.first(), m_window.connection());
+		QFile desktopFile(application.DesktopFile());
+		if (desktopFile.exists()) {
+			m_applicationId = QFileInfo(desktopFile).baseName();
+		} else {
+			m_applicationId = m_view.name();
+		}
+	}
+}
+
+BamfWindow::~BamfWindow() {
+}
+
+unsigned int BamfWindow::windowId() {
+	return m_windowId;
+}
+
+const QString & BamfWindow::applicationId() {
+
+	return m_applicationId;
+}
+
+const QString BamfWindow::xProp(const QString &property) {
+	return m_window.Xprop(property);
+}
+
+BamfWindowStack::WindowPtr BamfWindowStack::addWindow(const QString& path) {
+	WindowPtr window(new BamfWindow(path, m_connection));
+	m_windows[path] = window;
+	m_windowsById[window->windowId()] = window;
+	return window;
+}
+
+BamfWindowStack::WindowPtr BamfWindowStack::removeWindow(const QString& path) {
+	WindowPtr window(m_windows.take(path));
+	m_windowsById.remove(window->windowId());
+	return window;
+}
 
 BamfWindowStack::BamfWindowStack(const QDBusConnection &connection,
 		QObject *parent) :
-		AbstractWindowStack(connection, parent) {
+		AbstractWindowStack(connection, parent), m_matcher(BAMF_DBUS_NAME,
+				"/org/ayatana/bamf/matcher", connection) {
+
+	connect(&m_matcher,
+	SIGNAL(ActiveWindowChanged(const QString&, const QString&)), this,
+	SLOT(ActiveWindowChanged(const QString&, const QString&)));
+
+	connect(&m_matcher,
+	SIGNAL(ViewClosed(const QString&, const QString&)), this,
+	SLOT(ViewClosed(const QString&, const QString&)));
+
+	connect(&m_matcher,
+	SIGNAL(ViewOpened(const QString&, const QString&)), this,
+	SLOT(ViewOpened(const QString&, const QString&)));
+
+	QStringList windowPaths(m_matcher.WindowPaths());
+	for (const QString &path : windowPaths) {
+		addWindow(path);
+	}
 }
 
 BamfWindowStack::~BamfWindowStack() {
 }
 
 QString BamfWindowStack::GetAppIdFromPid(uint pid) {
+	// FIXME Not implemented
+	sendErrorReply(QDBusError::NotSupported,
+			"GetAppIdFromPid method not implemented");
 	return QString();
 }
 
 QList<WindowInfo> BamfWindowStack::GetWindowStack() {
-	return QList<WindowInfo>();
+	QList<WindowInfo> results;
+
+	QStringList stack(m_matcher.WindowStackForMonitor(-1));
+	for (const QString &path : stack) {
+		WindowPtr window(m_windows[path]);
+		WindowInfo windowInfo(window->windowId(), window->applicationId(),
+				false);
+		if (!windowInfo.app_id.isEmpty()) {
+			results << windowInfo;
+		}
+	}
+
+	return results;
 }
 
+QString BamfWindowStack::GetWindowProperty(uint windowId, const QString &appId,
+		const QString &name) {
+	return m_windowsById[windowId]->xProp(name);
+}
+
+void BamfWindowStack::ActiveWindowChanged(const QString &oldWindowPath,
+		const QString &newWindowPath) {
+	if (!newWindowPath.isEmpty()) {
+		WindowPtr window(m_windows[newWindowPath]);
+		FocusedWindowChanged(window->windowId(), window->applicationId(),
+				WindowInfo::MAIN);
+	}
+}
+
+void BamfWindowStack::ViewClosed(const QString &path, const QString &type) {
+	if (type == "window") {
+		WindowPtr window(removeWindow(path));
+		WindowDestroyed(window->windowId(), window->applicationId());
+	}
+}
+
+void BamfWindowStack::ViewOpened(const QString &path, const QString &type) {
+	if (type == "window") {
+		WindowPtr window(addWindow(path));
+		WindowCreated(window->windowId(), window->applicationId());
+	}
+}

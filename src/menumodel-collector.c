@@ -1240,24 +1240,12 @@ hud_menu_model_collector_new (const gchar *application_id,
  * Returns: a #HudMenuModelCollector, or %NULL
  **/
 void
-hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
-                                     AbstractWindow  *window)
+hud_menu_model_collector_add_window(HudMenuModelCollector * collector,
+        const gchar *unique_bus_name, const gchar *app_menu_object_path,
+        const gchar *menubar_object_path, const gchar *application_object_path,
+        const gchar *window_object_path, const gchar *unity_object_path)
 {
   g_return_if_fail(HUD_IS_MENU_MODEL_COLLECTOR(collector));
-
-#ifdef HAVE_BAMF
-  gchar *unique_bus_name;
-  gchar *application_object_path;
-  gchar *window_object_path;
-  gchar *app_menu_object_path;
-  gchar *menubar_object_path;
-  gchar *unity_object_path = NULL;
-
-  unique_bus_name = bamf_window_get_utf8_prop (window, "_GTK_UNIQUE_BUS_NAME");
-
-  if (!unique_bus_name)
-    /* If this isn't set, we won't get very far... */
-    return;
 
   if (!g_dbus_is_name(unique_bus_name)) {
     g_warning("Invalid BUS name '%s'", unique_bus_name);
@@ -1270,16 +1258,8 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
 
   if (g_strcmp0(unique_bus_name, collector->unique_bus_name) != 0) {
     g_warning("Bus name '%s' does not match '%s'", unique_bus_name, collector->unique_bus_name);
-    g_free(unique_bus_name);
     return;
   }
-  g_clear_pointer(&unique_bus_name, g_free);
-
-  app_menu_object_path = bamf_window_get_utf8_prop (window, "_GTK_APP_MENU_OBJECT_PATH");
-  menubar_object_path = bamf_window_get_utf8_prop (window, "_GTK_MENUBAR_OBJECT_PATH");
-  application_object_path = bamf_window_get_utf8_prop (window, "_GTK_APPLICATION_OBJECT_PATH");
-  window_object_path = bamf_window_get_utf8_prop (window, "_GTK_WINDOW_OBJECT_PATH");
-  unity_object_path = bamf_window_get_utf8_prop (window, "_UNITY_OBJECT_PATH");
 
   if (app_menu_object_path && !g_hash_table_lookup(collector->base_models, app_menu_object_path))
     {
@@ -1338,12 +1318,7 @@ hud_menu_model_collector_add_window (HudMenuModelCollector * collector,
    * enabled/disabled.  how to deal with that?
    */
 
-  g_free (app_menu_object_path);
-  g_free (menubar_object_path);
-  g_free (application_object_path);
-  g_free (window_object_path);
-  g_free (unity_object_path);
-#endif
+
 
   return;
 }

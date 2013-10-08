@@ -25,7 +25,8 @@
 #include <QDebug>
 
 const QString AbstractWindowStack::DBUS_NAME("com.canonical.Unity.WindowStack");
-const QString AbstractWindowStack::DBUS_PATH("/com/canonical/Unity/WindowStack");
+const QString AbstractWindowStack::DBUS_PATH(
+		"/com/canonical/Unity/WindowStack");
 
 QDBusArgument & operator<<(QDBusArgument &a, const WindowInfo &wi) {
 	a.beginStructure();
@@ -36,12 +37,15 @@ QDBusArgument & operator<<(QDBusArgument &a, const WindowInfo &wi) {
 
 const QDBusArgument & operator>>(const QDBusArgument &a, WindowInfo &wi) {
 	a.beginStructure();
-	a >> wi.window_id >> wi.app_id >> wi.focused >> wi.stage;
+	uint stage;
+	a >> wi.window_id >> wi.app_id >> wi.focused >> stage;
 	a.endStructure();
+	wi.stage = static_cast<WindowInfo::Stage>(stage);
 	return a;
 }
 
-AbstractWindowStack::AbstractWindowStack(const QDBusConnection &connection, QObject *parent) :
+AbstractWindowStack::AbstractWindowStack(const QDBusConnection &connection,
+		QObject *parent) :
 		QObject(parent), m_adaptor(new WindowStackAdaptor(this)), m_connection(
 				connection) {
 	registerMetaTypes();
@@ -60,7 +64,9 @@ AbstractWindowStack::~AbstractWindowStack() {
 }
 
 void AbstractWindowStack::registerMetaTypes() {
-	qRegisterMetaType<WindowInfo>("WindowInfo");
+	qRegisterMetaType<WindowInfo>();
+	qRegisterMetaType<QList<WindowInfo>>();
 	qDBusRegisterMetaType<WindowInfo>();
+	qDBusRegisterMetaType<QList<WindowInfo>>();
 }
 

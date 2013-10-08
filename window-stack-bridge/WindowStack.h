@@ -19,10 +19,10 @@
 #ifndef WINDOWSTACK_H_
 #define WINDOWSTACK_H_
 
-#ifdef HAVE_BAMF
+#ifdef ENABLE_BAMF
 #include <BamfWindowStack.h>
 typedef BamfWindowStack WindowStack;
-#elif HAVE_PLATORM_API
+#elif ENABLE_PLATFORM_API
 #include <PlatformApiWindowStack.h>
 typedef PlatformApiWindowStack WindowStack;
 #endif
