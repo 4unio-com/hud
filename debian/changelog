@@ -1,9 +1,17 @@
-hud (13.10.1+13.10.20131002.1-0ubuntu2) UNRELEASED; urgency=low
+hud (13.10.1+13.10.20131008.1-0ubuntu1) saucy; urgency=low
 
+  [ Dmitrijs Ledkovs ]
   * Use /bin/sh instead of /bin/bash in the dbus activation script, to
     speed up execution.
 
- -- Dmitrijs Ledkovs <dmitrij.ledkov@ubuntu.com>  Fri, 04 Oct 2013 12:57:14 +0100
+  [ Pete Woods ]
+  * Improve HUD's voice error handling for when either nothing is said,
+    or the mic isn't working.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 325
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 08 Oct 2013 12:50:58 +0000
 
 hud (13.10.1+13.10.20131002.1-0ubuntu1) saucy; urgency=low
 
