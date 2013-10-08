@@ -168,7 +168,7 @@ hud_unity_voice_new (HudQueryIfaceComCanonicalHudQuery *skel, const gchar *devic
 }
 
 static GVariant*
-hud_unity_voice_build_commands_variant( GList *items )
+hud_unity_voice_build_commands_variant( HudUnityVoice *self, GList *items )
 {
   GVariant* commands;
   GVariantBuilder builder;
@@ -194,7 +194,9 @@ hud_unity_voice_build_commands_variant( GList *items )
       g_variant_builder_init( &as_builder, G_VARIANT_TYPE_STRING_ARRAY );
       for( int i = 0; command_words[i] != NULL ; i++ )
       {
-        g_variant_builder_add_value( &as_builder, g_variant_new_string ( command_words[i] ) );
+        gchar* filtered = g_regex_replace( self->alphanumeric_regex, command_words[i], -1, 0, "", 0, NULL );
+        g_variant_builder_add_value( &as_builder, g_variant_new_string ( filtered ) );
+        g_free( filtered );
       }
 
       g_strfreev( command_words );
@@ -278,7 +280,7 @@ hud_unity_voice_query (HudVoice *voice, HudSource *source, gchar **result, GErro
     return TRUE;
   }
 
-  GVariant* commands = hud_unity_voice_build_commands_variant( items );
+  GVariant* commands = hud_unity_voice_build_commands_variant( self, items );
   if (commands == NULL) {
     *result = NULL;
     g_set_error_literal (error, hud_unity_voice_error_quark(), HUD_VOICE_HUD_STATE_ERROR,
