@@ -49,6 +49,9 @@ AbstractWindowStack::AbstractWindowStack(const QDBusConnection &connection,
 		QObject(parent), m_adaptor(new WindowStackAdaptor(this)), m_connection(
 				connection) {
 	registerMetaTypes();
+}
+
+void AbstractWindowStack::registerOnBus() {
 	if (!m_connection.registerService(DBUS_NAME)) {
 		throw std::logic_error(
 				_("Unable to register window stack service on DBus"));

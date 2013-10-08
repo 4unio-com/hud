@@ -90,6 +90,8 @@ Q_SIGNALS:
 	void WindowDestroyed(uint windowId, const QString &appId);
 
 protected:
+	void registerOnBus();
+
 	QScopedPointer<WindowStackAdaptor> m_adaptor;
 
 	QDBusConnection m_connection;

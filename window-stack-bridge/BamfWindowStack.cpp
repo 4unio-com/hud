@@ -86,6 +86,8 @@ BamfWindowStack::BamfWindowStack(const QDBusConnection &connection,
 		AbstractWindowStack(connection, parent), m_matcher(BAMF_DBUS_NAME,
 				"/org/ayatana/bamf/matcher", connection) {
 
+	registerOnBus();
+
 	connect(&m_matcher,
 	SIGNAL(ActiveWindowChanged(const QString&, const QString&)), this,
 	SLOT(ActiveWindowChanged(const QString&, const QString&)));

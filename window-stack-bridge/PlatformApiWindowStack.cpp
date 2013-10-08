@@ -32,6 +32,8 @@ PlatformApiWindowStack::PlatformApiWindowStack(
 				_("Incorrect QPA environment for Ubuntu platform API"));
 	}
 
+	registerOnBus();
+
 	m_observer_definition.on_session_requested = on_session_requested_cb;
 	m_observer_definition.on_session_born = on_session_born_cb;
 	m_observer_definition.on_session_unfocused = on_session_unfocused_cb;
