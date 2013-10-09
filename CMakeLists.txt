@@ -1,4 +1,4 @@
-project(hud C)
+project(hud C CXX)
 cmake_minimum_required(VERSION 2.8.9)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
@@ -13,6 +13,7 @@ option(ENABLE_SCALABILITY_TESTS "Additional scalability tests that are potential
 option(FULL_WARNINGS "Full compiler warnings." ON)
 option(DEBUG_MESSAGES "Print debug messages." OFF)
 option(LOCAL_INSTALL "Support local installation." OFF)
+option(ENABLE_BAMF "Enable building for BAMF." ON)
 option(ENABLE_PLATFORM_API "Enable building for platform API." OFF)
 
 # Trick the H10enable_coverage script into enabling coverage by including the text below:
@@ -46,6 +47,11 @@ endif()
 set(HUD_QUERY_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.query.xml)
 set(HUD_SERVICE_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.xml)
 set(HUD_APP_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.Application.xml)
+
+set(WINDOW_STACK_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.Unity.WindowStack.xml")
+
+set(BAMF_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/org.ayatana.bamf.xml")
+set(BAMF_VIEW_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/org.ayatana.bamf.view.xml")
 
 set(HUD_TOP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(HUD_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -94,6 +100,12 @@ include_directories(${NIH_DBUS_INCLUDE_DIRS})
 pkg_check_modules(DBUS REQUIRED dbus-1)
 include_directories(${DBUS_INCLUDE_DIRS})
 
+find_package(Qt5Core REQUIRED)
+include_directories(${Qt5Core_INCLUDE_DIRS})
+
+find_package(Qt5DBus REQUIRED)
+include_directories(${Qt5DBus_INCLUDE_DIRS})
+
 find_package(Vala 0.12)
 
 find_package(GObjectIntrospection 0.9.12)
@@ -105,17 +117,6 @@ if(${HAVE_SIGNAL_H})
 endif()
 
 pkg_search_module(PANGO REQUIRED pango)
-
-pkg_search_module(BAMF libbamf3)
-if(${BAMF_FOUND})
-  add_definitions( -DHAVE_BAMF=1 )
-  include_directories(${BAMF_INCLUDE_DIRS})
-endif()
-
-if(${ENABLE_PLATFORM_API})
-  add_definitions( -DHAVE_PLATFORM_API=1 )
-  set(PHABLET_LIBRARIES "-lubuntu_application_api")
-endif()
 
 if(${LOCAL_INSTALL})
   set(DBUSSERVICEDIR "${CMAKE_INSTALL_DATADIR}/dbus-1/services/")
@@ -134,7 +135,11 @@ message("Installing DBus interfaces to ${DBUSIFACEDIR}")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_subdirectory(data)
 add_subdirectory(libhud-client)
@@ -142,6 +147,7 @@ add_subdirectory(libhud)
 add_subdirectory(libhud-gtk)
 add_subdirectory(src)
 add_subdirectory(tools)
+add_subdirectory(window-stack-bridge)
 
 if(${ENABLE_TESTS})
   enable_testing()

@@ -20,7 +20,7 @@
 #define __HUD_APPLICATION_SOURCE_H__
 
 #include <glib-object.h>
-#include "abstract-app.h"
+#include "window-info.h"
 #include "application-source-context.h"
 
 G_BEGIN_DECLS
@@ -48,19 +48,20 @@ struct _HudApplicationSource {
 };
 
 GType                    hud_application_source_get_type          (void);
-HudApplicationSource *   hud_application_source_new_for_app       (AbstractApplication *    bapp);
+HudApplicationSource *   hud_application_source_new_for_app       (HudApplicationInfo *     bapp);
 HudApplicationSource *   hud_application_source_new_for_id        (const gchar *            id);
 gboolean                 hud_application_source_is_empty          (HudApplicationSource *   app);
 void                     hud_application_source_focus             (HudApplicationSource *   app,
-                                                                   AbstractApplication *    bapp,
-                                                                   AbstractWindow *         window);
+                                                                   HudApplicationInfo *     bapp,
+                                                                   HudWindowInfo *          window);
 const gchar *            hud_application_source_get_path          (HudApplicationSource *   app);
 const gchar *            hud_application_source_get_id            (HudApplicationSource *   app);
 const gchar *            hud_application_source_get_app_icon      (HudApplicationSource *   app);
+HudApplicationInfo *     hud_application_source_get_application_info (HudApplicationSource *   app);
 void                     hud_application_source_add_window        (HudApplicationSource *   app,
-                                                                   AbstractWindow *         window);
+                                                                   HudWindowInfo *          window);
 void                     hud_application_source_window_closed     (HudApplicationSource *   app,
-                                                                   AbstractWindow *         window);
+                                                                   guint                    xid);
 gboolean                 hud_application_source_has_xid           (HudApplicationSource *   app,
                                                                    guint32                  xid);
 
@@ -73,9 +74,6 @@ void                     hud_application_source_add_context       (HudApplicatio
                                                                    HudApplicationSourceContext * context);
 void                     hud_application_source_set_focused_win   (HudApplicationSource *   app,
                                                                    guint32                  xid);
-
-/* Helper functions */
-gchar *                  hud_application_source_bamf_app_id       (AbstractApplication *    bapp);
 
 G_END_DECLS
 

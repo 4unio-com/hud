@@ -20,7 +20,7 @@
 #define __HUD_DBUSMENU_COLLECTOR_H__
 
 #include "glib-object.h"
-#include "abstract-app.h"
+#include "window-info.h"
 #include "source.h"
 
 #define HUD_TYPE_DBUSMENU_COLLECTOR                         (hud_dbusmenu_collector_get_type ())
@@ -40,7 +40,7 @@ HudDbusmenuCollector *  hud_dbusmenu_collector_new_for_endpoint         (const g
                                                                          const gchar *bus_name,
                                                                          const gchar *object_path,
                                                                          HudSourceItemType type);
-HudDbusmenuCollector *  hud_dbusmenu_collector_new_for_window           (AbstractWindow  *window,
+HudDbusmenuCollector *  hud_dbusmenu_collector_new_for_window           (guint xid,
                                                                          const gchar *application_id,
                                                                          const gchar *icon,
                                                                          HudSourceItemType type);

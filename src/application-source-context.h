@@ -21,7 +21,7 @@
 
 #include <glib-object.h>
 #include <gio/gio.h>
-#include "abstract-app.h"
+#include "window-info.h"
 
 G_BEGIN_DECLS
 
@@ -66,7 +66,7 @@ void                            hud_application_source_context_add_model        
                                                                                   GMenuModel *                    model,
                                                                                   HudApplicationSourceContextModelType type);
 void                            hud_application_source_context_add_window        (HudApplicationSourceContext *   context,
-                                                                                  AbstractWindow *                window);
+                                                                                  HudWindowInfo *                 window);
 
 G_END_DECLS
 

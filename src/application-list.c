@@ -22,33 +22,22 @@
 #include "config.h"
 #endif
 
-#include "abstract-app.h"
+#include "window-info.h"
 
 #include "application-list.h"
 #include "application-source.h"
 #include "source.h"
-
-#ifdef HAVE_PLATFORM_API
-#include <ubuntu/ui/ubuntu_ui_session_service.h>
-#include <ubuntu/application/ui/stage.h>
-#endif
+#include "window-stack-iface.h"
 
 typedef struct _HudApplicationListPrivate HudApplicationListPrivate;
 
 struct _HudApplicationListPrivate {
 	HudApplicationSource * last_focused_main_stage_source;
 
-#ifdef HAVE_BAMF
-	BamfMatcher * matcher;
+	DBusWindowStack * window_stack;
 	gulong matcher_app_sig;
 	gulong matcher_view_open_sig;
 	gulong matcher_view_close_sig;
-#endif
-#ifdef HAVE_PLATFORM_API
-	HudApplicationSource * last_focused_side_stage_source;
-	ubuntu_ui_session_lifecycle_observer observer_definition;
-#endif
-
 	GHashTable * applications;
 	HudSource * used_source;
 };
@@ -59,39 +48,23 @@ struct _HudApplicationListPrivate {
 static void hud_application_list_class_init (HudApplicationListClass * klass);
 static void hud_application_list_init       (HudApplicationList *      self);
 static void hud_application_list_constructed (GObject * object);
-#ifdef HAVE_BAMF
-static void matching_setup_bamf             (HudApplicationList *      self);
-#endif
-#ifdef HAVE_PLATFORM_API
-static void matching_setup_hybris           (HudApplicationList *      self);
-#endif
+static void matching_setup             (HudApplicationList *      self);
 static void hud_application_list_dispose    (GObject *                 object);
 static void hud_application_list_finalize   (GObject *                 object);
 static void source_iface_init               (HudSourceInterface *      iface);
-#ifdef HAVE_BAMF
-static void window_changed                  (BamfMatcher *             matcher,
-                                             BamfWindow *              old_window,
-                                             BamfWindow *              new_window,
+static void window_changed                  (DBusWindowStack *         matcher,
+                                             guint                     window_id,
+                                             const gchar *             app_id,
+                                             guint                     stage,
                                              gpointer                  user_data);
-static void view_opened                     (BamfMatcher *             matcher,
-                                             BamfView *                view,
+static void view_opened                     (DBusWindowStack *         matcher,
+                                             guint                     window_id,
+                                             const gchar *             app_id,
                                              gpointer                  user_data);
-static void view_closed                     (BamfMatcher *             matcher,
-                                             BamfView *                view,
+static void view_closed                     (DBusWindowStack *         matcher,
+                                             guint                     window_id,
+                                             const gchar *             app_id,
                                              gpointer                  user_data);
-#endif
-#ifdef HAVE_PLATFORM_API
-static void session_requested               (ubuntu_ui_well_known_application app,
-                                             void *                    context);
-static void session_born                    (ubuntu_ui_session_properties props,
-                                             void *                    context);
-static void session_focused                 (ubuntu_ui_session_properties props,
-                                             void *                    context);
-static void session_unfocused               (ubuntu_ui_session_properties props,
-                                             void *                    context);
-static void session_died                    (ubuntu_ui_session_properties props,
-                                             void *                    context);
-#endif
 static void source_use                      (HudSource *               hud_source);
 static void source_unuse                    (HudSource *               hud_source);
 static void source_search                   (HudSource *               hud_source,
@@ -107,7 +80,7 @@ static HudSource * source_get               (HudSource *               hud_sourc
 static GList * source_get_items             (HudSource *               list);
 static void application_source_changed      (HudSource *               source,
                                              gpointer                  user_data);
-static gboolean hud_application_list_name_in_ignore_list (AbstractWindow *window);
+static gboolean hud_application_list_name_in_ignore_list (HudWindowInfo *window);
 
 G_DEFINE_TYPE_WITH_CODE (HudApplicationList, hud_application_list, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (HUD_TYPE_SOURCE, source_iface_init))
@@ -124,12 +97,7 @@ hud_application_list_class_init (HudApplicationListClass *klass)
 	object_class->dispose = hud_application_list_dispose;
 	object_class->finalize = hud_application_list_finalize;
 
-#ifdef HAVE_BAMF
-	klass->matching_setup = matching_setup_bamf;
-#endif
-#ifdef HAVE_PLATFORM_API
-	klass->matching_setup = matching_setup_hybris;
-#endif
+	klass->matching_setup = matching_setup;
 
 	return;
 }
@@ -172,94 +140,85 @@ hud_application_list_constructed (GObject * object)
 	return;
 }
 
-#ifdef HAVE_BAMF
 static void
-matching_setup_bamf (HudApplicationList * self)
+matching_setup (HudApplicationList * self)
 {
-	self->priv->matcher = bamf_matcher_get_default();
-	self->priv->matcher_app_sig = g_signal_connect(self->priv->matcher,
-		"active-window-changed",
+	GError *error = NULL;
+	self->priv->window_stack = dbus_window_stack_proxy_new_for_bus_sync(
+			G_BUS_TYPE_SESSION, G_DBUS_PROXY_FLAGS_NONE,
+			"com.canonical.Unity.WindowStack",
+			"/com/canonical/Unity/WindowStack",
+			NULL, &error);
+	if(self->priv->window_stack == NULL) {
+		g_warning("Could not construct window stack proxy: %s", error->message);
+		g_error_free(error);
+		return;
+	}
+
+	g_debug("connecting to window stack signals");
+	self->priv->matcher_app_sig = g_signal_connect(self->priv->window_stack,
+		"focused-window-changed",
 		G_CALLBACK(window_changed), self);
-	self->priv->matcher_view_open_sig = g_signal_connect(self->priv->matcher,
-		"view-opened",
+	self->priv->matcher_view_open_sig = g_signal_connect(self->priv->window_stack,
+		"window-created",
 		G_CALLBACK(view_opened), self);
-	self->priv->matcher_view_close_sig = g_signal_connect(self->priv->matcher,
-		"view-closed",
+	self->priv->matcher_view_close_sig = g_signal_connect(self->priv->window_stack,
+		"window-destroyed",
 		G_CALLBACK(view_closed), self);
+	g_debug("connected to window stack signals");
 
-	GList * apps = bamf_matcher_get_applications(self->priv->matcher);
-	GList * app = NULL;
-	for (app = apps; app != NULL; app = g_list_next(app)) {
-		if (!BAMF_IS_APPLICATION(app->data)) {
-			continue;
-		}
-
-		BamfApplication * bapp = BAMF_APPLICATION(app->data);
-		gchar * app_id = hud_application_source_bamf_app_id(bapp);
-
-		if (app_id == NULL) {
-			continue;
-		}
-
-		HudApplicationSource * appsource = hud_application_source_new_for_app(bapp);
-		g_signal_connect(appsource, "changed", G_CALLBACK(application_source_changed), self);
-
-		if (!hud_application_source_is_empty(appsource)) {
-			g_hash_table_insert(self->priv->applications, app_id, appsource);
-		} else {
-			g_object_unref(appsource);
-		}
+	GVariant *stack_variant = NULL;
+	error = NULL;
+	if (!dbus_window_stack_call_get_window_stack_sync(self->priv->window_stack,
+			&stack_variant, NULL, &error)) {
+		g_warning("Could not get window stack: %s", error->message);
+		g_error_free(error);
+		return;
 	}
 
-	GList * windows = bamf_matcher_get_windows(self->priv->matcher);
-	GList * window = NULL;
-	for (window = windows; window != NULL; window = g_list_next(window)) {
-		if (!BAMF_IS_WINDOW(window->data)) {
-			continue;
-		}
+	GVariantIter iter;
+	g_variant_iter_init(&iter, stack_variant);
 
-		view_opened(self->priv->matcher, BAMF_VIEW(window->data), self);
-	}
+	GVariant *window_info = NULL;
+	while ((window_info = g_variant_iter_next_value(&iter))) {
+		GVariantIter window_info_iter;
+		g_variant_iter_init(&window_info_iter, window_info);
 
-	BamfWindow * focused = bamf_matcher_get_active_window(self->priv->matcher);
-	if (focused != NULL && !hud_application_list_name_in_ignore_list(focused)) {
-		window_changed(self->priv->matcher, NULL, focused, self);
-	} else {
-		GList * stack = bamf_matcher_get_window_stack_for_monitor(self->priv->matcher, -1);
+		GVariant *window_id_variant = g_variant_iter_next_value(&window_info_iter);
+		GVariant *app_id_variant = g_variant_iter_next_value(&window_info_iter);
+		GVariant *focused_variant = g_variant_iter_next_value(&window_info_iter);
+		GVariant *stage_variant = g_variant_iter_next_value(&window_info_iter);
 
-		GList * last = g_list_last(stack);
-		while (last != NULL) {
-			if (hud_application_list_name_in_ignore_list(last->data)) {
-				last = g_list_previous(last);
-				continue;
+		view_opened(self->priv->window_stack,
+				g_variant_get_uint32(window_id_variant),
+				g_variant_get_string(app_id_variant, NULL),
+				/*g_variant_get_uint32(stage_variant),*/self);
+
+		if (g_variant_get_boolean(focused_variant)) {
+			HudApplicationSource *source = g_hash_table_lookup(
+					self->priv->applications,
+					g_variant_get_string(app_id_variant, NULL));
+
+			if (source
+					&& !hud_application_list_name_in_ignore_list(
+							hud_application_source_get_application_info(
+									source))) {
+				window_changed(self->priv->window_stack,
+						g_variant_get_uint32(window_id_variant),
+						g_variant_get_string(app_id_variant, NULL),
+						g_variant_get_uint32(stage_variant), self);
 			}
-
-			window_changed(self->priv->matcher, NULL, last->data, self);
-			break;
 		}
 
-		g_list_free(stack);
+		g_variant_unref (window_id_variant);
+		g_variant_unref (app_id_variant);
+		g_variant_unref (focused_variant);
+		g_variant_unref (stage_variant);
+		g_variant_unref (window_info);
 	}
+
+	g_variant_unref(stack_variant);
 }
-#endif
-
-#ifdef HAVE_PLATFORM_API
-static void
-matching_setup_hybris (HudApplicationList * self)
-{
-	self->priv->observer_definition.on_session_requested = session_requested;
-	self->priv->observer_definition.on_session_born = session_born;
-	self->priv->observer_definition.on_session_unfocused = session_unfocused;
-	self->priv->observer_definition.on_session_focused = session_focused;
-	self->priv->observer_definition.on_session_died = session_died;
-	self->priv->observer_definition.on_keyboard_geometry_changed = NULL;
-	self->priv->observer_definition.context = self;
-
-	ubuntu_ui_session_install_session_lifecycle_observer(&self->priv->observer_definition);
-
-	return;
-}
-#endif
 
 /* Clean up references */
 static void
@@ -275,37 +234,24 @@ hud_application_list_dispose (GObject *object)
 
 	g_clear_object(&self->priv->last_focused_main_stage_source);
 
-#ifdef HAVE_BAMF
-	if (self->priv->matcher_app_sig != 0 && self->priv->matcher != NULL) {
-		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_app_sig);
+	if (self->priv->matcher_app_sig != 0 && self->priv->window_stack != NULL) {
+		g_signal_handler_disconnect(self->priv->window_stack, self->priv->matcher_app_sig);
 	}
 	self->priv->matcher_app_sig = 0;
-#endif
 
-#ifdef HAVE_BAMF
-	if (self->priv->matcher_view_open_sig != 0 && self->priv->matcher != NULL) {
-		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_view_open_sig);
+	if (self->priv->matcher_view_open_sig != 0 && self->priv->window_stack != NULL) {
+		g_signal_handler_disconnect(self->priv->window_stack, self->priv->matcher_view_open_sig);
 	}
 	self->priv->matcher_view_open_sig = 0;
-#endif
 
-#ifdef HAVE_BAMF
-	if (self->priv->matcher_view_close_sig != 0 && self->priv->matcher != NULL) {
-		g_signal_handler_disconnect(self->priv->matcher, self->priv->matcher_view_close_sig);
+	if (self->priv->matcher_view_close_sig != 0 && self->priv->window_stack != NULL) {
+		g_signal_handler_disconnect(self->priv->window_stack, self->priv->matcher_view_close_sig);
 	}
 	self->priv->matcher_view_close_sig = 0;
-#endif
 
-#ifdef HAVE_BAMF
-	g_debug("Unrefing BAMF matcher");
-	g_clear_object(&self->priv->matcher);
-	g_debug("Unref'd BAMF matcher");
-#endif
-
-#ifdef HAVE_PLATFORM_API
-	/* Nothing to do as Hybris has no way to unregister our observer */
-	g_clear_object(&self->priv->last_focused_side_stage_source);
-#endif
+	g_debug("Unrefing window stack");
+	g_clear_object(&self->priv->window_stack);
+	g_debug("Unref'd window stack");
 
 	g_hash_table_remove_all(self->priv->applications);
 
@@ -330,40 +276,28 @@ hud_application_list_finalize (GObject *object)
 	return;
 }
 
-/* Get a source from a BamfApp */
 static HudApplicationSource *
-bamf_app_to_source (HudApplicationList * list, AbstractApplication * bapp)
+application_info_to_source (HudApplicationList * list, HudApplicationInfo * bapp)
 {
-	gchar * id = hud_application_source_bamf_app_id(bapp);
-	if (id == NULL) {
-		return NULL;
-	}
+	const gchar * id = hud_window_info_get_app_id(bapp);
 
 	HudApplicationSource * source = g_hash_table_lookup(list->priv->applications, id);
 	if (source == NULL) {
 		source = hud_application_source_new_for_app(bapp);
 		g_signal_connect(source, "changed", G_CALLBACK(application_source_changed), list);
 
-		g_hash_table_insert(list->priv->applications, id, source);
+		g_hash_table_insert(list->priv->applications, g_strdup(id), source);
 		id = NULL; /* We used the malloc in the table */
 
 		hud_source_changed(HUD_SOURCE(list));
 	}
 
-	g_free(id);
-
 	return source;
 }
 
 static gboolean
-hud_application_list_name_in_ignore_list (AbstractWindow *window)
+hud_application_list_name_in_ignore_list (HudWindowInfo *window)
 {
-#ifdef HAVE_PLATFORM_API
-  /* Hybris only supports a very limited set of windows, which
-     doesn't include any debugging tools.  So we can just exit. */
-  return FALSE;
-#endif
-
   static const gchar * const ignored_names[] = {
     "Hud Prototype Test",
     "Hud",
@@ -380,17 +314,15 @@ hud_application_list_name_in_ignore_list (AbstractWindow *window)
     "XdndCollectionWindowImp",
   };
   gboolean ignored = FALSE;
-  gchar *window_name = NULL;
   gint i;
 
-#ifdef HAVE_BAMF
-  window_name = bamf_view_get_name (BAMF_VIEW (window));
+  gchar *window_name = hud_window_info_get_utf8_prop(window, "WM_NAME");
   g_debug ("checking window name '%s'", window_name);
-#endif
 
-  /* sometimes bamf returns NULL here... protect ourselves */
+  /* it's possible to get NULL here */
   if (window_name == NULL)
-    return TRUE;
+    return FALSE;
+
 
   for (i = 0; i < G_N_ELEMENTS (ignored_names); i++)
     if (g_str_equal (ignored_names[i], window_name))
@@ -400,43 +332,38 @@ hud_application_list_name_in_ignore_list (AbstractWindow *window)
         break;
       }
 
-  g_free (window_name);
+  g_free(window_name);
 
   return ignored;
 }
 
-#ifdef HAVE_BAMF
 /* Called each time the focused application changes */
 static void
-window_changed (BamfMatcher * matcher, G_GNUC_UNUSED BamfWindow * old_win, BamfWindow * new_win, gpointer user_data)
+window_changed (DBusWindowStack *window_stack, guint window_id, const gchar *app_id, guint stack, gpointer user_data)
 {
+	g_debug("window_changed(%d, %s, %d)", window_id, app_id, stack);
+
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
 
-	if (new_win == NULL || hud_application_list_name_in_ignore_list (new_win))
+	HudWindowInfo *window = hud_window_info_new(list->priv->window_stack, window_id, app_id, stack);
+
+	if (hud_application_list_name_in_ignore_list (window)) {
+		g_object_unref(window);
 	    return;
+	}
 
 	/* Clear the last source, as we've obviously changed */
 	g_clear_object(&list->priv->last_focused_main_stage_source);
 
-	/* Try to use BAMF */
-	BamfApplication * new_app = bamf_matcher_get_application_for_window(list->priv->matcher, new_win);
-	if (new_app == NULL || bamf_application_get_desktop_file(new_app) == NULL) {
-		/* We can't handle things we can't identify */
-		hud_source_changed(HUD_SOURCE(list));
-		return;
-	}
+	HudApplicationSource *source = application_info_to_source(list, window);
 
-	HudApplicationSource * source = NULL;
+	g_debug("looking up application source for: %s", app_id);
 
-	/* If we've got an app, we can find it easily */
-	if (new_app != NULL) {
-		source = bamf_app_to_source(list, new_app);
-	}
-
-	/* If we weren't able to use BAMF, let's try to find a source
+	/* If we weren't able to lookup the app, let's try to find a source
 	   for the window. */
 	if (source == NULL) {
-		guint32 xid = bamf_window_get_xid(new_win);
+		g_debug("no applicationn source was found");
+		guint xid = hud_window_info_get_window_id(window);
 		GList * sources = g_hash_table_get_values(list->priv->applications);
 		GList * lsource = NULL;
 
@@ -458,207 +385,43 @@ window_changed (BamfMatcher * matcher, G_GNUC_UNUSED BamfWindow * old_win, BamfW
 
 	list->priv->last_focused_main_stage_source = g_object_ref(source);
 
-	hud_application_source_focus(source, new_app, new_win);
+	hud_application_source_focus(source, window, window);
 
 	hud_source_changed(HUD_SOURCE(list));
 
-	return;
-}
-#endif
-
-#ifdef HAVE_PLATFORM_API
-
-typedef struct {
-  HudApplicationList *list;
-  SessionProperties  *props;
-} SessionCallbackData;
-
-static SessionCallbackData *
-create_session_callback_data(ubuntu_ui_session_properties props, void *context)
-{
-  SessionCallbackData *data = g_new(SessionCallbackData, 1);
-
-  data->list = HUD_APPLICATION_LIST(context);
-
-  data->props = g_new(SessionProperties, 1);
-  data->props->desktop_file_hint
-    = g_strdup(ubuntu_ui_session_properties_get_desktop_file_hint(props));
-  data->props->stage_hint = ubuntu_ui_session_properties_get_application_stage_hint(props);
-    
-  return data;
-}
-
-static void
-destroy_session_callback_data(SessionCallbackData *data)
-{
-  g_free(data->props->desktop_file_hint);
-  g_free(data->props);
-  g_free(data);
-}
-
-
-/* When a session gets focus */
-static gboolean
-handle_session_focused (gpointer user_data)
-{
-	SessionCallbackData *data = user_data;
-	SessionProperties *props = data->props;
-	HudApplicationList *list = data->list;
-
-	// Do not care about anything not main or side stage
-	if (props->stage_hint != U_MAIN_STAGE && props->stage_hint != U_SIDE_STAGE)
-		return G_SOURCE_REMOVE;
- 
-
-	if (hud_application_list_name_in_ignore_list(props)) {
-		return G_SOURCE_REMOVE;
-	}
-
-	HudApplicationSource * source = bamf_app_to_source(list, props);
-	if (source == NULL) {
-		return G_SOURCE_REMOVE;
-	}
-
-	g_debug("Changing focus to: %s", hud_application_source_get_id(source));
-
-	/* NOTE: We don't really have a window to add here, but this
-	   also adjusts focus, which is how we're passing it down.  So
-	   what'll happen is that this'll trigger the dummy function since
-	   we can't get window IDs anyway. */
-	hud_application_source_focus(source, props, props);
-
-	if (props->stage_hint == U_MAIN_STAGE) {
-		g_clear_object(&list->priv->last_focused_main_stage_source);
-		list->priv->last_focused_main_stage_source = g_object_ref(source);
-	} else { /*U_SIDE_STAGE*/
-		g_clear_object(&list->priv->last_focused_side_stage_source);
-		list->priv->last_focused_side_stage_source = g_object_ref(source);
-	}
-
-	hud_source_changed(HUD_SOURCE(list));
-
-	return G_SOURCE_REMOVE;
-}
-
-
-static void
-session_focused (ubuntu_ui_session_properties props, void * context)
-{
-	SessionCallbackData *data = create_session_callback_data(props, context);
-	g_idle_add_full(G_PRIORITY_DEFAULT,
-			handle_session_focused,
-			data,
-			(GDestroyNotify)destroy_session_callback_data);
-}
-
-/* When something looses focus, hopefully everything is paired */
-static void
-session_unfocused (ubuntu_ui_session_properties props, void * context)
-{
-	/* HudApplicationList * list = HUD_APPLICATION_LIST(context); */
-
-	/* NOTE: We don't clear on unfocus because we don't know who
-	   the next focus will be, and it could be blocked.  We'll always
-	   just search the last focus. */
+	g_object_unref(window);
 
 	return;
 }
 
-/* This function does nothing, but Hybris isn't smart enough to handle
-   NULL pointers, so we need to fill in the structure. */
+
+/* A new view has been opened */
 static void
-session_requested (ubuntu_ui_well_known_application app, void * context)
+view_opened (DBusWindowStack * window_stack, guint window_id, const gchar *app_id, gpointer user_data)
 {
-	return;
-}
-
-/* Finds the application object for the session and unref's it so
-   we'll assume it is gone, gone, gone. */
-/* When a session gets focus */
-static gboolean
-handle_session_died (gpointer user_data)
-{
-	SessionCallbackData *data = user_data;
-	SessionProperties *props = data->props;
-	HudApplicationList *list = data->list;
-
-	HudApplicationSource * source = bamf_app_to_source(list, props);
-	if (source == NULL) {
-		return G_SOURCE_REMOVE;
-	}
-
-	gchar * app_id = g_strdup(hud_application_source_get_id(source));
-	g_debug("Source is getting removed: %s", app_id);
-
-	if ((gpointer)source == (gpointer)list->priv->used_source) {
-		hud_source_unuse(HUD_SOURCE(source));
-		g_clear_object(&list->priv->used_source);
-	}
-
-	if ((gpointer)source == (gpointer)list->priv->last_focused_main_stage_source) {
-		g_clear_object(&list->priv->last_focused_main_stage_source);
-	}
-	if ((gpointer)source == (gpointer)list->priv->last_focused_side_stage_source) {
-		g_clear_object(&list->priv->last_focused_side_stage_source);
-	}
-
-	g_hash_table_remove(list->priv->applications, app_id);
-	g_free(app_id);
-
-	hud_source_changed(HUD_SOURCE(list));
-
-	return G_SOURCE_REMOVE;
-}
-
-static void
-session_died (ubuntu_ui_session_properties props, void * context)
-{
-	SessionCallbackData *data = create_session_callback_data(props, context);
-	g_idle_add_full(G_PRIORITY_DEFAULT,
-			handle_session_died,
-			data,
-			(GDestroyNotify)destroy_session_callback_data);
-}
-
-#endif
-
-#ifdef HAVE_BAMF
-/* A new view has been opened by BAMF */
-static void
-view_opened (BamfMatcher * matcher, BamfView * view, gpointer user_data)
-{
-	if (!BAMF_IS_WINDOW(view)) {
-		/* We only want windows.  Sorry. */
-		return;
-	}
-
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
-	BamfApplication * app = bamf_matcher_get_application_for_window(list->priv->matcher, BAMF_WINDOW(view));
-	if (app == NULL) {
-		return;
-	}
 
-	HudApplicationSource * source = bamf_app_to_source(list, app);
+	HudWindowInfo *window = hud_window_info_new(list->priv->window_stack,
+			window_id, app_id, HUD_WINDOW_INFO_STAGE_MAIN);
+
+	HudApplicationSource * source = application_info_to_source(list, window);
 	if (source == NULL) {
+		g_object_unref(window);
 		return;
 	}
 
-	hud_application_source_add_window(source, BAMF_WINDOW(view));
+	hud_application_source_add_window(source, window);
+
+	g_object_unref(window);
 
 	return;
 }
 
-/* A view has been closed by BAMF */
+/* A view has been closed */
 static void
-view_closed (BamfMatcher * matcher, BamfView * view, gpointer user_data)
+view_closed (DBusWindowStack * window_stack, guint window_id, const gchar *app_id, gpointer user_data)
 {
-	if (!BAMF_IS_WINDOW(view)) {
-		/* We only want windows.  Sorry. */
-		return;
-	}
-
-	guint32 xid = abstract_window_get_id(BAMF_WINDOW(view));
-	g_debug("Closing Window: %d", xid);
+	g_debug("Closing Window: %d", window_id);
 
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
 
@@ -669,47 +432,13 @@ view_closed (BamfMatcher * matcher, BamfView * view, gpointer user_data)
 		HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
 		if (appsource == NULL) continue;
 
-		if (hud_application_source_has_xid(appsource, xid)) {
-			hud_application_source_window_closed(appsource, BAMF_WINDOW(view));
+		if (hud_application_source_has_xid(appsource, window_id)) {
+			hud_application_source_window_closed(appsource, window_id);
 		}
 	}
 
 	return;
 }
-#endif
-
-#ifdef HAVE_PLATFORM_API
-/* When a new session gets created */
-static gboolean
-handle_session_born (gpointer user_data)
-{
-	SessionCallbackData *data = user_data;
-	SessionProperties *props = data->props;
-	HudApplicationList *list = data->list;
-
-	HudApplicationSource * source = bamf_app_to_source(list, props);
-	if (source == NULL) {
-		return G_SOURCE_REMOVE;
-	}
-
-	/* NOTE: Nothing to do here, since there are no windows and no
-	   information on them, we can't really start getting the menus
-	   from them or anything.  But we can makes sure that the appliction
-	   exists in the DBus representation. */
-
-	return G_SOURCE_REMOVE;
-}
-
-static void
-session_born (ubuntu_ui_session_properties props, void * context)
-{
-	SessionCallbackData *data = create_session_callback_data(props, context);
-	g_idle_add_full(G_PRIORITY_DEFAULT,
-			handle_session_born,
-			data,
-			(GDestroyNotify)destroy_session_callback_data);
-}
-#endif
 
 /* Source interface using this source */
 static void
@@ -722,52 +451,6 @@ source_use (HudSource *hud_source)
 
 	/* First see if we've already got it */
 	source = list->priv->last_focused_main_stage_source;
-
-#ifdef HAVE_PLATFORM_API
-	/* Check the side stage */
-	if (source == NULL) {
-		source = list->priv->last_focused_side_stage_source;
-	}
-#endif
-
-#ifdef HAVE_BAMF
-	if (source == NULL) {
-		/* Try using the application first */
-		AbstractApplication * app = NULL;
-		app = bamf_matcher_get_active_application(list->priv->matcher);
-
-		if (app != NULL) {
-			source = bamf_app_to_source(list, app);
-		}
-	}
-#endif
-
-	/* If we weren't able to use BAMF, let's try to find a source
-	   for the window. */
-	if (source == NULL) {
-		guint32 xid = 0;
-
-#ifdef HAVE_BAMF
-		xid = bamf_window_get_xid(bamf_matcher_get_active_window(list->priv->matcher));
-#endif
-#ifdef HAVE_PLATFORM_API
-		/* Hybris has no concept of windows yet, we have to work around it with this */
-		xid = WINDOW_ID_CONSTANT;
-#endif
-
-		GList * sources = g_hash_table_get_values(list->priv->applications);
-		GList * lsource = NULL;
-
-		for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
-			HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
-			if (appsource == NULL) continue;
-
-			if (hud_application_source_has_xid(appsource, xid)) {
-				source = appsource;
-				break;
-			}
-		}
-	}
 
 	if (source == NULL) {
 		g_warning("Unable to find source for window");
@@ -958,13 +641,9 @@ hud_application_list_get_side_stage_focused_app (HudApplicationList * list)
 {
     g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 
-#ifdef HAVE_BAMF
     return NULL;
-#endif
-#ifdef HAVE_PLATFORM_API
-    return HUD_SOURCE(list->priv->last_focused_side_stage_source);
-#endif
 }
+
 /**
  * hud_application_list_get_apps:
  * @list: A #HudApplicationList object
