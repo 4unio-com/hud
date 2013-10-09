@@ -4,6 +4,10 @@ author "Ted Gould <ted@ubuntu.com>"
 # Currently started by the dbus service file
 # start on dbus-activation com.canonical.hud
 stop on desktop-end
+start on started dbus
+
+env HUD_SERVICE_TIMEOUT=0
+export HUD_SERVICE_TIMEOUT
 
 pre-start script
 	if [ -z $DBUS_SESSION_BUS_ADDRESS ]; then
