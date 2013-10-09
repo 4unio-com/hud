@@ -842,8 +842,7 @@ hud_application_source_add_window (HudApplicationSource * app, HudWindowInfo * w
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE(app));
 
-	guint32 xid = 0;
-	xid = hud_window_info_get_window_id(window);
+	guint32 xid = hud_window_info_get_window_id(window);
 
 	if (app->priv->bamf_app == NULL) {
 		g_debug("No BAMF application object");

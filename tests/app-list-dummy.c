@@ -34,7 +34,6 @@ static void app_list_dummy_init       (AppListDummy *self);
 static void app_list_dummy_dispose    (GObject *object);
 static void app_list_dummy_finalize   (GObject *object);
 static HudSource * get_focused_app (HudApplicationList * list);
-static void matching_setup (HudApplicationList * list);
 
 G_DEFINE_TYPE (AppListDummy, app_list_dummy, HUD_TYPE_APPLICATION_LIST);
 
@@ -50,8 +49,6 @@ app_list_dummy_class_init (AppListDummyClass *klass)
 
 	HudApplicationListClass * appclass = HUD_APPLICATION_LIST_CLASS(klass);
 	appclass->get_focused_app = get_focused_app;
-
-	appclass->matching_setup = matching_setup;
 
 	return;
 }
@@ -101,14 +98,6 @@ get_focused_app (HudApplicationList * list)
 	AppListDummyPrivate * priv = APP_LIST_DUMMY_GET_PRIVATE(list);
 
 	return priv->focused_source;
-}
-
-static void
-matching_setup (HudApplicationList * list)
-{
-	/* Wow, this is super-performant! */
-	g_debug("Setting up matching");
-	return;
 }
 
 void

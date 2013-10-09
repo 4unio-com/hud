@@ -52,13 +52,13 @@ AbstractWindowStack::AbstractWindowStack(const QDBusConnection &connection,
 }
 
 void AbstractWindowStack::registerOnBus() {
-	if (!m_connection.registerService(DBUS_NAME)) {
-		throw std::logic_error(
-				_("Unable to register window stack service on DBus"));
-	}
 	if (!m_connection.registerObject(DBUS_PATH, this)) {
 		throw std::logic_error(
 				_("Unable to register window stack object on DBus"));
+	}
+	if (!m_connection.registerService(DBUS_NAME)) {
+		throw std::logic_error(
+				_("Unable to register window stack service on DBus"));
 	}
 }
 

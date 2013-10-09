@@ -48,7 +48,6 @@ struct _HudApplicationListPrivate {
 static void hud_application_list_class_init (HudApplicationListClass * klass);
 static void hud_application_list_init       (HudApplicationList *      self);
 static void hud_application_list_constructed (GObject * object);
-static void matching_setup_bamf             (HudApplicationList *      self);
 static void hud_application_list_dispose    (GObject *                 object);
 static void hud_application_list_finalize   (GObject *                 object);
 static void source_iface_init               (HudSourceInterface *      iface);
@@ -97,8 +96,6 @@ hud_application_list_class_init (HudApplicationListClass *klass)
 	object_class->dispose = hud_application_list_dispose;
 	object_class->finalize = hud_application_list_finalize;
 
-	klass->matching_setup = matching_setup_bamf;
-
 	return;
 }
 
@@ -132,17 +129,6 @@ hud_application_list_constructed (GObject * object)
 {
 	HudApplicationList * self = HUD_APPLICATION_LIST(object);
 
-	HudApplicationListClass * aclass = HUD_APPLICATION_LIST_GET_CLASS(self);
-	if (aclass->matching_setup != NULL) {
-		aclass->matching_setup(self);
-	}
-
-	return;
-}
-
-static void
-matching_setup_bamf (HudApplicationList * self)
-{
 	GError *error = NULL;
 	self->priv->window_stack = dbus_window_stack_proxy_new_for_bus_sync(
 			G_BUS_TYPE_SESSION, G_DBUS_PROXY_FLAGS_NONE,
@@ -276,7 +262,6 @@ hud_application_list_finalize (GObject *object)
 	return;
 }
 
-/* Get a source from a BamfApp */
 static HudApplicationSource *
 application_info_to_source (HudApplicationList * list, HudApplicationInfo * bapp)
 {
@@ -348,8 +333,10 @@ window_changed (DBusWindowStack *window_stack, guint window_id, const gchar *app
 
 	HudWindowInfo *window = hud_window_info_new(list->priv->window_stack, window_id, app_id, stack);
 
-	if (hud_application_list_name_in_ignore_list (window))
+	if (hud_application_list_name_in_ignore_list (window)) {
+		g_object_unref(window);
 	    return;
+	}
 
 	/* Clear the last source, as we've obviously changed */
 	g_clear_object(&list->priv->last_focused_main_stage_source);
@@ -388,11 +375,13 @@ window_changed (DBusWindowStack *window_stack, guint window_id, const gchar *app
 
 	hud_source_changed(HUD_SOURCE(list));
 
+	g_object_unref(window);
+
 	return;
 }
 
 
-/* A new view has been opened by BAMF */
+/* A new view has been opened */
 static void
 view_opened (DBusWindowStack * window_stack, guint window_id, const gchar *app_id, gpointer user_data)
 {
@@ -403,15 +392,18 @@ view_opened (DBusWindowStack * window_stack, guint window_id, const gchar *app_i
 
 	HudApplicationSource * source = application_info_to_source(list, window);
 	if (source == NULL) {
+		g_object_unref(window);
 		return;
 	}
 
 	hud_application_source_add_window(source, window);
 
+	g_object_unref(window);
+
 	return;
 }
 
-/* A view has been closed by BAMF */
+/* A view has been closed */
 static void
 view_closed (DBusWindowStack * window_stack, guint window_id, const gchar *app_id, gpointer user_data)
 {

@@ -39,7 +39,6 @@ typedef struct _HudApplicationListPrivate   HudApplicationListPrivate;
 struct _HudApplicationListClass {
 	GObjectClass parent_class;
 
-	void (*matching_setup) (HudApplicationList * list);
 	HudSource * (*get_focused_app) (HudApplicationList * list);
 };
 

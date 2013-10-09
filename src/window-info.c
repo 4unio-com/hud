@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2013 Canonical, Ltd.
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3, as published
+ * by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranties of
+ * MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Author: Pete Woods <pete.woods@canonical.com>
+ */
 
 #include "window-info.h"
 #include <gobject/gobject.h>
@@ -15,11 +32,13 @@ struct _HudWindowInfo
 typedef GObjectClass HudWindowInfoClass;
 
 static void hud_window_info_finalize (GObject *object);
+static void hud_window_info_dispose (GObject *object);
 
 G_DEFINE_TYPE(HudWindowInfo, hud_window_info, G_TYPE_OBJECT);
 
 static void
 hud_window_info_class_init(GObjectClass *klass) {
+	klass->dispose = hud_window_info_dispose;
 	klass->finalize = hud_window_info_finalize;
 }
 
@@ -30,15 +49,41 @@ hud_window_info_init (HudWindowInfo *self)
 
 HudWindowInfo *
 hud_window_info_new(DBusWindowStack *window_stack, guint window_id,
-		const gchar *app_id, HudWindowInfoStage stage) {
+		const gchar *app_id, HudWindowInfoStage stage)
+{
 	HudWindowInfo *self =
 			HUD_WINDOW_INFO(g_object_new(HUD_TYPE_WINDOW_INFO, NULL));
 	self->window_id = window_id;
 	self->app_id = g_strdup(app_id);
 	self->stage = stage;
 	self->window_stack = g_object_ref(window_stack);
-	self->desktop_file = g_strdup_printf("/usr/share/applications/%s.desktop", app_id);
+	const gchar *xdg_data_dirs = g_getenv("XDG_DATA_DIRS");
+	if (xdg_data_dirs != NULL && xdg_data_dirs[0] != '\0') {
+		gchar** dirs = g_strsplit(xdg_data_dirs, ":", 0);
+		gchar **i = dirs;
+		while (*i != NULL) {
+			gchar *desktop_file = g_strdup_printf("%s/%s.desktop", *i, app_id);
+			if (g_file_test(desktop_file, G_FILE_TEST_EXISTS)) {
+				self->desktop_file = desktop_file;
+				break;
+			}
+			g_free(desktop_file);
+			++i;
+		}
+		g_strfreev(dirs);
+	}
+	if (self->desktop_file == NULL) {
+		self->desktop_file = g_strdup_printf(
+				"/usr/share/applications/%s.desktop", app_id);
+	}
 	return self;
+}
+
+static void
+hud_window_info_dispose (GObject *object)
+{
+	HudWindowInfo *self = HUD_WINDOW_INFO(object);
+	g_object_unref(self->window_stack);
 }
 
 static void
@@ -46,7 +91,6 @@ hud_window_info_finalize (GObject *object)
 {
 	HudWindowInfo *self = HUD_WINDOW_INFO(object);
 	g_free(self->app_id);
-	g_object_unref(self->window_stack);
 	g_free(self->desktop_file);
 }
 
