@@ -322,7 +322,7 @@ hud_application_list_name_in_ignore_list (HudWindowInfo *window)
 
   /* it's possible to get NULL here */
   if (window_name == NULL)
-    return TRUE;
+    return FALSE;
 
 
   for (i = 0; i < G_N_ELEMENTS (ignored_names); i++)
@@ -342,6 +342,8 @@ hud_application_list_name_in_ignore_list (HudWindowInfo *window)
 static void
 window_changed (DBusWindowStack *window_stack, guint window_id, const gchar *app_id, guint stack, gpointer user_data)
 {
+	g_debug("window_changed(%d, %s, %d)", window_id, app_id, stack);
+
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
 
 	HudWindowInfo *window = hud_window_info_new(list->priv->window_stack, window_id, app_id, stack);
@@ -354,9 +356,12 @@ window_changed (DBusWindowStack *window_stack, guint window_id, const gchar *app
 
 	HudApplicationSource *source = application_info_to_source(list, window);
 
+	g_debug("looking up application source for: %s", app_id);
+
 	/* If we weren't able to lookup the app, let's try to find a source
 	   for the window. */
 	if (source == NULL) {
+		g_debug("no applicationn source was found");
 		guint xid = hud_window_info_get_window_id(window);
 		GList * sources = g_hash_table_get_values(list->priv->applications);
 		GList * lsource = NULL;

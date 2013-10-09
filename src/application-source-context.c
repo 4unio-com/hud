@@ -256,7 +256,7 @@ source_get_items (HudSource * object)
 HudApplicationSourceContext *
 hud_application_source_context_new (guint32 window_id, const gchar * context_id, const gchar * app_id, const gchar * icon, const gchar * app_path)
 {
-	g_return_val_if_fail(app_id != NULL && app_id[0] != '\0', NULL);
+	g_return_val_if_fail(app_id != NULL, NULL); // && app_id[0] != '\0'
 	g_return_val_if_fail(context_id == NULL || context_id[0] != '\0', NULL);
 	g_return_val_if_fail(g_variant_is_object_path(app_path), NULL);
 
@@ -416,18 +416,16 @@ hud_application_source_context_add_window (HudApplicationSourceContext * context
 
 	g_free(unique_bus_name);
 
-	if (context->priv->window_menus_dbus == NULL) {
-		guint xid = hud_window_info_get_window_id(window);
+	guint xid = hud_window_info_get_window_id(window);
+	if(xid != 0) {
+		if (context->priv->window_menus_dbus == NULL) {
+			context->priv->window_menus_dbus = hud_dbusmenu_collector_new_for_window(xid, context->priv->app_id, context->priv->icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+		} else {
+			guint32 oldid = hud_dbusmenu_collector_get_xid(context->priv->window_menus_dbus);
 
-		context->priv->window_menus_dbus = hud_dbusmenu_collector_new_for_window(xid, context->priv->app_id, context->priv->icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
-	} else {
-		guint32 oldid = hud_dbusmenu_collector_get_xid(context->priv->window_menus_dbus);
-		guint32 newid = hud_window_info_get_window_id(window);
-
-		if (oldid != newid) {
-			g_warning("Adding a second DBus Menu window (%X) to a context.  Current window (%X).", newid, oldid);
+			if (oldid != xid) {
+				g_warning("Adding a second DBus Menu window (%X) to a context.  Current window (%X).", xid, oldid);
+			}
 		}
 	}
-
-	return;
 }

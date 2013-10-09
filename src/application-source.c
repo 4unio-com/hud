@@ -783,6 +783,10 @@ hud_application_source_get_app_icon (HudApplicationSource * app)
 
 	const gchar * icon = NULL;
 	const gchar * desktop_file = NULL;
+	if(app->priv->bamf_app == NULL) {
+		g_warning("Window Info was null for: %s", app->priv->app_id);
+		return NULL;
+	}
 	desktop_file = hud_window_info_get_desktop_file(app->priv->bamf_app);
 	if (desktop_file != NULL) {
 		GKeyFile * kfile = g_key_file_new();
