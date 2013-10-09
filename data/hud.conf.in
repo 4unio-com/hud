@@ -4,7 +4,7 @@ author "Ted Gould <ted@ubuntu.com>"
 # Currently started by the dbus service file
 # start on dbus-activation com.canonical.hud
 stop on desktop-end
-start on started dbus
+start on started dbus and ((xsession SESSION=ubuntu-touch) or (xsession SESSION=ubuntu-touch-surfaceflinger) or (xsession SESSION=ubuntu))
 
 env HUD_SERVICE_TIMEOUT=0
 export HUD_SERVICE_TIMEOUT
