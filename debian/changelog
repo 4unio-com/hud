@@ -1,3 +1,13 @@
+hud (13.10.1+13.10.20131009.1-0ubuntu1) saucy; urgency=low
+
+  [ Pete Woods ]
+  * Support unity8's window stack API. (LP: #1233992)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 329
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 09 Oct 2013 23:26:00 +0000
+
 hud (13.10.1+13.10.20131009-0ubuntu1) saucy; urgency=low
 
   [ Dmitrijs Ledkovs ]
