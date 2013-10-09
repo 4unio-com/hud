@@ -397,27 +397,24 @@ hud_application_source_context_add_window (HudApplicationSourceContext * context
 	gchar *unique_bus_name = hud_window_info_get_utf8_prop (window, "_GTK_UNIQUE_BUS_NAME");
 	/* If this isn't set, we won't get very far... */
 	if (unique_bus_name && *unique_bus_name != '\0') {
-		gchar *app_menu_object_path = hud_window_info_get_utf8_prop(window,
-				"_GTK_APP_MENU_OBJECT_PATH");
-		gchar *menubar_object_path = hud_window_info_get_utf8_prop(window,
-				"_GTK_MENUBAR_OBJECT_PATH");
-		gchar *application_object_path = hud_window_info_get_utf8_prop(window,
-				"_GTK_APPLICATION_OBJECT_PATH");
-		gchar *window_object_path = hud_window_info_get_utf8_prop(window,
-				"_GTK_WINDOW_OBJECT_PATH");
-		gchar *unity_object_path = hud_window_info_get_utf8_prop(window, "_UNITY_OBJECT_PATH");
 
-		hud_menu_model_collector_add_window(context->priv->model_collector,
-				unique_bus_name, app_menu_object_path, menubar_object_path,
-				application_object_path, window_object_path, unity_object_path);
+		const gchar *property_names[] = { "_GTK_APP_MENU_OBJECT_PATH",
+				"_GTK_MENUBAR_OBJECT_PATH", "_GTK_APPLICATION_OBJECT_PATH",
+				"_GTK_WINDOW_OBJECT_PATH", "_UNITY_OBJECT_PATH", NULL };
 
-		g_free(unique_bus_name);
-		g_free(app_menu_object_path);
-		g_free(menubar_object_path);
-		g_free(application_object_path);
-		g_free(window_object_path);
-		g_free(unity_object_path);
+		gchar** properties = hud_window_info_get_utf8_properties(window,
+				((const gchar * const *) &property_names));
+
+		if(properties != NULL) {
+			hud_menu_model_collector_add_window(context->priv->model_collector,
+					unique_bus_name, properties[0], properties[1],
+					properties[2], properties[3], properties[4]);
+
+			g_strfreev(properties);
+		}
 	}
+
+	g_free(unique_bus_name);
 
 	if (context->priv->window_menus_dbus == NULL) {
 		guint xid = hud_window_info_get_window_id(window);

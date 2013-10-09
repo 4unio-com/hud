@@ -44,4 +44,7 @@ const gchar * hud_window_info_get_desktop_file(HudWindowInfo *self);
 gchar * hud_window_info_get_utf8_prop(HudWindowInfo *self,
 		const gchar *property_name);
 
+gchar ** hud_window_info_get_utf8_properties(HudWindowInfo *self,
+		const gchar * const *property_names);
+
 #endif /* __HUD_WINDOW_INFO_H__ */

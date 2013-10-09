@@ -315,15 +315,15 @@ hud_application_list_name_in_ignore_list (HudWindowInfo *window)
     "XdndCollectionWindowImp",
   };
   gboolean ignored = FALSE;
-  const gchar *window_name = NULL;
   gint i;
 
-  window_name = hud_window_info_get_utf8_prop(window, "WM_NAME");
+  gchar *window_name = hud_window_info_get_utf8_prop(window, "WM_NAME");
   g_debug ("checking window name '%s'", window_name);
 
-  /* sometimes bamf returns NULL here... protect ourselves */
+  /* it's possible to get NULL here */
   if (window_name == NULL)
     return TRUE;
+
 
   for (i = 0; i < G_N_ELEMENTS (ignored_names); i++)
     if (g_str_equal (ignored_names[i], window_name))
@@ -332,6 +332,8 @@ hud_application_list_name_in_ignore_list (HudWindowInfo *window)
         ignored = TRUE;
         break;
       }
+
+  g_free(window_name);
 
   return ignored;
 }

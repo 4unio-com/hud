@@ -16,11 +16,11 @@
       <arg name="window_id" type="u" direction="out"/>
       <arg name="app_id" type="s" direction="out"/>
     </signal>
-    <method name="GetWindowProperty">
-      <arg name="value" type="s" direction="out"/>
+    <method name="GetWindowProperties">
+      <arg name="values" type="as" direction="out"/>
       <arg name="window_id" type="u" direction="in"/>
       <arg name="app_id" type="s" direction="in"/>
-      <arg name="property_name" type="s" direction="in"/>
+      <arg name="property_names" type="as" direction="in"/>
     </method>
     <method name="GetAppIdFromPid">
       <arg name="app_id" type="s" direction="out"/>

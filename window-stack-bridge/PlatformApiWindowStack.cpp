@@ -62,10 +62,10 @@ QList<WindowInfo> PlatformApiWindowStack::GetWindowStack() {
 	return QList<WindowInfo>();
 }
 
-QString PlatformApiWindowStack::GetWindowProperty(uint windowId,
-		const QString &appId, const QString &name) {
+QStringList PlatformApiWindowStack::GetWindowProperties(uint windowId,
+		const QString &appId, const QStringList &names) {
 	// FIXME Not implemented
-	qDebug() << "GetWindowProperty:" << windowId << appId << name;
+	qDebug() << "GetWindowProperties:" << windowId << appId << names;
 	return QString();
 }
 

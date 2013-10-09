@@ -66,19 +66,30 @@ hud_window_info_get_desktop_file(HudWindowInfo *self) {
 }
 
 gchar *
-hud_window_info_get_utf8_prop(HudWindowInfo *self, const gchar *property_name) {
-	gchar *result = NULL;
+hud_window_info_get_utf8_prop(HudWindowInfo *self,
+		const gchar *property_name) {
+	const gchar *property_names[] = { property_name, NULL };
+	gchar** values = hud_window_info_get_utf8_properties(self,
+			((const gchar * const *) &property_names));
+	if(values == NULL) {
+		return NULL;
+	}
+	gchar *result = g_strdup(values[0]);
+	g_strfreev(values);
+	return result;
+}
+
+gchar **
+hud_window_info_get_utf8_properties(HudWindowInfo *self,
+		const gchar * const *property_names) {
+	gchar **result = NULL;
 	GError *error = NULL;
-	if (!dbus_window_stack_call_get_window_property_sync(self->window_stack,
-			self->window_id, self->app_id, property_name, &result, NULL,
+	if (!dbus_window_stack_call_get_window_properties_sync(self->window_stack,
+			self->window_id, self->app_id, property_names, &result, NULL,
 			&error)) {
 		g_warning("%s", error->message);
 		g_error_free(error);
 		return NULL;
-	}
-	if (result[0] == '\0') {
-		g_free(result);
-		result = NULL;
 	}
 	return result;
 }

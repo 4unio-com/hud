@@ -37,8 +37,8 @@ public Q_SLOTS:
 
 	virtual QList<WindowInfo> GetWindowStack();
 
-	virtual QString GetWindowProperty(uint windowId, const QString &appId,
-			const QString &name);
+	virtual QStringList GetWindowProperties(uint windowId, const QString &appId,
+			const QStringList &names);
 
 protected:
 	static void on_session_requested_cb(ubuntu_ui_well_known_application app,

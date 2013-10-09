@@ -141,9 +141,13 @@ QList<WindowInfo> BamfWindowStack::GetWindowStack() {
 	return results;
 }
 
-QString BamfWindowStack::GetWindowProperty(uint windowId, const QString &appId,
-		const QString &name) {
-	return m_windowsById[windowId]->xProp(name);
+QStringList BamfWindowStack::GetWindowProperties(uint windowId,
+		const QString &appId, const QStringList &names) {
+	QStringList result;
+	for (const QString &name : names) {
+		result << m_windowsById[windowId]->xProp(name);
+	}
+	return result;
 }
 
 void BamfWindowStack::ActiveWindowChanged(const QString &oldWindowPath,

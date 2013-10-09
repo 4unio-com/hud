@@ -64,8 +64,8 @@ public Q_SLOTS:
 
 	virtual QList<WindowInfo> GetWindowStack();
 
-	virtual QString GetWindowProperty(uint windowId, const QString &appId,
-			const QString &name);
+	virtual QStringList GetWindowProperties(uint windowId, const QString &appId,
+			const QStringList &names);
 
 protected Q_SLOTS:
 	void ActiveWindowChanged(const QString &oldWindow,
