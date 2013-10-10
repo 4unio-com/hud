@@ -29,6 +29,7 @@ BamfWindow::BamfWindow(const QString &path, const QDBusConnection &connection) :
 				connection), m_error(false), m_windowId(0) {
 
 	QDBusPendingReply<unsigned int> windowIdReply(m_window.GetXid());
+	windowIdReply.waitForFinished();
 	if (windowIdReply.isError()) {
 		qWarning() << _("Could not get window ID for") << path
 				<< windowIdReply.error();
