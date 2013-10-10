@@ -1,3 +1,15 @@
+hud (13.10.1+13.10.20131010.1-0ubuntu1) saucy; urgency=low
+
+  [ Pete Woods ]
+  * Handle errors from the BAMF interface It looks like windows are
+    sometimes disappearing before we get round to asking for information
+    about them. (LP: #1238002)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 333
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 10 Oct 2013 18:43:20 +0000
+
 hud (13.10.1+13.10.20131010-0ubuntu1) saucy; urgency=low
 
   [ Loïc Minier ]
