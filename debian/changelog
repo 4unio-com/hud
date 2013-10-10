@@ -1,3 +1,13 @@
+hud (13.10.1+13.10.20131010-0ubuntu1) saucy; urgency=low
+
+  [ Loïc Minier ]
+  * Fix build-deps for desktop build.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 331
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 10 Oct 2013 02:23:33 +0000
+
 hud (13.10.1+13.10.20131009.1-0ubuntu1) saucy; urgency=low
 
   [ Pete Woods ]
