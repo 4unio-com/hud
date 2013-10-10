@@ -26,24 +26,45 @@ static const QString BAMF_DBUS_NAME("org.ayatana.bamf");
 
 BamfWindow::BamfWindow(const QString &path, const QDBusConnection &connection) :
 		m_window(BAMF_DBUS_NAME, path, connection), m_view(BAMF_DBUS_NAME, path,
-				connection), m_windowId(m_window.GetXid()) {
+				connection), m_error(false), m_windowId(0) {
 
-	QDBusConnectionInterface* interface = connection.interface();
-	if (!interface->isServiceRegistered(BAMF_DBUS_NAME)) {
-		QDBusReply<void> reply(interface->startService(BAMF_DBUS_NAME));
+	QDBusPendingReply<unsigned int> windowIdReply(m_window.GetXid());
+	windowIdReply.waitForFinished();
+	if (windowIdReply.isError()) {
+		qWarning() << _("Could not get window ID for") << path
+				<< windowIdReply.error();
+		m_error = true;
+		return;
+	} else {
+		m_windowId = windowIdReply;
 	}
 
-	QStringList parents(m_view.Parents());
-
-	if (parents.empty()) {
-		qWarning() << _("Window: ") << windowId() << m_view.name()
-				<< _("has no parents");
+	QStringList parents;
+	QDBusPendingReply<QStringList> parentsReply(m_view.Parents());
+	parentsReply.waitForFinished();
+	if (parentsReply.isError()) {
+		qWarning() << _("Error getting parents for") << path
+				<< parentsReply.error();
+		m_error = true;
+		return;
 	} else {
+		parents = parentsReply;
+	}
+
+	if (!parents.empty()) {
 		OrgAyatanaBamfApplicationInterface application(BAMF_DBUS_NAME,
 				parents.first(), m_window.connection());
-		QFile desktopFile(application.DesktopFile());
-		if (desktopFile.exists()) {
-			m_applicationId = QFileInfo(desktopFile).baseName();
+		QDBusPendingReply<QString> desktopFileReply(application.DesktopFile());
+		desktopFileReply.waitForFinished();
+		if (desktopFileReply.isError()) {
+			qWarning() << _("Could not get desktop file for") << path;
+			m_error = true;
+			return;
+		} else {
+			QFile desktopFile(desktopFileReply);
+			if (desktopFile.exists()) {
+				m_applicationId = QFileInfo(desktopFile).baseName();
+			}
 		}
 	}
 
@@ -60,18 +81,31 @@ unsigned int BamfWindow::windowId() {
 }
 
 const QString & BamfWindow::applicationId() {
-
 	return m_applicationId;
 }
 
+bool BamfWindow::isError() const {
+	return m_error;
+}
+
 const QString BamfWindow::xProp(const QString &property) {
-	return m_window.Xprop(property);
+	QDBusPendingReply<QString> propertyReply(m_window.Xprop(property));
+	propertyReply.waitForFinished();
+	if (propertyReply.isError()) {
+		qWarning() << "Could not get window property" << property
+				<< m_window.path();
+		return QString();
+	} else {
+		return propertyReply;
+	}
 }
 
 BamfWindowStack::WindowPtr BamfWindowStack::addWindow(const QString& path) {
 	WindowPtr window(new BamfWindow(path, m_connection));
-	m_windows[path] = window;
-	m_windowsById[window->windowId()] = window;
+	if (!window->isError()) {
+		m_windows[path] = window;
+		m_windowsById[window->windowId()] = window;
+	}
 	return window;
 }
 
@@ -85,6 +119,11 @@ BamfWindowStack::BamfWindowStack(const QDBusConnection &connection,
 		QObject *parent) :
 		AbstractWindowStack(connection, parent), m_matcher(BAMF_DBUS_NAME,
 				"/org/ayatana/bamf/matcher", connection) {
+
+	QDBusConnectionInterface* interface = connection.interface();
+	if (!interface->isServiceRegistered(BAMF_DBUS_NAME)) {
+		QDBusReply<void> reply(interface->startService(BAMF_DBUS_NAME));
+	}
 
 	registerOnBus();
 
@@ -100,9 +139,18 @@ BamfWindowStack::BamfWindowStack(const QDBusConnection &connection,
 	SIGNAL(ViewOpened(const QString&, const QString&)), this,
 	SLOT(ViewOpened(const QString&, const QString&)));
 
-	QStringList windowPaths(m_matcher.WindowPaths());
-	for (const QString &path : windowPaths) {
-		addWindow(path);
+	QDBusPendingReply<QStringList> windowPathsReply(m_matcher.WindowPaths());
+	windowPathsReply.waitForFinished();
+
+	if (windowPathsReply.isError()) {
+		qWarning() << _("Could not get window paths")
+				<< windowPathsReply.error();
+	} else {
+		QStringList windowPaths(windowPathsReply);
+
+		for (const QString &path : windowPaths) {
+			addWindow(path);
+		}
 	}
 }
 
@@ -169,6 +217,8 @@ void BamfWindowStack::ViewClosed(const QString &path, const QString &type) {
 void BamfWindowStack::ViewOpened(const QString &path, const QString &type) {
 	if (type == "window") {
 		WindowPtr window(addWindow(path));
-		WindowCreated(window->windowId(), window->applicationId());
+		if (!window->isError()) {
+			WindowCreated(window->windowId(), window->applicationId());
+		}
 	}
 }

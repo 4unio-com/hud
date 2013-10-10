@@ -38,10 +38,14 @@ public:
 
 	const QString xProp(const QString &property);
 
+	bool isError() const;
+
 protected:
 	OrgAyatanaBamfWindowInterface m_window;
 
 	OrgAyatanaBamfViewInterface m_view;
+
+	bool m_error;
 
 	unsigned int m_windowId;
 
