@@ -57,20 +57,26 @@ hud_window_info_new(DBusWindowStack *window_stack, guint window_id,
 	self->app_id = g_strdup(app_id);
 	self->stage = stage;
 	self->window_stack = g_object_ref(window_stack);
-	const gchar *xdg_data_dirs = g_getenv("XDG_DATA_DIRS");
-	if (xdg_data_dirs != NULL && xdg_data_dirs[0] != '\0') {
-		gchar** dirs = g_strsplit(xdg_data_dirs, ":", 0);
-		gchar **i = dirs;
-		while (*i != NULL) {
-			gchar *desktop_file = g_strdup_printf("%s/%s.desktop", *i, app_id);
-			if (g_file_test(desktop_file, G_FILE_TEST_EXISTS)) {
-				self->desktop_file = desktop_file;
-				break;
+
+	if(app_id[0] == '/') {
+		self->desktop_file = g_strdup(app_id);
+	} else {
+		const gchar *xdg_data_dirs = g_getenv("XDG_DATA_DIRS");
+		if (xdg_data_dirs != NULL && xdg_data_dirs[0] != '\0') {
+			gchar** dirs = g_strsplit(xdg_data_dirs, ":", 0);
+			gchar **i = dirs;
+			while (*i != NULL) {
+				gchar *desktop_file = g_strdup_printf("%s/%s.desktop", *i,
+						app_id);
+				if (g_file_test(desktop_file, G_FILE_TEST_EXISTS)) {
+					self->desktop_file = desktop_file;
+					break;
+				}
+				g_free(desktop_file);
+				++i;
 			}
-			g_free(desktop_file);
-			++i;
+			g_strfreev(dirs);
 		}
-		g_strfreev(dirs);
 	}
 	if (self->desktop_file == NULL) {
 		self->desktop_file = g_strdup_printf(
