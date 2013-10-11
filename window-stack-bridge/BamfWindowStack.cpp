@@ -111,7 +111,9 @@ BamfWindowStack::WindowPtr BamfWindowStack::addWindow(const QString& path) {
 
 BamfWindowStack::WindowPtr BamfWindowStack::removeWindow(const QString& path) {
 	WindowPtr window(m_windows.take(path));
-	m_windowsById.remove(window->windowId());
+	if (!window.isNull()) {
+		m_windowsById.remove(window->windowId());
+	}
 	return window;
 }
 
@@ -210,7 +212,9 @@ void BamfWindowStack::ActiveWindowChanged(const QString &oldWindowPath,
 void BamfWindowStack::ViewClosed(const QString &path, const QString &type) {
 	if (type == "window") {
 		WindowPtr window(removeWindow(path));
-		WindowDestroyed(window->windowId(), window->applicationId());
+		if (!window.isNull()) {
+			WindowDestroyed(window->windowId(), window->applicationId());
+		}
 	}
 }
 
