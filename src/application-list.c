@@ -435,7 +435,28 @@ view_closed (DBusWindowStack * window_stack, guint window_id, const gchar *app_i
 		if (hud_application_source_has_xid(appsource, window_id)) {
 			hud_application_source_window_closed(appsource, window_id);
 		}
+
+		/* If the application source has become empty it means that it
+				 * the correspongind app has terminated and it's time to do the
+				 * cleanup.
+				 */
+		if (hud_application_source_is_empty (appsource)) {
+			if ((gpointer)appsource == (gpointer)list->priv->used_source) {
+				hud_source_unuse(HUD_SOURCE(appsource));
+				g_clear_object(&list->priv->used_source);
+			}
+
+			gchar * id = g_strdup(hud_application_source_get_id(appsource));
+
+			g_debug("Removing application %s", id);
+			g_hash_table_remove(list->priv->applications, id);
+			g_free(id);
+		}
+
+		hud_source_changed(HUD_SOURCE(list));
 	}
+
+
 
 	return;
 }
@@ -540,23 +561,6 @@ static void
 application_source_changed (HudSource * source, gpointer user_data)
 {
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
-	HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(source);
-
-	/* If the application source has become empty it means that it
-	 * the correspongind app has terminated and it's time to do the
-	 * cleanup.
-	 */
-	if (hud_application_source_is_empty (appsource)) {
-		if ((gpointer)appsource == (gpointer)list->priv->used_source) {
-			hud_source_unuse(HUD_SOURCE(appsource));
-			g_clear_object(&list->priv->used_source);
-		}
-
-		gchar * id = g_strdup(hud_application_source_get_id(appsource));
-
-		g_hash_table_remove(list->priv->applications, id);
-		g_free(id);
-	}
 
 	hud_source_changed(HUD_SOURCE(list));
 
@@ -593,9 +597,6 @@ hud_application_list_get_source (HudApplicationList * list, const gchar * id)
 	g_return_val_if_fail(HUD_IS_APPLICATION_LIST(list), NULL);
 	g_return_val_if_fail(id != NULL, NULL);
 
-	if (g_strcmp0(id, "gallery") == 0) {
-		id = "goodhope";
-	}
 
 	HudApplicationSource * source = HUD_APPLICATION_SOURCE(source_get(HUD_SOURCE(list), id));
 	if (source == NULL) {
