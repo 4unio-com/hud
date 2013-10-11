@@ -443,7 +443,6 @@ view_closed (DBusWindowStack * window_stack, guint window_id, const gchar *app_i
 		if (hud_application_source_is_empty (appsource)) {
 			if ((gpointer)appsource == (gpointer)list->priv->used_source) {
 				hud_source_unuse(HUD_SOURCE(appsource));
-				g_debug("!!!!!!!! application_source_changed calling g_clear_object with %p", list->priv->used_source);
 				g_clear_object(&list->priv->used_source);
 			}
 
