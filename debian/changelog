@@ -1,3 +1,15 @@
+hud (13.10.1+13.10.20131014-0ubuntu1) saucy; urgency=low
+
+  [ Pete Woods ]
+  * Fix crash on window removal. (LP: #1238338)
+  * Fix application disposal, so HUD doesn't crash for apps with no
+    actions.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 336
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 14 Oct 2013 08:53:02 +0000
+
 hud (13.10.1+13.10.20131010.1-0ubuntu1) saucy; urgency=low
 
   [ Pete Woods ]
