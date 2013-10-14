@@ -491,6 +491,7 @@ source_unuse (HudSource *hud_source)
 	g_return_if_fail(list->priv->used_source != NULL);
 
 	hud_source_unuse(list->priv->used_source);
+	list->priv->used_source = NULL;
 
 	return;
 }
