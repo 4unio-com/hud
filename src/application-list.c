@@ -229,10 +229,8 @@ hud_application_list_dispose (GObject *object)
 
 	if (self->priv->used_source != NULL) {
 		hud_source_unuse(self->priv->used_source);
-		g_clear_object(&self->priv->used_source);
+		self->priv->used_source = NULL;
 	}
-
-	g_clear_object(&self->priv->last_focused_main_stage_source);
 
 	if (self->priv->matcher_app_sig != 0 && self->priv->window_stack != NULL) {
 		g_signal_handler_disconnect(self->priv->window_stack, self->priv->matcher_app_sig);
@@ -353,7 +351,7 @@ window_changed (DBusWindowStack *window_stack, guint window_id, const gchar *app
 	}
 
 	/* Clear the last source, as we've obviously changed */
-	g_clear_object(&list->priv->last_focused_main_stage_source);
+	list->priv->last_focused_main_stage_source = NULL;
 
 	HudApplicationSource *source = application_info_to_source(list, window);
 
@@ -383,7 +381,7 @@ window_changed (DBusWindowStack *window_stack, guint window_id, const gchar *app
 		return;
 	}
 
-	list->priv->last_focused_main_stage_source = g_object_ref(source);
+	list->priv->last_focused_main_stage_source = source;
 
 	hud_application_source_focus(source, window, window);
 
@@ -399,6 +397,7 @@ window_changed (DBusWindowStack *window_stack, guint window_id, const gchar *app
 static void
 view_opened (DBusWindowStack * window_stack, guint window_id, const gchar *app_id, gpointer user_data)
 {
+	g_debug("view_opened(%d, %s)", window_id, app_id);
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
 
 	HudWindowInfo *window = hud_window_info_new(list->priv->window_stack,
@@ -421,44 +420,37 @@ view_opened (DBusWindowStack * window_stack, guint window_id, const gchar *app_i
 static void
 view_closed (DBusWindowStack * window_stack, guint window_id, const gchar *app_id, gpointer user_data)
 {
-	g_debug("Closing Window: %d", window_id);
+	g_debug("view_closed(%d, %s)", window_id, app_id);
 
 	HudApplicationList * list = HUD_APPLICATION_LIST(user_data);
+	HudSource *source = source_get(HUD_SOURCE(user_data), app_id);
 
-	GList * sources = g_hash_table_get_values(list->priv->applications);
-	GList * lsource = NULL;
-
-	for (lsource = sources; lsource != NULL; lsource = g_list_next(lsource)) {
-		HudApplicationSource * appsource = HUD_APPLICATION_SOURCE(lsource->data);
-		if (appsource == NULL) continue;
-
-		if (hud_application_source_has_xid(appsource, window_id)) {
-			hud_application_source_window_closed(appsource, window_id);
-		}
-
-		/* If the application source has become empty it means that it
-				 * the correspongind app has terminated and it's time to do the
-				 * cleanup.
-				 */
-		if (hud_application_source_is_empty (appsource)) {
-			if ((gpointer)appsource == (gpointer)list->priv->used_source) {
-				hud_source_unuse(HUD_SOURCE(appsource));
-				g_clear_object(&list->priv->used_source);
-			}
-
-			gchar * id = g_strdup(hud_application_source_get_id(appsource));
-
-			g_debug("Removing application %s", id);
-			g_hash_table_remove(list->priv->applications, id);
-			g_free(id);
-		}
-
-		hud_source_changed(HUD_SOURCE(list));
+	if (source == NULL) {
+		g_warning("Window closed for unknown app: %s", app_id);
+		return;
 	}
 
+	HudApplicationSource *appsource = HUD_APPLICATION_SOURCE(source);
 
+	if (hud_application_source_has_xid(appsource, window_id)) {
+		hud_application_source_window_closed(appsource, window_id);
+	}
 
-	return;
+	/* If the application source has become empty it means that
+	 * the corresponding app has terminated and it's time to do the
+	 * cleanup.
+	 */
+	if (hud_application_source_is_empty (appsource)) {
+		if ((gpointer)appsource == (gpointer)list->priv->used_source) {
+			hud_source_unuse(HUD_SOURCE(appsource));
+			list->priv->used_source = NULL;
+		}
+
+		g_debug("Removing application %s", app_id);
+		g_hash_table_remove(list->priv->applications, app_id);
+	}
+
+	hud_source_changed(HUD_SOURCE(list));
 }
 
 /* Source interface using this source */
@@ -480,10 +472,9 @@ source_use (HudSource *hud_source)
 
 	if (list->priv->used_source != NULL) {
 		hud_source_unuse(list->priv->used_source);
-		g_clear_object(&list->priv->used_source);
 	}
 
-	list->priv->used_source = g_object_ref(source);
+	list->priv->used_source = HUD_SOURCE(source);
 
 	hud_source_use(HUD_SOURCE(source));
 
@@ -500,7 +491,7 @@ source_unuse (HudSource *hud_source)
 	g_return_if_fail(list->priv->used_source != NULL);
 
 	hud_source_unuse(list->priv->used_source);
-	g_clear_object(&list->priv->used_source);
+	list->priv->used_source = NULL;
 
 	return;
 }
