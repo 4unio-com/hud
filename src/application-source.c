@@ -166,6 +166,8 @@ hud_application_source_dispose (GObject *object)
 {
 	HudApplicationSource * self = HUD_APPLICATION_SOURCE(object);
 
+	g_debug("hud_application_source_dispose %s", self->priv->app_id);
+
 	if (self->priv->skel != NULL) {
 		g_dbus_interface_skeleton_unexport(G_DBUS_INTERFACE_SKELETON(self->priv->skel));
 		g_clear_object(&self->priv->skel);
@@ -418,6 +420,8 @@ hud_application_source_new_for_app (HudApplicationInfo * bapp)
 HudApplicationSource *
 hud_application_source_new_for_id (const gchar * id)
 {
+	g_debug("hud_application_source_new_for_id: %s", id);
+
 	HudApplicationSource * source = g_object_new(HUD_TYPE_APPLICATION_SOURCE, NULL);
 
 	source->priv->app_id = g_strdup(id);
@@ -521,7 +525,6 @@ add_id_to_connection (HudApplicationSource * app, GDBusConnection * session, con
 	connection_watcher_t * watcher = g_hash_table_lookup(app->priv->connections, sender);
 	if (watcher == NULL) {
 		watcher = g_new0(connection_watcher_t, 1);
-		g_object_ref(app);
 		watcher->watch = g_bus_watch_name_on_connection(session, sender, G_BUS_NAME_WATCHER_FLAGS_NONE, NULL, connection_lost, app, NULL);
 		g_hash_table_insert(app->priv->connections, g_strdup(sender), watcher);
 	}
