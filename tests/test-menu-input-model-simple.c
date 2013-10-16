@@ -51,19 +51,11 @@ main (int argv, char ** argc)
     g_menu_append_item(menu, ditem);
 
     GSimpleActionGroup * ag = g_simple_action_group_new();
-    if (is_application) {
-      g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("app.simple", G_VARIANT_TYPE_BOOLEAN)));
+    g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("simple", G_VARIANT_TYPE_BOOLEAN)));
 
-      GSimpleAction * disable = g_simple_action_new("app.disable", NULL);
-      g_simple_action_set_enabled(disable, FALSE);
-      g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(disable));
-    } else {
-      g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("simple", G_VARIANT_TYPE_BOOLEAN)));
-
-      GSimpleAction * disable = g_simple_action_new("disable", NULL);
-      g_simple_action_set_enabled(disable, FALSE);
-      g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(disable));
-    }
+    GSimpleAction * disable = g_simple_action_new("disable", NULL);
+    g_simple_action_set_enabled(disable, FALSE);
+    g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(disable));
 
     GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 
