@@ -256,7 +256,7 @@ source_get_items (HudSource * object)
 HudApplicationSourceContext *
 hud_application_source_context_new (guint32 window_id, const gchar * context_id, const gchar * app_id, const gchar * icon, const gchar * app_path)
 {
-	g_return_val_if_fail(app_id != NULL && app_id[0] != '\0', NULL);
+	g_return_val_if_fail(app_id != NULL, NULL); // && app_id[0] != '\0'
 	g_return_val_if_fail(context_id == NULL || context_id[0] != '\0', NULL);
 	g_return_val_if_fail(g_variant_is_object_path(app_path), NULL);
 
@@ -389,23 +389,43 @@ hud_application_source_context_add_model (HudApplicationSourceContext * context,
  * Adds a window to the items indexed by this context.
  */
 void
-hud_application_source_context_add_window (HudApplicationSourceContext * context, AbstractWindow * window)
+hud_application_source_context_add_window (HudApplicationSourceContext * context, HudWindowInfo * window)
 {
 	g_return_if_fail(HUD_IS_APPLICATION_SOURCE_CONTEXT(context));
 	check_for_menu_model(context);
 
-	hud_menu_model_collector_add_window(context->priv->model_collector, window);
+	gchar *unique_bus_name = hud_window_info_get_utf8_prop (window, "_GTK_UNIQUE_BUS_NAME");
+	/* If this isn't set, we won't get very far... */
+	if (unique_bus_name && *unique_bus_name != '\0') {
 
-	if (context->priv->window_menus_dbus == NULL) {
-		context->priv->window_menus_dbus = hud_dbusmenu_collector_new_for_window(window, context->priv->app_id, context->priv->icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
-	} else {
-		guint32 oldid = hud_dbusmenu_collector_get_xid(context->priv->window_menus_dbus);
-		guint32 newid = abstract_window_get_id(window);
+		const gchar *property_names[] = { "_GTK_APP_MENU_OBJECT_PATH",
+				"_GTK_MENUBAR_OBJECT_PATH", "_GTK_APPLICATION_OBJECT_PATH",
+				"_GTK_WINDOW_OBJECT_PATH", "_UNITY_OBJECT_PATH", NULL };
 
-		if (oldid != newid) {
-			g_warning("Adding a second DBus Menu window (%X) to a context.  Current window (%X).", newid, oldid);
+		gchar** properties = hud_window_info_get_utf8_properties(window,
+				((const gchar * const *) &property_names));
+
+		if(properties != NULL) {
+			hud_menu_model_collector_add_window(context->priv->model_collector,
+					unique_bus_name, properties[0], properties[1],
+					properties[2], properties[3], properties[4]);
+
+			g_strfreev(properties);
 		}
 	}
 
-	return;
+	g_free(unique_bus_name);
+
+	guint xid = hud_window_info_get_window_id(window);
+	if(xid != 0) {
+		if (context->priv->window_menus_dbus == NULL) {
+			context->priv->window_menus_dbus = hud_dbusmenu_collector_new_for_window(xid, context->priv->app_id, context->priv->icon, HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+		} else {
+			guint32 oldid = hud_dbusmenu_collector_get_xid(context->priv->window_menus_dbus);
+
+			if (oldid != xid) {
+				g_warning("Adding a second DBus Menu window (%X) to a context.  Current window (%X).", xid, oldid);
+			}
+		}
+	}
 }

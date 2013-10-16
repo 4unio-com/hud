@@ -62,6 +62,14 @@ NAMESPACE AppIface
 SERVICE_XML ${HUD_APP_XML}
 )
 
+add_gdbus_codegen(
+OUTFILES HUD_SERVICE_GENERATED_SOURCES
+NAME window-stack-iface
+PREFIX com.canonical.Unity.
+NAMESPACE DBus
+SERVICE_XML ${WINDOW_STACK_XML}
+)
+
 add_constant_template(HUD_SERVICE_GENERATED_SOURCES
 create-db
 create_db
@@ -80,7 +88,6 @@ ${GOBJECT2_LIBRARIES}
 ###########################
 
 set(HUD_SERVICE_LIB_HEADERS
-abstract-app.h
 action-muxer.h
 application-list.h
 application-source-context.h
@@ -92,7 +99,7 @@ appmenu-registrar.h
 dbusmenu-collector.h
 menumodel-collector.h
 appindicator-source.h
-webapp-source.h
+#webapp-source.h
 indicator-source.h
 debug-source.h
 source-list.h
@@ -109,6 +116,7 @@ load-app-info.h
 query-columns.h
 usage-tracker.h
 watchdog.h
+window-info.h
 )
 
 set(HUD_SERVICE_LIB_SOURCES
@@ -122,7 +130,7 @@ appmenu-registrar.c
 dbusmenu-collector.c
 menumodel-collector.c
 appindicator-source.c
-webapp-source.c
+#webapp-source.c
 indicator-source.c
 debug-source.c
 source-list.c
@@ -138,6 +146,7 @@ result.c
 load-app-info.c
 usage-tracker.c
 watchdog.c
+window-info.c
 )
 
 add_glib_enumtypes_t(HUD_SERVICE_LIB_SOURCES
@@ -159,7 +168,6 @@ ${BAMF_LIBRARIES}
 ${DEE_LIBRARIES}
 ${DBUSMENU_GLIB_LIBRARIES}
 ${SQLITE3_LIBRARIES}
-${PHABLET_LIBRARIES}
 ${NIH_LIBRARIES}
 ${NIH_DBUS_LIBRARIES}
 )

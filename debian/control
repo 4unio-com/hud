@@ -26,6 +26,7 @@ Build-Depends: bamfdaemon,
                valac,
                xvfb,
                python3-dbusmock,
+               qtbase5-dev,
                python-setuptools,
                libnih-dbus-dev,
                unity-voice-service

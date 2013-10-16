@@ -16,6 +16,7 @@
  */
 
 #define G_LOG_DOMAIN "test-hudappindicatorsource"
+#define _POSIX_SOURCE 1
 
 #include "settings.h"
 #include "source.h"
@@ -26,6 +27,7 @@
 #include <glib-object.h>
 #include <gio/gio.h>
 #include <libdbustest/dbus-test.h>
+#include <signal.h>
 
 /* hardcode some parameters for reasons of determinism.
  */
@@ -47,6 +49,21 @@ static const gchar *WINDOW_INTERFACE_NAME = "org.ayatana.bamf.window";
 static const gchar* REGISTRAR_BUS_NAME = "com.canonical.AppMenu.Registrar";
 static const gchar* REGISTRAR_OBJECT_PATH = "/com/canonical/AppMenu/Registrar";
 static const gchar* REGISTRAR_INTERFACE_NAME = "com.canonical.AppMenu.Registrar";
+
+static void name_appeared(GDBusConnection *connection, const gchar *name,
+		const gchar *name_owner, gpointer user_data) {
+	g_debug("name appeared: %s, %s", name, name_owner);
+	g_main_loop_quit((GMainLoop *) user_data);
+}
+
+gboolean
+timeout_error_func (gpointer user_data)
+{
+  GMainLoop * loop = (GMainLoop *)user_data;
+  g_main_loop_quit(loop);
+  g_error("Failed to get service");
+  return FALSE;
+}
 
 static void
 test_window_source_add_view_properties (GDBusConnection* connection,
@@ -108,7 +125,8 @@ test_window_source_menu_model ()
         "       '_GTK_MENUBAR_OBJECT_PATH': '',\n"
         "       '_GTK_APPLICATION_OBJECT_PATH': '/app/dbus/menu/path',\n"
         "       '_GTK_WINDOW_OBJECT_PATH': '',\n"
-        "       '_UNITY_OBJECT_PATH': ''\n"
+        "       '_UNITY_OBJECT_PATH': '',\n"
+        "       'WM_NAME': 'name'\n"
         "       }\n"
         "ret = dict[args[0]]");
     dbus_mock_add_object (connection, BAMF_BUS_NAME, MATCHER_OBJECT_PATH,
@@ -118,6 +136,8 @@ test_window_source_menu_model ()
 					 "/org/ayatana/bamf/window00000001");
     test_window_source_add_view_properties (connection,
 					    "/org/ayatana/bamf/window00000001");
+    dbus_mock_add_method (connection, BAMF_BUS_NAME, "/org/ayatana/bamf/window00000001",
+          VIEW_INTERFACE_NAME, "Parents", "", "as", "ret = ['/org/ayatana/bamf/application00000001']");
   }
 
   /* Define the mock application */
@@ -180,6 +200,26 @@ test_window_source_menu_model ()
 
   hud_test_utils_process_mainloop (100);
 
+  GPid pid;
+  {
+    GError *error = NULL;
+
+    const gchar *argv[] = { BAMF_BRIDGE, NULL };
+    g_spawn_async(NULL, (gchar **) argv,
+        NULL, G_SPAWN_DEFAULT,
+        NULL,
+        NULL,
+        &pid, &error);
+
+    GMainLoop *temploop = g_main_loop_new (NULL, FALSE);
+    g_timeout_add (1000, timeout_error_func, temploop);
+    g_bus_watch_name(G_BUS_TYPE_SESSION, "com.canonical.Unity.WindowStack",
+                G_BUS_NAME_WATCHER_FLAGS_NONE, name_appeared, NULL, temploop,
+                NULL);
+    g_main_loop_run (temploop);
+    g_main_loop_unref (temploop);
+  }
+
   HudApplicationList* source = hud_application_list_new();
   g_assert(source != NULL);
   g_assert(HUD_IS_APPLICATION_LIST(source));
@@ -223,19 +263,19 @@ test_window_source_menu_model ()
     HudApplicationSource * app =
         HUD_APPLICATION_SOURCE(g_list_nth_data(apps, 0));
     g_assert(HUD_IS_APPLICATION_SOURCE(app));
-    g_assert_cmpstr(hud_application_source_get_id (app), ==, "name");
+    g_assert_cmpstr(hud_application_source_get_id (app), ==, "1");
     g_assert_cmpstr(hud_application_source_get_path (app), ==,
-        "/com/canonical/hud/applications/name");
+        "/com/canonical/hud/applications/1");
     g_list_free(apps);
   }
 
   {
     HudApplicationSource * app = hud_application_list_get_source (source,
-        "name");
+        "1");
     g_assert(HUD_IS_APPLICATION_SOURCE(app));
-    g_assert_cmpstr(hud_application_source_get_id (app), ==, "name");
+    g_assert_cmpstr(hud_application_source_get_id (app), ==, "1");
     g_assert_cmpstr(hud_application_source_get_path (app), ==,
-        "/com/canonical/hud/applications/name");
+        "/com/canonical/hud/applications/1");
   }
 
   g_debug("Unusing Source");
@@ -250,6 +290,8 @@ test_window_source_menu_model ()
 
   g_debug("Waiting for things to settle");
   hud_test_utils_process_mainloop (100);
+
+  kill(pid, SIGTERM);
 
   g_debug("Taking down the connection");
   g_object_unref (connection);

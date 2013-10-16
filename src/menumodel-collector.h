@@ -21,7 +21,7 @@
 
 #include <gio/gio.h>
 
-#include "abstract-app.h"
+#include "window-info.h"
 #include "source.h"
 
 #define HUD_TYPE_MENU_MODEL_COLLECTOR                       (hud_menu_model_collector_get_type ())
@@ -44,7 +44,12 @@ HudMenuModelCollector * hud_menu_model_collector_new                    (const g
                                                                          HudSourceItemType type);
 
 void                    hud_menu_model_collector_add_window             (HudMenuModelCollector * collector,
-                                                                         AbstractWindow *        window);
+                                                                         const gchar *unique_bus_name,
+                                                                         const gchar *app_menu_object_path,
+                                                                         const gchar *menubar_object_path,
+                                                                         const gchar *application_object_path,
+                                                                         const gchar *window_object_path,
+                                                                         const gchar *unity_object_path);
 
 void                    hud_menu_model_collector_add_endpoint           (HudMenuModelCollector * collector,
                                                                          const gchar *prefix,

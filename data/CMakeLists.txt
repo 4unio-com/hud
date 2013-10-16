@@ -64,6 +64,21 @@ DESTINATION
 )
 
 ###########################
+# Window Stack Bridge
+###########################
+
+configure_file(
+  "window-stack-bridge.conf.in"
+  "window-stack-bridge.conf"
+  @ONLY
+)
+
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/window-stack-bridge.conf"
+  DESTINATION "/usr/share/upstart/sessions"
+)
+
+###########################
 # GSettings
 ###########################
 

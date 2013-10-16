@@ -1,9 +1,80 @@
-hud (13.10.1+13.10.20131002.1-0ubuntu2) UNRELEASED; urgency=low
+hud (13.10.1+13.10.20131014-0ubuntu1) saucy; urgency=low
 
+  [ Pete Woods ]
+  * Fix crash on window removal. (LP: #1238338)
+  * Fix application disposal, so HUD doesn't crash for apps with no
+    actions.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 336
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 14 Oct 2013 08:53:02 +0000
+
+hud (13.10.1+13.10.20131010.1-0ubuntu1) saucy; urgency=low
+
+  [ Pete Woods ]
+  * Handle errors from the BAMF interface It looks like windows are
+    sometimes disappearing before we get round to asking for information
+    about them. (LP: #1238002)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 333
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 10 Oct 2013 18:43:20 +0000
+
+hud (13.10.1+13.10.20131010-0ubuntu1) saucy; urgency=low
+
+  [ Loïc Minier ]
+  * Fix build-deps for desktop build.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 331
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 10 Oct 2013 02:23:33 +0000
+
+hud (13.10.1+13.10.20131009.1-0ubuntu1) saucy; urgency=low
+
+  [ Pete Woods ]
+  * Support unity8's window stack API. (LP: #1233992)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 329
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 09 Oct 2013 23:26:00 +0000
+
+hud (13.10.1+13.10.20131009-0ubuntu1) saucy; urgency=low
+
+  [ Dmitrijs Ledkovs ]
   * Use /bin/sh instead of /bin/bash in the dbus activation script, to
     speed up execution.
 
- -- Dmitrijs Ledkovs <dmitrij.ledkov@ubuntu.com>  Fri, 04 Oct 2013 12:57:14 +0100
+  [ Pete Woods ]
+  * Improve HUD's voice error handling for when either nothing is said,
+    or the mic isn't working.
+  * Working around the missing session bus variable and reporting a bug.
+
+  [ Ted Gould ]
+  * Working around the missing session bus variable and reporting a bug.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 326
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 09 Oct 2013 12:24:00 +0000
+
+hud (13.10.1+13.10.20131008.1-0ubuntu1) saucy; urgency=low
+
+  [ Dmitrijs Ledkovs ]
+  * Use /bin/sh instead of /bin/bash in the dbus activation script, to
+    speed up execution.
+
+  [ Pete Woods ]
+  * Improve HUD's voice error handling for when either nothing is said,
+    or the mic isn't working.
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 325
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 08 Oct 2013 12:50:58 +0000
 
 hud (13.10.1+13.10.20131002.1-0ubuntu1) saucy; urgency=low
 
