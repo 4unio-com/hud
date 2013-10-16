@@ -963,10 +963,16 @@ hud_menu_model_collector_list_applications (HudSource    *source,
   for (i = 0; i < items->len; i++)
     {
       HudResult *result;
-      HudItem *item;
+      HudModelItem *item;
 
       item = g_ptr_array_index (items, i);
-      result = hud_result_get_if_matched (item, search_string, collector->penalty);
+
+      if (!g_action_group_get_action_enabled(G_ACTION_GROUP(item->group), item->action_name))
+      {
+        continue;
+      }
+
+      result = hud_result_get_if_matched (HUD_ITEM(item), search_string, collector->penalty);
       if (result) {
         append_func(collector->app_id, collector->icon, collector->type, user_data);
         g_object_unref(result);
