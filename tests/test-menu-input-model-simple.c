@@ -67,11 +67,15 @@ main (int argv, char ** argc)
 
     GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 
+    g_debug("Exporting Simple Action Group");
     g_dbus_connection_export_action_group(session, argc[2], G_ACTION_GROUP(ag), NULL);
+    g_debug("Exporting Simple Menu");
     g_dbus_connection_export_menu_model(session, argc[2], G_MENU_MODEL(menu), NULL);
 
+    g_debug("Investing in name ownership '%s'", argc[1]);
     g_bus_own_name(G_BUS_TYPE_SESSION, argc[1], 0, NULL, NULL, NULL, NULL, NULL);
 
+    g_debug("Looping");
     GMainLoop * mainloop = g_main_loop_new(NULL, FALSE);
     g_main_loop_run(mainloop);
 
