@@ -36,17 +36,19 @@ main (int argv, char ** argc)
 
     GMenu * menu = g_menu_new();
     GMenuItem * item = NULL;
+    GMenuItem * ditem = NULL;
     if (is_application) {
       item = g_menu_item_new("Simple", "app.simple");
-      item = g_menu_item_new("Disable", "app.disable");
+      ditem = g_menu_item_new("Disable", "app.disable");
     } else {
       item = g_menu_item_new("Simple", "simple");
-      item = g_menu_item_new("Disable", "disable");
+      ditem = g_menu_item_new("Disable", "disable");
     }
 
     g_menu_item_set_attribute_value(item, "description", g_variant_new_string("A simple description"));
     g_menu_item_set_attribute_value(item, "keywords", g_variant_new_string("hard;difficult;;challenging;"));
     g_menu_append_item(menu, item);
+    g_menu_append_item(menu, ditem);
 
     GSimpleActionGroup * ag = g_simple_action_group_new();
     if (is_application) {
