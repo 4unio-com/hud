@@ -54,6 +54,7 @@ main (int argv, char ** argc)
 	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("save", G_VARIANT_TYPE_BOOLEAN)));
 	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("quiter", G_VARIANT_TYPE_BOOLEAN)));
 	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("close", G_VARIANT_TYPE_BOOLEAN)));
+	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("nothing", G_VARIANT_TYPE_BOOLEAN)));
 
 	GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 
