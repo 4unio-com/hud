@@ -67,16 +67,3 @@ install(
   TARGETS hud-cli-toolbar
   RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
-
-###########################
-# Hud Pronounce For Word
-###########################
-
-add_executable(hud-pronounce-for-word hud-pronounce-for-word.c)
-
-target_link_libraries(hud-pronounce-for-word hud-service)
-
-install(
-  TARGETS hud-pronounce-for-word
-  RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-)

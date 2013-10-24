@@ -16,30 +16,63 @@
 
 #include <glib-object.h>
 #include <glib/gstdio.h>
-#include <pulse/pulseaudio.h>
-#include <pulse/glib-mainloop.h>
 
-#include "voice.h"
-#include "source.h"
-#include "manual-source.h"
 #include "hud-query-iface.h"
+#include <libdbustest/dbus-test.h>
+#include "manual-source.h"
+#include "source.h"
+#include "test-utils.h"
+#include "voice.h"
 
-typedef struct
+static const gchar* UNITY_VOICE_BUS_NAME = "com.canonical.Unity.Voice";
+static const gchar* UNITY_VOICE_OBJECT_PATH = "/com/canonical/Unity/Voice";
+static const gchar* UNITY_VOICE_INTERFACE = "com.canonical.Unity.Voice";
+
+void
+test_hud_voice_query_fail (HudVoice* voice, HudManualSource* source)
 {
-  pa_mainloop *mainloop;
-  pa_mainloop_api *api;
-  pa_context *context;
-  gboolean operation_success;
-  guint module_index;
-  gchar *name;
-  gchar *path;
-} HudTestVoice;
+  gchar *result = NULL;
+  GError *error = NULL;
+
+  g_assert(!hud_voice_query(voice, HUD_SOURCE(source), &result, &error));
+
+  g_assert(error != NULL);
+  g_assert(result == NULL);
+
+  g_error_free(error);
+}
+
+void
+test_hud_voice_query_pass (HudVoice* voice, HudManualSource* source,
+    const gchar *expected)
+{
+  gchar *result = NULL;
+  GError *error = NULL;
+
+  g_assert(hud_voice_query(voice, HUD_SOURCE(source), &result, &error));
+
+  g_assert(error == NULL);
+
+  if( expected != NULL )
+  {
+    g_assert(result != NULL);
+    g_assert_cmpstr(result, ==, expected);
+    g_debug("QUERY RESULT [%s]", result);
+
+    g_free (result);
+    return;
+  }
+
+  g_assert(result == NULL);
+}
 
 static void
 test_hud_voice_construct ()
 {
+  // create voice instance
   HudQueryIfaceComCanonicalHudQuery *skel =
       hud_query_iface_com_canonical_hud_query_skeleton_new ();
+
   GError *error = NULL;
   HudVoice* voice = hud_voice_new (skel, NULL, &error);
   g_assert(voice != NULL);
@@ -52,6 +85,7 @@ test_hud_voice_construct ()
 static void
 test_hud_voice_query_null_source ()
 {
+  // create voice instance
   HudQueryIfaceComCanonicalHudQuery *skel =
       hud_query_iface_com_canonical_hud_query_skeleton_new ();
 
@@ -60,12 +94,9 @@ test_hud_voice_query_null_source ()
   g_assert(voice != NULL);
   g_assert(error == NULL);
 
-  gchar *result = NULL;
-  g_assert(!hud_voice_query(voice, NULL, &result, &error));
-  g_assert(result == NULL);
-  g_assert(error != NULL);
+  // query should fail as source is NULL
+  test_hud_voice_query_fail( voice, NULL );
 
-  g_error_free(error);
   g_object_unref(voice);
   g_object_unref(skel);
 }
@@ -73,6 +104,7 @@ test_hud_voice_query_null_source ()
 static void
 test_hud_voice_query_empty_source ()
 {
+  // create voice instance
   HudQueryIfaceComCanonicalHudQuery *skel =
       hud_query_iface_com_canonical_hud_query_skeleton_new ();
 
@@ -81,13 +113,11 @@ test_hud_voice_query_empty_source ()
   g_assert(voice != NULL);
   g_assert(error == NULL);
 
+  // create source with 0 items
   HudManualSource* source = hud_manual_source_new ("test_id", "test_icon");
 
-  gchar *result = NULL;
-  g_assert(hud_voice_query(voice, HUD_SOURCE(source), &result, &error));
-  g_assert(error == NULL);
-
-  g_assert(result == NULL);
+  // query should pass with NULL result
+  test_hud_voice_query_pass( voice, source, NULL );
 
   g_object_unref(source);
   g_object_unref(voice);
@@ -95,301 +125,117 @@ test_hud_voice_query_empty_source ()
 }
 
 static void
-quit (int ret, pa_mainloop_api *mainloop_api)
+test_hud_voice_query_no_commands ()
 {
-  g_assert(mainloop_api);
-  mainloop_api->quit (mainloop_api, ret);
-}
+  // create voice instance
+  HudQueryIfaceComCanonicalHudQuery *skel =
+      hud_query_iface_com_canonical_hud_query_skeleton_new ();
 
-static void
-context_drain_complete (pa_context *c, void *userdata)
-{
-  pa_context_disconnect (c);
-}
-
-static void
-drain (pa_context *context)
-{
-  pa_operation *o;
-
-  if (!(o = pa_context_drain (context, context_drain_complete, NULL )))
-  {
-    g_debug("DRAIN: disconnecting");
-    pa_context_disconnect (context);
-  }
-  else
-  {
-    g_debug("DRAIN: unreffing");
-    pa_operation_unref (o);
-  }
-}
-
-static void
-index_callback (pa_context *c, uint32_t idx, void *userdata)
-{
-  if (idx == PA_INVALID_INDEX)
-  {
-    g_error("Pulse error: [%s]", pa_strerror(pa_context_errno(c)));
-  }
-
-  HudTestVoice *test_voice = (HudTestVoice *) userdata;
-  g_debug("index_callback: loaded module with index [%d]", idx);
-  test_voice->module_index = idx;
-
-  drain (c);
-}
-
-static void
-success_callback (pa_context *c, int success, void *userdata)
-{
-  HudTestVoice *test_voice = (HudTestVoice *) userdata;
-  test_voice->operation_success = success;
-  g_debug(
-      "index_callback_unload: unloaded module with index [%d]", test_voice->module_index);
-  test_voice->module_index = PA_INVALID_INDEX;
-
-  drain (c);
-}
-
-static void
-context_state_callback_load_module (pa_context *context,
-    void *userdata)
-{
-  HudTestVoice *test_voice = (HudTestVoice *) userdata;
-
-  gchar *arguments = NULL;
-
-  switch (pa_context_get_state (context))
-  {
-  case PA_CONTEXT_CONNECTING:
-  case PA_CONTEXT_AUTHORIZING:
-  case PA_CONTEXT_SETTING_NAME:
-    g_debug("PA_CONTEXT_CONNECTING");
-    break;
-
-  case PA_CONTEXT_READY:
-    arguments = g_strdup_printf (
-        "source_name=%s file=%s channels=1 format=s16le rate=16000",
-        test_voice->name, test_voice->path);
-    g_debug("Loading module with arguments=[%s]", arguments);
-    pa_operation_unref (
-        pa_context_load_module (context, "module-pipe-source", arguments,
-            index_callback, userdata));
-    g_free (arguments);
-    break;
-
-  case PA_CONTEXT_TERMINATED:
-    g_debug("PA_CONTEXT_TERMINATED");
-    quit (0, test_voice->api);
-    break;
-
-  case PA_CONTEXT_FAILED:
-  default:
-    g_error("PA_CONTEXT_FAILED: [%s]", pa_strerror(pa_context_errno(context)));
-    quit (1, test_voice->api);
-    break;
-  }
-}
-
-static void
-context_state_callback_unload_module (pa_context *context,
-    void *userdata)
-{
-  HudTestVoice *test_voice = (HudTestVoice *) userdata;
-
-  switch (pa_context_get_state (context))
-  {
-  case PA_CONTEXT_CONNECTING:
-  case PA_CONTEXT_AUTHORIZING:
-  case PA_CONTEXT_SETTING_NAME:
-    g_debug("PA_CONTEXT_CONNECTING");
-    break;
-
-  case PA_CONTEXT_READY:
-    g_debug("unload module [%d]", test_voice->module_index);
-    pa_operation_unref (
-        pa_context_unload_module (context, test_voice->module_index,
-            success_callback, userdata));
-    break;
-
-  case PA_CONTEXT_TERMINATED:
-    g_debug("PA_CONTEXT_TERMINATED");
-    quit (0, test_voice->api);
-    break;
-
-  case PA_CONTEXT_FAILED:
-  default:
-    g_error("PA_CONTEXT_FAILED: [%s]", pa_strerror(pa_context_errno(context)));
-    quit (1, test_voice->api);
-    break;
-  }
-}
-
-void
-unload_pipe_module (HudTestVoice* test_voice)
-{
-  test_voice->mainloop = pa_mainloop_new ();
-  g_assert(test_voice->mainloop);
-
-  test_voice->api = pa_mainloop_get_api (test_voice->mainloop);
-
-  test_voice->context = pa_context_new (test_voice->api, "hud.test");
-  g_assert(test_voice->context);
-
-  pa_context_set_state_callback (test_voice->context,
-      context_state_callback_unload_module, &*test_voice);
-
-  g_assert_cmpint(pa_context_connect (test_voice->context, NULL, 0, NULL ), >=,
-      0);
-
-  gint ret = 0;
-  g_assert_cmpint(pa_mainloop_run(test_voice->mainloop, &ret), >=, 0);
-  g_assert_cmpuint(test_voice->module_index, ==, PA_INVALID_INDEX);
-  g_assert(test_voice->operation_success);
-
-  if (test_voice->context)
-    pa_context_unref (test_voice->context);
-
-  if (test_voice->mainloop)
-  {
-    pa_signal_done ();
-    pa_mainloop_free (test_voice->mainloop);
-  }
-}
-
-void
-load_pipe_module (HudTestVoice* test_voice)
-{
-  {
-    test_voice->mainloop = pa_mainloop_new ();
-    g_assert(test_voice->mainloop);
-
-    test_voice->api = pa_mainloop_get_api (test_voice->mainloop);
-
-    test_voice->context = pa_context_new (test_voice->api, "hud.test");
-    g_assert(test_voice->context);
-
-    pa_context_set_state_callback (test_voice->context,
-        context_state_callback_load_module, &*test_voice);
-
-    g_assert_cmpint(pa_context_connect (test_voice->context, NULL, 0, NULL ),
-        >=, 0);
-
-    gint ret = 0;
-    g_assert_cmpint(pa_mainloop_run(test_voice->mainloop, &ret), >=, 0);
-    g_assert_cmpuint(test_voice->module_index, !=, PA_INVALID_INDEX);
-
-    if (test_voice->context)
-      pa_context_unref (test_voice->context);
-
-    if (test_voice->mainloop)
-    {
-      pa_signal_done ();
-      pa_mainloop_free (test_voice->mainloop);
-    }
-  }
-}
-
-void
-play_sound (const gchar *name, const gchar *to)
-{
   GError *error = NULL;
-  const gchar *argv[] =
-  { TEST_VOICE_SOUNDS_PLAY, name, to, NULL };
-  if (!g_spawn_async (NULL, (gchar **) argv, NULL, 0, NULL, NULL, NULL, &error))
-  {
-    g_error("%s", error->message);
-    g_error_free (error);
-  }
-}
-
-void
-test_sound (const HudTestVoice* test_voice, HudVoice* voice,
-    HudManualSource* source, const gchar* name, const gchar *expected)
-{
-  play_sound (name, test_voice->path);
-  gchar *result = NULL;
-  GError *error = NULL;
-  g_assert(hud_voice_query(voice, HUD_SOURCE(source), &result, &error));
+  HudVoice* voice = hud_voice_new (skel, NULL, &error);
+  g_assert(voice != NULL);
   g_assert(error == NULL);
-  g_assert(result != NULL);
-  g_assert_cmpstr(result, ==, expected);
-  g_debug("QUERY RESULT [%s]", result);
-  g_free (result);
+
+  // create source with 1 item and 0 commands
+  HudManualSource* source = hud_manual_source_new ("test_id", "test_icon");
+  hud_manual_source_add (source, NULL, NULL, "shortcut", TRUE);
+
+  // query should fail as there are no commands
+  test_hud_voice_query_fail (voice, source);
+
+  g_object_unref (source);
+  g_object_unref (voice);
+  g_object_unref (skel);
+}
+
+static void
+test_hud_voice_query_bad_dbus ()
+{
+  // start unity-voice API dbus mock
+  DbusTestService *service = dbus_test_service_new (NULL);
+
+  hud_test_utils_dbus_mock_start (service, UNITY_VOICE_BUS_NAME,
+      UNITY_VOICE_OBJECT_PATH, UNITY_VOICE_INTERFACE);
+
+  GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
+      UNITY_VOICE_BUS_NAME, NULL );
+
+  hud_test_utils_process_mainloop (300);
+
+  // create voice instance
+  HudQueryIfaceComCanonicalHudQuery *skel =
+      hud_query_iface_com_canonical_hud_query_skeleton_new ();
+
+  GError *error = NULL;
+  HudVoice* voice = hud_voice_new (skel, NULL, &error);
+  g_assert(voice != NULL);
+  g_assert(error == NULL);
+
+  // create source with 1 item and 1 associated command
+  HudManualSource* source = hud_manual_source_new ("test_id", "test_icon");
+
+  HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
+  tokens = hud_string_list_add_item ("auto adjust", tokens);
+  hud_manual_source_add (source, tokens, NULL, "shortcut", TRUE);
+  hud_string_list_unref(tokens);
+
+  // query should fail as there is no available "listen" dbus method
+  test_hud_voice_query_fail (voice, source);
+
+  g_object_unref (source);
+  g_object_unref (voice);
+  g_object_unref (skel);
+
+  g_object_unref (connection);
+  g_object_unref (service);
 }
 
 static void
 test_hud_voice_query ()
 {
+  // start unity-voice API dbus mock
+  DbusTestService *service = dbus_test_service_new (NULL);
+
+  hud_test_utils_dbus_mock_start (service, UNITY_VOICE_BUS_NAME,
+      UNITY_VOICE_OBJECT_PATH, UNITY_VOICE_INTERFACE);
+
+  GDBusConnection *connection = hud_test_utils_mock_dbus_connection_new (service,
+      UNITY_VOICE_BUS_NAME, NULL );
+
+  hud_test_utils_process_mainloop (300);
+
+  // create voice instance
   HudQueryIfaceComCanonicalHudQuery *skel =
       hud_query_iface_com_canonical_hud_query_skeleton_new ();
 
-  HudTestVoice test_voice =
-  { NULL, NULL, NULL, FALSE, PA_INVALID_INDEX, NULL, NULL };
-
   GError *error = NULL;
-  gint file_handle = g_file_open_tmp ("hud.test-voice-XXXXXX.source",
-      &test_voice.path, &error);
-  g_assert_cmpint(file_handle, !=, -1);
-  g_assert(error == NULL);
-  close (file_handle);
-  g_remove (test_voice.path);
-  test_voice.name = g_path_get_basename (test_voice.path);
-
-  error = NULL;
-  HudVoice* voice = hud_voice_new (skel, test_voice.name, &error);
+  HudVoice* voice = hud_voice_new (skel, NULL, &error);
   g_assert(voice != NULL);
   g_assert(error == NULL);
 
+  // create source with 1 item and 1 associated command
   HudManualSource* source = hud_manual_source_new ("test_id", "test_icon");
 
-  {
-    HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
-    tokens = hud_string_list_add_item ("auto adjust", tokens);
-    hud_manual_source_add (source, tokens, NULL, "shortcut1", TRUE);
-    hud_string_list_unref(tokens);
-  }
-  {
-    HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
-    tokens = hud_string_list_add_item ("color balance", tokens);
-    hud_manual_source_add (source, tokens, NULL, "shortcut2", TRUE);
-    hud_string_list_unref(tokens);
-  }
-  {
-    HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
-    tokens = hud_string_list_add_item ("open tab", tokens);
-    hud_manual_source_add (source, tokens, NULL, "shortcut3", TRUE);
-    hud_string_list_unref(tokens);
-  }
-  {
-    HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
-    tokens = hud_string_list_add_item ("open terminal", tokens);
-    hud_manual_source_add (source, tokens, NULL, "shortcut4", TRUE);
-    hud_string_list_unref(tokens);
-  }
-  {
-    HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
-    tokens = hud_string_list_add_item ("system settings", tokens);
-    hud_manual_source_add (source, tokens, NULL, "shortcut5", TRUE);
-    hud_string_list_unref(tokens);
-  }
+  HudStringList *tokens = hud_string_list_add_item ("menu", NULL );
+  tokens = hud_string_list_add_item ("auto adjust", tokens);
+  hud_manual_source_add (source, tokens, NULL, "shortcut", TRUE);
+  hud_string_list_unref(tokens);
 
-  load_pipe_module (&test_voice);
+  // register the "listen" method on the dbus mock
+  dbus_mock_add_method (connection,
+      UNITY_VOICE_BUS_NAME, UNITY_VOICE_OBJECT_PATH,
+      UNITY_VOICE_INTERFACE, "listen", "aas", "s",
+        "ret = 'auto adjust'");
 
-  test_sound (&test_voice, voice, source, "auto-adjust", "auto adjust");
-  test_sound (&test_voice, voice, source, "color-balance", "color balance");
-  test_sound (&test_voice, voice, source, "open-tab", "open tab");
-  test_sound (&test_voice, voice, source, "open-terminal", "open terminal");
-  test_sound (&test_voice, voice, source, "system-settings", "system settings");
-
-  unload_pipe_module (&test_voice);
-
-  g_free (test_voice.name);
-  g_free (test_voice.path);
+  // query should pass with expected result
+  test_hud_voice_query_pass (voice, source, "auto adjust");
 
   g_object_unref (source);
   g_object_unref (voice);
   g_object_unref (skel);
+
+  g_object_unref (connection);
+  g_object_unref (service);
 }
 
 static void
@@ -398,6 +244,8 @@ test_string_list_suite ()
   g_test_add_func ("/hud/voice/construct", test_hud_voice_construct);
   g_test_add_func ("/hud/voice/query_null_source", test_hud_voice_query_null_source);
   g_test_add_func ("/hud/voice/query_empty_source", test_hud_voice_query_empty_source);
+  g_test_add_func ("/hud/voice/query_no_commands", test_hud_voice_query_no_commands);
+  g_test_add_func ("/hud/voice/query_bad_dbus", test_hud_voice_query_bad_dbus);
   g_test_add_func ("/hud/voice/query", test_hud_voice_query);
 }
 

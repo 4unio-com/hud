@@ -27,13 +27,9 @@ Build-Depends: bamfdaemon,
                xvfb,
                python3-dbusmock,
                qtbase5-dev,
-               libpocketsphinx-dev (>= 0.8),
-               libsphinxbase-dev (>= 0.8),
-               sphinx-voxforge-hmm-en,
-               sphinx-voxforge-lm-en,
-               pulseaudio,
                python-setuptools,
                libnih-dbus-dev,
+               unity-voice-service
 Standards-Version: 3.9.4
 Homepage: http://launchpad.net/hud
 # If you aren't a member of ~indicator-applet-developers but need to upload
@@ -46,8 +42,7 @@ Package: hud
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         sphinx-voxforge-hmm-en,
-         sphinx-voxforge-lm-en
+         unity-voice-service
 Conflicts: indicator-appmenu (<< 13),
 Description: Backend for the Unity HUD
  Unity HUD is a heads-up-display interface for controlling the behavior of

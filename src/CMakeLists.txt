@@ -24,6 +24,7 @@ set(HUD_SERVICE_GENERATED_HEADERS
 app-iface.h
 hud-iface.h
 hud-query-iface.h
+unity-voice-iface.h
 )
 
 set(HUD_SERVICE_GENERATED_SOURCES
@@ -43,6 +44,14 @@ NAME hud-query-iface
 PREFIX com.canonical.hud.query.
 NAMESPACE HudQueryIface
 SERVICE_XML ${HUD_QUERY_XML}
+)
+
+add_gdbus_codegen(
+OUTFILES HUD_SERVICE_GENERATED_SOURCES
+NAME unity-voice-iface
+PREFIX com.canonical.Unity.Voice.
+NAMESPACE UnityVoiceIface
+SERVICE_XML ${UNITY_VOICE_XML}
 )
 
 add_gdbus_codegen(
@@ -99,13 +108,11 @@ token.h
 query.h
 string-list.h
 voice.h
-sphinx.h
-julius.h
+unity-voice.h
 item.h
 keyword-mapping.h
 result.h
 load-app-info.h
-pronounce-dict.h
 query-columns.h
 usage-tracker.h
 watchdog.h
@@ -132,13 +139,11 @@ token.c
 query.c
 string-list.c
 voice.c
-sphinx.c
-julius.c
+unity-voice.c
 item.c
 keyword-mapping.c
 result.c
 load-app-info.c
-pronounce-dict.c
 usage-tracker.c
 watchdog.c
 window-info.c
@@ -163,7 +168,6 @@ ${BAMF_LIBRARIES}
 ${DEE_LIBRARIES}
 ${DBUSMENU_GLIB_LIBRARIES}
 ${SQLITE3_LIBRARIES}
-${POCKETSPHINX_LIBRARIES}
 ${NIH_LIBRARIES}
 ${NIH_DBUS_LIBRARIES}
 )
