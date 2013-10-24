@@ -23,6 +23,8 @@
 #include <stdexcept>
 #include <ubuntu/application/ui/stage.h>
 
+using namespace hud::common;
+
 PlatformApiWindowStack::PlatformApiWindowStack(
 		const QDBusConnection &connection, QObject *parent) :
 		AbstractWindowStack(connection, parent) {

@@ -3,7 +3,10 @@
 	<interface name="com.canonical.hud">
 <!-- Properties -->
 		<property name="OpenQueries" type="ao" access="read" />
-		<property name="Applications" type="a(so)" access="read"/>
+		
+		<property name="Applications" type="a(so)" access="read">
+			<annotation name="org.qtproject.QtDBus.QtTypeName" value="QList&lt;hud::common::NameObject&gt;"/>
+		</property>
 
 <!-- Functions -->
 		<method name="CreateQuery">
@@ -32,6 +35,7 @@
 			<arg type="i" name="entries" direction="in" />
 			<!-- out -->
 			<arg type="s" name="target" direction="out" />
+			<annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QList&lt;hud::common::Suggestion&gt;"/>
 			<arg type="a(sssssv)" name="suggestions" direction="out" />
 			<arg type="v" name="querykey" direction="out" />
 		</method>
@@ -48,6 +52,7 @@
 <!-- Legacy Signals -->
 		<signal name="UpdatedQuery">
 			<arg type="s" name="target" direction="out" />
+			<annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QList&lt;hud::common::Suggestion&gt;"/>
 			<arg type="a(sssssv)" name="suggestions" direction="out" />
 			<arg type="v" name="querykey" direction="out" />
 		</signal>

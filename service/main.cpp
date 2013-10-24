@@ -17,7 +17,7 @@
  */
 
 #include <common/Localisation.h>
-#include <WindowStack.h>
+#include <service/HudService.h>
 
 #include <QDBusConnection>
 #include <QDebug>
@@ -25,6 +25,7 @@
 #include <csignal>
 
 using namespace std;
+using namespace hud::service;
 
 static void exitQt(int sig) {
 	Q_UNUSED(sig);
@@ -42,10 +43,10 @@ int main(int argc, char *argv[]) {
 	signal(SIGTERM, &exitQt);
 
 	try {
-		WindowStack windowStack(QDBusConnection::sessionBus());
+		HudService hudService(QDBusConnection::sessionBus());
 		return application.exec();
 	} catch (std::exception &e) {
-		qWarning() << _("Window Stack Bridge:") << e.what();
+		qWarning() << _("Hud Service:") << e.what();
 		return application.exec();
 	}
 }

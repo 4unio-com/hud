@@ -17,10 +17,12 @@
  */
 
 #include <BamfWindowStack.h>
-#include <Localisation.h>
+#include <common/Localisation.h>
 
 #include <QFile>
 #include <QFileInfo>
+
+using namespace hud::common;
 
 static const QString BAMF_DBUS_NAME("org.ayatana.bamf");
 

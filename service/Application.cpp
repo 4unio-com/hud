@@ -16,36 +16,27 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <common/Localisation.h>
-#include <WindowStack.h>
+#include <common/DBusTypes.h>
+#include <service/Application.h>
+#include <service/ApplicationAdaptor.h>
 
-#include <QDBusConnection>
-#include <QDebug>
-#include <QCoreApplication>
-#include <csignal>
+using namespace hud::common;
 
-using namespace std;
+namespace hud {
+namespace service {
 
-static void exitQt(int sig) {
-	Q_UNUSED(sig);
-	QCoreApplication::exit(0);
+Application::Application(unsigned int id, const QDBusConnection &connection,
+		QObject *parent) :
+		QObject(parent), m_adaptor(new ApplicationAdaptor(this)), m_connection(
+				connection), m_path(DBusTypes::applicationPath(id)) {
+	if (!m_connection.registerObject(m_path.path(), this)) {
+		throw std::logic_error(_("Unable to register HUD object on DBus"));
+	}
 }
 
-int main(int argc, char *argv[]) {
-	QCoreApplication application(argc, argv);
+Application::~Application() {
+	m_connection.unregisterObject(m_path.path());
+}
 
-	setlocale(LC_ALL, "");
-	bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);
-	textdomain(GETTEXT_PACKAGE);
-
-	signal(SIGINT, &exitQt);
-	signal(SIGTERM, &exitQt);
-
-	try {
-		WindowStack windowStack(QDBusConnection::sessionBus());
-		return application.exec();
-	} catch (std::exception &e) {
-		qWarning() << _("Window Stack Bridge:") << e.what();
-		return application.exec();
-	}
+}
 }

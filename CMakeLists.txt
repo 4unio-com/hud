@@ -137,11 +137,13 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -fPIC")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_subdirectory(data)
+add_subdirectory(common)
 add_subdirectory(libhud-client)
 add_subdirectory(libhud)
 add_subdirectory(libhud-gtk)
 add_subdirectory(src)
-add_subdirectory(tools)
+add_subdirectory(service)
+#add_subdirectory(tools)
 add_subdirectory(window-stack-bridge)
 
 if(${ENABLE_TESTS})
@@ -153,7 +155,7 @@ if(${ENABLE_TESTS})
   pkg_check_modules(DBUSMENU_JSONLOADER REQUIRED dbusmenu-jsonloader-0.4)
   include_directories(${DBUSMENU_JSONLOADER_INCLUDE_DIRS})
   
-  add_subdirectory(tests)
+  #add_subdirectory(tests)
 endif()
 
 add_subdirectory(tools-vala)

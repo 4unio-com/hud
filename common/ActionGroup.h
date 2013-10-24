@@ -16,36 +16,35 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <common/Localisation.h>
-#include <WindowStack.h>
+#ifndef HUD_COMMON_ACTIONGROUP_H_
+#define HUD_COMMON_ACTIONGROUP_H_
 
-#include <QDBusConnection>
-#include <QDebug>
-#include <QCoreApplication>
-#include <csignal>
+#include <QObject>
+#include <QDBusArgument>
 
-using namespace std;
+namespace hud {
+namespace common {
 
-static void exitQt(int sig) {
-	Q_UNUSED(sig);
-	QCoreApplication::exit(0);
+class ActionGroup {
+public:
+	ActionGroup();
+
+	virtual ~ActionGroup();
+
+	static void registerMetaTypes();
+};
+
+}
 }
 
-int main(int argc, char *argv[]) {
-	QCoreApplication application(argc, argv);
+Q_DECL_EXPORT
+QDBusArgument &operator<<(QDBusArgument &argument,
+		const hud::common::ActionGroup &actionGroup);
 
-	setlocale(LC_ALL, "");
-	bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);
-	textdomain(GETTEXT_PACKAGE);
+Q_DECL_EXPORT
+const QDBusArgument &operator>>(const QDBusArgument &argument,
+		hud::common::ActionGroup &actionGroup);
 
-	signal(SIGINT, &exitQt);
-	signal(SIGTERM, &exitQt);
+Q_DECLARE_METATYPE(hud::common::ActionGroup);
 
-	try {
-		WindowStack windowStack(QDBusConnection::sessionBus());
-		return application.exec();
-	} catch (std::exception &e) {
-		qWarning() << _("Window Stack Bridge:") << e.what();
-		return application.exec();
-	}
-}
+#endif /* HUD_COMMON_ACTIONGROUP_H_ */

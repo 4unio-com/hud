@@ -35,7 +35,7 @@ public:
 public Q_SLOTS:
 	virtual QString GetAppIdFromPid(uint pid);
 
-	virtual QList<WindowInfo> GetWindowStack();
+	virtual QList<hud::common::WindowInfo> GetWindowStack();
 
 	virtual QStringList GetWindowProperties(uint windowId, const QString &appId,
 			const QStringList &names);
