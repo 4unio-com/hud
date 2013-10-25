@@ -33,6 +33,11 @@ namespace common {
 const QString DBusTypes::HUD_SERVICE_DBUS_NAME("com.canonical.hud");
 const QString DBusTypes::HUD_SERVICE_DBUS_PATH("/com/canonical/hud");
 
+const QString DBusTypes::WINDOW_STACK_DBUS_NAME(
+		"com.canonical.Unity.WindowStack");
+const QString DBusTypes::WINDOW_STACK_DBUS_PATH(
+		"/com/canonical/Unity/WindowStack");
+
 void DBusTypes::registerMetaTypes() {
 	NameObject::registerMetaTypes();
 	Suggestion::registerMetaTypes();
@@ -44,11 +49,11 @@ void DBusTypes::registerMetaTypes() {
 }
 
 QString DBusTypes::queryPath(unsigned int id) {
-	return QString("/com/canonical/hud/query%1").arg(id);
+	return QString("/com/canonical/hud/query/%1").arg(id);
 }
 
 QString DBusTypes::applicationPath(unsigned int id) {
-	return QString("/com/canonical/hud/application%1").arg(id);
+	return QString("/com/canonical/hud/application/%1").arg(id);
 }
 
 }

@@ -40,11 +40,6 @@ public:
 	virtual ~AbstractWindowStack();
 
 public:
-	Q_DECL_EXPORT
-	static const QString DBUS_NAME;
-
-	Q_DECL_EXPORT
-	static const QString DBUS_PATH;
 
 	Q_DECL_EXPORT
 	static void registerMetaTypes();

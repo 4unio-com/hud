@@ -18,6 +18,7 @@
 
 #include <AbstractWindowStack.h>
 #include <WindowStackAdaptor.h>
+#include <common/DBusTypes.h>
 #include <common/Localisation.h>
 #include <common/WindowInfo.h>
 
@@ -27,10 +28,6 @@
 
 using namespace hud::common;
 
-const QString AbstractWindowStack::DBUS_NAME("com.canonical.Unity.WindowStack");
-const QString AbstractWindowStack::DBUS_PATH(
-		"/com/canonical/Unity/WindowStack");
-
 AbstractWindowStack::AbstractWindowStack(const QDBusConnection &connection,
 		QObject *parent) :
 		QObject(parent), m_adaptor(new WindowStackAdaptor(this)), m_connection(
@@ -39,17 +36,17 @@ AbstractWindowStack::AbstractWindowStack(const QDBusConnection &connection,
 }
 
 void AbstractWindowStack::registerOnBus() {
-	if (!m_connection.registerObject(DBUS_PATH, this)) {
+	if (!m_connection.registerObject(DBusTypes::WINDOW_STACK_DBUS_PATH, this)) {
 		throw std::logic_error(
 				_("Unable to register window stack object on DBus"));
 	}
-	if (!m_connection.registerService(DBUS_NAME)) {
+	if (!m_connection.registerService(DBusTypes::WINDOW_STACK_DBUS_NAME)) {
 		throw std::logic_error(
 				_("Unable to register window stack service on DBus"));
 	}
 }
 
 AbstractWindowStack::~AbstractWindowStack() {
-	m_connection.unregisterObject(DBUS_PATH);
+	m_connection.unregisterObject(DBusTypes::WINDOW_STACK_DBUS_PATH);
 }
 

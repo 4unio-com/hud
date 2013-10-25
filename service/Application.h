@@ -22,23 +22,30 @@
 #include <QDBusConnection>
 #include <QDBusContext>
 #include <QScopedPointer>
+#include <QSharedPointer>
 
 #include <common/Action.h>
 #include <common/ActionGroup.h>
 #include <common/Description.h>
 #include <common/MenuModel.h>
 
+class ApplicationAdaptor;
+
 namespace hud {
 namespace service {
 
-class ApplicationAdaptor;
-
 class Application: public QObject, protected QDBusContext {
 public:
-	explicit Application(unsigned int id, const QDBusConnection &connection,
-			QObject *parent = 0);
+	typedef QSharedPointer<Application> Ptr;
+
+	explicit Application(unsigned int id, const QString &applicationId,
+			const QDBusConnection &connection, QObject *parent = 0);
 
 	virtual ~Application();
+
+	void addWindow(unsigned int windowId);
+
+	void removeWindow(unsigned int windowId);
 
 	Q_PROPERTY(QList<hud::common::ActionGroup> ActionGroups READ actionGroups)
 	QList<hud::common::ActionGroup> actionGroups() const;

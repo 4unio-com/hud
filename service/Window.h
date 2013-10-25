@@ -16,37 +16,19 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <common/Localisation.h>
-#include <service/Factory.h>
+#ifndef HUD_SERVICE_WINDOW_H_
+#define HUD_SERVICE_WINDOW_H_
 
-#include <QDebug>
-#include <QCoreApplication>
-#include <csignal>
+namespace hud {
+namespace service {
 
-using namespace std;
-using namespace hud::service;
+class Window {
+public:
+	Window();
 
-static void exitQt(int sig) {
-	Q_UNUSED(sig);
-	QCoreApplication::exit(0);
+	virtual ~Window();
+};
+
 }
-
-int main(int argc, char *argv[]) {
-	QCoreApplication application(argc, argv);
-
-	setlocale(LC_ALL, "");
-	bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);
-	textdomain(GETTEXT_PACKAGE);
-
-	signal(SIGINT, &exitQt);
-	signal(SIGTERM, &exitQt);
-
-	try {
-		Factory factory;
-		factory.singletonHudService();
-		return application.exec();
-	} catch (std::exception &e) {
-		qWarning() << _("Hud Service:") << e.what();
-		return 1;
-	}
 }
+#endif /* HUD_SERVICE_WINDOW_H_ */

@@ -4,8 +4,14 @@
 ###########################
 
 set(HUD_SERVICE_LIB_SOURCES
+  Application.cpp
+  ApplicationList.cpp
+  DBusMenuCollector.cpp
+  Factory.cpp
+  GMenuCollector.cpp
   HudService.cpp
   Query.cpp
+  Window.cpp
 )
 
 qt5_add_dbus_adaptor(

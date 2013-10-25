@@ -16,37 +16,37 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <common/Localisation.h>
-#include <service/Factory.h>
+#ifndef HUD_SERVICE_FACTORY_H_
+#define HUD_SERVICE_FACTORY_H_
 
-#include <QDebug>
-#include <QCoreApplication>
-#include <csignal>
+#include <HudService.h>
+#include <Application.h>
+#include <ApplicationList.h>
+#include <Query.h>
 
-using namespace std;
-using namespace hud::service;
+namespace hud {
+namespace service {
 
-static void exitQt(int sig) {
-	Q_UNUSED(sig);
-	QCoreApplication::exit(0);
+class Factory {
+public:
+	Factory();
+
+	virtual ~Factory();
+
+	virtual HudService::Ptr singletonHudService();
+
+	virtual Query::Ptr newQuery(unsigned int id, const QString &query);
+
+	virtual ApplicationList::Ptr newApplicationList();
+
+	virtual Application::Ptr newApplication(unsigned int id,
+			const QString &applicationId);
+
+protected:
+	HudService::Ptr m_hudService;
+};
+
+}
 }
 
-int main(int argc, char *argv[]) {
-	QCoreApplication application(argc, argv);
-
-	setlocale(LC_ALL, "");
-	bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);
-	textdomain(GETTEXT_PACKAGE);
-
-	signal(SIGINT, &exitQt);
-	signal(SIGTERM, &exitQt);
-
-	try {
-		Factory factory;
-		factory.singletonHudService();
-		return application.exec();
-	} catch (std::exception &e) {
-		qWarning() << _("Hud Service:") << e.what();
-		return 1;
-	}
-}
+#endif /* HUD_SERVICE_FACTORY_H_ */

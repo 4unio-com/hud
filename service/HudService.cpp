@@ -16,6 +16,8 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
+#include <service/ApplicationList.h>
+#include <service/Factory.h>
 #include <service/HudService.h>
 #include <service/HudAdaptor.h>
 #include <common/Localisation.h>
@@ -26,10 +28,13 @@ using namespace hud::common;
 namespace hud {
 namespace service {
 
-HudService::HudService(const QDBusConnection &connection, QObject *parent) :
+HudService::HudService(Factory &factory, const QDBusConnection &connection,
+		QObject *parent) :
 		QObject(parent), m_adaptor(new HudAdaptor(this)), m_connection(
-				connection), m_queryCounter(0) {
+				connection), m_factory(factory), m_queryCounter(0) {
 	DBusTypes::registerMetaTypes();
+
+	m_applicationList = m_factory.newApplicationList();
 
 	if (!m_connection.registerObject(DBusTypes::HUD_SERVICE_DBUS_PATH, this)) {
 		throw std::logic_error(_("Unable to register HUD object on DBus"));
@@ -58,8 +63,7 @@ QList<QDBusObjectPath> HudService::openQueries() const {
 QDBusObjectPath HudService::CreateQuery(const QString &query,
 		QString &resultsName, QString &appstackName, int &modelRevision) {
 
-	Query::Ptr hudQuery(
-			new Query(m_queryCounter++, query, *this, m_connection));
+	Query::Ptr hudQuery(m_factory.newQuery(m_queryCounter++, query));
 
 	m_queries[hudQuery->path()] = hudQuery;
 

@@ -27,14 +27,25 @@ namespace common {
 
 class DBusTypes {
 public:
+	Q_DECL_EXPORT
 	static const QString HUD_SERVICE_DBUS_NAME;
 
+	Q_DECL_EXPORT
 	static const QString HUD_SERVICE_DBUS_PATH;
 
+	Q_DECL_EXPORT
+	static const QString WINDOW_STACK_DBUS_NAME;
+
+	Q_DECL_EXPORT
+	static const QString WINDOW_STACK_DBUS_PATH;
+
+	Q_DECL_EXPORT
 	static void registerMetaTypes();
 
+	Q_DECL_EXPORT
 	static QString queryPath(unsigned int id);
 
+	Q_DECL_EXPORT
 	static QString applicationPath(unsigned int id);
 };
 

@@ -17,18 +17,18 @@
  */
 
 #include <common/DBusTypes.h>
+#include <common/Localisation.h>
 #include <service/Application.h>
 #include <service/ApplicationAdaptor.h>
 
 using namespace hud::common;
+using namespace hud::service;
 
-namespace hud {
-namespace service {
-
-Application::Application(unsigned int id, const QDBusConnection &connection,
-		QObject *parent) :
+Application::Application(unsigned int id, const QString &applicationId,
+		const QDBusConnection &connection, QObject *parent) :
 		QObject(parent), m_adaptor(new ApplicationAdaptor(this)), m_connection(
 				connection), m_path(DBusTypes::applicationPath(id)) {
+	qDebug() << "new application" << applicationId;
 	if (!m_connection.registerObject(m_path.path(), this)) {
 		throw std::logic_error(_("Unable to register HUD object on DBus"));
 	}
@@ -38,5 +38,29 @@ Application::~Application() {
 	m_connection.unregisterObject(m_path.path());
 }
 
+void Application::addWindow(unsigned int windowId) {
+	qDebug() << "adding window" << windowId;
 }
+
+QList<ActionGroup> Application::actionGroups() const {
+	return QList<ActionGroup>();
+}
+
+QString Application::desktopPath() const {
+	return QString();
+}
+
+QString Application::icon() const {
+	return QString();
+}
+
+QList<MenuModel> Application::menuModels() const {
+	return QList<MenuModel>();
+}
+
+void Application::AddSources(const QList<Action> &actions,
+		const QList<Description> &descriptions) {
+}
+
+void Application::SetWindowContext(uint window, const QString &context) {
 }

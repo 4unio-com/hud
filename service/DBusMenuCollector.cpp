@@ -16,37 +16,12 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <common/Localisation.h>
-#include <service/Factory.h>
+#include <service/DBusMenuCollector.h>
 
-#include <QDebug>
-#include <QCoreApplication>
-#include <csignal>
-
-using namespace std;
 using namespace hud::service;
 
-static void exitQt(int sig) {
-	Q_UNUSED(sig);
-	QCoreApplication::exit(0);
+DBusMenuCollector::DBusMenuCollector() {
 }
 
-int main(int argc, char *argv[]) {
-	QCoreApplication application(argc, argv);
-
-	setlocale(LC_ALL, "");
-	bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);
-	textdomain(GETTEXT_PACKAGE);
-
-	signal(SIGINT, &exitQt);
-	signal(SIGTERM, &exitQt);
-
-	try {
-		Factory factory;
-		factory.singletonHudService();
-		return application.exec();
-	} catch (std::exception &e) {
-		qWarning() << _("Hud Service:") << e.what();
-		return 1;
-	}
+DBusMenuCollector::~DBusMenuCollector() {
 }
