@@ -18,6 +18,8 @@
 
 #define G_LOG_DOMAIN "hud-service"
 
+#include <stdlib.h> /* exit() */
+
 #include <glib.h>
 #include <gio/gio.h>
 #include <glib/gi18n.h>
@@ -729,7 +731,8 @@ name_lost_cb (GDBusConnection *connection,
               gpointer         user_data)
 {
   g_main_loop_quit (mainloop);
-  g_error ("Unable to get name '%s'", name);
+  g_critical ("Unable to get name '%s'", name);
+  exit (0);
 }
 
 static void
