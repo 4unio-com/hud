@@ -186,7 +186,6 @@ QList<WindowInfo> BamfWindowStack::GetWindowStack() {
 		for (WindowInfo &windowInfo : results) {
 			if (windowInfo.window_id == windowId) {
 				windowInfo.focused = true;
-				break;
 			}
 		}
 	}
