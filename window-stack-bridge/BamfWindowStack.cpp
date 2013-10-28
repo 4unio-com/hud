@@ -171,15 +171,17 @@ QList<WindowInfo> BamfWindowStack::GetWindowStack() {
 
 	QStringList stack(m_matcher.WindowStackForMonitor(-1));
 	for (const QString &path : stack) {
-		WindowPtr window(m_windows[path]);
-		results
-				<< WindowInfo(window->windowId(), window->applicationId(),
-						false);
+		const auto window (m_windows[path]);
+		if (window) {
+			results << WindowInfo(window->windowId(),
+			                      window->applicationId(),
+			                      false);
+		}
 	}
 
-	WindowPtr window(m_windows[m_matcher.ActiveWindow()]);
-	if (!window.isNull()) {
-		uint windowId(window->windowId());
+	const auto window (m_windows[m_matcher.ActiveWindow()]);
+	if (window) {
+		const uint windowId(window->windowId());
 
 		for (WindowInfo &windowInfo : results) {
 			if (windowInfo.window_id == windowId) {
@@ -206,9 +208,12 @@ QStringList BamfWindowStack::GetWindowProperties(uint windowId,
 void BamfWindowStack::ActiveWindowChanged(const QString &oldWindowPath,
 		const QString &newWindowPath) {
 	if (!newWindowPath.isEmpty()) {
-		WindowPtr window(m_windows[newWindowPath]);
-		FocusedWindowChanged(window->windowId(), window->applicationId(),
-				WindowInfo::MAIN);
+		const auto window(m_windows[newWindowPath]);
+		if (window) {
+			FocusedWindowChanged(window->windowId(),
+			                     window->applicationId(),
+			                     WindowInfo::MAIN);
+		}
 	}
 }
 
