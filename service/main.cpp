@@ -20,7 +20,7 @@
 #include <service/Factory.h>
 
 #include <QDebug>
-#include <QCoreApplication>
+#include <QApplication>
 #include <csignal>
 
 using namespace std;
@@ -32,7 +32,7 @@ static void exitQt(int sig) {
 }
 
 int main(int argc, char *argv[]) {
-	QCoreApplication application(argc, argv);
+	QApplication application(argc, argv);
 
 	setlocale(LC_ALL, "");
 	bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);

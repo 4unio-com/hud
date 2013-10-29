@@ -38,6 +38,11 @@ const QString DBusTypes::WINDOW_STACK_DBUS_NAME(
 const QString DBusTypes::WINDOW_STACK_DBUS_PATH(
 		"/com/canonical/Unity/WindowStack");
 
+const QString DBusTypes::APPMENU_REGISTRAR_DBUS_NAME(
+		"com.canonical.AppMenu.Registrar");
+const QString DBusTypes::APPMENU_REGISTRAR_DBUS_PATH(
+		"/com/canonical/AppMenu/Registrar");
+
 void DBusTypes::registerMetaTypes() {
 	NameObject::registerMetaTypes();
 	Suggestion::registerMetaTypes();

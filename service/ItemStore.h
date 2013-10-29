@@ -16,16 +16,23 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <service/Factory.h>
-#include <service/Window.h>
+#ifndef HUD_SERVICE_ITEMSTORE_H_
+#define HUD_SERVICE_ITEMSTORE_H_
 
-using namespace hud::service;
+#include <QSharedPointer>
 
-Window::Window(unsigned int windowId, const QString &applicationId,
-		Factory &factory) :
-		m_gmenuCollector(factory.newGMenuCollector(windowId, applicationId)), m_dbusMenuCollector(
-				factory.newDBusMenuCollector(windowId, applicationId)) {
+namespace hud {
+namespace service {
+
+class ItemStore {
+public:
+	typedef QSharedPointer<ItemStore> Ptr;
+
+	explicit ItemStore();
+
+	virtual ~ItemStore();
+};
+
 }
-
-Window::~Window() {
 }
+#endif /* HUD_SERVICE_ITEMSTORE_H_ */

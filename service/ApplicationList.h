@@ -22,6 +22,7 @@
 #include <common/WindowStackInterface.h>
 #include <service/Application.h>
 
+#include <QObject>
 #include <QDBusConnection>
 #include <QSharedPointer>
 
@@ -30,19 +31,32 @@ namespace service {
 
 class Factory;
 
-class ApplicationList {
+class ApplicationList: public QObject {
+Q_OBJECT
+
 public:
 	typedef QSharedPointer<ApplicationList> Ptr;
 
 	explicit ApplicationList(Factory &factory,
+			QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack,
 			const QDBusConnection &connection);
 
 	virtual ~ApplicationList();
 
+protected Q_SLOTS:
+	void FocusedWindowChanged(uint windowId, const QString &applicationId,
+			uint stage);
+
+	void WindowCreated(uint windowId, const QString &applicationId);
+
+	void WindowDestroyed(uint windowId, const QString &applicationId);
+
 protected:
 	Application::Ptr ensureApplication(const QString& window);
 
-	ComCanonicalUnityWindowStackInterface m_windowStack;
+	void removeWindow(uint windowId, const QString& applicationId);
+
+	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
 
 	Factory &m_factory;
 

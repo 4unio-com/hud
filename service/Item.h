@@ -16,16 +16,20 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <service/Factory.h>
-#include <service/Window.h>
+#ifndef HUD_SERVICE_ITEM_H_
+#define HUD_SERVICE_ITEM_H_
 
-using namespace hud::service;
+namespace hud {
+namespace service {
 
-Window::Window(unsigned int windowId, const QString &applicationId,
-		Factory &factory) :
-		m_gmenuCollector(factory.newGMenuCollector(windowId, applicationId)), m_dbusMenuCollector(
-				factory.newDBusMenuCollector(windowId, applicationId)) {
+class Item {
+public:
+	explicit Item();
+
+	virtual ~Item();
+};
+
+}
 }
 
-Window::~Window() {
-}
+#endif /* HUD_SERVICE_ITEM_H_ */

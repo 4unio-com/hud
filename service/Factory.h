@@ -22,7 +22,12 @@
 #include <HudService.h>
 #include <Application.h>
 #include <ApplicationList.h>
+#include <ItemStore.h>
+#include <Window.h>
 #include <Query.h>
+
+class ComCanonicalUnityWindowStackInterface;
+class ComCanonicalAppMenuRegistrarInterface;
 
 namespace hud {
 namespace service {
@@ -35,6 +40,10 @@ public:
 
 	virtual HudService::Ptr singletonHudService();
 
+	virtual QSharedPointer<ComCanonicalUnityWindowStackInterface> singletonWindowStack();
+
+	virtual QSharedPointer<ComCanonicalAppMenuRegistrarInterface> singletonAppmenu();
+
 	virtual Query::Ptr newQuery(unsigned int id, const QString &query);
 
 	virtual ApplicationList::Ptr newApplicationList();
@@ -42,9 +51,25 @@ public:
 	virtual Application::Ptr newApplication(unsigned int id,
 			const QString &applicationId);
 
+	virtual ItemStore::Ptr newItemStore();
+
+	virtual Window::Ptr newWindow(unsigned int windowId,
+			const QString &applicationId);
+
+	virtual DBusMenuCollector::Ptr newDBusMenuCollector(unsigned int windowId,
+			const QString &applicationId);
+
+	virtual GMenuCollector::Ptr newGMenuCollector(unsigned int windowId,
+			const QString &applicationId);
+
 protected:
 	HudService::Ptr m_hudService;
-};
+
+	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
+
+	QSharedPointer<ComCanonicalAppMenuRegistrarInterface> m_appmenu;
+}
+;
 
 }
 }

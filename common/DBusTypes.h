@@ -40,6 +40,12 @@ public:
 	static const QString WINDOW_STACK_DBUS_PATH;
 
 	Q_DECL_EXPORT
+	static const QString APPMENU_REGISTRAR_DBUS_NAME;
+
+	Q_DECL_EXPORT
+	static const QString APPMENU_REGISTRAR_DBUS_PATH;
+
+	Q_DECL_EXPORT
 	static void registerMetaTypes();
 
 	Q_DECL_EXPORT

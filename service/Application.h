@@ -19,33 +19,40 @@
 #ifndef HUD_SERVICE_APPLICATION_H_
 #define HUD_SERVICE_APPLICATION_H_
 
-#include <QDBusConnection>
-#include <QDBusContext>
-#include <QScopedPointer>
-#include <QSharedPointer>
-
 #include <common/Action.h>
 #include <common/ActionGroup.h>
 #include <common/Description.h>
 #include <common/MenuModel.h>
+#include <service/Window.h>
+
+#include <QDBusConnection>
+#include <QDBusContext>
+#include <QMap>
+#include <QScopedPointer>
+#include <QSharedPointer>
 
 class ApplicationAdaptor;
 
 namespace hud {
 namespace service {
 
+class Factory;
+
 class Application: public QObject, protected QDBusContext {
 public:
 	typedef QSharedPointer<Application> Ptr;
 
 	explicit Application(unsigned int id, const QString &applicationId,
-			const QDBusConnection &connection, QObject *parent = 0);
+			Factory &factory, const QDBusConnection &connection,
+			QObject *parent = 0);
 
 	virtual ~Application();
 
 	void addWindow(unsigned int windowId);
 
 	void removeWindow(unsigned int windowId);
+
+	bool isEmpty() const;
 
 	Q_PROPERTY(QList<hud::common::ActionGroup> ActionGroups READ actionGroups)
 	QList<hud::common::ActionGroup> actionGroups() const;
@@ -71,6 +78,12 @@ protected:
 	QDBusConnection m_connection;
 
 	QDBusObjectPath m_path;
+
+	QString m_applicationId;
+
+	Factory &m_factory;
+
+	QMap<unsigned int, Window::Ptr> m_windows;
 };
 
 }

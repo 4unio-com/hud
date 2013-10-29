@@ -16,12 +16,49 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
+#include <common/DBusTypes.h>
 #include <service/DBusMenuCollector.h>
+#include <service/AppmenuRegistrarInterface.h>
 
+#include <dbusmenuimporter.h>
+#include <QMenu>
+
+using namespace hud::common;
 using namespace hud::service;
 
-DBusMenuCollector::DBusMenuCollector() {
+DBusMenuCollector::DBusMenuCollector(unsigned int windowId,
+		const QString &applicationId,
+		QSharedPointer<ComCanonicalAppMenuRegistrarInterface> appmenu) {
+	QDBusPendingReply<QString, QDBusObjectPath> windowReply =
+			appmenu->GetMenuForWindow(windowId);
+
+	windowReply.waitForFinished();
+	if (windowReply.isError()) {
+		return;
+	}
+
+	QString service(windowReply.argumentAt<0>());
+	QDBusObjectPath path(windowReply.argumentAt<1>());
+
+	if (service.isEmpty()) {
+		return;
+	}
+
+	qDebug() << "DBusMenu available for" << windowId << "at" << service;
+
+	m_menuImporter.reset(new DBusMenuImporter(service, path.path()));
+	m_menu = m_menuImporter->menu();
+
+	QTimer::singleShot(1000, this, SLOT(timeout()));
+
 }
 
 DBusMenuCollector::~DBusMenuCollector() {
+}
+
+void DBusMenuCollector::timeout() {
+	QList<QAction*> actions = m_menu->actions();
+	for (const QAction *action : actions) {
+		qDebug() << action->text();
+	}
 }

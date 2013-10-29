@@ -16,16 +16,12 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <service/Factory.h>
-#include <service/Window.h>
+#include <service/Item.h>
 
 using namespace hud::service;
 
-Window::Window(unsigned int windowId, const QString &applicationId,
-		Factory &factory) :
-		m_gmenuCollector(factory.newGMenuCollector(windowId, applicationId)), m_dbusMenuCollector(
-				factory.newDBusMenuCollector(windowId, applicationId)) {
+Item::Item() {
 }
 
-Window::~Window() {
+Item::~Item() {
 }

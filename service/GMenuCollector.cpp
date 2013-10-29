@@ -16,12 +16,38 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
+#include <common/WindowStackInterface.h>
 #include <service/GMenuCollector.h>
+
+#include <QStringList>
+#include <QDebug>
 
 using namespace hud::service;
 
-GMenuCollector::GMenuCollector() {
+static const QStringList GMENU_WINDOW_PROPERTIES( { "_GTK_UNIQUE_BUS_NAME",
+		"_GTK_APP_MENU_OBJECT_PATH", "_GTK_MENUBAR_OBJECT_PATH",
+		"_GTK_APPLICATION_OBJECT_PATH", "_GTK_WINDOW_OBJECT_PATH",
+		"_UNITY_OBJECT_PATH" });
 
+GMenuCollector::GMenuCollector(unsigned int windowId,
+		const QString &applicationId,
+		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack) {
+	QDBusPendingReply<QStringList> windowPropertiesReply(
+			windowStack->GetWindowProperties(windowId, applicationId,
+					GMENU_WINDOW_PROPERTIES));
+
+	windowPropertiesReply.waitForFinished();
+	if (windowPropertiesReply.isError()) {
+		qWarning() << windowPropertiesReply.error();
+		return;
+	}
+	QStringList windowProperties(windowPropertiesReply);
+
+	// If we have the bus name property, then lets look for a GMenu
+	if (!windowProperties.at(0).isEmpty()) {
+		qDebug() << "GMenu available for" << windowId << "at"
+				<< windowProperties.at(0);
+	}
 }
 
 GMenuCollector::~GMenuCollector() {

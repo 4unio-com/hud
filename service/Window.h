@@ -19,14 +19,29 @@
 #ifndef HUD_SERVICE_WINDOW_H_
 #define HUD_SERVICE_WINDOW_H_
 
+#include <service/DBusMenuCollector.h>
+#include <service/GMenuCollector.h>
+
+#include <QSharedPointer>
+
 namespace hud {
 namespace service {
 
+class Factory;
+
 class Window {
 public:
-	Window();
+	typedef QSharedPointer<Window> Ptr;
+
+	explicit Window(unsigned int windowId, const QString &applicationId,
+			Factory &factory);
 
 	virtual ~Window();
+
+protected:
+	GMenuCollector::Ptr m_gmenuCollector;
+
+	DBusMenuCollector::Ptr m_dbusMenuCollector;
 };
 
 }

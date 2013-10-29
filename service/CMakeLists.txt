@@ -10,6 +10,8 @@ set(HUD_SERVICE_LIB_SOURCES
   Factory.cpp
   GMenuCollector.cpp
   HudService.cpp
+  Item.cpp
+  ItemStore.cpp
   Query.cpp
   Window.cpp
 )
@@ -38,6 +40,12 @@ qt5_add_dbus_adaptor(
   ApplicationAdaptor
 )
 
+qt5_add_dbus_interface(
+  HUD_SERVICE_LIB_SOURCES
+  ${APPMENU_REGISTRAR_XML}
+  AppmenuRegistrarInterface
+)
+
 add_library(hud-service
   STATIC
   ${HUD_SERVICE_LIB_SOURCES}
@@ -45,12 +53,14 @@ add_library(hud-service
 
 target_link_libraries(hud-service
   hud-common
+  ${DBUSMENU_LIBRARIES}
 )
 
 qt5_use_modules(
 	hud-service
 	Core
 	DBus
+	Widgets
 )
 
 ###########################

@@ -50,6 +50,7 @@ set(HUD_APP_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.Application.x
 set(UNITY_VOICE_XML /usr/share/dbus-1/interfaces/com.canonical.Unity.Voice.xml)
 
 set(WINDOW_STACK_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.Unity.WindowStack.xml")
+set(APPMENU_REGISTRAR_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.AppMenu.Registrar.xml")
 
 set(BAMF_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/org.ayatana.bamf.xml")
 set(BAMF_VIEW_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/org.ayatana.bamf.view.xml")
@@ -98,8 +99,14 @@ include_directories(${DBUS_INCLUDE_DIRS})
 find_package(Qt5Core REQUIRED)
 include_directories(${Qt5Core_INCLUDE_DIRS})
 
+find_package(Qt5Widgets REQUIRED)
+include_directories(${Qt5Widgets_INCLUDE_DIRS})
+
 find_package(Qt5DBus REQUIRED)
 include_directories(${Qt5DBus_INCLUDE_DIRS})
+
+pkg_check_modules(DBUSMENU REQUIRED dbusmenu-qt5)
+include_directories(${DBUSMENU_INCLUDE_DIRS})
 
 find_package(Vala 0.12)
 

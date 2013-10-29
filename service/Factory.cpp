@@ -17,9 +17,12 @@
  */
 
 #include <service/Factory.h>
+#include <service/AppmenuRegistrarInterface.h>
+#include <common/DBusTypes.h>
 
 #include <QDBusConnection>
 
+using namespace hud::common;
 using namespace hud::service;
 
 Factory::Factory() {
@@ -36,6 +39,29 @@ HudService::Ptr Factory::singletonHudService() {
 	return m_hudService;
 }
 
+QSharedPointer<ComCanonicalUnityWindowStackInterface> Factory::singletonWindowStack() {
+	if (m_windowStack.isNull()) {
+		m_windowStack.reset(
+				new ComCanonicalUnityWindowStackInterface(
+						DBusTypes::WINDOW_STACK_DBUS_NAME,
+						DBusTypes::WINDOW_STACK_DBUS_PATH,
+						QDBusConnection::sessionBus()));
+	}
+	return m_windowStack;
+
+}
+
+QSharedPointer<ComCanonicalAppMenuRegistrarInterface> Factory::singletonAppmenu() {
+	if (m_appmenu.isNull()) {
+		m_appmenu.reset(
+				new ComCanonicalAppMenuRegistrarInterface(
+						DBusTypes::APPMENU_REGISTRAR_DBUS_NAME,
+						DBusTypes::APPMENU_REGISTRAR_DBUS_PATH,
+						QDBusConnection::sessionBus()));
+	}
+	return m_appmenu;
+}
+
 Query::Ptr Factory::newQuery(unsigned int id, const QString &query) {
 	return Query::Ptr(
 			new Query(id, query, *singletonHudService(),
@@ -44,11 +70,34 @@ Query::Ptr Factory::newQuery(unsigned int id, const QString &query) {
 
 ApplicationList::Ptr Factory::newApplicationList() {
 	return ApplicationList::Ptr(
-			new ApplicationList(*this, QDBusConnection::sessionBus()));
+			new ApplicationList(*this, singletonWindowStack(),
+					QDBusConnection::sessionBus()));
 }
 
 Application::Ptr Factory::newApplication(unsigned int id,
 		const QString &applicationId) {
 	return Application::Ptr(
-			new Application(id, applicationId, QDBusConnection::sessionBus()));
+			new Application(id, applicationId, *this,
+					QDBusConnection::sessionBus()));
+}
+
+ItemStore::Ptr Factory::newItemStore() {
+	return ItemStore::Ptr(new ItemStore());
+}
+
+Window::Ptr Factory::newWindow(unsigned int windowId,
+		const QString &applicationId) {
+	return Window::Ptr(new Window(windowId, applicationId, *this));
+}
+
+DBusMenuCollector::Ptr Factory::newDBusMenuCollector(unsigned int windowId,
+		const QString &applicationId) {
+	return DBusMenuCollector::Ptr(
+			new DBusMenuCollector(windowId, applicationId, singletonAppmenu()));
+}
+
+GMenuCollector::Ptr Factory::newGMenuCollector(unsigned int windowId,
+		const QString &applicationId) {
+	return GMenuCollector::Ptr(
+			new GMenuCollector(windowId, applicationId, singletonWindowStack()));
 }
