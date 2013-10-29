@@ -1,3 +1,27 @@
+hud (13.10.1+14.04.20131029.1-0ubuntu1) trusty; urgency=low
+
+  [ Pete Woods ]
+  * Fix the ref counting of application sources The application sources
+    are now entirely owned by the application-list's hash table.
+
+  [ Ted Gould ]
+  * Add apport dependencies to the package hook. (LP: #1233994)
+  * Don't show disabled items in search results. (LP: #1192646)
+
+  [ Charles Kerr ]
+  * Add a nullptr safeguard to prevent a crash-on-null-ptr-reference.
+    Also, move a QMap lookup outside of a for loop. Yay! . (LP:
+    #1242032)
+  * if we can't get the busname, log a g_critical and then exit
+    gracefully instead of abort()ing in g_error. (LP: #1244688)
+  * Add a null safeguard when accessing window SharedPtrs held in the
+    m_windows QMap . (LP: #1243654)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 343
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 29 Oct 2013 11:17:56 +0000
+
 hud (13.10.1+13.10.20131014-0ubuntu1) saucy; urgency=low
 
   [ Pete Woods ]
