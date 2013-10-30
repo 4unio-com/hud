@@ -200,9 +200,11 @@ QStringList BamfWindowStack::GetWindowProperties(uint windowId,
 		const QString &appId, const QStringList &names) {
 	QStringList result;
 	const auto window = m_windowsById[windowId];
- 	if (window) {
-		for (const QString &name : names) {
+	for (const QString &name : names) {
+		if (window) {
 			result << window->xProp(name);
+		} else {
+			result << QString();
 		}
 	}
 	return result;
