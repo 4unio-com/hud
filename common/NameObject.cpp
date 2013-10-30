@@ -42,7 +42,24 @@ namespace hud {
 namespace common {
 
 NameObject::NameObject() {
+}
 
+NameObject::NameObject(const QString &name, const QDBusObjectPath &object) :
+		m_name(name), m_object(object) {
+}
+
+NameObject::NameObject(const NameObject &other) :
+		m_name(other.m_name), m_object(other.m_object) {
+}
+
+NameObject & NameObject::operator=(const NameObject &other) {
+	m_name = other.m_name;
+	m_object = other.m_object;
+	return *this;
+}
+
+bool NameObject::operator==(const NameObject &other) const {
+	return m_name == other.m_name && m_object == other.m_object;
 }
 
 NameObject::~NameObject() {

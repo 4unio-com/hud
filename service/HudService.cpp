@@ -53,7 +53,7 @@ QDBusObjectPath HudService::RegisterApplication(const QString &id) {
 }
 
 QList<NameObject> HudService::applications() const {
-	return QList<NameObject>();
+	return m_applicationList->applications();
 }
 
 QList<QDBusObjectPath> HudService::openQueries() const {

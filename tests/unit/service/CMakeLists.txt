@@ -1,6 +1,7 @@
 
 set(
 	UNIT_TESTS_SRC
+	TestApplicationList.cpp
 	TestHudService.cpp
 )
 

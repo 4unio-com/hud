@@ -18,6 +18,7 @@
 
 #include <service/Factory.h>
 #include <service/HudService.h>
+#include <unit/service/Mocks.h>
 
 #include <QDebug>
 #include <libqtdbustest/DBusTestRunner.h>
@@ -28,30 +29,19 @@ using namespace std;
 using namespace testing;
 using namespace QtDBusTest;
 using namespace hud::service;
+using namespace hud::service::test;
 
 namespace {
-
-class MockFactory: public Factory {
-public:
-	MOCK_METHOD0(newApplicationList, ApplicationList::Ptr());
-
-	MOCK_METHOD2(newQuery, Query::Ptr(unsigned int, const QString &));
-};
-
-class MockQuery: public Query {
-public:
-	MOCK_CONST_METHOD0(appstackModel, QString());
-	MOCK_CONST_METHOD0(currentQuery, QString());
-	MOCK_CONST_METHOD0(resultsModel, QString());
-	MOCK_CONST_METHOD0(toolbarItems, QStringList());
-	MOCK_CONST_METHOD0(path, const QDBusObjectPath &());
-};
 
 class TestHudService: public Test {
 protected:
 	TestHudService() {
+		factory.setSessionBus(dbus.sessionConnection());
+
 		ON_CALL(factory, newApplicationList()).WillByDefault(
-				Return(ApplicationList::Ptr(new ApplicationList())));
+				Return(
+						ApplicationList::Ptr(
+								new NiceMock<MockApplicationList>())));
 	}
 
 	virtual ~TestHudService() {

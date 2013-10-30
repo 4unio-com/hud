@@ -29,6 +29,14 @@ class Q_DECL_EXPORT NameObject {
 public:
 	explicit NameObject();
 
+	explicit NameObject(const QString &name, const QDBusObjectPath &object);
+
+	explicit NameObject(const NameObject &other);
+
+	NameObject & operator=(const NameObject &other);
+
+	bool operator==(const NameObject &other) const;
+
 	virtual ~NameObject();
 
 	static void registerMetaTypes();

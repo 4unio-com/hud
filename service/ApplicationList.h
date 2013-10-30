@@ -20,7 +20,10 @@
 #define HUD_SERVICE_APPLICATIONLIST_H_
 
 #include <QObject>
+#include <QList>
 #include <QSharedPointer>
+
+#include <common/NameObject.h>
 
 namespace hud {
 namespace service {
@@ -36,6 +39,8 @@ public:
 	explicit ApplicationList();
 
 	virtual ~ApplicationList();
+
+	virtual QList<hud::common::NameObject> applications() const = 0;
 };
 
 }

@@ -5,6 +5,7 @@
 
 set(HUD_SERVICE_LIB_SOURCES
   Application.cpp
+  ApplicationImpl.cpp
   ApplicationList.cpp
   ApplicationListImpl.cpp
   DBusMenuCollector.cpp
@@ -37,8 +38,8 @@ qt5_add_dbus_adaptor(
 qt5_add_dbus_adaptor(
   HUD_SERVICE_LIB_SOURCES
   ${HUD_APP_XML}
-  service/Application.h
-  hud::service::Application
+  service/ApplicationImpl.h
+  hud::service::ApplicationImpl
   ApplicationAdaptor
 )
 

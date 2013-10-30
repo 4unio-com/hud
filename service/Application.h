@@ -19,71 +19,31 @@
 #ifndef HUD_SERVICE_APPLICATION_H_
 #define HUD_SERVICE_APPLICATION_H_
 
-#include <common/Action.h>
-#include <common/ActionGroup.h>
-#include <common/Description.h>
-#include <common/MenuModel.h>
-#include <service/Window.h>
+#include <service/Application.h>
 
-#include <QDBusConnection>
-#include <QDBusContext>
-#include <QMap>
-#include <QScopedPointer>
 #include <QSharedPointer>
-
-class ApplicationAdaptor;
+#include <QDBusObjectPath>
 
 namespace hud {
 namespace service {
 
-class Factory;
+class Application: public QObject {
+Q_OBJECT
 
-class Application: public QObject, protected QDBusContext {
 public:
 	typedef QSharedPointer<Application> Ptr;
 
-	explicit Application(unsigned int id, const QString &applicationId,
-			Factory &factory, const QDBusConnection &connection,
-			QObject *parent = 0);
+	explicit Application(QObject *parent = 0);
 
 	virtual ~Application();
 
-	void addWindow(unsigned int windowId);
+	virtual void addWindow(unsigned int windowId) = 0;
 
-	void removeWindow(unsigned int windowId);
+	virtual void removeWindow(unsigned int windowId) = 0;
 
-	bool isEmpty() const;
+	virtual bool isEmpty() const = 0;
 
-	Q_PROPERTY(QList<hud::common::ActionGroup> ActionGroups READ actionGroups)
-	QList<hud::common::ActionGroup> actionGroups() const;
-
-	Q_PROPERTY(QString DesktopPath READ desktopPath)
-	QString desktopPath() const;
-
-	Q_PROPERTY(QString Icon READ icon)
-	QString icon() const;
-
-	Q_PROPERTY(QList<hud::common::MenuModel> MenuModels READ menuModels)
-	QList<hud::common::MenuModel> menuModels() const;
-
-public Q_SLOTS:
-	void AddSources(const QList<hud::common::Action> &actions,
-			const QList<hud::common::Description> &descriptions);
-
-	void SetWindowContext(uint window, const QString &context);
-
-protected:
-	QScopedPointer<ApplicationAdaptor> m_adaptor;
-
-	QDBusConnection m_connection;
-
-	QDBusObjectPath m_path;
-
-	QString m_applicationId;
-
-	Factory &m_factory;
-
-	QMap<unsigned int, Window::Ptr> m_windows;
+	virtual const QDBusObjectPath & path() const = 0;
 };
 
 }

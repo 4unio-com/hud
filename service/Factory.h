@@ -34,11 +34,15 @@ namespace service {
 
 class Factory {
 public:
-	Factory();
+	explicit Factory();
 
 	virtual ~Factory();
 
+	void setSessionBus(const QDBusConnection &sessionBus);
+
 	virtual HudService::Ptr singletonHudService();
+
+	virtual QDBusConnection sessionBus();
 
 	virtual QSharedPointer<ComCanonicalUnityWindowStackInterface> singletonWindowStack();
 
@@ -63,6 +67,8 @@ public:
 			const QString &applicationId);
 
 protected:
+	QDBusConnection m_sessionBus;
+
 	HudService::Ptr m_hudService;
 
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;

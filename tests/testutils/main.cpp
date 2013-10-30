@@ -16,6 +16,7 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
+#include <common/DBusTypes.h>
 #include <QApplication>
 #include <gtest/gtest.h>
 
@@ -28,6 +29,7 @@ int main(int argc, char **argv) {
 	textdomain(GETTEXT_PACKAGE);
 
 	QApplication application(argc, argv);
+	hud::common::DBusTypes::registerMetaTypes();
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }

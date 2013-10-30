@@ -17,6 +17,7 @@
  */
 
 #include <service/Factory.h>
+#include <service/ApplicationImpl.h>
 #include <service/ApplicationListImpl.h>
 #include <service/AppmenuRegistrarInterface.h>
 #include <service/QueryImpl.h>
@@ -27,16 +28,20 @@
 using namespace hud::common;
 using namespace hud::service;
 
-Factory::Factory() {
+Factory::Factory() :
+		m_sessionBus(QDBusConnection::sessionBus()) {
 }
 
 Factory::~Factory() {
 }
 
+void Factory::setSessionBus(const QDBusConnection &sessionBus) {
+	m_sessionBus = sessionBus;
+}
+
 HudService::Ptr Factory::singletonHudService() {
 	if (m_hudService.isNull()) {
-		m_hudService.reset(
-				new HudService(*this, QDBusConnection::sessionBus()));
+		m_hudService.reset(new HudService(*this, sessionBus()));
 	}
 	return m_hudService;
 }
@@ -46,8 +51,7 @@ QSharedPointer<ComCanonicalUnityWindowStackInterface> Factory::singletonWindowSt
 		m_windowStack.reset(
 				new ComCanonicalUnityWindowStackInterface(
 						DBusTypes::WINDOW_STACK_DBUS_NAME,
-						DBusTypes::WINDOW_STACK_DBUS_PATH,
-						QDBusConnection::sessionBus()));
+						DBusTypes::WINDOW_STACK_DBUS_PATH, sessionBus()));
 	}
 	return m_windowStack;
 
@@ -58,16 +62,18 @@ QSharedPointer<ComCanonicalAppMenuRegistrarInterface> Factory::singletonAppmenu(
 		m_appmenu.reset(
 				new ComCanonicalAppMenuRegistrarInterface(
 						DBusTypes::APPMENU_REGISTRAR_DBUS_NAME,
-						DBusTypes::APPMENU_REGISTRAR_DBUS_PATH,
-						QDBusConnection::sessionBus()));
+						DBusTypes::APPMENU_REGISTRAR_DBUS_PATH, sessionBus()));
 	}
 	return m_appmenu;
 }
 
+QDBusConnection Factory::sessionBus() {
+	return m_sessionBus;
+}
+
 Query::Ptr Factory::newQuery(unsigned int id, const QString &query) {
 	return Query::Ptr(
-			new QueryImpl(id, query, *singletonHudService(),
-					QDBusConnection::sessionBus()));
+			new QueryImpl(id, query, *singletonHudService(), sessionBus()));
 }
 
 ApplicationList::Ptr Factory::newApplicationList() {
@@ -78,8 +84,7 @@ ApplicationList::Ptr Factory::newApplicationList() {
 Application::Ptr Factory::newApplication(unsigned int id,
 		const QString &applicationId) {
 	return Application::Ptr(
-			new Application(id, applicationId, *this,
-					QDBusConnection::sessionBus()));
+			new ApplicationImpl(id, applicationId, *this, sessionBus()));
 }
 
 ItemStore::Ptr Factory::newItemStore() {

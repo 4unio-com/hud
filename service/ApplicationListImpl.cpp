@@ -104,3 +104,11 @@ void ApplicationListImpl::WindowDestroyed(uint windowId,
 		const QString &applicationId) {
 	removeWindow(windowId, applicationId);
 }
+
+QList<NameObject> ApplicationListImpl::applications() const {
+	QList<NameObject> results;
+	for (auto i(m_applications.cbegin()); i != m_applications.cend(); ++i) {
+		results << NameObject(i.key(), i.value()->path());
+	}
+	return results;
+}
