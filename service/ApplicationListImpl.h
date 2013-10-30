@@ -43,7 +43,7 @@ public:
 
 	virtual QList<hud::common::NameObject> applications() const;
 
-protected Q_SLOTS:
+public Q_SLOTS:
 	void FocusedWindowChanged(uint windowId, const QString &applicationId,
 			uint stage);
 

@@ -77,7 +77,7 @@ protected:
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack;
 };
 
-TEST_F(TestApplicationList, CreatesWindowsOnStartup) {
+TEST_F(TestApplicationList, CreatesSingleApplicationOnStartup) {
 	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
 			"GetWindowStack", "", "a(usbu)", "ret = [(0, 'app0', True, 0)]").waitForFinished();
 
@@ -85,6 +85,7 @@ TEST_F(TestApplicationList, CreatesWindowsOnStartup) {
 			new NiceMock<MockApplication>());
 	QDBusObjectPath path(QDBusObjectPath("/path/app/0"));
 	ON_CALL(*application, path()).WillByDefault(ReturnRef(path));
+	EXPECT_CALL(*application, addWindow(0));
 
 	EXPECT_CALL(factory, newApplication(0, QString("app0"))).WillOnce(
 			Return(application));
@@ -93,6 +94,59 @@ TEST_F(TestApplicationList, CreatesWindowsOnStartup) {
 
 	ASSERT_EQ(1, applicationList.applications().size());
 	EXPECT_EQ(NameObject("app0", path), applicationList.applications().at(0));
+}
+
+TEST_F(TestApplicationList, CreatesSingleApplicationWithMultipleWindowsOnStartup) {
+	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
+			"GetWindowStack", "", "a(usbu)",
+			"ret = [(0, 'app0', True, 0), (1, 'app0', False, 0)]").waitForFinished();
+
+	QSharedPointer<MockApplication> application(
+			new NiceMock<MockApplication>());
+	QDBusObjectPath path(QDBusObjectPath("/path/app/0"));
+	ON_CALL(*application, path()).WillByDefault(ReturnRef(path));
+	EXPECT_CALL(*application, addWindow(0));
+	EXPECT_CALL(*application, addWindow(1));
+
+	EXPECT_CALL(factory, newApplication(0, QString("app0"))).WillOnce(
+			Return(application));
+
+	ApplicationListImpl applicationList(factory, windowStack);
+
+	ASSERT_EQ(1, applicationList.applications().size());
+	EXPECT_EQ(NameObject("app0", path), applicationList.applications().at(0));
+}
+
+TEST_F(TestApplicationList, RemovesApplicationWhenAllWindowsClosed) {
+	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
+			"GetWindowStack", "", "a(usbu)",
+			"ret = [(0, 'app0', True, 0), (1, 'app0', False, 0)]").waitForFinished();
+
+	QSharedPointer<MockApplication> application(
+			new NiceMock<MockApplication>());
+	QDBusObjectPath path(QDBusObjectPath("/path/app/0"));
+	ON_CALL(*application, path()).WillByDefault(ReturnRef(path));
+	ON_CALL(*application, isEmpty()).WillByDefault(Return(false));
+
+	EXPECT_CALL(factory, newApplication(0, QString("app0"))).WillOnce(
+			Return(application));
+
+	EXPECT_CALL(*application, addWindow(0));
+	EXPECT_CALL(*application, addWindow(1));
+	ApplicationListImpl applicationList(factory, windowStack);
+
+	ASSERT_EQ(1, applicationList.applications().size());
+	EXPECT_EQ(NameObject("app0", path), applicationList.applications().at(0));
+
+	EXPECT_CALL(*application, removeWindow(1));
+	applicationList.WindowDestroyed(1, "app0");
+	ASSERT_EQ(1, applicationList.applications().size());
+	EXPECT_EQ(NameObject("app0", path), applicationList.applications().at(0));
+
+	ON_CALL(*application, isEmpty()).WillByDefault(Return(true));
+	EXPECT_CALL(*application, removeWindow(0));
+	applicationList.WindowDestroyed(0, "app0");
+	ASSERT_TRUE(applicationList.applications().isEmpty());
 }
 
 } // namespace
