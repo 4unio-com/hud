@@ -162,6 +162,7 @@ BamfWindowStack::~BamfWindowStack() {
 }
 
 QString BamfWindowStack::GetAppIdFromPid(uint pid) {
+	Q_UNUSED(pid);
 	// FIXME Not implemented
 	sendErrorReply(QDBusError::NotSupported,
 			"GetAppIdFromPid method not implemented");
@@ -209,6 +210,7 @@ QStringList BamfWindowStack::GetWindowProperties(uint windowId,
 
 void BamfWindowStack::ActiveWindowChanged(const QString &oldWindowPath,
 		const QString &newWindowPath) {
+	Q_UNUSED(oldWindowPath);
 	if (!newWindowPath.isEmpty()) {
 		const auto window(m_windows[newWindowPath]);
 		if (window) {
