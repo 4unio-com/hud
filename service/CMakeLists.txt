@@ -6,6 +6,7 @@
 set(HUD_SERVICE_LIB_SOURCES
   Application.cpp
   ApplicationList.cpp
+  ApplicationListImpl.cpp
   DBusMenuCollector.cpp
   Factory.cpp
   GMenuCollector.cpp
@@ -13,6 +14,7 @@ set(HUD_SERVICE_LIB_SOURCES
   Item.cpp
   ItemStore.cpp
   Query.cpp
+  QueryImpl.cpp
   Window.cpp
 )
 
@@ -27,8 +29,8 @@ qt5_add_dbus_adaptor(
 qt5_add_dbus_adaptor(
   HUD_SERVICE_LIB_SOURCES
   ${HUD_QUERY_XML}
-  service/Query.h
-  hud::service::Query
+  service/QueryImpl.h
+  hud::service::QueryImpl
   QueryAdaptor
 )
 

@@ -17,7 +17,9 @@
  */
 
 #include <service/Factory.h>
+#include <service/ApplicationListImpl.h>
 #include <service/AppmenuRegistrarInterface.h>
+#include <service/QueryImpl.h>
 #include <common/DBusTypes.h>
 
 #include <QDBusConnection>
@@ -64,14 +66,13 @@ QSharedPointer<ComCanonicalAppMenuRegistrarInterface> Factory::singletonAppmenu(
 
 Query::Ptr Factory::newQuery(unsigned int id, const QString &query) {
 	return Query::Ptr(
-			new Query(id, query, *singletonHudService(),
+			new QueryImpl(id, query, *singletonHudService(),
 					QDBusConnection::sessionBus()));
 }
 
 ApplicationList::Ptr Factory::newApplicationList() {
 	return ApplicationList::Ptr(
-			new ApplicationList(*this, singletonWindowStack(),
-					QDBusConnection::sessionBus()));
+			new ApplicationListImpl(*this, singletonWindowStack()));
 }
 
 Application::Ptr Factory::newApplication(unsigned int id,

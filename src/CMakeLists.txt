@@ -12,10 +12,6 @@ PARENT_SCOPE
 include_directories(${HUD_SERVICE_INCLUDE_DIRS})
 include_directories(${HUD_CLIENT_INCLUDE_DIRS})
 
-if(${FULL_WARNINGS})
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-endif()
-
 add_constant_template(GENERATED_SOURCES
 create-db
 create_db

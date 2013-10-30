@@ -45,6 +45,6 @@ Q_DECL_EXPORT
 const QDBusArgument &operator>>(const QDBusArgument &argument,
 		hud::common::MenuModel &menuModel);
 
-Q_DECLARE_METATYPE(hud::common::MenuModel);
+Q_DECLARE_METATYPE(hud::common::MenuModel)
 
 #endif /* HUD_COMMON_MENUMODEL_H_ */

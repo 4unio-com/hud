@@ -65,6 +65,6 @@ Q_DECL_EXPORT
 const QDBusArgument &operator>>(const QDBusArgument &argument,
 		hud::common::Suggestion &suggestion);
 
-Q_DECLARE_METATYPE(hud::common::Suggestion);
+Q_DECLARE_METATYPE(hud::common::Suggestion)
 
 #endif /* HUD_COMMON_SUGGESTION_H_ */

@@ -16,92 +16,12 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <common/DBusTypes.h>
 #include <service/ApplicationList.h>
-#include <service/Factory.h>
 
-#include <QDebug>
-
-using namespace hud::common;
 using namespace hud::service;
 
-ApplicationList::ApplicationList(Factory &factory,
-		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack,
-		const QDBusConnection &connection) :
-		m_windowStack(windowStack), m_factory(factory), m_applicationCounter(0) {
-
-	QDBusPendingReply<QList<WindowInfo>> windowsReply(
-			m_windowStack->GetWindowStack());
-
-	if (windowsReply.isError()) {
-		qWarning() << windowsReply.error();
-		return;
-	}
-
-	QList<WindowInfo> windows(windowsReply);
-	for (const WindowInfo &window : windows) {
-		Application::Ptr application(ensureApplication(window.app_id));
-		application->addWindow(window.window_id);
-	}
-
-	connect(m_windowStack.data(),
-	SIGNAL(FocusedWindowChanged(uint, const QString &, uint)), this,
-	SLOT(FocusedWindowChanged(uint, const QString &, uint)));
-
-	connect(m_windowStack.data(),
-	SIGNAL(WindowCreated(uint, const QString &)), this,
-	SLOT(WindowCreated(uint, const QString &)));
-
-	connect(m_windowStack.data(),
-	SIGNAL(WindowDestroyed(uint, const QString &)), this,
-	SLOT(WindowDestroyed(uint, const QString &)));
+ApplicationList::ApplicationList() {
 }
 
 ApplicationList::~ApplicationList() {
-}
-
-Application::Ptr ApplicationList::ensureApplication(
-		const QString& applicationId) {
-	Application::Ptr application(m_applications[applicationId]);
-	if (application.isNull()) {
-		application = m_factory.newApplication(m_applicationCounter++,
-				applicationId);
-		m_applications[applicationId] = application;
-	}
-	return application;
-}
-
-void ApplicationList::removeWindow(uint windowId,
-		const QString& applicationId) {
-	Application::Ptr application(m_applications[applicationId]);
-
-	if (application.isNull()) {
-		qWarning() << "Attempt to remove window" << windowId
-				<< "from non-existent application" << applicationId;
-		return;
-	}
-
-	application->removeWindow(windowId);
-
-	// If the application has no windows left, then the best
-	// we can do is assume it has been closed.
-	if (application->isEmpty()) {
-		m_applications.remove(applicationId);
-	}
-}
-
-void ApplicationList::FocusedWindowChanged(uint windowId,
-		const QString &applicationId, uint stage) {
-	qDebug() << "FocusedWindowChanged" << windowId << applicationId;
-}
-
-void ApplicationList::WindowCreated(uint windowId,
-		const QString &applicationId) {
-	Application::Ptr application(ensureApplication(applicationId));
-	application->addWindow(windowId);
-}
-
-void ApplicationList::WindowDestroyed(uint windowId,
-		const QString &applicationId) {
-	removeWindow(windowId, applicationId);
 }

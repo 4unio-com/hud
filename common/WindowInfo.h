@@ -57,6 +57,6 @@ Q_DECL_EXPORT
 const QDBusArgument &operator>>(const QDBusArgument &a,
 		hud::common::WindowInfo &aidf);
 
-Q_DECLARE_METATYPE(hud::common::WindowInfo);
+Q_DECLARE_METATYPE(hud::common::WindowInfo)
 
 #endif /* HUD_COMMON_WINDOWINFO_H_ */

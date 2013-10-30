@@ -32,57 +32,28 @@ namespace service {
 
 class HudService;
 
-class Q_DECL_EXPORT Query: public QObject, protected QDBusContext {
+class Q_DECL_EXPORT Query: public QObject {
 Q_OBJECT
 public:
 	typedef QSharedPointer<Query> Ptr;
 
-	explicit Query(unsigned int id, const QString &query, HudService &service,
-			const QDBusConnection &connection, QObject *parent = 0);
+	explicit Query(QObject *parent = 0);
 
 	virtual ~Query();
 
-	const QDBusObjectPath & path() const;
-
 	Q_PROPERTY(QString AppstackModel READ appstackModel)
-	QString appstackModel() const;
+	virtual QString appstackModel() const = 0;
 
 	Q_PROPERTY(QString CurrentQuery READ currentQuery)
-	QString currentQuery() const;
+	virtual QString currentQuery() const = 0;
 
 	Q_PROPERTY(QString ResultsModel READ resultsModel)
-	QString resultsModel() const;
+	virtual QString resultsModel() const = 0;
 
 	Q_PROPERTY(QStringList ToolbarItems READ toolbarItems)
-	QStringList toolbarItems() const;
+	virtual QStringList toolbarItems() const = 0;
 
-public Q_SLOTS:
-	void CloseQuery();
-
-	void ExecuteCommand(const QDBusVariant &item, uint timestamp);
-
-	QString ExecuteParameterized(const QDBusVariant &item, uint timestamp,
-			QDBusObjectPath &actionPath, QDBusObjectPath &modelPath,
-			int &modelSection);
-
-	void ExecuteToolbar(const QString &item, uint timestamp);
-
-	int UpdateApp(const QString &app);
-
-	int UpdateQuery(const QString &query);
-
-	int VoiceQuery(QString &query);
-
-protected:
-	QScopedPointer<QueryAdaptor> m_adaptor;
-
-	QDBusConnection m_connection;
-
-	QDBusObjectPath m_path;
-
-	HudService &m_service;
-
-	QString m_query;
+	virtual const QDBusObjectPath & path() const = 0;
 };
 
 }

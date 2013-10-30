@@ -8,10 +8,7 @@ set(GETTEXT_PACKAGE ${CMAKE_PROJECT_NAME})
 
 option(ENABLE_DOCUMENTATION "Enable documentation." OFF)
 option(ENABLE_TESTS "Enable tests." ON)
-option(ENABLE_VOICE_TESTS "Enable voice tests" ON)
 option(ENABLE_SCALABILITY_TESTS "Additional scalability tests that are potentially very slow to run." OFF)
-option(FULL_WARNINGS "Full compiler warnings." ON)
-option(DEBUG_MESSAGES "Print debug messages." OFF)
 option(LOCAL_INSTALL "Support local installation." OFF)
 option(ENABLE_BAMF "Enable building for BAMF." ON)
 option(ENABLE_PLATFORM_API "Enable building for platform API." OFF)
@@ -34,14 +31,6 @@ include(UseVala)
 if (EXISTS "/etc/debian_version") 
   set(CMAKE_INSTALL_LIBEXECDIR ${CMAKE_INSTALL_LIBDIR})
   set(CMAKE_INSTALL_FULL_LIBEXECDIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}")
-endif()
-
-if(${FULL_WARNINGS})
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-endif()
-
-if(${DEBUG_MESSAGES})
-  add_definitions(-DDEBUG_MESSAGES)
 endif()
 
 set(HUD_QUERY_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.query.xml)
@@ -96,6 +85,7 @@ include_directories(${NIH_DBUS_INCLUDE_DIRS})
 pkg_check_modules(DBUS REQUIRED dbus-1)
 include_directories(${DBUS_INCLUDE_DIRS})
 
+
 find_package(Qt5Core REQUIRED)
 include_directories(${Qt5Core_INCLUDE_DIRS})
 
@@ -107,6 +97,15 @@ include_directories(${Qt5DBus_INCLUDE_DIRS})
 
 pkg_check_modules(DBUSMENU REQUIRED dbusmenu-qt5)
 include_directories(${DBUSMENU_INCLUDE_DIRS})
+
+find_package(Qt5Test REQUIRED)
+include_directories(${Qt5Test_INCLUDE_DIRS})
+
+pkg_check_modules(QTDBUSTEST REQUIRED libqtdbustest-1 REQUIRED)
+include_directories(${QTDBUSTEST_INCLUDE_DIRS})
+
+pkg_check_modules(QTDBUSMOCK REQUIRED libqtdbusmock-1 REQUIRED)
+include_directories(${QTDBUSMOCK_INCLUDE_DIRS})
 
 find_package(Vala 0.12)
 
@@ -140,6 +139,13 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+add_definitions(
+	-fno-permissive
+	-pedantic
+	-Wall
+	-Wextra
+)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -fPIC")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
@@ -154,16 +160,14 @@ add_subdirectory(service)
 add_subdirectory(window-stack-bridge)
 
 if(${ENABLE_TESTS})
-  enable_testing()
-  
-  pkg_check_modules(DBUSTEST REQUIRED dbustest-1)
-  include_directories(${DBUSTEST_INCLUDE_DIRS})
-  
-  pkg_check_modules(DBUSMENU_JSONLOADER REQUIRED dbusmenu-jsonloader-0.4)
-  include_directories(${DBUSMENU_JSONLOADER_INCLUDE_DIRS})
-  
-  #add_subdirectory(tests)
+	enable_testing()
+	ADD_CUSTOM_TARGET(
+		check
+		${CMAKE_CTEST_COMMAND} --force-new-ctest-process --output-on-failure
+	)
 endif()
+
+add_subdirectory(tests)
 
 add_subdirectory(tools-vala)
 if(${ENABLE_DOCUMENTATION})

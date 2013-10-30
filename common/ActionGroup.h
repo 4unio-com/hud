@@ -45,6 +45,6 @@ Q_DECL_EXPORT
 const QDBusArgument &operator>>(const QDBusArgument &argument,
 		hud::common::ActionGroup &actionGroup);
 
-Q_DECLARE_METATYPE(hud::common::ActionGroup);
+Q_DECLARE_METATYPE(hud::common::ActionGroup)
 
 #endif /* HUD_COMMON_ACTIONGROUP_H_ */

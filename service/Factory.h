@@ -19,12 +19,12 @@
 #ifndef HUD_SERVICE_FACTORY_H_
 #define HUD_SERVICE_FACTORY_H_
 
-#include <HudService.h>
-#include <Application.h>
-#include <ApplicationList.h>
-#include <ItemStore.h>
-#include <Window.h>
-#include <Query.h>
+#include <service/HudService.h>
+#include <service/Application.h>
+#include <service/ApplicationList.h>
+#include <service/ItemStore.h>
+#include <service/Window.h>
+#include <service/Query.h>
 
 class ComCanonicalUnityWindowStackInterface;
 class ComCanonicalAppMenuRegistrarInterface;

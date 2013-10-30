@@ -45,6 +45,6 @@ Q_DECL_EXPORT
 const QDBusArgument &operator>>(const QDBusArgument &argument,
 		hud::common::Description &description);
 
-Q_DECLARE_METATYPE(hud::common::Description);
+Q_DECLARE_METATYPE(hud::common::Description)
 
 #endif /* HUD_COMMON_DESCRIPTION_H_ */
