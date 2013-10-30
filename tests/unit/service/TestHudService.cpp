@@ -38,6 +38,15 @@ public:
 	MOCK_METHOD2(newQuery, Query::Ptr(unsigned int, const QString &));
 };
 
+class MockQuery: public Query {
+public:
+	MOCK_CONST_METHOD0(appstackModel, QString());
+	MOCK_CONST_METHOD0(currentQuery, QString());
+	MOCK_CONST_METHOD0(resultsModel, QString());
+	MOCK_CONST_METHOD0(toolbarItems, QStringList());
+	MOCK_CONST_METHOD0(path, const QDBusObjectPath &());
+};
+
 class TestHudService: public Test {
 protected:
 	TestHudService() {
@@ -53,20 +62,30 @@ protected:
 	NiceMock<MockFactory> factory;
 };
 
-TEST_F(TestHudService, Foo) {
+TEST_F(TestHudService, CreateQuery) {
 	HudService hudService(factory, dbus.sessionConnection());
 
-	EXPECT_CALL(factory, newQuery(0, QString("query text"))).Times(1)
-    	      .WillOnce(Return("Category 5"));;
+	QDBusObjectPath queryPath("/path/query");
+	QString resultsPath("/path/results");
+	QString appstackPath("/path/appstack");
+	QSharedPointer<MockQuery> query(new NiceMock<MockQuery>());
+	ON_CALL(*query, path()).WillByDefault(ReturnRef(queryPath));
+	ON_CALL(*query, resultsModel()).WillByDefault(Return(resultsPath));
+	ON_CALL(*query, appstackModel()).WillByDefault(Return(appstackPath));
+
+	EXPECT_CALL(factory, newQuery(0, QString("query text"))).Times(1).WillOnce(
+			Return(query));
 
 	QString resultsName;
 	QString appstackName;
 	int modelRevision;
 
-	QDBusObjectPath path(
+	EXPECT_EQ(queryPath,
 			hudService.CreateQuery("query text", resultsName, appstackName,
 					modelRevision));
-
+	EXPECT_EQ(resultsPath, resultsName);
+	EXPECT_EQ(appstackPath, appstackName);
+	EXPECT_EQ(0, modelRevision);
 }
 
 } // namespace
