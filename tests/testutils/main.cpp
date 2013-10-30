@@ -17,12 +17,10 @@
  */
 
 #include <QApplication>
-#include <QDebug>
-#include <cstdlib>
 #include <gtest/gtest.h>
 
 int main(int argc, char **argv) {
-	setenv("LANG", "C.UTF-8", true);
+//	qputenv("LANG", "C.UTF-8");
 	unsetenv("LC_ALL");
 
 	setlocale(LC_ALL, "");
