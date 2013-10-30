@@ -65,13 +65,13 @@ protected:
 TEST_F(TestHudService, CreateQuery) {
 	HudService hudService(factory, dbus.sessionConnection());
 
-	QDBusObjectPath queryPath("/path/query");
-	QString resultsPath("/path/results");
-	QString appstackPath("/path/appstack");
+	QDBusObjectPath queryPath("/path/query0");
+	QString resultsModel("com.canonical.hud.results0");
+	QString appstackModel("com.canonical.hud.appstack0");
 	QSharedPointer<MockQuery> query(new NiceMock<MockQuery>());
 	ON_CALL(*query, path()).WillByDefault(ReturnRef(queryPath));
-	ON_CALL(*query, resultsModel()).WillByDefault(Return(resultsPath));
-	ON_CALL(*query, appstackModel()).WillByDefault(Return(appstackPath));
+	ON_CALL(*query, resultsModel()).WillByDefault(Return(resultsModel));
+	ON_CALL(*query, appstackModel()).WillByDefault(Return(appstackModel));
 
 	EXPECT_CALL(factory, newQuery(0, QString("query text"))).Times(1).WillOnce(
 			Return(query));
@@ -83,8 +83,8 @@ TEST_F(TestHudService, CreateQuery) {
 	EXPECT_EQ(queryPath,
 			hudService.CreateQuery("query text", resultsName, appstackName,
 					modelRevision));
-	EXPECT_EQ(resultsPath, resultsName);
-	EXPECT_EQ(appstackPath, appstackName);
+	EXPECT_EQ(resultsModel, resultsName);
+	EXPECT_EQ(appstackModel, appstackName);
 	EXPECT_EQ(0, modelRevision);
 }
 
