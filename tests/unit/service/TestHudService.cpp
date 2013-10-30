@@ -62,7 +62,7 @@ protected:
 	NiceMock<MockFactory> factory;
 };
 
-TEST_F(TestHudService, CreateQuery) {
+TEST_F(TestHudService, OpenCloseQuery) {
 	HudService hudService(factory, dbus.sessionConnection());
 
 	QDBusObjectPath queryPath("/path/query0");
@@ -86,6 +86,72 @@ TEST_F(TestHudService, CreateQuery) {
 	EXPECT_EQ(resultsModel, resultsName);
 	EXPECT_EQ(appstackModel, appstackName);
 	EXPECT_EQ(0, modelRevision);
+
+	EXPECT_EQ(QList<QDBusObjectPath>() << queryPath, hudService.openQueries());
+	hudService.closeQuery(queryPath);
+	EXPECT_EQ(QList<QDBusObjectPath>(), hudService.openQueries());
+}
+
+TEST_F(TestHudService, CloseUnknownQuery) {
+	HudService hudService(factory, dbus.sessionConnection());
+
+	QDBusObjectPath queryPath("/path/query0");
+
+	EXPECT_EQ(QList<QDBusObjectPath>(), hudService.openQueries());
+	hudService.closeQuery(queryPath);
+	EXPECT_EQ(QList<QDBusObjectPath>(), hudService.openQueries());
+}
+
+TEST_F(TestHudService, CreateMultipleQueries) {
+	HudService hudService(factory, dbus.sessionConnection());
+
+	QDBusObjectPath queryPath0("/path/query0");
+	QString resultsModel0("com.canonical.hud.results0");
+	QString appstackModel0("com.canonical.hud.appstack0");
+	QSharedPointer<MockQuery> query0(new NiceMock<MockQuery>());
+	ON_CALL(*query0, path()).WillByDefault(ReturnRef(queryPath0));
+	ON_CALL(*query0, resultsModel()).WillByDefault(Return(resultsModel0));
+	ON_CALL(*query0, appstackModel()).WillByDefault(Return(appstackModel0));
+
+	QDBusObjectPath queryPath1("/path/query1");
+	QString resultsModel1("com.canonical.hud.results1");
+	QString appstackModel1("com.canonical.hud.appstack1");
+	QSharedPointer<MockQuery> query1(new NiceMock<MockQuery>());
+	ON_CALL(*query1, path()).WillByDefault(ReturnRef(queryPath1));
+	ON_CALL(*query1, resultsModel()).WillByDefault(Return(resultsModel1));
+	ON_CALL(*query1, appstackModel()).WillByDefault(Return(appstackModel1));
+
+	EXPECT_CALL(factory, newQuery(0, QString("query0"))).Times(1).WillOnce(
+			Return(query0));
+	EXPECT_CALL(factory, newQuery(1, QString("query1"))).Times(1).WillOnce(
+			Return(query1));
+
+	int modelRevision;
+	QString resultsName;
+	QString appstackName;
+
+	EXPECT_EQ(queryPath0,
+			hudService.CreateQuery("query0", resultsName, appstackName,
+					modelRevision));
+	EXPECT_EQ(resultsModel0, resultsName);
+	EXPECT_EQ(appstackModel0, appstackName);
+	EXPECT_EQ(0, modelRevision);
+	EXPECT_EQ(QList<QDBusObjectPath>() << queryPath0, hudService.openQueries());
+
+	EXPECT_EQ(queryPath1,
+			hudService.CreateQuery("query1", resultsName, appstackName,
+					modelRevision));
+	EXPECT_EQ(resultsModel1, resultsName);
+	EXPECT_EQ(appstackModel1, appstackName);
+	EXPECT_EQ(0, modelRevision);
+	EXPECT_EQ(QList<QDBusObjectPath>() << queryPath0 << queryPath1,
+			hudService.openQueries());
+
+	hudService.closeQuery(queryPath0);
+	EXPECT_EQ(QList<QDBusObjectPath>() << queryPath1, hudService.openQueries());
+
+	hudService.closeQuery(queryPath1);
+	EXPECT_EQ(QList<QDBusObjectPath>(), hudService.openQueries());
 }
 
 } // namespace
