@@ -30,7 +30,6 @@ ApplicationImpl::ApplicationImpl(unsigned int id, const QString &applicationId,
 		Application(parent), m_adaptor(new ApplicationAdaptor(this)), m_connection(
 				connection), m_path(DBusTypes::applicationPath(id)), m_applicationId(
 				applicationId), m_factory(factory) {
-	qDebug() << "new application" << m_applicationId;
 	if (!m_connection.registerObject(m_path.path(), this)) {
 		throw std::logic_error(_("Unable to register HUD object on DBus"));
 	}
@@ -46,7 +45,6 @@ void ApplicationImpl::addWindow(unsigned int windowId) {
 				<< "to application" << m_applicationId;
 		return;
 	}
-	qDebug() << "adding window" << windowId;
 	m_windows[windowId] = m_factory.newWindow(windowId, m_applicationId);
 }
 
@@ -56,7 +54,6 @@ void ApplicationImpl::removeWindow(unsigned int windowId) {
 				<< "from application" << m_applicationId;
 		return;
 	}
-	qDebug() << "removing window" << windowId;
 	m_windows.remove(windowId);
 }
 
