@@ -16,8 +16,8 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <PlatformApiWindowStack.h>
-#include <Localisation.h>
+#include <window-stack-bridge/PlatformApiWindowStack.h>
+#include <common/Localisation.h>
 
 #include <QDebug>
 #include <stdexcept>

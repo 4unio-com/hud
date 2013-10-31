@@ -17,6 +17,7 @@
  */
 
 #include <BamfWindowStack.h>
+#include <common/DBusTypes.h>
 #include <common/Localisation.h>
 
 #include <QFile>
@@ -24,11 +25,10 @@
 
 using namespace hud::common;
 
-static const QString BAMF_DBUS_NAME("org.ayatana.bamf");
-
 BamfWindow::BamfWindow(const QString &path, const QDBusConnection &connection) :
-		m_window(BAMF_DBUS_NAME, path, connection), m_view(BAMF_DBUS_NAME, path,
-				connection), m_error(false), m_windowId(0) {
+		m_window(DBusTypes::BAMF_DBUS_NAME, path, connection), m_view(
+				DBusTypes::BAMF_DBUS_NAME, path, connection), m_error(false), m_windowId(
+				0) {
 
 	QDBusPendingReply<unsigned int> windowIdReply(m_window.GetXid());
 	windowIdReply.waitForFinished();
@@ -54,8 +54,9 @@ BamfWindow::BamfWindow(const QString &path, const QDBusConnection &connection) :
 	}
 
 	if (!parents.empty()) {
-		OrgAyatanaBamfApplicationInterface application(BAMF_DBUS_NAME,
-				parents.first(), m_window.connection());
+		OrgAyatanaBamfApplicationInterface application(
+				DBusTypes::BAMF_DBUS_NAME, parents.first(),
+				m_window.connection());
 		QDBusPendingReply<QString> desktopFileReply(application.DesktopFile());
 		desktopFileReply.waitForFinished();
 		if (desktopFileReply.isError()) {
@@ -121,12 +122,14 @@ BamfWindowStack::WindowPtr BamfWindowStack::removeWindow(const QString& path) {
 
 BamfWindowStack::BamfWindowStack(const QDBusConnection &connection,
 		QObject *parent) :
-		AbstractWindowStack(connection, parent), m_matcher(BAMF_DBUS_NAME,
-				"/org/ayatana/bamf/matcher", connection) {
+		AbstractWindowStack(connection, parent), m_matcher(
+				DBusTypes::BAMF_DBUS_NAME, DBusTypes::BAMF_MATCHER_DBUS_PATH,
+				connection) {
 
 	QDBusConnectionInterface* interface = connection.interface();
-	if (!interface->isServiceRegistered(BAMF_DBUS_NAME)) {
-		QDBusReply<void> reply(interface->startService(BAMF_DBUS_NAME));
+	if (!interface->isServiceRegistered(DBusTypes::BAMF_DBUS_NAME)) {
+		QDBusReply<void> reply(
+				interface->startService(DBusTypes::BAMF_DBUS_NAME));
 	}
 
 	registerOnBus();
@@ -174,15 +177,15 @@ QList<WindowInfo> BamfWindowStack::GetWindowStack() {
 
 	QStringList stack(m_matcher.WindowStackForMonitor(-1));
 	for (const QString &path : stack) {
-		const auto window (m_windows[path]);
+		const auto window(m_windows[path]);
 		if (window) {
-			results << WindowInfo(window->windowId(),
-			                      window->applicationId(),
-			                      false);
+			results
+					<< WindowInfo(window->windowId(), window->applicationId(),
+							false);
 		}
 	}
 
-	const auto window (m_windows[m_matcher.ActiveWindow()]);
+	const auto window(m_windows[m_matcher.ActiveWindow()]);
 	if (window) {
 		const uint windowId(window->windowId());
 
@@ -216,9 +219,8 @@ void BamfWindowStack::ActiveWindowChanged(const QString &oldWindowPath,
 	if (!newWindowPath.isEmpty()) {
 		const auto window(m_windows[newWindowPath]);
 		if (window) {
-			FocusedWindowChanged(window->windowId(),
-			                     window->applicationId(),
-			                     WindowInfo::MAIN);
+			FocusedWindowChanged(window->windowId(), window->applicationId(),
+					WindowInfo::MAIN);
 		}
 	}
 }

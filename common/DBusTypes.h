@@ -50,6 +50,12 @@ public:
 	static const QString APPMENU_REGISTRAR_DBUS_PATH;
 
 	Q_DECL_EXPORT
+	static const QString BAMF_DBUS_NAME;
+
+	Q_DECL_EXPORT
+	static const QString BAMF_MATCHER_DBUS_PATH;
+
+	Q_DECL_EXPORT
 	static void registerMetaTypes();
 
 	Q_DECL_EXPORT

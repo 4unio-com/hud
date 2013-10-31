@@ -19,9 +19,9 @@
 #ifndef BAMFWINDOWSTACK_H_
 #define BAMFWINDOWSTACK_H_
 
-#include <AbstractWindowStack.h>
-#include <BamfInterface.h>
-#include <BamfViewInterface.h>
+#include <window-stack-bridge/AbstractWindowStack.h>
+#include <window-stack-bridge/BamfInterface.h>
+#include <window-stack-bridge/BamfViewInterface.h>
 
 #include <QMap>
 #include <QSharedPointer>

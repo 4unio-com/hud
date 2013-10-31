@@ -43,6 +43,9 @@ const QString DBusTypes::APPMENU_REGISTRAR_DBUS_NAME(
 const QString DBusTypes::APPMENU_REGISTRAR_DBUS_PATH(
 		"/com/canonical/AppMenu/Registrar");
 
+const QString DBusTypes::BAMF_DBUS_NAME("org.ayatana.bamf");
+const QString DBusTypes::BAMF_MATCHER_DBUS_PATH("/org/ayatana/bamf/matcher");
+
 void DBusTypes::registerMetaTypes() {
 	NameObject::registerMetaTypes();
 	Suggestion::registerMetaTypes();

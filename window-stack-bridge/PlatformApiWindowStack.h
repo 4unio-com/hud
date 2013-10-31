@@ -19,7 +19,7 @@
 #ifndef PLATFORMAPIWINDOWSTACK_H_
 #define PLATFORMAPIWINDOWSTACK_H_
 
-#include <AbstractWindowStack.h>
+#include <window-stack-bridge/AbstractWindowStack.h>
 
 #include <ubuntu/ui/ubuntu_ui_session_service.h>
 
