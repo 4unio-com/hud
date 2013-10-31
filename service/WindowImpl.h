@@ -16,23 +16,33 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#ifndef HUD_SERVICE_WINDOW_H_
-#define HUD_SERVICE_WINDOW_H_
+#ifndef HUD_SERVICE_WINDOWIMPL_H_
+#define HUD_SERVICE_WINDOWIMPL_H_
+
+#include <service/Window.h>
+#include <service/DBusMenuCollector.h>
+#include <service/GMenuCollector.h>
 
 #include <QSharedPointer>
 
 namespace hud {
 namespace service {
 
-class Window {
+class Factory;
+
+class WindowImpl: public Window {
 public:
-	typedef QSharedPointer<Window> Ptr;
+	explicit WindowImpl(unsigned int windowId, const QString &applicationId,
+			Factory &factory);
 
-	explicit Window();
+	virtual ~WindowImpl();
 
-	virtual ~Window();
+protected:
+	GMenuCollector::Ptr m_gmenuCollector;
+
+	DBusMenuCollector::Ptr m_dbusMenuCollector;
 };
 
 }
 }
-#endif /* HUD_SERVICE_WINDOW_H_ */
+#endif /* HUD_SERVICE_WINDOWIMPL_H_ */

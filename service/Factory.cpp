@@ -21,6 +21,7 @@
 #include <service/ApplicationListImpl.h>
 #include <service/AppmenuRegistrarInterface.h>
 #include <service/QueryImpl.h>
+#include <service/WindowImpl.h>
 #include <common/DBusTypes.h>
 
 #include <QDBusConnection>
@@ -93,7 +94,7 @@ ItemStore::Ptr Factory::newItemStore() {
 
 Window::Ptr Factory::newWindow(unsigned int windowId,
 		const QString &applicationId) {
-	return Window::Ptr(new Window(windowId, applicationId, *this));
+	return Window::Ptr(new WindowImpl(windowId, applicationId, *this));
 }
 
 DBusMenuCollector::Ptr Factory::newDBusMenuCollector(unsigned int windowId,

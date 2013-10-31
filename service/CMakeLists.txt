@@ -17,6 +17,7 @@ set(HUD_SERVICE_LIB_SOURCES
   Query.cpp
   QueryImpl.cpp
   Window.cpp
+  WindowImpl.cpp
 )
 
 qt5_add_dbus_adaptor(

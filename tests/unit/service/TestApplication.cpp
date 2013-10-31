@@ -16,6 +16,7 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
+#include <common/ApplicationInterface.h>
 #include <service/Factory.h>
 #include <service/ApplicationImpl.h>
 #include <unit/service/Mocks.h>
@@ -41,6 +42,7 @@ protected:
 	TestApplication() :
 			mock(dbus) {
 		factory.setSessionBus(dbus.sessionConnection());
+
 	}
 
 	virtual ~TestApplication() {
@@ -53,9 +55,65 @@ protected:
 	NiceMock<MockFactory> factory;
 };
 
-TEST_F(TestApplication, Foo) {
+TEST_F(TestApplication, DBusInterfaceIsExported) {
 	ApplicationImpl application(1234, "application-id", factory,
 			dbus.sessionConnection());
+
+	ComCanonicalHudApplicationInterface applicationInterface(
+			dbus.sessionConnection().baseService(),
+			DBusTypes::applicationPath(1234), dbus.sessionConnection());
+
+	ASSERT_TRUE(applicationInterface.isValid());
+
+	//FIXME desktop path will return something when it's actually implemented
+	EXPECT_EQ(QString(), applicationInterface.desktopPath());
+}
+
+TEST_F(TestApplication, AddsWindow) {
+	ApplicationImpl application(1234, "application-id", factory,
+			dbus.sessionConnection());
+	EXPECT_TRUE(application.isEmpty());
+
+	QSharedPointer<MockWindow> window(new NiceMock<MockWindow>());
+
+	EXPECT_CALL(factory, newWindow(4567, QString("application-id"))).WillOnce(
+			Return(window));
+	application.addWindow(4567);
+	EXPECT_FALSE(application.isEmpty());
+}
+
+TEST_F(TestApplication, HandlesDeleteUnknownWindow) {
+	ApplicationImpl application(1234, "application-id", factory,
+			dbus.sessionConnection());
+	EXPECT_TRUE(application.isEmpty());
+
+	QSharedPointer<MockWindow> window(new NiceMock<MockWindow>());
+	application.removeWindow(4567);
+	EXPECT_TRUE(application.isEmpty());
+}
+
+TEST_F(TestApplication, DeletesWindow) {
+	ApplicationImpl application(1234, "application-id", factory,
+			dbus.sessionConnection());
+
+	QSharedPointer<MockWindow> window0(new NiceMock<MockWindow>());
+	QSharedPointer<MockWindow> window1(new NiceMock<MockWindow>());
+
+	EXPECT_CALL(factory, newWindow(0, QString("application-id"))).WillOnce(
+			Return(window0));
+	application.addWindow(0);
+	EXPECT_FALSE(application.isEmpty());
+
+	EXPECT_CALL(factory, newWindow(1, QString("application-id"))).WillOnce(
+			Return(window1));
+	application.addWindow(1);
+	EXPECT_FALSE(application.isEmpty());
+
+	application.removeWindow(0);
+	EXPECT_FALSE(application.isEmpty());
+
+	application.removeWindow(1);
+	EXPECT_TRUE(application.isEmpty());
 }
 
 } // namespace

@@ -22,6 +22,8 @@
 #include <service/HudService.h>
 #include <service/Application.h>
 #include <service/ApplicationList.h>
+#include <service/DBusMenuCollector.h>
+#include <service/GMenuCollector.h>
 #include <service/ItemStore.h>
 #include <service/Window.h>
 #include <service/Query.h>

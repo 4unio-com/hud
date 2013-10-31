@@ -37,6 +37,8 @@ public:
 	MOCK_METHOD2(newQuery, Query::Ptr(unsigned int, const QString &));
 
 	MOCK_METHOD2(newApplication, Application::Ptr(unsigned int, const QString &));
+
+	MOCK_METHOD2(newWindow, Window::Ptr(unsigned int, const QString &));
 };
 
 class MockQuery: public Query {
@@ -66,6 +68,10 @@ public:
 	MOCK_CONST_METHOD0(isEmpty, bool());
 
 	MOCK_CONST_METHOD0(path, const QDBusObjectPath &());
+};
+
+class MockWindow: public Window {
+public:
 };
 
 }
