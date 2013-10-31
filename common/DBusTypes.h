@@ -19,6 +19,10 @@
 #ifndef HUD_COMMON_DBUSTYPES_H_
 #define HUD_COMMON_DBUSTYPES_H_
 
+#include <common/Action.h>
+#include <common/ActionGroup.h>
+#include <common/Description.h>
+#include <common/MenuModel.h>
 #include <common/NameObject.h>
 #include <common/Suggestion.h>
 

@@ -32,6 +32,14 @@ public:
 	virtual ~ActionGroup();
 
 	static void registerMetaTypes();
+
+	//FIXME Give these proper names
+
+	QVariant m_variant;
+
+	QString m_string;
+
+	QDBusObjectPath m_object;
 };
 
 }

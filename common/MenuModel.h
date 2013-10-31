@@ -32,6 +32,12 @@ public:
 	virtual ~MenuModel();
 
 	static void registerMetaTypes();
+
+	//FIXME Give these proper names
+
+	QVariant m_variant;
+
+	QDBusObjectPath m_object;
 };
 
 }

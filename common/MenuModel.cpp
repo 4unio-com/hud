@@ -22,21 +22,18 @@
 
 using namespace hud::common;
 
-QDBusArgument & operator<<(QDBusArgument &argument, const MenuModel &modelModel) {
+QDBusArgument & operator<<(QDBusArgument &argument,
+		const MenuModel &menuModel) {
 	argument.beginStructure();
-//	argument << suggestion.m_modelModel << suggestion.m_icon
-//			<< suggestion.m_unknown1 << suggestion.m_unknown2
-//			<< suggestion.m_unknown3 << QDBusVariant(suggestion.m_id);
+	argument << QDBusVariant(menuModel.m_variant) << menuModel.m_object;
 	argument.endStructure();
 	return argument;
 }
 
 const QDBusArgument & operator>>(const QDBusArgument &argument,
-		MenuModel &modelModel) {
+		MenuModel &menuModel) {
 	argument.beginStructure();
-//	argument >> suggestion.m_modelModel >> suggestion.m_icon
-//			>> suggestion.m_unknown1 >> suggestion.m_unknown2
-//			>> suggestion.m_unknown3 >> suggestion.m_id;
+	argument >> menuModel.m_variant >> menuModel.m_object;
 	argument.endStructure();
 	return argument;
 }

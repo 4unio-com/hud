@@ -22,11 +22,11 @@
 
 using namespace hud::common;
 
-QDBusArgument & operator<<(QDBusArgument &argument, const ActionGroup &actionGroup) {
+QDBusArgument & operator<<(QDBusArgument &argument,
+		const ActionGroup &actionGroup) {
 	argument.beginStructure();
-//	argument << suggestion.m_description << suggestion.m_icon
-//			<< suggestion.m_unknown1 << suggestion.m_unknown2
-//			<< suggestion.m_unknown3 << QDBusVariant(suggestion.m_id);
+	argument << QDBusVariant(actionGroup.m_variant) << actionGroup.m_string
+			<< actionGroup.m_object;
 	argument.endStructure();
 	return argument;
 }
@@ -34,9 +34,8 @@ QDBusArgument & operator<<(QDBusArgument &argument, const ActionGroup &actionGro
 const QDBusArgument & operator>>(const QDBusArgument &argument,
 		ActionGroup &actionGroup) {
 	argument.beginStructure();
-//	argument >> suggestion.m_description >> suggestion.m_icon
-//			>> suggestion.m_unknown1 >> suggestion.m_unknown2
-//			>> suggestion.m_unknown3 >> suggestion.m_id;
+	argument >> actionGroup.m_variant >> actionGroup.m_string
+			>> actionGroup.m_object;
 	argument.endStructure();
 	return argument;
 }

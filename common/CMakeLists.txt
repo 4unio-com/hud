@@ -26,6 +26,18 @@ qt5_add_dbus_interface(
   WindowStackInterface
 )
 
+set_source_files_properties(
+  ${HUD_APP_XML}
+  PROPERTIES
+  INCLUDE "common/DBusTypes.h"
+)
+
+qt5_add_dbus_interface(
+  HUD_COMMON_SOURCES
+  ${HUD_APP_XML}
+  ApplicationInterface
+)
+
 add_library(hud-common
   STATIC
   ${HUD_COMMON_SOURCES}

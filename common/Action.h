@@ -32,6 +32,14 @@ public:
 	virtual ~Action();
 
 	static void registerMetaTypes();
+
+	unsigned int m_idn;
+
+	QString m_context;
+
+	QString m_prefix;
+
+	QDBusObjectPath m_object;
 };
 
 }
@@ -45,6 +53,6 @@ Q_DECL_EXPORT
 const QDBusArgument &operator>>(const QDBusArgument &argument,
 		hud::common::Action &action);
 
-Q_DECLARE_METATYPE (hud::common::Action)
+Q_DECLARE_METATYPE(hud::common::Action)
 
 #endif /* HUD_COMMON_ACTION_H_ */

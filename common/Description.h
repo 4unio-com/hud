@@ -32,6 +32,12 @@ public:
 	virtual ~Description();
 
 	static void registerMetaTypes();
+
+	unsigned int m_idn;
+
+	QString m_context;
+
+	QDBusObjectPath m_object;
 };
 
 }

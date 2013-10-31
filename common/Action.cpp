@@ -24,9 +24,8 @@ using namespace hud::common;
 
 QDBusArgument & operator<<(QDBusArgument &argument, const Action &action) {
 	argument.beginStructure();
-//	argument << suggestion.m_description << suggestion.m_icon
-//			<< suggestion.m_unknown1 << suggestion.m_unknown2
-//			<< suggestion.m_unknown3 << QDBusVariant(suggestion.m_id);
+	argument << action.m_idn << action.m_context << action.m_prefix
+			<< action.m_object;
 	argument.endStructure();
 	return argument;
 }
@@ -34,15 +33,14 @@ QDBusArgument & operator<<(QDBusArgument &argument, const Action &action) {
 const QDBusArgument & operator>>(const QDBusArgument &argument,
 		Action &action) {
 	argument.beginStructure();
-//	argument >> suggestion.m_description >> suggestion.m_icon
-//			>> suggestion.m_unknown1 >> suggestion.m_unknown2
-//			>> suggestion.m_unknown3 >> suggestion.m_id;
+	argument >> action.m_idn >> action.m_context >> action.m_prefix
+			>> action.m_object;
 	argument.endStructure();
 	return argument;
 }
 
-Action::Action() {
-
+Action::Action() :
+		m_idn(0) {
 }
 
 Action::~Action() {
