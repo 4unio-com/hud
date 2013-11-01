@@ -8,6 +8,7 @@ set(HUD_SERVICE_LIB_SOURCES
   ApplicationImpl.cpp
   ApplicationList.cpp
   ApplicationListImpl.cpp
+  Collector.cpp
   DBusMenuCollector.cpp
   Factory.cpp
   GMenuCollector.cpp

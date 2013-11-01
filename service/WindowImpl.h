@@ -38,9 +38,9 @@ public:
 	virtual ~WindowImpl();
 
 protected:
-	GMenuCollector::Ptr m_gmenuCollector;
+	Collector::Ptr m_collector;
 
-	DBusMenuCollector::Ptr m_dbusMenuCollector;
+	ItemStore m_items;
 };
 
 }

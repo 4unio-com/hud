@@ -31,7 +31,9 @@ static const QStringList GMENU_WINDOW_PROPERTIES( { "_GTK_UNIQUE_BUS_NAME",
 
 GMenuCollector::GMenuCollector(unsigned int windowId,
 		const QString &applicationId,
-		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack) {
+		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack) :
+		m_windowStack(windowStack), m_valid(false) {
+
 	QDBusPendingReply<QStringList> windowPropertiesReply(
 			windowStack->GetWindowProperties(windowId, applicationId,
 					GMENU_WINDOW_PROPERTIES));
@@ -43,12 +45,50 @@ GMenuCollector::GMenuCollector(unsigned int windowId,
 	}
 	QStringList windowProperties(windowPropertiesReply);
 
-	// If we have the bus name property, then lets look for a GMenu
-	if (!windowProperties.at(0).isEmpty()) {
-		qDebug() << "GMenu available for" << windowId << "at"
-				<< windowProperties.at(0);
+	if (windowProperties.isEmpty()) {
+		return;
 	}
+
+	m_busName = windowProperties.at(0);
+
+	// We're using the existence of the bus name property to determine
+	// if this window has GMenus available at all.
+	if (m_busName.isEmpty()) {
+		return;
+	}
+
+	if (!windowProperties.at(1).isEmpty()) {
+		m_appmenuPath = QDBusObjectPath(windowProperties.at(1));
+	}
+	if (!windowProperties.at(2).isEmpty()) {
+		m_menubarPath = QDBusObjectPath(windowProperties.at(2));
+	}
+	if (!windowProperties.at(3).isEmpty()) {
+		m_applicationPath = QDBusObjectPath(windowProperties.at(3));
+	}
+	if (!windowProperties.at(4).isEmpty()) {
+		m_windowPath = QDBusObjectPath(windowProperties.at(4));
+	}
+	if (!windowProperties.at(5).isEmpty()) {
+		m_unityPath = QDBusObjectPath(windowProperties.at(5));
+	}
+
+	m_valid = true;
+	qDebug() << "GMenu available for" << applicationId << windowId << "at"
+			<< m_busName;
 }
 
 GMenuCollector::~GMenuCollector() {
+}
+
+bool GMenuCollector::isValid() const {
+	return m_valid;
+}
+
+void GMenuCollector::collect() {
+	qDebug() << "m_appmenuPath" << m_appmenuPath.path();
+	qDebug() << "m_menubarPath" << m_menubarPath.path();
+	qDebug() << "m_applicationPath" << m_applicationPath.path();
+	qDebug() << "m_windowPath" << m_windowPath.path();
+	qDebug() << "m_unityPath" << m_unityPath.path();
 }

@@ -19,8 +19,7 @@
 #ifndef HUD_SERVICE_DBUSMENUCOLLECTOR_H_
 #define HUD_SERVICE_DBUSMENUCOLLECTOR_H_
 
-#include <QObject>
-#include <QSharedPointer>
+#include <service/Collector.h>
 #include <QDBusConnection>
 
 class ComCanonicalAppMenuRegistrarInterface;
@@ -33,23 +32,31 @@ QT_END_NAMESPACE
 namespace hud {
 namespace service {
 
-class DBusMenuCollector: public QObject {
+class DBusMenuCollector: public Collector {
 Q_OBJECT
 public:
 	typedef QSharedPointer<DBusMenuCollector> Ptr;
 
 	explicit DBusMenuCollector(unsigned int windowId,
-			const QString &applicationId,
 			QSharedPointer<ComCanonicalAppMenuRegistrarInterface> appmenu);
 
 	virtual ~DBusMenuCollector();
+
+	virtual bool isValid() const;
+
+	virtual void collect();
 
 protected Q_SLOTS:
 	void timeout();
 
 protected:
+	bool m_valid;
 
 	QScopedPointer<DBusMenuImporter> m_menuImporter;
+
+	QString m_service;
+
+	QDBusObjectPath m_path;
 
 	QMenu *m_menu;
 };

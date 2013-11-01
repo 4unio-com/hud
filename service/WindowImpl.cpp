@@ -22,9 +22,29 @@
 using namespace hud::service;
 
 WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,
-		Factory &factory) :
-		m_gmenuCollector(factory.newGMenuCollector(windowId, applicationId)), m_dbusMenuCollector(
-				factory.newDBusMenuCollector(windowId, applicationId)) {
+		Factory &factory) {
+
+	{
+		// First we try a GMenu collector
+		Collector::Ptr collector(
+				factory.newGMenuCollector(windowId, applicationId));
+		if (collector->isValid()) {
+			m_collector = collector;
+		}
+	}
+
+	if (m_collector.isNull()) {
+		// Now we try a DBusMenu collector
+		Collector::Ptr collector(
+				factory.newDBusMenuCollector(windowId, applicationId));
+		if (collector->isValid()) {
+			m_collector = collector;
+		}
+	}
+
+	if(m_collector) {
+		m_collector->collect();
+	}
 }
 
 WindowImpl::~WindowImpl() {

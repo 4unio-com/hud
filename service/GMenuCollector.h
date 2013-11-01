@@ -19,14 +19,14 @@
 #ifndef HUD_SERVICE_GMENUCOLLECTOR_H_
 #define HUD_SERVICE_GMENUCOLLECTOR_H_
 
-#include <QSharedPointer>
+#include <service/Collector.h>
 
 class ComCanonicalUnityWindowStackInterface;
 
 namespace hud {
 namespace service {
 
-class GMenuCollector {
+class GMenuCollector: public Collector {
 public:
 	typedef QSharedPointer<GMenuCollector> Ptr;
 
@@ -34,6 +34,27 @@ public:
 			QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack);
 
 	virtual ~GMenuCollector();
+
+	virtual bool isValid() const;
+
+	virtual void collect();
+
+protected:
+	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
+
+	bool m_valid;
+
+	QString m_busName;
+
+	QDBusObjectPath m_appmenuPath;
+
+	QDBusObjectPath m_menubarPath;
+
+	QDBusObjectPath m_applicationPath;
+
+	QDBusObjectPath m_windowPath;
+
+	QDBusObjectPath m_unityPath;
 };
 
 }

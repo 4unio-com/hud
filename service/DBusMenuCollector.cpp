@@ -27,8 +27,8 @@ using namespace hud::common;
 using namespace hud::service;
 
 DBusMenuCollector::DBusMenuCollector(unsigned int windowId,
-		const QString &applicationId,
-		QSharedPointer<ComCanonicalAppMenuRegistrarInterface> appmenu) {
+		QSharedPointer<ComCanonicalAppMenuRegistrarInterface> appmenu) :
+		m_valid(false), m_menu(nullptr) {
 	QDBusPendingReply<QString, QDBusObjectPath> windowReply =
 			appmenu->GetMenuForWindow(windowId);
 
@@ -37,23 +37,31 @@ DBusMenuCollector::DBusMenuCollector(unsigned int windowId,
 		return;
 	}
 
-	QString service(windowReply.argumentAt<0>());
-	QDBusObjectPath path(windowReply.argumentAt<1>());
+	m_service = windowReply.argumentAt<0>();
+	m_path = windowReply.argumentAt<1>();
 
-	if (service.isEmpty()) {
+	if (m_service.isEmpty()) {
 		return;
 	}
 
-	qDebug() << "DBusMenu available for" << windowId << "at" << service;
+	m_valid = true;
 
-	m_menuImporter.reset(new DBusMenuImporter(service, path.path()));
-	m_menu = m_menuImporter->menu();
-
-	QTimer::singleShot(1000, this, SLOT(timeout()));
-
+	qDebug() << "DBusMenu available for" << windowId << "at" << m_service
+			<< m_path.path();
 }
 
 DBusMenuCollector::~DBusMenuCollector() {
+}
+
+bool DBusMenuCollector::isValid() const {
+	return m_valid;
+}
+
+void DBusMenuCollector::collect() {
+	m_menuImporter.reset(new DBusMenuImporter(m_service, m_path.path()));
+	m_menu = m_menuImporter->menu();
+
+	QTimer::singleShot(50, this, SLOT(timeout()));
 }
 
 void DBusMenuCollector::timeout() {

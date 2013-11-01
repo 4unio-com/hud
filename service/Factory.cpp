@@ -99,8 +99,9 @@ Window::Ptr Factory::newWindow(unsigned int windowId,
 
 DBusMenuCollector::Ptr Factory::newDBusMenuCollector(unsigned int windowId,
 		const QString &applicationId) {
+	Q_UNUSED(applicationId);
 	return DBusMenuCollector::Ptr(
-			new DBusMenuCollector(windowId, applicationId, singletonAppmenu()));
+			new DBusMenuCollector(windowId, singletonAppmenu()));
 }
 
 GMenuCollector::Ptr Factory::newGMenuCollector(unsigned int windowId,
