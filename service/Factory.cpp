@@ -97,15 +97,14 @@ Window::Ptr Factory::newWindow(unsigned int windowId,
 	return Window::Ptr(new WindowImpl(windowId, applicationId, *this));
 }
 
-DBusMenuCollector::Ptr Factory::newDBusMenuCollector(unsigned int windowId,
+Collector::Ptr Factory::newDBusMenuCollector(unsigned int windowId,
 		const QString &applicationId) {
 	Q_UNUSED(applicationId);
-	return DBusMenuCollector::Ptr(
-			new DBusMenuCollector(windowId, singletonAppmenu()));
+	return Collector::Ptr(new DBusMenuCollector(windowId, singletonAppmenu()));
 }
 
-GMenuCollector::Ptr Factory::newGMenuCollector(unsigned int windowId,
+Collector::Ptr Factory::newGMenuCollector(unsigned int windowId,
 		const QString &applicationId) {
-	return GMenuCollector::Ptr(
+	return Collector::Ptr(
 			new GMenuCollector(windowId, applicationId, singletonWindowStack()));
 }

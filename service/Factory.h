@@ -22,8 +22,7 @@
 #include <service/HudService.h>
 #include <service/Application.h>
 #include <service/ApplicationList.h>
-#include <service/DBusMenuCollector.h>
-#include <service/GMenuCollector.h>
+#include <service/Collector.h>
 #include <service/ItemStore.h>
 #include <service/Window.h>
 #include <service/Query.h>
@@ -62,10 +61,10 @@ public:
 	virtual Window::Ptr newWindow(unsigned int windowId,
 			const QString &applicationId);
 
-	virtual DBusMenuCollector::Ptr newDBusMenuCollector(unsigned int windowId,
+	virtual Collector::Ptr newDBusMenuCollector(unsigned int windowId,
 			const QString &applicationId);
 
-	virtual GMenuCollector::Ptr newGMenuCollector(unsigned int windowId,
+	virtual Collector::Ptr newGMenuCollector(unsigned int windowId,
 			const QString &applicationId);
 
 protected:

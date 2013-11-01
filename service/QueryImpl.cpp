@@ -16,8 +16,10 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
+#include <common/AppstackModel.h>
 #include <common/DBusTypes.h>
 #include <common/Localisation.h>
+#include <common/ResultsModel.h>
 #include <service/HudService.h>
 #include <service/QueryImpl.h>
 #include <service/QueryAdaptor.h>
@@ -36,10 +38,17 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query, HudService &service,
 		throw std::logic_error(
 				_("Unable to register HUD query object on DBus"));
 	}
+
+	m_resultsModel.reset(new ResultsModel(id));
+	m_appstackModel.reset(new AppstackModel(id));
+
+	qDebug() << "Query constructed" << query << m_path.path();
 }
 
 QueryImpl::~QueryImpl() {
 	m_connection.unregisterObject(m_path.path());
+
+	qDebug() << "Query destroyed" << m_path.path();
 }
 
 const QDBusObjectPath & QueryImpl::path() const {
@@ -47,7 +56,7 @@ const QDBusObjectPath & QueryImpl::path() const {
 }
 
 QString QueryImpl::appstackModel() const {
-	return QString();
+	return QString::fromStdString(m_appstackModel->name());
 }
 
 QString QueryImpl::currentQuery() const {
@@ -55,7 +64,7 @@ QString QueryImpl::currentQuery() const {
 }
 
 QString QueryImpl::resultsModel() const {
-	return QString();
+	return QString::fromStdString(m_appstackModel->name());
 }
 
 QStringList QueryImpl::toolbarItems() const {
@@ -85,6 +94,7 @@ int QueryImpl::UpdateApp(const QString &app) {
 
 int QueryImpl::UpdateQuery(const QString &query) {
 	m_query = query;
+	qDebug() << "query updated to" << query;
 	return 0;
 }
 

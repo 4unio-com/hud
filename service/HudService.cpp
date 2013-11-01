@@ -82,38 +82,56 @@ void HudService::closeQuery(const QDBusObjectPath &path) {
  * Legacy interface below here
  */
 
-QString HudService::StartQuery(const QString &query, int entries,
+QString HudService::StartQuery(const QString &queryString, int entries,
 		QList<Suggestion> &suggestions, QDBusVariant &querykey) {
+
+	QString sender("local");
+	if (calledFromDBus()) {
+		sender = message().service();
+	}
 
 	QString resultsName;
 	QString appstackName;
 	int modelRevision;
 
-	QDBusObjectPath path(
-			CreateQuery(query, resultsName, appstackName, modelRevision));
+	Query::Ptr query(m_legacyQueries[sender]);
+	if (query.isNull()) {
+		QDBusObjectPath path(
+				CreateQuery(queryString, resultsName, appstackName,
+						modelRevision));
+		query = m_queries[path];
+		m_legacyQueries[sender] = query;
+	} else {
+		query->UpdateQuery(queryString);
+	}
 
 	suggestions = QList<Suggestion>();
-	querykey = QDBusVariant(QVariant::fromValue(path));
+	querykey.setVariant(query->path().path());
 
-	return query;
+	return queryString;
 }
 
 void HudService::ExecuteQuery(const QDBusVariant &key, uint timestamp) {
-	QVariant variant(key.variant());
-	if (!variant.canConvert<QDBusObjectPath>()) {
-		sendErrorReply(QDBusError::InvalidArgs, _("Incorrect query key type"));
+	QString sender("local");
+	if (calledFromDBus()) {
+		sender = message().service();
 	}
 
+	qDebug() << "ExecuteQuery" << sender << timestamp;
 }
 
 void HudService::CloseQuery(const QDBusVariant &querykey) {
-	QVariant variant(querykey.variant());
-	if (!variant.canConvert<QDBusObjectPath>()) {
-		sendErrorReply(QDBusError::InvalidArgs, _("Incorrect query key type"));
+	QString sender("local");
+	if (calledFromDBus()) {
+		sender = message().service();
 	}
 
-	QDBusObjectPath path(variant.value<QDBusObjectPath>());
-	closeQuery(path);
+	// We don't actually close legacy queries, or we'd be constructing
+	// and destructing them during the search.
+	Query::Ptr query(m_legacyQueries[sender]);
+	if (!query.isNull()) {
+		query->UpdateQuery(QString());
+	}
 }
 
 }

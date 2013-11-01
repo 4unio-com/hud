@@ -39,6 +39,10 @@ public:
 	MOCK_METHOD2(newApplication, Application::Ptr(unsigned int, const QString &));
 
 	MOCK_METHOD2(newWindow, Window::Ptr(unsigned int, const QString &));
+
+	MOCK_METHOD2(newDBusMenuCollector, Collector::Ptr(unsigned int, const QString &));
+
+	MOCK_METHOD2(newGMenuCollector, Collector::Ptr(unsigned int, const QString &));
 };
 
 class MockQuery: public Query {
@@ -52,6 +56,8 @@ public:
 	MOCK_CONST_METHOD0(toolbarItems, QStringList());
 
 	MOCK_CONST_METHOD0(path, const QDBusObjectPath &());
+
+	MOCK_METHOD1(UpdateQuery, int(const QString &));
 };
 
 class MockApplicationList: public ApplicationList {
@@ -72,6 +78,13 @@ public:
 
 class MockWindow: public Window {
 public:
+};
+
+class MockCollector: public Collector {
+public:
+	MOCK_CONST_METHOD0(isValid, bool());
+
+	MOCK_METHOD0(collect, void());
 };
 
 }

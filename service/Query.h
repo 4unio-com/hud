@@ -54,6 +54,9 @@ public:
 	virtual QStringList toolbarItems() const = 0;
 
 	virtual const QDBusObjectPath & path() const = 0;
+
+public Q_SLOTS:
+	virtual int UpdateQuery(const QString &query) = 0;
 };
 
 }

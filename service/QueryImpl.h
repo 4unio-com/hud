@@ -19,6 +19,7 @@
 #ifndef HUD_SERVICE_QUERYIMPL_H_
 #define HUD_SERVICE_QUERYIMPL_H_
 
+#include <common/HudDee.h>
 #include <service/Query.h>
 
 #include <QDBusContext>
@@ -37,8 +38,9 @@ class HudService;
 class Q_DECL_EXPORT QueryImpl: public Query, protected QDBusContext {
 Q_OBJECT
 public:
-	explicit QueryImpl(unsigned int id, const QString &query, HudService &service,
-			const QDBusConnection &connection, QObject *parent = 0);
+	explicit QueryImpl(unsigned int id, const QString &query,
+			HudService &service, const QDBusConnection &connection,
+			QObject *parent = 0);
 
 	virtual ~QueryImpl();
 
@@ -80,6 +82,10 @@ protected:
 	HudService &m_service;
 
 	QString m_query;
+
+	QSharedPointer<hud::common::HudDee> m_resultsModel;
+
+	QSharedPointer<hud::common::HudDee> m_appstackModel;
 };
 
 }

@@ -1,0 +1,56 @@
+/*
+ * ResultsModel.cpp
+ *
+ *  Created on: 1 Nov 2013
+ *      Author: pete
+ */
+
+#include <common/ResultsModel.h>
+#include <QString>
+#include <glib.h>
+
+typedef enum _HudQueryResultsColumns {
+	HUD_QUERY_RESULTS_COMMAND_ID = 0,
+	HUD_QUERY_RESULTS_COMMAND_NAME,
+	HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS,
+	HUD_QUERY_RESULTS_DESCRIPTION,
+	HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS,
+	HUD_QUERY_RESULTS_SHORTCUT,
+	HUD_QUERY_RESULTS_DISTANCE,
+	HUD_QUERY_RESULTS_PARAMETERIZED,
+	/* Last */
+	HUD_QUERY_RESULTS_COUNT
+} HudQueryResultsColumns;
+
+#define HUD_QUERY_RESULTS_COMMAND_ID_TYPE "v"
+#define HUD_QUERY_RESULTS_COMMAND_NAME_TYPE "s"
+#define HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS_TYPE "a(ii)"
+#define HUD_QUERY_RESULTS_DESCRIPTION_TYPE "s"
+#define HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS_TYPE "a(ii)"
+#define HUD_QUERY_RESULTS_SHORTCUT_TYPE "s"
+#define HUD_QUERY_RESULTS_DISTANCE_TYPE "u"
+#define HUD_QUERY_RESULTS_PARAMETERIZED_TYPE "b"
+
+/* Schema that is used in the DeeModel representing
+ the results */
+static const char * results_model_schema[HUD_QUERY_RESULTS_COUNT] = {
+HUD_QUERY_RESULTS_COMMAND_ID_TYPE,
+HUD_QUERY_RESULTS_COMMAND_NAME_TYPE,
+HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS_TYPE,
+HUD_QUERY_RESULTS_DESCRIPTION_TYPE,
+HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS_TYPE,
+HUD_QUERY_RESULTS_SHORTCUT_TYPE,
+HUD_QUERY_RESULTS_DISTANCE_TYPE,
+HUD_QUERY_RESULTS_PARAMETERIZED_TYPE, };
+
+const QString RESULTS_FORMAT_STRING("com.canonical.hud.query%1.results");
+
+using namespace hud::common;
+
+ResultsModel::ResultsModel(unsigned int id) :
+		HudDee(RESULTS_FORMAT_STRING.arg(id).toStdString()) {
+	setSchema(results_model_schema, G_N_ELEMENTS(results_model_schema));
+}
+
+ResultsModel::~ResultsModel() {
+}

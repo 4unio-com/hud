@@ -61,7 +61,7 @@ void DBusMenuCollector::collect() {
 	m_menuImporter.reset(new DBusMenuImporter(m_service, m_path.path()));
 	m_menu = m_menuImporter->menu();
 
-	QTimer::singleShot(50, this, SLOT(timeout()));
+	QTimer::singleShot(200, this, SLOT(timeout()));
 }
 
 void DBusMenuCollector::timeout() {

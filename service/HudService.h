@@ -83,6 +83,8 @@ protected:
 
 	QMap<QDBusObjectPath, Query::Ptr> m_queries;
 
+	QMap<QString, Query::Ptr> m_legacyQueries;
+
 	QSharedPointer<ApplicationList> m_applicationList;
 };
 

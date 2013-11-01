@@ -52,7 +52,33 @@ protected:
 	NiceMock<MockFactory> factory;
 };
 
-TEST_F(TestWindow, Foo) {
+TEST_F(TestWindow, TrysDBusMenu) {
+	QSharedPointer<MockCollector> dbusMenuCollector(
+			new NiceMock<MockCollector>());
+	ON_CALL(*dbusMenuCollector, isValid()).WillByDefault(Return(true));
+	EXPECT_CALL(*dbusMenuCollector, collect());
+
+	EXPECT_CALL(factory, newDBusMenuCollector(1234, QString("application-id"))).Times(
+			1).WillOnce(Return(dbusMenuCollector));
+
 	WindowImpl window(1234, "application-id", factory);
 }
+
+TEST_F(TestWindow, TrysDBusMenuThenGMenu) {
+	QSharedPointer<MockCollector> dbusMenuCollector(
+			new NiceMock<MockCollector>());
+	ON_CALL(*dbusMenuCollector, isValid()).WillByDefault(Return(false));
+
+	QSharedPointer<MockCollector> gmenuCollector(new NiceMock<MockCollector>());
+	ON_CALL(*gmenuCollector, isValid()).WillByDefault(Return(true));
+	EXPECT_CALL(*gmenuCollector, collect());
+
+	EXPECT_CALL(factory, newDBusMenuCollector(1234, QString("application-id"))).Times(
+			1).WillOnce(Return(dbusMenuCollector));
+	EXPECT_CALL(factory, newGMenuCollector(1234, QString("application-id"))).Times(
+			1).WillOnce(Return(gmenuCollector));
+
+	WindowImpl window(1234, "application-id", factory);
+}
+
 } // namespace

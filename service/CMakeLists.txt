@@ -59,6 +59,8 @@ add_library(hud-service
 target_link_libraries(hud-service
   hud-common
   ${DBUSMENU_LIBRARIES}
+  ${GOBJECT2_LIBRARIES}
+  ${DEE_LIBRARIES}
 )
 
 qt5_use_modules(

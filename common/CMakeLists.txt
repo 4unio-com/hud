@@ -4,12 +4,15 @@
 ###########################
 
 set(HUD_COMMON_SOURCES
+  AppstackModel.cpp
   Action.cpp
   ActionGroup.cpp
   Description.cpp
   DBusTypes.cpp
+  HudDee.cpp
   MenuModel.cpp
   NameObject.cpp
+  ResultsModel.cpp
   Suggestion.cpp
   WindowInfo.cpp
 )

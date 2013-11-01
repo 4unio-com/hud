@@ -16,37 +16,14 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <service/Factory.h>
-#include <service/WindowImpl.h>
-#include <QDebug>
+#include <service/Collector.h>
 
 using namespace hud::service;
 
-WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,
-		Factory &factory) {
+Collector::Collector(QObject *parent) :
+		QObject(parent) {
 
-	{
-		// First we try a DBusMenu collector
-		Collector::Ptr collector(
-				factory.newDBusMenuCollector(windowId, applicationId));
-		if (collector->isValid()) {
-			m_collector = collector;
-		}
-	}
-
-	if (m_collector.isNull()) {
-		// Now we try a GMenu collector
-		Collector::Ptr collector(
-				factory.newGMenuCollector(windowId, applicationId));
-		if (collector->isValid()) {
-			m_collector = collector;
-		}
-	}
-
-	if (m_collector) {
-		m_collector->collect();
-	}
 }
 
-WindowImpl::~WindowImpl() {
+Collector::~Collector() {
 }

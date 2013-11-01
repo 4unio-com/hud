@@ -16,37 +16,32 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <service/Factory.h>
-#include <service/WindowImpl.h>
-#include <QDebug>
+#ifndef HUD_SERVICE_COLLECTOR_H_
+#define HUD_SERVICE_COLLECTOR_H_
 
-using namespace hud::service;
+#include <QObject>
+#include <QSharedPointer>
+#include <QMenu>
 
-WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,
-		Factory &factory) {
+namespace hud {
+namespace service {
 
-	{
-		// First we try a DBusMenu collector
-		Collector::Ptr collector(
-				factory.newDBusMenuCollector(windowId, applicationId));
-		if (collector->isValid()) {
-			m_collector = collector;
-		}
-	}
+class Collector: public QObject {
+Q_OBJECT
 
-	if (m_collector.isNull()) {
-		// Now we try a GMenu collector
-		Collector::Ptr collector(
-				factory.newGMenuCollector(windowId, applicationId));
-		if (collector->isValid()) {
-			m_collector = collector;
-		}
-	}
+public:
+	typedef QSharedPointer<Collector> Ptr;
 
-	if (m_collector) {
-		m_collector->collect();
-	}
+	explicit Collector(QObject *parent = 0);
+
+	virtual ~Collector();
+
+	virtual bool isValid() const = 0;
+
+	virtual void collect() = 0;
+};
+
+}
 }
 
-WindowImpl::~WindowImpl() {
-}
+#endif /* HUD_SERVICE_COLLECTOR_H_ */
