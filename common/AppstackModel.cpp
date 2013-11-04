@@ -36,16 +36,18 @@ const QString APPSTACK_FORMAT_STRING("com.canonical.hud.query%1.appstack");
 AppstackModel::AppstackModel(unsigned int id) :
 		HudDee(APPSTACK_FORMAT_STRING.arg(id).toStdString()) {
 	setSchema(appstack_model_schema, G_N_ELEMENTS(appstack_model_schema));
-
-	addApplication("test-app-1", "icon 1", HUD_SOURCE_ITEM_TYPE_FOCUSED_APP);
-	addApplication("test-app-2", "icon 2", HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
-	flush();
 }
 
 AppstackModel::~AppstackModel() {
 }
 
-/* Sort function for the appstack */
+void AppstackModel::setApplications() {
+	beginChangeset();
+	addApplication("test-app-1", "icon 1", HUD_SOURCE_ITEM_TYPE_FOCUSED_APP);
+	addApplication("test-app-2", "icon 2", HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
+	endChangeset();
+}
+
 static gint appstack_sort(GVariant **row1, GVariant **row2,
 		gpointer user_data) {
 	Q_UNUSED(user_data);

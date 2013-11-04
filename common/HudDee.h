@@ -29,13 +29,13 @@ public:
 protected:
 	void setSchema(const char* const *columnSchemas, unsigned int numColumns);
 
-	void clear();
+	void beginChangeset();
 
 	void appendRow(GVariant **row_members);
 
 	void insertRowSorted(GVariant **row_members, CompareRowFunc cmp_func);
 
-	void flush();
+	void endChangeset();
 
 	class Priv;
 

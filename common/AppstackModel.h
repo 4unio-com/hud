@@ -28,6 +28,9 @@ public:
 
 	virtual ~AppstackModel();
 
+	//FIXME This will take arguments when it's actually implemented
+	void setApplications();
+
 protected:
 	void addApplication(const QString &applicationId, const QString &iconName,
 			ItemType itemType);

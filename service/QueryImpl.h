@@ -19,7 +19,8 @@
 #ifndef HUD_SERVICE_QUERYIMPL_H_
 #define HUD_SERVICE_QUERYIMPL_H_
 
-#include <common/HudDee.h>
+#include <common/ResultsModel.h>
+#include <common/AppstackModel.h>
 #include <service/Query.h>
 
 #include <QDBusContext>
@@ -83,9 +84,9 @@ protected:
 
 	QString m_query;
 
-	QSharedPointer<hud::common::HudDee> m_resultsModel;
+	QSharedPointer<hud::common::ResultsModel> m_resultsModel;
 
-	QSharedPointer<hud::common::HudDee> m_appstackModel;
+	QSharedPointer<hud::common::AppstackModel> m_appstackModel;
 };
 
 }

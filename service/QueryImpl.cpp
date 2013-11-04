@@ -42,6 +42,10 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query, HudService &service,
 	m_resultsModel.reset(new ResultsModel(id));
 	m_appstackModel.reset(new AppstackModel(id));
 
+	//FIXME This will change to actually do something with results and the appstack
+	m_resultsModel->setResults();
+	m_appstackModel->setApplications();
+
 	qDebug() << "Query constructed" << query << m_path.path();
 }
 

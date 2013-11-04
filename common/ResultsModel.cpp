@@ -51,7 +51,13 @@ ResultsModel::ResultsModel(unsigned int id) :
 		HudDee(RESULTS_FORMAT_STRING.arg(id).toStdString()) {
 
 	setSchema(results_model_schema, G_N_ELEMENTS(results_model_schema));
+}
 
+ResultsModel::~ResultsModel() {
+}
+
+void ResultsModel::setResults() {
+	beginChangeset();
 	{
 		QList<QPair<int, int>> actionHighlights;
 		actionHighlights << QPair<int, int>(1, 2);
@@ -62,10 +68,18 @@ ResultsModel::ResultsModel(unsigned int id) :
 		addResult(0, "command 1", actionHighlights, "description 1",
 				descriptionHighlights, "shortcut 1", 1, false);
 	}
-	flush();
-}
 
-ResultsModel::~ResultsModel() {
+	{
+		QList<QPair<int, int>> actionHighlights;
+		actionHighlights << QPair<int, int>(1, 2);
+
+		QList<QPair<int, int>> descriptionHighlights;
+		descriptionHighlights << QPair<int, int>(3, 4);
+
+		addResult(1, "command 2", actionHighlights, "description 2",
+				descriptionHighlights, "shortcut 2", 2, false);
+	}
+	endChangeset();
 }
 
 void ResultsModel::addResult(unsigned int id, const QString &commandName,

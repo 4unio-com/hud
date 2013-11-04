@@ -23,6 +23,9 @@ public:
 
 	virtual ~ResultsModel();
 
+	void setResults();
+
+protected:
 	void addResult(unsigned int id, const QString &command,
 			const QList<QPair<int, int>> highlights, const QString &description,
 			const QList<QPair<int, int>> descriptionHighlights,
