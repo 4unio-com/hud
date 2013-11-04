@@ -1,6 +1,11 @@
 #include <gio/gio.h>
 #include <gtest/gtest.h>
 
+#include <libqtgmenu/QtGMenuImporter.h>
+#include <QApplication>
+
+using namespace qtgmenu;
+
 namespace
 {
 
@@ -11,13 +16,11 @@ gboolean mainloop_timeout (gpointer user_data)
     return FALSE;
 }
 
-static void items_changed_event (GMenuModel* model, gint position, gint removed, gint added, gpointer user_data)
-{
-    std::cout << "items changed";
-}
-
 TEST(TestQtGMenu, ExportImportMenu)
 {
+    int argc = 0;
+    QApplication a(argc, nullptr);
+
     GMainLoop* mainloop = g_main_loop_new (NULL, FALSE);
 
     g_bus_own_name (G_BUS_TYPE_SESSION, "com.canonical.qtgmenu", G_BUS_NAME_OWNER_FLAGS_NONE,
@@ -33,26 +36,19 @@ TEST(TestQtGMenu, ExportImportMenu)
     g_menu_append (menu, "Del", "app.del");
     g_menu_append (menu, "Quit", "app.quit");
 
+    QtGMenuImporter importer( "com.canonical.qtgmenu", "/com/canonical/qtgmenu" );
+
+    auto qmenu = importer.menu();
+    EXPECT_EQ( nullptr, qmenu );
+
     guint export_id = g_dbus_connection_export_menu_model (connection, "/com/canonical/qtgmenu", G_MENU_MODEL (menu), NULL);
 
     g_timeout_add (500, mainloop_timeout, mainloop);
     g_main_loop_run (mainloop);
 
-    GMenuModel* model = G_MENU_MODEL( g_dbus_menu_model_get(
-                                          connection,
-                                          "com.canonical.qtgmenu",
-                                          "/com/canonical/qtgmenu") );
+    qmenu = importer.menu();
+    EXPECT_NE( nullptr, qmenu );
 
-    gboolean is_mutable = g_menu_model_is_mutable(model);
-
-    g_signal_connect(model, "items-changed", G_CALLBACK (items_changed_event), NULL);
-
-    g_timeout_add (2000, mainloop_timeout, mainloop);
-    g_main_loop_run (mainloop);
-
-    gint item_count = g_menu_model_get_n_items(model);
-
-    g_object_unref(model);
     g_object_unref(menu);
     g_object_unref(connection);
     g_main_loop_unref(mainloop);
