@@ -27,7 +27,7 @@ using namespace hud::service;
 
 ApplicationListImpl::ApplicationListImpl(Factory &factory,
 		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack) :
-		m_windowStack(windowStack), m_factory(factory), m_applicationCounter(0) {
+		m_windowStack(windowStack), m_factory(factory) {
 
 	QDBusPendingReply<QList<WindowInfo>> windowsReply(
 			m_windowStack->GetWindowStack());
@@ -63,8 +63,7 @@ Application::Ptr ApplicationListImpl::ensureApplication(
 		const QString& applicationId) {
 	Application::Ptr application(m_applications[applicationId]);
 	if (application.isNull()) {
-		application = m_factory.newApplication(m_applicationCounter++,
-				applicationId);
+		application = m_factory.newApplication(applicationId);
 		m_applications[applicationId] = application;
 	}
 	return application;

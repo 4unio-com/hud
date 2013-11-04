@@ -79,8 +79,6 @@ protected:
 
 	Factory &m_factory;
 
-	unsigned int m_queryCounter;
-
 	QMap<QDBusObjectPath, Query::Ptr> m_queries;
 
 	QMap<QString, Query::Ptr> m_legacyQueries;

@@ -31,7 +31,7 @@ namespace service {
 HudService::HudService(Factory &factory, const QDBusConnection &connection,
 		QObject *parent) :
 		QObject(parent), m_adaptor(new HudAdaptor(this)), m_connection(
-				connection), m_factory(factory), m_queryCounter(0) {
+				connection), m_factory(factory) {
 	DBusTypes::registerMetaTypes();
 
 	m_applicationList = m_factory.newApplicationList();
@@ -63,7 +63,7 @@ QList<QDBusObjectPath> HudService::openQueries() const {
 QDBusObjectPath HudService::CreateQuery(const QString &query,
 		QString &resultsName, QString &appstackName, int &modelRevision) {
 
-	Query::Ptr hudQuery(m_factory.newQuery(m_queryCounter++, query));
+	Query::Ptr hudQuery(m_factory.newQuery(query));
 
 	m_queries[hudQuery->path()] = hudQuery;
 

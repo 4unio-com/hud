@@ -49,12 +49,11 @@ public:
 
 	virtual QSharedPointer<ComCanonicalAppMenuRegistrarInterface> singletonAppmenu();
 
-	virtual Query::Ptr newQuery(unsigned int id, const QString &query);
+	virtual Query::Ptr newQuery(const QString &query);
 
 	virtual ApplicationList::Ptr newApplicationList();
 
-	virtual Application::Ptr newApplication(unsigned int id,
-			const QString &applicationId);
+	virtual Application::Ptr newApplication(const QString &applicationId);
 
 	virtual ItemStore::Ptr newItemStore();
 
@@ -69,6 +68,10 @@ public:
 
 protected:
 	QDBusConnection m_sessionBus;
+
+	unsigned int m_applicationCounter;
+
+	unsigned int m_queryCounter;
 
 	HudService::Ptr m_hudService;
 

@@ -61,8 +61,6 @@ protected:
 	Factory &m_factory;
 
 	QMap<QString, Application::Ptr> m_applications;
-
-	unsigned int m_applicationCounter;
 };
 
 }
