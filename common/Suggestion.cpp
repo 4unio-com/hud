@@ -101,7 +101,7 @@ Suggestion::Suggestion() {
 }
 
 /**
- * Builds a single line pango formated description for
+ * Builds a single line pango formatted description for
  * the legacy HUD UI.
  **/
 Suggestion::Suggestion(qulonglong id, const QString &commandName,
@@ -119,7 +119,7 @@ Suggestion::Suggestion(qulonglong id, const QString &commandName,
 		QString descHighlights(
 				buildLegacyHighlights(description, descriptionHighlights));
 
-		// TRANSLATORS: This is what is shown for Unity Nux in
+		// TRANSLATORS: This is what is shown for Unity7 in
 		// the HUD entries.  %1 is the command name and %2 is a
 		// description or list of keywords that
 		// was used to find the entry.

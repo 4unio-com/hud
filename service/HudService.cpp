@@ -138,7 +138,7 @@ void HudService::CloseQuery(const QDBusVariant &querykey) {
 
 	// We don't actually close legacy queries, or we'd be constructing
 	// and destructing them during the search due to the way that
-	// unity7 uses the API.
+	// Unity7 uses the API.
 	Query::Ptr query(m_legacyQueries[sender]);
 	if (!query.isNull()) {
 		query->UpdateQuery(QString());
