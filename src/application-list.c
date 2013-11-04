@@ -446,6 +446,10 @@ view_closed (DBusWindowStack * window_stack, guint window_id, const gchar *app_i
 			list->priv->used_source = NULL;
 		}
 
+		if (appsource == list->priv->last_focused_main_stage_source) {
+			list->priv->last_focused_main_stage_source = NULL;
+		}
+
 		g_debug("Removing application %s", app_id);
 		g_hash_table_remove(list->priv->applications, app_id);
 	}
