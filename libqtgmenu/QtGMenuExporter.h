@@ -37,8 +37,6 @@ private:
     QtGMenuExporterPrivate* const d;
 
     friend class QtGMenuExporterPrivate;
-    friend class QtGMenuExporterDBus;
-    friend class QtGMenu;
 };
 
 } // namespace qtgmenu
