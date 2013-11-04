@@ -74,8 +74,16 @@ QDBusObjectPath HudService::CreateQuery(const QString &query,
 	return QDBusObjectPath(hudQuery->path());
 }
 
-void HudService::closeQuery(const QDBusObjectPath &path) {
-	m_queries.remove(path);
+Query::Ptr HudService::closeQuery(const QDBusObjectPath &path) {
+	return m_queries.take(path);
+}
+
+QString HudService::messageSender() {
+	QString sender("local");
+	if (calledFromDBus()) {
+		sender = message().service();
+	}
+	return sender;
 }
 
 /*
@@ -85,10 +93,7 @@ void HudService::closeQuery(const QDBusObjectPath &path) {
 QString HudService::StartQuery(const QString &queryString, int entries,
 		QList<Suggestion> &suggestions, QDBusVariant &querykey) {
 
-	QString sender("local");
-	if (calledFromDBus()) {
-		sender = message().service();
-	}
+	QString sender(messageSender());
 
 	QString resultsName;
 	QString appstackName;
@@ -111,20 +116,20 @@ QString HudService::StartQuery(const QString &queryString, int entries,
 	return queryString;
 }
 
-void HudService::ExecuteQuery(const QDBusVariant &key, uint timestamp) {
-	QString sender("local");
-	if (calledFromDBus()) {
-		sender = message().service();
-	}
+void HudService::ExecuteQuery(const QDBusVariant &querykey, uint timestamp) {
+	Q_UNUSED(querykey);
+	Q_UNUSED(timestamp);
+
+	QString sender(messageSender());
 
 	qDebug() << "ExecuteQuery" << sender << timestamp;
 }
 
 void HudService::CloseQuery(const QDBusVariant &querykey) {
-	QString sender("local");
-	if (calledFromDBus()) {
-		sender = message().service();
-	}
+	Q_UNUSED(querykey);
+	QString sender(messageSender());
+
+	qDebug() << "CloseQuery";
 
 	// We don't actually close legacy queries, or we'd be constructing
 	// and destructing them during the search.

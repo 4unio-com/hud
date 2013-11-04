@@ -49,8 +49,74 @@ using namespace hud::common;
 
 ResultsModel::ResultsModel(unsigned int id) :
 		HudDee(RESULTS_FORMAT_STRING.arg(id).toStdString()) {
+
 	setSchema(results_model_schema, G_N_ELEMENTS(results_model_schema));
+
+	{
+		QList<QPair<int, int>> actionHighlights;
+		actionHighlights << QPair<int, int>(1, 2);
+
+		QList<QPair<int, int>> descriptionHighlights;
+		descriptionHighlights << QPair<int, int>(3, 4);
+
+		addResult(0, "command 1", actionHighlights, "description 1",
+				descriptionHighlights, "shortcut 1", 1, false);
+	}
+	flush();
 }
 
 ResultsModel::~ResultsModel() {
+}
+
+void ResultsModel::addResult(unsigned int id, const QString &commandName,
+		const QList<QPair<int, int>> actionHighlights,
+		const QString &description,
+		const QList<QPair<int, int>> descriptionHighlights,
+		const QString &shortcut, int distance, bool parameterized) {
+
+	GVariant *actionh = NULL;
+	if (actionHighlights.isEmpty()) {
+		actionh = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+	} else {
+		GVariantBuilder builder;
+		g_variant_builder_init(&builder, G_VARIANT_TYPE("a(ii)"));
+		for (const QPair<int, int> &highlight : actionHighlights) {
+			g_variant_builder_add(&builder, "(ii)", highlight.first,
+					highlight.second);
+		}
+		actionh = g_variant_builder_end(&builder);
+	}
+
+	GVariant *desch = NULL;
+	if (descriptionHighlights.isEmpty()) {
+		desch = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
+	} else {
+		GVariantBuilder builder;
+		g_variant_builder_init(&builder, G_VARIANT_TYPE("a(ii)"));
+		for (const QPair<int, int> &highlight : descriptionHighlights) {
+			g_variant_builder_add(&builder, "(ii)", highlight.first,
+					highlight.second);
+		}
+		desch = g_variant_builder_end(&builder);
+	}
+
+	GVariant *columns[HUD_QUERY_RESULTS_COUNT + 1];
+	columns[HUD_QUERY_RESULTS_COMMAND_ID] = g_variant_new_variant(
+			g_variant_new_uint64(id));
+	columns[HUD_QUERY_RESULTS_COMMAND_NAME] = g_variant_new_string(
+			commandName.toUtf8().data());
+	columns[HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS] = actionh;
+	columns[HUD_QUERY_RESULTS_DESCRIPTION] = g_variant_new_string(
+			description.toUtf8().data());
+	columns[HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS] = desch;
+	columns[HUD_QUERY_RESULTS_SHORTCUT] = g_variant_new_string(
+			shortcut.toUtf8().data());
+	columns[HUD_QUERY_RESULTS_DISTANCE] = g_variant_new_uint32(distance);
+	columns[HUD_QUERY_RESULTS_PARAMETERIZED] = g_variant_new_boolean(
+			parameterized);
+	columns[HUD_QUERY_RESULTS_COUNT] = NULL;
+
+	appendRow(columns);
+
+//	dee_model_set_tag(query->results_model, iter, query->results_tag, result);
 }

@@ -10,6 +10,10 @@
 
 #include <common/HudDee.h>
 
+#include <QList>
+#include <QPair>
+#include <QString>
+
 namespace hud {
 namespace common {
 
@@ -18,6 +22,11 @@ public:
 	ResultsModel(unsigned int id);
 
 	virtual ~ResultsModel();
+
+	void addResult(unsigned int id, const QString &command,
+			const QList<QPair<int, int>> highlights, const QString &description,
+			const QList<QPair<int, int>> descriptionHighlights,
+			const QString &shortcut, int distance, bool parameterized);
 };
 
 }

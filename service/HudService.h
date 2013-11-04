@@ -52,7 +52,7 @@ public:
 	Q_PROPERTY(QList<QDBusObjectPath> OpenQueries READ openQueries)
 	QList<QDBusObjectPath> openQueries() const;
 
-	void closeQuery(const QDBusObjectPath &path);
+	Query::Ptr closeQuery(const QDBusObjectPath &path);
 
 public Q_SLOTS:
 	QDBusObjectPath RegisterApplication(const QString &id);
@@ -86,6 +86,8 @@ protected:
 	QMap<QString, Query::Ptr> m_legacyQueries;
 
 	QSharedPointer<ApplicationList> m_applicationList;
+
+	QString messageSender();
 };
 
 }

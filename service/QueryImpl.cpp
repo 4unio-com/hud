@@ -76,6 +76,7 @@ void QueryImpl::CloseQuery() {
 }
 
 void QueryImpl::ExecuteCommand(const QDBusVariant &item, uint timestamp) {
+	qDebug() << "ExecuteCommand" << item.variant() << timestamp;
 }
 
 QString QueryImpl::ExecuteParameterized(const QDBusVariant &item,
@@ -85,20 +86,23 @@ QString QueryImpl::ExecuteParameterized(const QDBusVariant &item,
 }
 
 void QueryImpl::ExecuteToolbar(const QString &item, uint timestamp) {
-
+	qDebug() << "ExecuteToolbar" << item << timestamp;
 }
 
 int QueryImpl::UpdateApp(const QString &app) {
+	qDebug() << "UpdateApp" << app;
 	return 0;
 }
 
 int QueryImpl::UpdateQuery(const QString &query) {
+	qDebug() << "UpdateQuery" << query;
 	m_query = query;
-	qDebug() << "query updated to" << query;
 	return 0;
 }
 
 int QueryImpl::VoiceQuery(QString &query) {
+	qDebug() << "VoiceQuery";
+
 	query = QString("no voice yet");
 	return 0;
 }
