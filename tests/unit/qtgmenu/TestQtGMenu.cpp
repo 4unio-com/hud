@@ -18,9 +18,6 @@ gboolean mainloop_timeout (gpointer user_data)
 
 TEST(TestQtGMenu, ExportImportMenu)
 {
-    int argc = 0;
-    QApplication a(argc, nullptr);
-
     GMainLoop* mainloop = g_main_loop_new (NULL, FALSE);
 
     g_bus_own_name (G_BUS_TYPE_SESSION, "com.canonical.qtgmenu", G_BUS_NAME_OWNER_FLAGS_NONE,
@@ -36,6 +33,11 @@ TEST(TestQtGMenu, ExportImportMenu)
     g_menu_append (menu, "Del", "app.del");
     g_menu_append (menu, "Quit", "app.quit");
 
+    g_main_loop_unref(mainloop);
+
+    int argc = 0;
+    QApplication a(argc, nullptr);
+
     QtGMenuImporter importer( "com.canonical.qtgmenu", "/com/canonical/qtgmenu" );
 
     auto qmenu = importer.menu();
@@ -43,15 +45,11 @@ TEST(TestQtGMenu, ExportImportMenu)
 
     guint export_id = g_dbus_connection_export_menu_model (connection, "/com/canonical/qtgmenu", G_MENU_MODEL (menu), NULL);
 
-    g_timeout_add (500, mainloop_timeout, mainloop);
-    g_main_loop_run (mainloop);
-
     qmenu = importer.menu();
     EXPECT_NE( nullptr, qmenu );
 
     g_object_unref(menu);
     g_object_unref(connection);
-    g_main_loop_unref(mainloop);
 }
 
 } // namespace
