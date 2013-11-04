@@ -10,8 +10,7 @@ add_executable(
 
 target_link_libraries(
         qtgmenu-unit-tests
-        test-utils
-        hud-service
+        qtgmenu
         ${GIO2_LIBRARIES}
         ${GTEST_LIBRARIES}
 	${GMOCK_LIBRARIES}

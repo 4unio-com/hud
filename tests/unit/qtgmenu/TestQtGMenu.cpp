@@ -1,21 +1,23 @@
 #include <gio/gio.h>
 #include <gtest/gtest.h>
 
-namespace {
+namespace
+{
 
 gboolean mainloop_timeout (gpointer user_data)
 {
-  GMainLoop* loop = (GMainLoop*)user_data;
-  g_main_loop_quit(loop);
-  return FALSE;
+    GMainLoop* loop = (GMainLoop*)user_data;
+    g_main_loop_quit(loop);
+    return FALSE;
 }
 
-static void items_changed_event (GMenuModel * model, gint position, gint removed, gint added, gpointer user_data)
+static void items_changed_event (GMenuModel* model, gint position, gint removed, gint added, gpointer user_data)
 {
     std::cout << "items changed";
 }
 
-TEST(TestQtGMenu, ExportImportMenu) {
+TEST(TestQtGMenu, ExportImportMenu)
+{
     GMainLoop* mainloop = g_main_loop_new (NULL, FALSE);
 
     g_bus_own_name (G_BUS_TYPE_SESSION, "com.canonical.qtgmenu", G_BUS_NAME_OWNER_FLAGS_NONE,
@@ -37,9 +39,9 @@ TEST(TestQtGMenu, ExportImportMenu) {
     g_main_loop_run (mainloop);
 
     GMenuModel* model = G_MENU_MODEL( g_dbus_menu_model_get(
-      connection,
-      "com.canonical.qtgmenu",
-      "/com/canonical/qtgmenu") );
+                                          connection,
+                                          "com.canonical.qtgmenu",
+                                          "/com/canonical/qtgmenu") );
 
     gboolean is_mutable = g_menu_model_is_mutable(model);
 
