@@ -64,7 +64,7 @@ QString QueryImpl::currentQuery() const {
 }
 
 QString QueryImpl::resultsModel() const {
-	return QString::fromStdString(m_appstackModel->name());
+	return QString::fromStdString(m_resultsModel->name());
 }
 
 QStringList QueryImpl::toolbarItems() const {
@@ -89,6 +89,10 @@ void QueryImpl::ExecuteToolbar(const QString &item, uint timestamp) {
 	qDebug() << "ExecuteToolbar" << item << timestamp;
 }
 
+/**
+ * This means that the user has clicked on an application
+ * in the HUD user interface.
+ */
 int QueryImpl::UpdateApp(const QString &app) {
 	qDebug() << "UpdateApp" << app;
 	return 0;
@@ -96,13 +100,18 @@ int QueryImpl::UpdateApp(const QString &app) {
 
 int QueryImpl::UpdateQuery(const QString &query) {
 	qDebug() << "UpdateQuery" << query;
+	if (m_query == query) {
+		return 0;
+	}
 	m_query = query;
+	//FIXME emit dbus property changed
 	return 0;
 }
 
 int QueryImpl::VoiceQuery(QString &query) {
 	qDebug() << "VoiceQuery";
 
-	query = QString("no voice yet");
+	query = QString();
+	UpdateQuery(query);
 	return 0;
 }
