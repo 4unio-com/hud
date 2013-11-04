@@ -198,8 +198,10 @@ QStringList BamfWindowStack::GetWindowProperties(uint windowId,
 	QStringList result;
 	auto window = m_windowsById[windowId];
 
-	if (window == nullptr)
+	if (window == nullptr) {
+		sendErrorReply(QDBusError::InvalidArgs, "Unable to find windowId");
 		return result;
+	}
 
 	for (const QString &name : names) {
 		result << window->xProp(name);
