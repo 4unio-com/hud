@@ -128,6 +128,7 @@ hud_window_info_get_utf8_properties(HudWindowInfo *self,
 		const gchar * const *property_names) {
 	gchar **result = NULL;
 	GError *error = NULL;
+
 	if (!dbus_window_stack_call_get_window_properties_sync(self->window_stack,
 			self->window_id, self->app_id, property_names, &result, NULL,
 			&error)) {
@@ -135,5 +136,12 @@ hud_window_info_get_utf8_properties(HudWindowInfo *self,
 		g_error_free(error);
 		return NULL;
 	}
+
+	if (g_strv_length(result) != g_strv_length((gchar **)property_names)) {
+		g_warning("Unable to get all properties from Window Switcher");
+		g_strfreev(result);
+		result = NULL;
+	}
+
 	return result;
 }
