@@ -18,22 +18,19 @@ namespace common {
 class AppstackModel: public HudDee {
 public:
 	typedef enum {
-		HUD_SOURCE_ITEM_TYPE_FOCUSED_APP,
-		HUD_SOURCE_ITEM_TYPE_SIDESTAGE_APP,
-		HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP,
-		HUD_SOURCE_ITEM_TYPE_INDICATOR,
+		ITEM_TYPE_FOCUSED_APP,
+		ITEM_TYPE_SIDESTAGE_APP,
+		ITEM_TYPE_BACKGROUND_APP,
+		ITEM_TYPE_INDICATOR,
 	} ItemType;
 
 	AppstackModel(unsigned int id);
 
 	virtual ~AppstackModel();
 
-	//FIXME This will take arguments when it's actually implemented
-	void setApplications();
-
-protected:
 	void addApplication(const QString &applicationId, const QString &iconName,
 			ItemType itemType);
+protected:
 };
 
 }

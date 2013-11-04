@@ -16,8 +16,10 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
+#include <common/Localisation.h>
 #include <common/Suggestion.h>
 
+#include <QDebug>
 #include <QDBusMetaType>
 
 using namespace hud::common;
@@ -42,8 +44,88 @@ const QDBusArgument & operator>>(const QDBusArgument &argument,
 	return argument;
 }
 
-Suggestion::Suggestion() {
+static QString buildLegacyHighlights(const QString &input,
+		const QList<QPair<int, int>> &highlights) {
 
+	// If there are no highlights, there's no work to do
+	if (highlights.isEmpty()) {
+		return input;
+	}
+
+	QString result;
+
+	int current(0);
+
+	for (const QPair<int, int> &pair : highlights) {
+		int start(pair.first);
+		int stop(pair.second);
+
+		// In theory there should be no overlapping, but we
+		// want to make sure
+		if (start < current) {
+			qWarning() << "Overlapping highlighting.  At character" << current
+					<< "and asked to highlight from" << start << "to" << stop;
+			continue;
+		}
+
+		// Get to the start of the highlight
+		int initialSkip = start - current;
+		if (initialSkip > 0) {
+			result.append(input.midRef(current, initialSkip));
+		}
+
+		result.append("<b>");
+
+		// Copy the characters in the highlight
+		int highlightSkip = stop - start;
+		if (highlightSkip > 0) {
+			result.append(input.midRef(start, highlightSkip));
+		} else {
+			qWarning() << "Zero character highlight!";
+		}
+
+		result.append("</b>");
+
+		current = stop;
+	}
+
+	int remaining(input.length() - current);
+	if (remaining > 0) {
+		result.append(input.midRef(current, remaining));
+	}
+
+	return result;
+}
+
+Suggestion::Suggestion() {
+}
+
+/**
+ * Builds a single line pango formated description for
+ * the legacy HUD UI.
+ **/
+Suggestion::Suggestion(qulonglong id, const QString &commandName,
+		const QList<QPair<int, int>> &commandHighlights,
+		const QString &description,
+		const QList<QPair<int, int>> &descriptionHighlights,
+		const QString &icon) :
+		m_icon(icon), m_id(id) {
+
+	if (description.isEmpty()) {
+		m_description = commandName;
+	} else {
+		QString cmdHighlights(
+				buildLegacyHighlights(commandName, commandHighlights));
+		QString descHighlights(
+				buildLegacyHighlights(description, descriptionHighlights));
+
+		// TRANSLATORS: This is what is shown for Unity Nux in
+		// the HUD entries.  %1 is the command name and %2 is a
+		// description or list of keywords that
+		// was used to find the entry.
+		m_description = QString(_("%1\xE2\x80\x82(%2)")).arg(cmdHighlights,
+				descHighlights);
+	}
 }
 
 Suggestion::~Suggestion() {

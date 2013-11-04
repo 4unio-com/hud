@@ -39,12 +39,51 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query, HudService &service,
 				_("Unable to register HUD query object on DBus"));
 	}
 
+	//FIXME Dummy data
+	{
+		QList<QPair<int, int>> commandHighlights;
+		commandHighlights << QPair<int, int>(1, 5);
+		commandHighlights << QPair<int, int>(8, 9);
+
+		QList<QPair<int, int>> descriptionHighlights;
+		descriptionHighlights << QPair<int, int>(3, 4);
+
+		m_results
+				<< Result(0, "command 1", commandHighlights, "description 1",
+						descriptionHighlights, "shortcut 1", 1, false);
+	}
+
+	{
+		QList<QPair<int, int>> commandHighlights;
+		commandHighlights << QPair<int, int>(2, 3);
+
+		QList<QPair<int, int>> descriptionHighlights;
+		descriptionHighlights << QPair<int, int>(4, 5);
+
+		m_results
+				<< Result(1, "command 2", commandHighlights, "description 2",
+						descriptionHighlights, "shortcut 2", 2, false);
+	}
+
 	m_resultsModel.reset(new ResultsModel(id));
 	m_appstackModel.reset(new AppstackModel(id));
 
-	//FIXME This will change to actually do something with results and the appstack
-	m_resultsModel->setResults();
-	m_appstackModel->setApplications();
+	m_resultsModel->beginChangeset();
+	for (const Result &result : m_results) {
+		m_resultsModel->addResult(result.id(), result.commandName(),
+				result.commandHighlights(), result.description(),
+				result.descriptionHighlights(), result.shortcut(),
+				result.distance(), result.parameterized());
+	}
+	m_resultsModel->endChangeset();
+
+	//FIXME Dummy data
+	m_appstackModel->beginChangeset();
+	m_appstackModel->addApplication("test-app-1", "icon 1",
+			AppstackModel::ITEM_TYPE_FOCUSED_APP);
+	m_appstackModel->addApplication("test-app-2", "icon 2",
+			AppstackModel::ITEM_TYPE_BACKGROUND_APP);
+	m_appstackModel->endChangeset();
 
 	qDebug() << "Query constructed" << query << m_path.path();
 }
@@ -57,6 +96,10 @@ QueryImpl::~QueryImpl() {
 
 const QDBusObjectPath & QueryImpl::path() const {
 	return m_path;
+}
+
+const QList<Result> & QueryImpl::results() const {
+	return m_results;
 }
 
 QString QueryImpl::appstackModel() const {

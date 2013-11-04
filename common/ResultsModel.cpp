@@ -56,45 +56,19 @@ ResultsModel::ResultsModel(unsigned int id) :
 ResultsModel::~ResultsModel() {
 }
 
-void ResultsModel::setResults() {
-	beginChangeset();
-	{
-		QList<QPair<int, int>> actionHighlights;
-		actionHighlights << QPair<int, int>(1, 2);
-
-		QList<QPair<int, int>> descriptionHighlights;
-		descriptionHighlights << QPair<int, int>(3, 4);
-
-		addResult(0, "command 1", actionHighlights, "description 1",
-				descriptionHighlights, "shortcut 1", 1, false);
-	}
-
-	{
-		QList<QPair<int, int>> actionHighlights;
-		actionHighlights << QPair<int, int>(1, 2);
-
-		QList<QPair<int, int>> descriptionHighlights;
-		descriptionHighlights << QPair<int, int>(3, 4);
-
-		addResult(1, "command 2", actionHighlights, "description 2",
-				descriptionHighlights, "shortcut 2", 2, false);
-	}
-	endChangeset();
-}
-
-void ResultsModel::addResult(unsigned int id, const QString &commandName,
-		const QList<QPair<int, int>> actionHighlights,
+void ResultsModel::addResult(qulonglong id, const QString &commandName,
+		const QList<QPair<int, int>> &commandHighlights,
 		const QString &description,
-		const QList<QPair<int, int>> descriptionHighlights,
+		const QList<QPair<int, int>> &descriptionHighlights,
 		const QString &shortcut, int distance, bool parameterized) {
 
 	GVariant *actionh = NULL;
-	if (actionHighlights.isEmpty()) {
+	if (commandHighlights.isEmpty()) {
 		actionh = g_variant_new_array(G_VARIANT_TYPE("(ii)"), NULL, 0);
 	} else {
 		GVariantBuilder builder;
 		g_variant_builder_init(&builder, G_VARIANT_TYPE("a(ii)"));
-		for (const QPair<int, int> &highlight : actionHighlights) {
+		for (const QPair<int, int> &highlight : commandHighlights) {
 			g_variant_builder_add(&builder, "(ii)", highlight.first,
 					highlight.second);
 		}
@@ -131,6 +105,4 @@ void ResultsModel::addResult(unsigned int id, const QString &commandName,
 	columns[HUD_QUERY_RESULTS_COUNT] = NULL;
 
 	appendRow(columns);
-
-//	dee_model_set_tag(query->results_model, iter, query->results_tag, result);
 }

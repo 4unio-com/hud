@@ -26,16 +26,16 @@ public:
 
 	const std::string & name() const;
 
+	void beginChangeset();
+
+	void endChangeset();
+
 protected:
 	void setSchema(const char* const *columnSchemas, unsigned int numColumns);
-
-	void beginChangeset();
 
 	void appendRow(GVariant **row_members);
 
 	void insertRowSorted(GVariant **row_members, CompareRowFunc cmp_func);
-
-	void endChangeset();
 
 	class Priv;
 

@@ -25,10 +25,10 @@ public:
 
 	void setResults();
 
-protected:
-	void addResult(unsigned int id, const QString &command,
-			const QList<QPair<int, int>> highlights, const QString &description,
-			const QList<QPair<int, int>> descriptionHighlights,
+	void addResult(qulonglong id, const QString &command,
+			const QList<QPair<int, int>> &commandHighlights,
+			const QString &description,
+			const QList<QPair<int, int>> &descriptionHighlights,
 			const QString &shortcut, int distance, bool parameterized);
 };
 

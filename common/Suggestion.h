@@ -37,6 +37,12 @@ class Q_DECL_EXPORT Suggestion {
 public:
 	explicit Suggestion();
 
+	explicit Suggestion(qulonglong id, const QString &commandName,
+			const QList<QPair<int, int>> &commandHighlights,
+			const QString &description,
+			const QList<QPair<int, int>> &descriptionHighlights,
+			const QString &icon);
+
 	virtual ~Suggestion();
 
 	static void registerMetaTypes();

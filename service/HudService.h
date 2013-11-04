@@ -23,7 +23,9 @@
 #include <service/Query.h>
 
 #include <QDBusContext>
+#include <QList>
 #include <QMap>
+#include <QPair>
 #include <QScopedPointer>
 #include <QSharedPointer>
 

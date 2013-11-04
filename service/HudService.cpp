@@ -110,19 +110,24 @@ QString HudService::StartQuery(const QString &queryString, int entries,
 		query->UpdateQuery(queryString);
 	}
 
-	suggestions = QList<Suggestion>();
+	//FIXME Hard-coded icon value
+	for (const Result &result : query->results()) {
+		suggestions
+				<< Suggestion(result.id(), result.commandName(),
+						result.commandHighlights(), result.description(),
+						result.descriptionHighlights(), QString("icon"));
+	}
 	querykey.setVariant(query->path().path());
 
 	return queryString;
 }
 
-void HudService::ExecuteQuery(const QDBusVariant &querykey, uint timestamp) {
-	Q_UNUSED(querykey);
+void HudService::ExecuteQuery(const QDBusVariant &itemKey, uint timestamp) {
 	Q_UNUSED(timestamp);
 
 	QString sender(messageSender());
 
-	qDebug() << "ExecuteQuery" << sender << timestamp;
+	qDebug() << "ExecuteQuery" << sender << itemKey.variant() << timestamp;
 }
 
 void HudService::CloseQuery(const QDBusVariant &querykey) {
@@ -132,7 +137,8 @@ void HudService::CloseQuery(const QDBusVariant &querykey) {
 	qDebug() << "CloseQuery";
 
 	// We don't actually close legacy queries, or we'd be constructing
-	// and destructing them during the search.
+	// and destructing them during the search due to the way that
+	// unity7 uses the API.
 	Query::Ptr query(m_legacyQueries[sender]);
 	if (!query.isNull()) {
 		query->UpdateQuery(QString());

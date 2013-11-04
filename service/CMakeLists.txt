@@ -17,6 +17,7 @@ set(HUD_SERVICE_LIB_SOURCES
   ItemStore.cpp
   Query.cpp
   QueryImpl.cpp
+  Result.cpp
   Window.cpp
   WindowImpl.cpp
 )

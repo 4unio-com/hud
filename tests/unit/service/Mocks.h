@@ -57,6 +57,8 @@ public:
 
 	MOCK_CONST_METHOD0(path, const QDBusObjectPath &());
 
+	MOCK_CONST_METHOD0(results, const QList<Result> &());
+
 	MOCK_METHOD1(UpdateQuery, int(const QString &));
 };
 

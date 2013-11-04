@@ -47,6 +47,8 @@ public:
 
 	const QDBusObjectPath & path() const;
 
+	const QList<Result> & results() const;
+
 	QString appstackModel() const;
 
 	QString currentQuery() const;
@@ -73,6 +75,7 @@ public Q_SLOTS:
 
 	int VoiceQuery(QString &query);
 
+
 protected:
 	QScopedPointer<QueryAdaptor> m_adaptor;
 
@@ -87,6 +90,8 @@ protected:
 	QSharedPointer<hud::common::ResultsModel> m_resultsModel;
 
 	QSharedPointer<hud::common::AppstackModel> m_appstackModel;
+
+	QList<Result> m_results;
 };
 
 }

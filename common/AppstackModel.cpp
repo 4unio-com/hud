@@ -41,13 +41,6 @@ AppstackModel::AppstackModel(unsigned int id) :
 AppstackModel::~AppstackModel() {
 }
 
-void AppstackModel::setApplications() {
-	beginChangeset();
-	addApplication("test-app-1", "icon 1", HUD_SOURCE_ITEM_TYPE_FOCUSED_APP);
-	addApplication("test-app-2", "icon 2", HUD_SOURCE_ITEM_TYPE_BACKGROUND_APP);
-	endChangeset();
-}
-
 static gint appstack_sort(GVariant **row1, GVariant **row2,
 		gpointer user_data) {
 	Q_UNUSED(user_data);
