@@ -56,13 +56,7 @@ static void append(QString &result, const QString& input, int start, int end) {
 static QString buildLegacyHighlights(const QString &input,
 		const QList<QPair<int, int>> &highlights) {
 
-	// If there are no highlights, there's no work to do
-	if (highlights.isEmpty()) {
-		return input;
-	}
-
 	QString result;
-
 	int current(0);
 
 	for (const QPair<int, int> &pair : highlights) {
