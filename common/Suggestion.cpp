@@ -21,6 +21,7 @@
 
 #include <QDebug>
 #include <QDBusMetaType>
+#include <glib.h>
 
 using namespace hud::common;
 
@@ -42,6 +43,14 @@ const QDBusArgument & operator>>(const QDBusArgument &argument,
 			>> suggestion.m_unknown3 >> suggestion.m_id;
 	argument.endStructure();
 	return argument;
+}
+
+static void append(QString &result, const QString& input, int start, int end) {
+	QStringRef substring(input.midRef(start, end));
+	char *temp = g_markup_escape_text(substring.toUtf8().data(),
+			substring.length());
+	result.append(temp);
+	g_free(temp);
 }
 
 static QString buildLegacyHighlights(const QString &input,
@@ -71,7 +80,7 @@ static QString buildLegacyHighlights(const QString &input,
 		// Get to the start of the highlight
 		int initialSkip = start - current;
 		if (initialSkip > 0) {
-			result.append(input.midRef(current, initialSkip));
+			append(result, input, current, initialSkip);
 		}
 
 		result.append("<b>");
@@ -79,7 +88,7 @@ static QString buildLegacyHighlights(const QString &input,
 		// Copy the characters in the highlight
 		int highlightSkip = stop - start;
 		if (highlightSkip > 0) {
-			result.append(input.midRef(start, highlightSkip));
+			append(result, input, start, highlightSkip);
 		} else {
 			qWarning() << "Zero character highlight!";
 		}
@@ -91,7 +100,7 @@ static QString buildLegacyHighlights(const QString &input,
 
 	int remaining(input.length() - current);
 	if (remaining > 0) {
-		result.append(input.midRef(current, remaining));
+		append(result, input, current, remaining);
 	}
 
 	return result;
