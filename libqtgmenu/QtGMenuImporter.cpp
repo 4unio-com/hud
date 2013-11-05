@@ -10,28 +10,22 @@ namespace qtgmenu
 QtGMenuImporter::QtGMenuImporter(const QString& service, const QString& path, QObject* parent)
     : QObject(parent),
       d(new QtGMenuImporterPrivate( service, path ))
-{   
+{
 }
 
 QtGMenuImporter::~QtGMenuImporter()
 {
-    delete d;
 }
 
-std::shared_ptr< QMenu > QtGMenuImporter::menu() const
+std::shared_ptr<QMenu> QtGMenuImporter::Menu() const
 {
     GMenuModel* model = d->GetGMenuModel();
-    if( model == nullptr )
+    if ( model == nullptr )
     {
         return nullptr;
     }
 
-    g_object_unref(model);
     return d->GetQMenu();
-}
-
-void QtGMenuImporter::updateMenu()
-{
 }
 
 } // namespace qtgmenu

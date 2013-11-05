@@ -22,10 +22,7 @@ public:
     QtGMenuImporter(const QString& service, const QString& path, QObject* parent = 0);
     ~QtGMenuImporter();
 
-    std::shared_ptr<QMenu> menu() const;
-
-public Q_SLOTS:
-    void updateMenu();
+    std::shared_ptr<QMenu> Menu() const;
 
 Q_SIGNALS:
     void menuUpdated();
@@ -34,7 +31,7 @@ Q_SIGNALS:
 
 private:
     Q_DISABLE_COPY(QtGMenuImporter)
-    QtGMenuImporterPrivate* const d;
+    std::unique_ptr<QtGMenuImporterPrivate> d;
 
     friend class QtGMenuImporterPrivate;
 };

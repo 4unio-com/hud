@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QDBusConnection>
+#include <memory>
 
 class QAction;
 class QMenu;
@@ -34,7 +35,7 @@ private Q_SLOTS:
 
 private:
     Q_DISABLE_COPY(QtGMenuExporter)
-    QtGMenuExporterPrivate* const d;
+    std::unique_ptr<QtGMenuExporterPrivate> d;
 
     friend class QtGMenuExporterPrivate;
 };

@@ -11,13 +11,12 @@ class QtGMenuExporterPrivate
 
 QtGMenuExporter::QtGMenuExporter(const QString& objectPath, QMenu* menu, const QDBusConnection& _connection)
     : QObject(menu),
-      d(new QtGMenuExporterPrivate)
+      d(new QtGMenuExporterPrivate())
 {
 }
 
 QtGMenuExporter::~QtGMenuExporter()
 {
-    delete d;
 }
 
 void QtGMenuExporter::doUpdateActions()
