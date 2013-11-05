@@ -66,24 +66,54 @@ const QDBusObjectPath & ApplicationImpl::path() const {
 }
 
 QList<ActionGroup> ApplicationImpl::actionGroups() const {
+	qDebug() << "actionGroups";
 	return QList<ActionGroup>();
 }
 
-QString ApplicationImpl::desktopPath() const {
-	return QString();
+QString ApplicationImpl::desktopPath() {
+	if (m_desktopPath.isEmpty()) {
+		QString desktopFile(QString("%1.desktop").arg(m_applicationId));
+
+		QStringList xdgDataDirs(
+				QString::fromUtf8(qgetenv("XDG_DATA_DIRS")).split(':'));
+		for (const QString &dir : xdgDataDirs) {
+			QString desktopPath(
+					QDir(QDir(dir).filePath("applications")).filePath(
+							desktopFile));
+			if (QFile::exists(desktopPath)) {
+				m_desktopPath = desktopPath;
+				break;
+			}
+		}
+	}
+
+	return m_desktopPath;
 }
 
-QString ApplicationImpl::icon() const {
-	return QString();
+QString ApplicationImpl::icon() {
+	if (m_icon.isEmpty()) {
+		QString path(desktopPath());
+		if (!path.isEmpty()) {
+			QSettings settings(path, QSettings::IniFormat);
+			settings.beginGroup("Desktop Entry");
+			m_icon = settings.value("Icon").toString();
+			settings.endGroup();
+		}
+	}
+
+	return m_icon;
 }
 
 QList<MenuModel> ApplicationImpl::menuModels() const {
+	qDebug() << "menuModels";
 	return QList<MenuModel>();
 }
 
 void ApplicationImpl::AddSources(const QList<Action> &actions,
 		const QList<Description> &descriptions) {
+	qDebug() << "AddSources";
 }
 
 void ApplicationImpl::SetWindowContext(uint window, const QString &context) {
+	qDebug() << "SetWindowContext";
 }
