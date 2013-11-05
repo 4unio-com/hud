@@ -53,6 +53,10 @@ static void append(QString &result, const QString& input, int start, int end) {
 	g_free(temp);
 }
 
+/**
+ * Builds a single line pango formatted description for
+ * the legacy HUD UI.
+ */
 static QString buildLegacyHighlights(const QString &input,
 		const QList<QPair<int, int>> &highlights) {
 
@@ -103,10 +107,6 @@ static QString buildLegacyHighlights(const QString &input,
 Suggestion::Suggestion() {
 }
 
-/**
- * Builds a single line pango formatted description for
- * the legacy HUD UI.
- **/
 Suggestion::Suggestion(qulonglong id, const QString &commandName,
 		const QList<QPair<int, int>> &commandHighlights,
 		const QString &description,
