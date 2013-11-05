@@ -49,6 +49,7 @@ HudService::~HudService() {
 }
 
 QDBusObjectPath HudService::RegisterApplication(const QString &id) {
+	qDebug() << "RegisterApplication" << id;
 	return QDBusObjectPath("/");
 }
 
@@ -60,18 +61,23 @@ QList<QDBusObjectPath> HudService::openQueries() const {
 	return m_queries.keys();
 }
 
+Query::Ptr HudService::createQuery(const QString &query) {
+	Query::Ptr hudQuery(m_factory.newQuery(query));
+	m_queries[hudQuery->path()] = hudQuery;
+
+	return hudQuery;
+}
+
 QDBusObjectPath HudService::CreateQuery(const QString &query,
 		QString &resultsName, QString &appstackName, int &modelRevision) {
 
-	Query::Ptr hudQuery(m_factory.newQuery(query));
-
-	m_queries[hudQuery->path()] = hudQuery;
+	Query::Ptr hudQuery(createQuery(query));
 
 	resultsName = hudQuery->resultsModel();
 	appstackName = hudQuery->appstackModel();
 	modelRevision = 0;
 
-	return QDBusObjectPath(hudQuery->path());
+	return hudQuery->path();
 }
 
 Query::Ptr HudService::closeQuery(const QDBusObjectPath &path) {
@@ -95,28 +101,28 @@ QString HudService::StartQuery(const QString &queryString, int entries,
 
 	QString sender(messageSender());
 
-	QString resultsName;
-	QString appstackName;
-	int modelRevision;
-
 	Query::Ptr query(m_legacyQueries[sender]);
 	if (query.isNull()) {
-		QDBusObjectPath path(
-				CreateQuery(queryString, resultsName, appstackName,
-						modelRevision));
-		query = m_queries[path];
+		query = createQuery(queryString);
 		m_legacyQueries[sender] = query;
 	} else {
 		query->UpdateQuery(queryString);
 	}
 
 	//FIXME Hard-coded icon value
+	unsigned int count(0);
 	for (const Result &result : query->results()) {
+		if (count >= entries) {
+			break;
+		}
+
 		suggestions
 				<< Suggestion(result.id(), result.commandName(),
 						result.commandHighlights(), result.description(),
 						result.descriptionHighlights(), QString("icon"));
+		++count;
 	}
+
 	querykey.setVariant(query->path().path());
 
 	return queryString;
@@ -137,7 +143,7 @@ void HudService::CloseQuery(const QDBusVariant &querykey) {
 	qDebug() << "CloseQuery";
 
 	// We don't actually close legacy queries, or we'd be constructing
-	// and destructing them during the search due to the way that
+	// and destructing them during the search, due to the way that
 	// Unity7 uses the API.
 	Query::Ptr query(m_legacyQueries[sender]);
 	if (!query.isNull()) {
