@@ -29,9 +29,6 @@ private:
 
   bool RefreshGMenuModel();
 
-  void StopRefreshThread();
-  void RefreshThread();
-
 private:
   QtGMenuImporter& m_parent;
 
@@ -41,11 +38,6 @@ private:
 
   GMenuModel* m_gmenu_model;
   std::shared_ptr< QMenu > m_qmenu;
-
-  bool m_refresh_thread_stop = false;
-  bool m_refresh_thread_stopped = false;
-  std::mutex m_gmenu_model_mutex;
-  std::thread m_refresh_thread = std::thread( &QtGMenuImporterPrivate::RefreshThread, this );
 };
 
 } // namespace qtgmenu

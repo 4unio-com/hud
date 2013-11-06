@@ -19,13 +19,6 @@ QtGMenuImporter::~QtGMenuImporter()
 
 std::shared_ptr< QMenu > QtGMenuImporter::Menu() const
 {
-  GMenuModel *model = d->GetGMenuModel();
-
-  if( model == nullptr )
-  {
-    return nullptr;
-  }
-
   return d->GetQMenu();
 }
 

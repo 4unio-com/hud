@@ -23,8 +23,6 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QS
 
 QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
 {
-  StopRefreshThread();
-
   g_object_unref( m_connection );
 
   if( m_gmenu_model != nullptr )
@@ -42,6 +40,13 @@ GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
 
 std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
 {
+  RefreshGMenuModel();
+
+  if( m_gmenu_model == nullptr )
+  {
+    return nullptr;
+  }
+
   return m_qmenu;
 }
 
@@ -55,8 +60,6 @@ void QtGMenuImporterPrivate::MenuItemsChanged( GMenuModel* model, gint position,
 
 bool QtGMenuImporterPrivate::RefreshGMenuModel()
 {
-  std::lock_guard < std::mutex > lock( m_gmenu_model_mutex );
-
   if( m_gmenu_model != nullptr )
   {
     return true;
@@ -66,7 +69,7 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
       G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str()) );
 
   gulong sig_handler =
-      g_signal_connect(m_gmenu_model, "items-changed", G_CALLBACK (MenuItemsChanged), &m_parent);
+      g_signal_connect( m_gmenu_model, "items-changed", G_CALLBACK( MenuItemsChanged ), &m_parent );
 
   gint item_count = g_menu_model_get_n_items( m_gmenu_model );
 
@@ -74,8 +77,8 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   {
     QEventLoop loop;
     QTimer timeout;
-    loop.connect( &m_parent, SIGNAL(MenuItemsChanged()), SLOT(quit()) );
-    timeout.singleShot( 100, &loop, SLOT(quit()) );
+    loop.connect( &m_parent, SIGNAL( MenuItemsChanged() ), SLOT( quit() ) );
+    timeout.singleShot( 100, &loop, SLOT( quit() ) );
     loop.exec(); // blocks until MenuItemsChanged fires or timeout reached
 
     item_count = g_menu_model_get_n_items( m_gmenu_model );
@@ -90,32 +93,6 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   }
 
   return true;
-}
-
-void QtGMenuImporterPrivate::StopRefreshThread()
-{
-  // set m_refresh_thread_stop flag (notify RefreshThread to exit)
-  m_refresh_thread_stop = true;
-
-  // wait until RefreshThread exits
-  while( !m_refresh_thread_stopped )
-  {
-    std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
-  }
-
-  // join with m_refresh_thread
-  m_refresh_thread.join();
-}
-
-void QtGMenuImporterPrivate::RefreshThread()
-{
-  while( m_gmenu_model == nullptr && !m_refresh_thread_stop )
-  {
-    RefreshGMenuModel();
-  }
-
-  // set m_stopped flag (notify StopMainLoop() that the thread has exited)
-  m_refresh_thread_stopped = true;
 }
 
 } // namespace qtgmenu

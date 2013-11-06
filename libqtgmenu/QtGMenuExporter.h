@@ -18,8 +18,8 @@ class QtGMenuExporter final : public QObject
 Q_OBJECT
 
 public:
-  QtGMenuExporter( const QString& dbusObjectPath, QMenu* menu,
-      const QDBusConnection& dbusConnection = QDBusConnection::sessionBus() );
+  QtGMenuExporter( const QString& dbusObjectPath, QMenu* menu, const QDBusConnection& connection =
+      QDBusConnection::sessionBus() );
   ~QtGMenuExporter();
 
 private Q_SLOTS:

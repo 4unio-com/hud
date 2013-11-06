@@ -9,8 +9,8 @@ class QtGMenuExporterPrivate
 {
 };
 
-QtGMenuExporter::QtGMenuExporter( const QString &objectPath, QMenu *menu,
-    const QDBusConnection &_connection )
+QtGMenuExporter::QtGMenuExporter( const QString& dbusObjectPath, QMenu* menu,
+    const QDBusConnection& connection )
     : QObject( menu ),
       d( new QtGMenuExporterPrivate() )
 {
