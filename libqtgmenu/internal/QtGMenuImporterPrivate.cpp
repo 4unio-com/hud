@@ -1,4 +1,5 @@
 #include <QtGMenuImporterPrivate.h>
+#include <QtGMenuConverter.h>
 
 #include <QEventLoop>
 #include <QTimer>
@@ -18,7 +19,7 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QS
       m_service( service.toStdString() ),
       m_path( path.toStdString() ),
       m_gmenu_model( nullptr ),
-      m_qmenu( new QMenu() )
+      m_qmenu( nullptr )
 {
 }
 
@@ -106,6 +107,7 @@ bool QtGMenuImporterPrivate::RefreshQMenu()
     return false;
   }
 
+  m_qmenu = QtGMenuConverter::ToQMenu( *m_gmenu_model );
   // convert m_gmenu_model to m_qmenu
   return true;
 }

@@ -2,7 +2,6 @@
 #define QTGMENUEXPORTERPRIVATE_H
 
 #include <QtGMenuImporter.h>
-#include <QtGMenuConverter.h>
 
 #include <QMenu>
 #include <memory>
@@ -33,7 +32,6 @@ private:
 
 private:
   QtGMenuImporter& m_parent;
-  QtGMenuConverter m_converter;
 
   GDBusConnection* m_connection;
   std::string m_service;

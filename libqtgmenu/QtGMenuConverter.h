@@ -2,7 +2,10 @@
 #define QTGMENUCONVERTER_H
 
 #include <memory>
-#include <QtCore>
+#include <QMenu>
+
+class _GMenuModel;
+typedef _GMenuModel GMenuModel;
 
 namespace qtgmenu
 {
@@ -14,6 +17,9 @@ class QtGMenuConverter final
 public:
   QtGMenuConverter();
   ~QtGMenuConverter();
+
+  static std::shared_ptr< QMenu > ToQMenu( const GMenuModel& from_menu );
+  static GMenuModel* ToGMenuModel( const QMenu& from_menu );
 
 private:
   Q_DISABLE_COPY(QtGMenuConverter)
