@@ -28,6 +28,7 @@ private:
       gpointer user_data );
 
   bool RefreshGMenuModel();
+  bool RefreshQMenu();
 
 private:
   QtGMenuImporter& m_parent;

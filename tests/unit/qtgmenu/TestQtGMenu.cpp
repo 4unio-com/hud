@@ -4,7 +4,7 @@
 #include <libqtgmenu/QtGMenuImporter.h>
 #include <QApplication>
 
-#include <thread>
+#include <QSignalSpy>
 
 using namespace qtgmenu;
 
@@ -21,7 +21,6 @@ TEST(TestQtGMenu, ExportImportMenu)
   GMenu* menu = g_menu_new();
   g_menu_append( menu, "Add", "app.add" );
   g_menu_append( menu, "Del", "app.del" );
-  g_menu_append( menu, "Quit", "app.quit" );
 
   QtGMenuImporter importer( "com.canonical.qtgmenu", "/com/canonical/qtgmenu" );
 
@@ -33,6 +32,18 @@ TEST(TestQtGMenu, ExportImportMenu)
 
   qmenu = importer.Menu();
   EXPECT_NE( nullptr, qmenu );
+
+  QSignalSpy itemsChangedSpy( &importer, SIGNAL( MenuItemsChanged() ) );
+
+  int item_count = importer.GetItemCount();
+  EXPECT_EQ( 2, item_count );
+
+  g_menu_append( menu, "Quit", "app.quit" );
+
+  itemsChangedSpy.wait();
+
+  item_count = importer.GetItemCount();
+  EXPECT_EQ( 3, item_count );
 
   g_object_unref( menu );
   g_object_unref( connection );

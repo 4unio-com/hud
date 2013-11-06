@@ -40,9 +40,12 @@ GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
 
 std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
 {
-  RefreshGMenuModel();
+  if( !RefreshGMenuModel() )
+  {
+    return nullptr;
+  }
 
-  if( m_gmenu_model == nullptr )
+  if( !RefreshQMenu() )
   {
     return nullptr;
   }
@@ -78,7 +81,7 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
     QEventLoop loop;
     QTimer timeout;
     loop.connect( &m_parent, SIGNAL( MenuItemsChanged() ), SLOT( quit() ) );
-    timeout.singleShot( 100, &loop, SLOT( quit() ) );
+    timeout.singleShot( 10, &loop, SLOT( quit() ) );
     loop.exec(); // blocks until MenuItemsChanged fires or timeout reached
 
     item_count = g_menu_model_get_n_items( m_gmenu_model );
@@ -94,5 +97,17 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
 
   return true;
 }
+
+bool QtGMenuImporterPrivate::RefreshQMenu()
+{
+  if( m_gmenu_model == nullptr )
+  {
+    return false;
+  }
+
+  // convert m_gmenu_model to m_qmenu
+  return true;
+}
+
 
 } // namespace qtgmenu

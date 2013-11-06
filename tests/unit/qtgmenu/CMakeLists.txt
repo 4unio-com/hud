@@ -8,6 +8,11 @@ add_executable(
     ${UNIT_TESTS_SRC}
 )
 
+qt5_use_modules(
+    qtgmenu-unit-tests
+    Test
+)
+
 target_link_libraries(
     qtgmenu-unit-tests
     qtgmenu
