@@ -63,8 +63,8 @@ TEST_F(TestHudService, OpenCloseQuery) {
 	ON_CALL(*query, resultsModel()).WillByDefault(Return(resultsModel));
 	ON_CALL(*query, appstackModel()).WillByDefault(Return(appstackModel));
 
-	EXPECT_CALL(factory, newQuery(0, QString("query text"))).Times(1).WillOnce(
-			Return(query));
+	EXPECT_CALL(factory, newQuery(QString("query text"), QString("local"))).Times(
+			1).WillOnce(Return(query));
 
 	QString resultsName;
 	QString appstackName;
@@ -111,9 +111,9 @@ TEST_F(TestHudService, CreateMultipleQueries) {
 	ON_CALL(*query1, resultsModel()).WillByDefault(Return(resultsModel1));
 	ON_CALL(*query1, appstackModel()).WillByDefault(Return(appstackModel1));
 
-	EXPECT_CALL(factory, newQuery(0, QString("query0"))).Times(1).WillOnce(
+	EXPECT_CALL(factory, newQuery(QString("query0"), QString("local"))).Times(1).WillOnce(
 			Return(query0));
-	EXPECT_CALL(factory, newQuery(1, QString("query1"))).Times(1).WillOnce(
+	EXPECT_CALL(factory, newQuery(QString("query1"), QString("local"))).Times(1).WillOnce(
 			Return(query1));
 
 	int modelRevision;

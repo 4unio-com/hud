@@ -61,8 +61,9 @@ QList<QDBusObjectPath> HudService::openQueries() const {
 	return m_queries.keys();
 }
 
-Query::Ptr HudService::createQuery(const QString &query) {
-	Query::Ptr hudQuery(m_factory.newQuery(query));
+Query::Ptr HudService::createQuery(const QString &query,
+		const QString &sender) {
+	Query::Ptr hudQuery(m_factory.newQuery(query, sender));
 	m_queries[hudQuery->path()] = hudQuery;
 
 	return hudQuery;
@@ -70,8 +71,9 @@ Query::Ptr HudService::createQuery(const QString &query) {
 
 QDBusObjectPath HudService::CreateQuery(const QString &query,
 		QString &resultsName, QString &appstackName, int &modelRevision) {
+	QString sender(messageSender());
 
-	Query::Ptr hudQuery(createQuery(query));
+	Query::Ptr hudQuery(createQuery(query, sender));
 
 	resultsName = hudQuery->resultsModel();
 	appstackName = hudQuery->appstackModel();
@@ -98,19 +100,18 @@ QString HudService::messageSender() {
 
 QString HudService::StartQuery(const QString &queryString, int entries,
 		QList<Suggestion> &suggestions, QDBusVariant &querykey) {
-
 	QString sender(messageSender());
 
 	Query::Ptr query(m_legacyQueries[sender]);
 	if (query.isNull()) {
-		query = createQuery(queryString);
+		query = createQuery(queryString, sender);
 		m_legacyQueries[sender] = query;
 	} else {
 		query->UpdateQuery(queryString);
 	}
 
 	//FIXME Hard-coded icon value
-	unsigned int count(0);
+	int count(0);
 	for (const Result &result : query->results()) {
 		if (count >= entries) {
 			break;

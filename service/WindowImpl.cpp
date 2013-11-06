@@ -23,30 +23,20 @@
 using namespace hud::service;
 
 WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,
-		Factory &factory) {
-
-	{
-		// First we try a DBusMenu collector
-		Collector::Ptr collector(
-				factory.newDBusMenuCollector(windowId, applicationId));
-		if (collector->isValid()) {
-			m_collector = collector;
-		}
-	}
-
-	if (m_collector.isNull()) {
-		// Now we try a GMenu collector
-		Collector::Ptr collector(
-				factory.newGMenuCollector(windowId, applicationId));
-		if (collector->isValid()) {
-			m_collector = collector;
-		}
-	}
-
-	if (m_collector) {
-		m_collector->collect();
-	}
+		Factory &factory) :
+		m_dbusMenuCollector(
+				factory.newDBusMenuCollector(windowId, applicationId)), m_gMenuCollector(
+				factory.newGMenuCollector(windowId, applicationId)) {
 }
 
 WindowImpl::~WindowImpl() {
+}
+
+void WindowImpl::activate() {
+	if (m_dbusMenuCollector->isValid()) {
+		m_dbusMenuCollector->activate();
+	}
+	if (m_gMenuCollector->isValid()) {
+		m_gMenuCollector->activate();
+	}
 }

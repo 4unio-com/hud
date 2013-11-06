@@ -31,6 +31,8 @@ public:
 	explicit Window();
 
 	virtual ~Window();
+
+	virtual void activate() = 0;
 };
 
 }

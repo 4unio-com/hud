@@ -91,6 +91,8 @@ void ApplicationListImpl::removeWindow(uint windowId,
 void ApplicationListImpl::FocusedWindowChanged(uint windowId,
 		const QString &applicationId, uint stage) {
 	qDebug() << "FocusedWindowChanged" << windowId << applicationId;
+	Application::Ptr application(ensureApplication(applicationId));
+	application->activateWindow(windowId);
 }
 
 void ApplicationListImpl::WindowCreated(uint windowId,

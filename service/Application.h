@@ -41,6 +41,8 @@ public:
 
 	virtual void removeWindow(unsigned int windowId) = 0;
 
+	virtual void activateWindow(unsigned int windowId) = 0;
+
 	virtual bool isEmpty() const = 0;
 
 	virtual const QDBusObjectPath & path() const = 0;

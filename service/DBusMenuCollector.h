@@ -44,13 +44,26 @@ public:
 
 	virtual bool isValid() const;
 
-	virtual void collect();
+	virtual CollectorToken::Ptr activate();
 
 protected Q_SLOTS:
-	void timeout();
+	void WindowRegistered(uint windowId, const QString &service,
+			const QDBusObjectPath &menuObjectPath);
+
+	void WindowUnregistered(uint windowId);
 
 protected:
-	bool m_valid;
+	virtual void deactivate();
+
+	void windowRegistered(const QString &service,
+			const QDBusObjectPath &menuObjectPath);
+
+protected:
+	unsigned int m_windowId;
+
+	QSharedPointer<ComCanonicalAppMenuRegistrarInterface> m_registrar;
+
+	unsigned int m_viewerCount;
 
 	QScopedPointer<DBusMenuImporter> m_menuImporter;
 

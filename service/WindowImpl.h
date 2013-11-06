@@ -37,8 +37,12 @@ public:
 
 	virtual ~WindowImpl();
 
+	virtual void activate();
+
 protected:
-	Collector::Ptr m_collector;
+	Collector::Ptr m_dbusMenuCollector;
+
+	Collector::Ptr m_gMenuCollector;
 
 	ItemStore m_items;
 };

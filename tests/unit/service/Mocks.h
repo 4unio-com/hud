@@ -34,9 +34,9 @@ public:
 
 	MOCK_METHOD0(sessionBus, QDBusConnection());
 
-	MOCK_METHOD2(newQuery, Query::Ptr(unsigned int, const QString &));
+	MOCK_METHOD2(newQuery, Query::Ptr( const QString &, const QString &));
 
-	MOCK_METHOD2(newApplication, Application::Ptr(unsigned int, const QString &));
+	MOCK_METHOD1(newApplication, Application::Ptr(const QString &));
 
 	MOCK_METHOD2(newWindow, Window::Ptr(unsigned int, const QString &));
 
@@ -73,6 +73,8 @@ public:
 
 	MOCK_METHOD1(removeWindow, void(unsigned int));
 
+	MOCK_METHOD1(activateWindow, void(unsigned int));
+
 	MOCK_CONST_METHOD0(isEmpty, bool());
 
 	MOCK_CONST_METHOD0(path, const QDBusObjectPath &());
@@ -80,13 +82,17 @@ public:
 
 class MockWindow: public Window {
 public:
+	MOCK_METHOD0(activate, void());
 };
 
 class MockCollector: public Collector {
 public:
 	MOCK_CONST_METHOD0(isValid, bool());
 
-	MOCK_METHOD0(collect, void());
+	MOCK_METHOD0(activate, CollectorToken::Ptr());
+
+protected:
+	MOCK_METHOD0(deactivate, void());
 };
 
 }

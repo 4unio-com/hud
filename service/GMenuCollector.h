@@ -37,9 +37,11 @@ public:
 
 	virtual bool isValid() const;
 
-	virtual void collect();
+	virtual CollectorToken::Ptr activate();
 
 protected:
+	virtual void deactivate();
+
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
 
 	bool m_valid;

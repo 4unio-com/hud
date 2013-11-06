@@ -26,8 +26,30 @@
 namespace hud {
 namespace service {
 
+class Collector;
+class DBusMenuCollector;
+class GMenuCollector;
+
+class CollectorToken {
+	friend Collector;
+	friend DBusMenuCollector;
+	friend GMenuCollector;
+
+public:
+	typedef QSharedPointer<CollectorToken> Ptr;
+
+	virtual ~CollectorToken();
+
+protected:
+	explicit CollectorToken(Collector &collector);
+
+	Collector &m_collector;
+};
+
 class Collector: public QObject {
 Q_OBJECT
+
+	friend CollectorToken;
 
 public:
 	typedef QSharedPointer<Collector> Ptr;
@@ -38,7 +60,10 @@ public:
 
 	virtual bool isValid() const = 0;
 
-	virtual void collect() = 0;
+	virtual CollectorToken::Ptr activate() = 0;
+
+protected:
+	virtual void deactivate() = 0;
 };
 
 }

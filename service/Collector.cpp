@@ -27,3 +27,11 @@ Collector::Collector(QObject *parent) :
 
 Collector::~Collector() {
 }
+
+CollectorToken::CollectorToken(Collector &collector) :
+		m_collector(collector) {
+}
+
+CollectorToken::~CollectorToken() {
+	m_collector.deactivate();
+}

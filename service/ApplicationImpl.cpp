@@ -57,6 +57,16 @@ void ApplicationImpl::removeWindow(unsigned int windowId) {
 	m_windows.remove(windowId);
 }
 
+void ApplicationImpl::activateWindow(unsigned int windowId) {
+	Window::Ptr window(m_windows[windowId]);
+	if (window.isNull()) {
+		qWarning() << "Activating unknown window" << windowId
+				<< "from application" << m_applicationId;
+		return;
+	}
+	window->activate();
+}
+
 bool ApplicationImpl::isEmpty() const {
 	return m_windows.isEmpty();
 }

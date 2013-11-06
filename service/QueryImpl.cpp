@@ -29,15 +29,20 @@
 using namespace hud::common;
 using namespace hud::service;
 
-QueryImpl::QueryImpl(unsigned int id, const QString &query, HudService &service,
+QueryImpl::QueryImpl(unsigned int id, const QString &query,
+		const QString &sender, HudService &service,
 		const QDBusConnection &connection, QObject *parent) :
 		Query(parent), m_adaptor(new QueryAdaptor(this)), m_connection(
 				connection), m_path(DBusTypes::queryPath(id)), m_service(
-				service), m_query(query) {
+				service), m_query(query), m_serviceWatcher(sender, m_connection,
+				QDBusServiceWatcher::WatchForUnregistration) {
 	if (!m_connection.registerObject(m_path.path(), this)) {
 		throw std::logic_error(
 				_("Unable to register HUD query object on DBus"));
 	}
+
+	connect(&m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)),
+			this, SLOT(serviceUnregistered(const QString &)));
 
 	//FIXME Dummy data
 	{
@@ -49,8 +54,9 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query, HudService &service,
 		descriptionHighlights << QPair<int, int>(3, 4);
 
 		m_results
-				<< Result(0, "command 1", commandHighlights, "description 1",
-						descriptionHighlights, "shortcut 1", 1, false);
+				<< Result(0, "simon & garfunkel", commandHighlights,
+						"description 1", descriptionHighlights, "shortcut 1", 1,
+						false);
 	}
 
 	{
@@ -84,14 +90,10 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query, HudService &service,
 	m_appstackModel->addApplication("test-app-2", "icon 2",
 			AppstackModel::ITEM_TYPE_BACKGROUND_APP);
 	m_appstackModel->endChangeset();
-
-	qDebug() << "Query constructed" << query << m_path.path();
 }
 
 QueryImpl::~QueryImpl() {
 	m_connection.unregisterObject(m_path.path());
-
-	qDebug() << "Query destroyed" << m_path.path();
 }
 
 const QDBusObjectPath & QueryImpl::path() const {
@@ -115,6 +117,7 @@ QString QueryImpl::resultsModel() const {
 }
 
 QStringList QueryImpl::toolbarItems() const {
+	//TODO Implement toolbarItems
 	return QStringList();
 }
 
@@ -129,6 +132,7 @@ void QueryImpl::ExecuteCommand(const QDBusVariant &item, uint timestamp) {
 QString QueryImpl::ExecuteParameterized(const QDBusVariant &item,
 		uint timestamp, QDBusObjectPath &actionPath, QDBusObjectPath &modelPath,
 		int &modelSection) {
+	qDebug() << "ExecuteParameterized";
 	return QString();
 }
 
@@ -158,7 +162,12 @@ int QueryImpl::UpdateQuery(const QString &query) {
 int QueryImpl::VoiceQuery(QString &query) {
 	qDebug() << "VoiceQuery";
 
-	query = QString();
+	query = QString("voice query");
 	UpdateQuery(query);
 	return 0;
+}
+
+void QueryImpl::serviceUnregistered(const QString &service) {
+	Q_UNUSED(service);
+	CloseQuery();
 }

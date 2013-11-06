@@ -53,6 +53,8 @@ public:
 
 	void removeWindow(unsigned int windowId);
 
+	void activateWindow(unsigned int windowId);
+
 	bool isEmpty() const;
 
 	const QDBusObjectPath & path() const;

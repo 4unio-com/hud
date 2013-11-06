@@ -73,10 +73,10 @@ QDBusConnection Factory::sessionBus() {
 	return m_sessionBus;
 }
 
-Query::Ptr Factory::newQuery(const QString &query) {
+Query::Ptr Factory::newQuery(const QString &query, const QString &sender) {
 	return Query::Ptr(
-			new QueryImpl(m_queryCounter++, query, *singletonHudService(),
-					sessionBus()));
+			new QueryImpl(m_queryCounter++, query, sender,
+					*singletonHudService(), sessionBus()));
 }
 
 ApplicationList::Ptr Factory::newApplicationList() {
