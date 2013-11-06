@@ -31,4 +31,4 @@ private:
 
 } // namespace qtgmenu
 
-#endif /* QTGMENUEXPORTER_H */
+#endif // QTGMENUEXPORTER_H

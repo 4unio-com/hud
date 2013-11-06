@@ -2,6 +2,7 @@ add_subdirectory(internal)
 
 set(
     QTGMENU_SRC
+    QtGMenuConverter.cpp
     QtGMenuExporter.cpp
     QtGMenuImporter.cpp
 )

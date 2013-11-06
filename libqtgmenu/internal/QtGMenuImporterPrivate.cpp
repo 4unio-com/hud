@@ -1,4 +1,5 @@
 #include <QtGMenuImporterPrivate.h>
+
 #include <QEventLoop>
 #include <QTimer>
 
@@ -57,7 +58,7 @@ void QtGMenuImporterPrivate::MenuItemsChanged( GMenuModel* model, gint position,
     gint added, gpointer user_data )
 {
   unused( model, position, removed, added );
-  QtGMenuImporter* importer = ( QtGMenuImporter* ) user_data;
+  QtGMenuImporter* importer = reinterpret_cast< QtGMenuImporter* >( user_data );
   emit importer->MenuItemsChanged();
 }
 
@@ -108,6 +109,5 @@ bool QtGMenuImporterPrivate::RefreshQMenu()
   // convert m_gmenu_model to m_qmenu
   return true;
 }
-
 
 } // namespace qtgmenu

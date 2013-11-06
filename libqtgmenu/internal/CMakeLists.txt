@@ -1,6 +1,7 @@
 set(
     QTGMENU_INTERNAL_SRC
     QtGMenuImporterPrivate.cpp
+    ../QtGMenuConverter.cpp
 )
 
 include_directories(

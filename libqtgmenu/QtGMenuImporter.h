@@ -34,4 +34,4 @@ private:
 
 } // namespace qtgmenu
 
-#endif /* QTGMENUIMPORTER_H */
+#endif // QTGMENUIMPORTER_H
