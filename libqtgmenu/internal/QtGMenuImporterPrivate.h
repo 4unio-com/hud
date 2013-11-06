@@ -1,6 +1,8 @@
 #ifndef QTGMENUEXPORTERPRIVATE_H
 #define QTGMENUEXPORTERPRIVATE_H
 
+#include <QtGMenuImporter.h>
+
 #include <QMenu>
 #include <memory>
 #include <thread>
@@ -15,41 +17,35 @@ namespace qtgmenu
 class QtGMenuImporterPrivate
 {
 public:
-    QtGMenuImporterPrivate(const QString& service, const QString& path);
-    ~QtGMenuImporterPrivate();
+  QtGMenuImporterPrivate( const QString& service, const QString& path, QtGMenuImporter& parent );
+  ~QtGMenuImporterPrivate();
 
-    bool WaitForItemsChanged(guint timeout );
-    void WaitForItemsChangedReply( bool got_signal );
-
-    GMenuModel* GetGMenuModel();
-    std::shared_ptr<QMenu> GetQMenu();
+  GMenuModel* GetGMenuModel();
+  std::shared_ptr< QMenu > GetQMenu();
 
 private:
-    static void ItemsChangedEvent(GMenuModel* model, gint position, gint removed, gint added, gpointer user_data);
-    static gboolean ItemsChangedTimeout (gpointer user_data);
+  static void MenuItemsChanged( GMenuModel* model, gint position, gint removed, gint added,
+      gpointer user_data );
 
-    bool RefreshGMenuModel();
+  bool RefreshGMenuModel();
 
-    void StopMainLoop();
-    void ProcessMainLoop();
+  void StopRefreshThread();
+  void RefreshThread();
 
 private:
-    GMainLoop* m_mainloop;
-    GDBusConnection* m_connection;
-    std::string m_service;
-    std::string m_path;
+  QtGMenuImporter& m_parent;
 
-    GMenuModel* m_gmenu_model;
-    std::shared_ptr<QMenu> m_qmenu;
+  GDBusConnection* m_connection;
+  std::string m_service;
+  std::string m_path;
 
-    std::mutex m_gmenu_model_mutex;
-    std::mutex m_gmenu_signal_mutex;
-    bool m_got_items_changed = false;
-    bool m_got_gmenu_model = false;
+  GMenuModel* m_gmenu_model;
+  std::shared_ptr< QMenu > m_qmenu;
 
-    bool m_main_loop_stop = false;
-    bool m_main_loop_stopped = false;
-    std::thread m_main_loop_thread = std::thread( &QtGMenuImporterPrivate::ProcessMainLoop, this );
+  bool m_refresh_thread_stop = false;
+  bool m_refresh_thread_stopped = false;
+  std::mutex m_gmenu_model_mutex;
+  std::thread m_refresh_thread = std::thread( &QtGMenuImporterPrivate::RefreshThread, this );
 };
 
 } // namespace qtgmenu

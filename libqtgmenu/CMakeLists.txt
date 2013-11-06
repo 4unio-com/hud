@@ -1,24 +1,24 @@
 add_subdirectory(internal)
 
 set(
-	QTGMENU_SRC
-        QtGMenuExporter.cpp
-        QtGMenuImporter.cpp
+    QTGMENU_SRC
+    QtGMenuExporter.cpp
+    QtGMenuImporter.cpp
 )
 
 add_library(
-        qtgmenu
-	${QTGMENU_SRC}
+    qtgmenu
+    ${QTGMENU_SRC}
 )
 
 qt5_use_modules(
-        qtgmenu
-        Core
-        DBus
+    qtgmenu
+    Core
+    DBus
 )
 
 target_link_libraries(
-        qtgmenu
-        qtgmenu-internal
-        ${GIO2_LIBRARIES}
+    qtgmenu
+    qtgmenu-internal
+    ${GIO2_LIBRARIES}
 )

@@ -16,24 +16,19 @@ class QtGMenuImporterPrivate;
 
 class QtGMenuImporter final : public QObject
 {
-    Q_OBJECT
-
+Q_OBJECT
 public:
-    QtGMenuImporter(const QString& service, const QString& path, QObject* parent = 0);
-    ~QtGMenuImporter();
+  QtGMenuImporter( const QString& service, const QString& path, QObject* parent = 0 );
+  ~QtGMenuImporter();
 
-    std::shared_ptr<QMenu> Menu() const;
+  std::shared_ptr< QMenu > Menu() const;
 
 Q_SIGNALS:
-    void menuUpdated();
-    void menuReadyToBeShown();
-    void actionActivationRequested(QAction*);
+  void MenuItemsChanged();
 
 private:
-    Q_DISABLE_COPY(QtGMenuImporter)
-    std::unique_ptr<QtGMenuImporterPrivate> d;
-
-    friend class QtGMenuImporterPrivate;
+  Q_DISABLE_COPY(QtGMenuImporter)
+  std::unique_ptr< QtGMenuImporterPrivate > d;
 };
 
 } // namespace qtgmenu
