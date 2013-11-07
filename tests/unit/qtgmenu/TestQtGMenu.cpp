@@ -19,33 +19,54 @@ TEST(TestQtGMenu, ExportImportMenu)
   GDBusConnection* connection = g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL );
 
   GMenu* menu = g_menu_new();
-  g_menu_append( menu, "Add", "app.add" );
-  g_menu_append( menu, "Del", "app.del" );
+  g_menu_append( menu, "New", "app.new" );
 
   QtGMenuImporter importer( "com.canonical.qtgmenu", "/com/canonical/qtgmenu" );
 
   auto qmenu = importer.Menu();
   EXPECT_EQ( nullptr, qmenu );
 
-  guint export_id = g_dbus_connection_export_menu_model( connection, "/com/canonical/qtgmenu", G_MENU_MODEL (menu),
-      NULL );
+  // export menu
+
+  guint export_id = g_dbus_connection_export_menu_model( connection, "/com/canonical/qtgmenu",
+      G_MENU_MODEL (menu), NULL );
 
   qmenu = importer.Menu();
   EXPECT_NE( nullptr, qmenu );
 
+  int item_count = importer.GetItemCount();
+  EXPECT_EQ( 1, item_count );
+
+  // add 2 items
+
   QSignalSpy itemsChangedSpy( &importer, SIGNAL( MenuItemsChanged() ) );
 
-  int item_count = importer.GetItemCount();
-  EXPECT_EQ( 2, item_count );
-
-  g_menu_append( menu, "Quit", "app.quit" );
+  g_menu_append( menu, "Add", "app.add" );
+  g_menu_append( menu, "Del", "app.del" );
 
   itemsChangedSpy.wait();
 
   item_count = importer.GetItemCount();
   EXPECT_EQ( 3, item_count );
 
+  // add 1 items
+
+  g_menu_append( menu, "Quit", "app.quit" );
+
+  itemsChangedSpy.wait();
+
+  item_count = importer.GetItemCount();
+  EXPECT_EQ( 4, item_count );
+
+  // unexport menu
+
   g_dbus_connection_unexport_menu_model( connection, export_id );
+
+  qmenu = importer.Menu();
+  EXPECT_EQ( nullptr, qmenu );
+
+  item_count = importer.GetItemCount();
+  EXPECT_EQ( 0, item_count );
 
   g_object_unref( menu );
   g_object_unref( connection );

@@ -14,7 +14,8 @@ template< typename ... T > void unused( T&& ... )
 
 QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QString& path,
     QtGMenuImporter& parent )
-    : m_parent( parent ),
+    : QObject( 0 ),
+      m_parent( parent ),
       m_connection( g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL ) ),
       m_service( service.toStdString() ),
       m_path( path.toStdString() ),
@@ -63,40 +64,66 @@ void QtGMenuImporterPrivate::MenuItemsChanged( GMenuModel* model, gint position,
   emit importer->MenuItemsChanged();
 }
 
+void QtGMenuImporterPrivate::MenuRefresh( GMenuModel* model, gint position, gint removed,
+                                          gint added, gpointer user_data )
+{
+  unused( model, position, removed, added );
+  QtGMenuImporterPrivate* importer = reinterpret_cast< QtGMenuImporterPrivate* >( user_data );
+  emit importer->MenuRefreshed();
+}
+
 bool QtGMenuImporterPrivate::RefreshGMenuModel()
 {
-  if( m_gmenu_model != nullptr )
+  bool menu_was_valid = m_gmenu_model != nullptr;
+
+  if( menu_was_valid )
   {
-    return true;
+    g_signal_handler_disconnect( m_gmenu_model, m_sig_handler );
+    g_object_unref( m_gmenu_model );
+    m_sig_handler = 0;
   }
 
   m_gmenu_model =
       G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str()) );
 
-  gulong sig_handler =
-      g_signal_connect( m_gmenu_model, "items-changed", G_CALLBACK( MenuItemsChanged ), &m_parent );
-
   gint item_count = g_menu_model_get_n_items( m_gmenu_model );
 
   if( item_count == 0 )
   {
-    QEventLoop loop;
+    QEventLoop menu_refresh_wait;
     QTimer timeout;
-    loop.connect( &m_parent, SIGNAL( MenuItemsChanged() ), SLOT( quit() ) );
-    timeout.singleShot( 10, &loop, SLOT( quit() ) );
-    loop.exec(); // blocks until MenuItemsChanged fires or timeout reached
+    gulong menu_refresh_handler =
+        g_signal_connect( m_gmenu_model, "items-changed", G_CALLBACK( MenuRefresh ), this );
+
+    // block until "items-changed" fires or timeout reached
+    menu_refresh_wait.connect( this, SIGNAL( MenuRefreshed() ), SLOT( quit() ) );
+    timeout.singleShot( 10, &menu_refresh_wait, SLOT( quit() ) );
+    menu_refresh_wait.exec();
+
+    g_signal_handler_disconnect( m_gmenu_model, menu_refresh_handler );
 
     item_count = g_menu_model_get_n_items( m_gmenu_model );
   }
 
   if( item_count == 0 )
   {
-    g_signal_handler_disconnect( m_gmenu_model, sig_handler );
     g_object_unref( m_gmenu_model );
     m_gmenu_model = nullptr;
+
+    if( menu_was_valid )
+    {
+      emit m_parent.MenuDisappeared();
+    }
     return false;
   }
 
+  m_sig_handler =
+      g_signal_connect( m_gmenu_model, "items-changed", G_CALLBACK( MenuItemsChanged ), &m_parent );
+
+  if( !menu_was_valid )
+  {
+    emit m_parent.MenuAppeared();
+  }
   return true;
 }
 
@@ -113,3 +140,5 @@ bool QtGMenuImporterPrivate::RefreshQMenu()
 }
 
 } // namespace qtgmenu
+
+#include <QtGMenuImporterPrivate.moc>

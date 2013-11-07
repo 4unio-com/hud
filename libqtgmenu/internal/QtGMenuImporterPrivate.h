@@ -14,8 +14,10 @@
 namespace qtgmenu
 {
 
-class QtGMenuImporterPrivate
+class QtGMenuImporterPrivate : public QObject
 {
+Q_OBJECT
+
 public:
   QtGMenuImporterPrivate( const QString& service, const QString& path, QtGMenuImporter& parent );
   ~QtGMenuImporterPrivate();
@@ -27,8 +29,14 @@ private:
   static void MenuItemsChanged( GMenuModel* model, gint position, gint removed, gint added,
       gpointer user_data );
 
+  static void MenuRefresh( GMenuModel* model, gint position, gint removed, gint added,
+      gpointer user_data );
+
   bool RefreshGMenuModel();
   bool RefreshQMenu();
+
+Q_SIGNALS:
+  void MenuRefreshed();
 
 private:
   QtGMenuImporter& m_parent;
@@ -36,6 +44,8 @@ private:
   GDBusConnection* m_connection;
   std::string m_service;
   std::string m_path;
+
+  gulong m_sig_handler = 0;
 
   GMenuModel* m_gmenu_model;
   std::shared_ptr< QMenu > m_qmenu;

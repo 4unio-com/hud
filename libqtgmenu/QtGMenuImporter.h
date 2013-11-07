@@ -17,6 +17,7 @@ class QtGMenuImporterPrivate;
 class QtGMenuImporter final : public QObject
 {
 Q_OBJECT
+
 public:
   QtGMenuImporter( const QString& service, const QString& path, QObject* parent = 0 );
   ~QtGMenuImporter();
@@ -26,6 +27,8 @@ public:
 
 Q_SIGNALS:
   void MenuItemsChanged();
+  void MenuAppeared();
+  void MenuDisappeared();
 
 private:
   Q_DISABLE_COPY(QtGMenuImporter)

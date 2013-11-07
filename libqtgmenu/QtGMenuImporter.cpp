@@ -30,4 +30,4 @@ int QtGMenuImporter::GetItemCount()
 
 } // namespace qtgmenu
 
-#include "QtGMenuImporter.moc"
+#include <QtGMenuImporter.moc>
