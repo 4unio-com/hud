@@ -33,7 +33,9 @@ private:
       gpointer user_data );
 
   bool RefreshGMenuModel();
-  bool RefreshQMenu();
+
+  void StopPollingThread();
+  void PollingThread();
 
 Q_SIGNALS:
   void MenuRefreshed();
@@ -49,6 +51,11 @@ private:
 
   GMenuModel* m_gmenu_model;
   std::shared_ptr< QMenu > m_qmenu;
+
+  bool m_thread_stop = false;
+  bool m_thread_stopped = false;
+  std::mutex m_gmenu_model_mutex;
+  std::thread m_refresh_thread = std::thread( &QtGMenuImporterPrivate::PollingThread, this );
 };
 
 } // namespace qtgmenu
