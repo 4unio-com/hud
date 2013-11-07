@@ -3,10 +3,9 @@
 
 #include <QtGMenuImporter.h>
 
+#include <QTimer>
 #include <QMenu>
 #include <memory>
-#include <thread>
-#include <mutex>
 
 #undef signals
 #include <gio/gio.h>
@@ -22,7 +21,7 @@ public:
   QtGMenuImporterPrivate( const QString& service, const QString& path, QtGMenuImporter& parent );
   ~QtGMenuImporterPrivate();
 
-  GMenuModel* GetGMenuModel();
+  GMenu* GetGMenu();
   std::shared_ptr< QMenu > GetQMenu();
 
 private:
@@ -32,13 +31,11 @@ private:
   static void MenuRefresh( GMenuModel* model, gint position, gint removed, gint added,
       gpointer user_data );
 
-  bool RefreshGMenuModel();
-
-  void StopPollingThread();
-  void PollingThread();
-
 Q_SIGNALS:
   void MenuRefreshed();
+
+private Q_SLOTS:
+  bool RefreshGMenuModel();
 
 private:
   QtGMenuImporter& m_parent;
@@ -52,10 +49,7 @@ private:
   GMenuModel* m_gmenu_model;
   std::shared_ptr< QMenu > m_qmenu;
 
-  bool m_thread_stop = false;
-  bool m_thread_stopped = false;
-  std::mutex m_gmenu_model_mutex;
-  std::thread m_refresh_thread = std::thread( &QtGMenuImporterPrivate::PollingThread, this );
+  QTimer menu_poll_timer;
 };
 
 } // namespace qtgmenu
