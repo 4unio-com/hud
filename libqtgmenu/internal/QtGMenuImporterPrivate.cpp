@@ -38,7 +38,7 @@ QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
   }
 }
 
-GMenu* QtGMenuImporterPrivate::GetGMenu()
+GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
 {
   if( m_gmenu_model == nullptr )
   {
@@ -53,7 +53,7 @@ GMenu* QtGMenuImporterPrivate::GetGMenu()
     g_menu_append_item( menu, g_menu_item_new_from_model( m_gmenu_model, i ) );
   }
 
-  return menu;
+  return G_MENU_MODEL( menu );
 }
 
 std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
@@ -90,8 +90,9 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   {
     // temporarily unref the m_gmenu_model for the refresh
     g_signal_handler_disconnect( m_gmenu_model, m_sig_handler );
-    g_object_unref( m_gmenu_model );
     m_sig_handler = 0;
+
+    g_object_unref( m_gmenu_model );
     m_gmenu_model = nullptr;
   }
 

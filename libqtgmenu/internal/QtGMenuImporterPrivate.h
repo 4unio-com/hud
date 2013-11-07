@@ -21,7 +21,7 @@ public:
   QtGMenuImporterPrivate( const QString& service, const QString& path, QtGMenuImporter& parent );
   ~QtGMenuImporterPrivate();
 
-  GMenu* GetGMenu();
+  GMenuModel* GetGMenuModel();
   std::shared_ptr< QMenu > GetQMenu();
 
 private:

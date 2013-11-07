@@ -15,9 +15,9 @@ TEST(TestQtGMenu, ExportImportMenu)
 {
   QtGMenuImporter importer( "com.canonical.qtgmenu", "/com/canonical/qtgmenu" );
 
-  QSignalSpy itemsChangedSpy( &importer, SIGNAL( MenuItemsChanged() ) );
-  QSignalSpy menuAppearedSpy( &importer, SIGNAL( MenuAppeared() ) );
-  QSignalSpy menuDisappearedSpy( &importer, SIGNAL( MenuDisappeared() ) );
+  QSignalSpy items_changed_spy( &importer, SIGNAL( MenuItemsChanged() ) );
+  QSignalSpy menu_appeared_spy( &importer, SIGNAL( MenuAppeared() ) );
+  QSignalSpy menu_disappeared_spy( &importer, SIGNAL( MenuDisappeared() ) );
 
   g_bus_own_name( G_BUS_TYPE_SESSION, "com.canonical.qtgmenu", G_BUS_NAME_OWNER_FLAGS_NONE, NULL,
       NULL, NULL, NULL, NULL );
@@ -35,7 +35,7 @@ TEST(TestQtGMenu, ExportImportMenu)
   guint export_id = g_dbus_connection_export_menu_model( connection, "/com/canonical/qtgmenu",
       G_MENU_MODEL (menu), NULL );
 
-  menuAppearedSpy.wait();
+  menu_appeared_spy.wait();
 
   qmenu = importer.Menu();
   EXPECT_NE( nullptr, qmenu );
@@ -46,10 +46,10 @@ TEST(TestQtGMenu, ExportImportMenu)
   // add 2 items
 
   g_menu_append( menu, "Add", "app.add" );
-  itemsChangedSpy.wait();
+  items_changed_spy.wait();
 
   g_menu_append( menu, "Del", "app.del" );
-  itemsChangedSpy.wait();
+  items_changed_spy.wait();
 
   item_count = importer.GetItemCount();
   EXPECT_EQ( 3, item_count );
@@ -57,7 +57,7 @@ TEST(TestQtGMenu, ExportImportMenu)
   // add 1 items
 
   g_menu_append( menu, "Quit", "app.quit" );
-  itemsChangedSpy.wait();
+  items_changed_spy.wait();
 
   item_count = importer.GetItemCount();
   EXPECT_EQ( 4, item_count );
@@ -66,7 +66,7 @@ TEST(TestQtGMenu, ExportImportMenu)
 
   g_dbus_connection_unexport_menu_model( connection, export_id );
 
-  menuDisappearedSpy.wait();
+  menu_disappeared_spy.wait();
 
   qmenu = importer.Menu();
   EXPECT_EQ( nullptr, qmenu );
