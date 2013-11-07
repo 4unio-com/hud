@@ -27,7 +27,7 @@ TEST(TestQtGMenu, ExportImportMenu)
   auto qmenu = importer.Menu();
   EXPECT_EQ( nullptr, qmenu );
 
-  g_dbus_connection_export_menu_model( connection, "/com/canonical/qtgmenu", G_MENU_MODEL (menu),
+  guint export_id = g_dbus_connection_export_menu_model( connection, "/com/canonical/qtgmenu", G_MENU_MODEL (menu),
       NULL );
 
   qmenu = importer.Menu();
@@ -44,6 +44,8 @@ TEST(TestQtGMenu, ExportImportMenu)
 
   item_count = importer.GetItemCount();
   EXPECT_EQ( 3, item_count );
+
+  g_dbus_connection_unexport_menu_model( connection, export_id );
 
   g_object_unref( menu );
   g_object_unref( connection );

@@ -24,7 +24,8 @@ std::shared_ptr< QMenu > QtGMenuImporter::Menu() const
 
 int QtGMenuImporter::GetItemCount()
 {
-  return g_menu_model_get_n_items( d->GetGMenuModel() );
+  GMenuModel* model = d->GetGMenuModel();
+  return !model ? 0 : g_menu_model_get_n_items( model );
 }
 
 } // namespace qtgmenu
