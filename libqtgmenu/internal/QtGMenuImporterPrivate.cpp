@@ -22,12 +22,14 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QS
       m_qmenu( new QMenu() )
 {
   connect( &menu_poll_timer, SIGNAL( timeout() ), this, SLOT( RefreshGMenuModel() ) );
-  menu_poll_timer.setInterval( 10 );
+  menu_poll_timer.setInterval( 100 );
   menu_poll_timer.start();
 }
 
 QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
 {
+  menu_poll_timer.stop();
+
   g_object_unref( m_connection );
 
   if( m_gmenu_model != nullptr )
@@ -82,6 +84,17 @@ void QtGMenuImporterPrivate::MenuRefresh( GMenuModel* model, gint position, gint
 
 bool QtGMenuImporterPrivate::RefreshGMenuModel()
 {
+  bool menu_was_valid = m_gmenu_model != nullptr;
+
+  if( menu_was_valid )
+  {
+    // temporarily unref the m_gmenu_model for the refresh
+    g_signal_handler_disconnect( m_gmenu_model, m_sig_handler );
+    g_object_unref( m_gmenu_model );
+    m_sig_handler = 0;
+    m_gmenu_model = nullptr;
+  }
+
   GMenuModel* model =
       G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str()) );
 
@@ -89,53 +102,46 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
 
   if( item_count == 0 )
   {
+    // block until "items-changed" fires or timeout reached
     QEventLoop menu_refresh_wait;
     QTimer timeout;
     gulong menu_refresh_handler =
         g_signal_connect( model, "items-changed", G_CALLBACK( MenuRefresh ), this );
 
-    // block until "items-changed" fires or timeout reached
     menu_refresh_wait.connect( this, SIGNAL( MenuRefreshed() ), SLOT( quit() ) );
-    timeout.singleShot( 10, &menu_refresh_wait, SLOT( quit() ) );
+    timeout.singleShot( 100, &menu_refresh_wait, SLOT( quit() ) );
     menu_refresh_wait.exec();
 
     g_signal_handler_disconnect( model, menu_refresh_handler );
 
+    // check item count again
     item_count = g_menu_model_get_n_items( model );
   }
 
-  bool menu_was_valid = m_gmenu_model != nullptr;
   bool menu_is_valid = item_count != 0;
 
-  if( menu_was_valid == menu_is_valid )
+  if( menu_is_valid )
   {
-    g_object_unref( model );
-
-    return menu_is_valid;
-  }
-  else if( !menu_was_valid && menu_is_valid )
-  {
+    // menu is valid, so assign m_gmenu_model accordingly
     m_gmenu_model = model;
     m_sig_handler =
         g_signal_connect( m_gmenu_model, "items-changed", G_CALLBACK( MenuItemsChanged ), &m_parent );
+  }
+  else if( !menu_is_valid )
+  {
+    g_object_unref( model );
+  }
 
+  if( !menu_was_valid && menu_is_valid )
+  {
     emit m_parent.MenuAppeared();
-    return true;
   }
   else if( menu_was_valid && !menu_is_valid )
   {
-    g_signal_handler_disconnect( m_gmenu_model, m_sig_handler );
-    g_object_unref( m_gmenu_model );
-    g_object_unref( model );
-
-    m_sig_handler = 0;
-    m_gmenu_model = nullptr;
-
     emit m_parent.MenuDisappeared();
-    return false;
   }
 
-  return false;
+  return menu_is_valid;
 }
 
 } // namespace qtgmenu

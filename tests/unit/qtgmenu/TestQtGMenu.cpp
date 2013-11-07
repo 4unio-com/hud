@@ -47,6 +47,7 @@ TEST(TestQtGMenu, ExportImportMenu)
 
   g_menu_append( menu, "Add", "app.add" );
   itemsChangedSpy.wait();
+
   g_menu_append( menu, "Del", "app.del" );
   itemsChangedSpy.wait();
 
@@ -56,7 +57,6 @@ TEST(TestQtGMenu, ExportImportMenu)
   // add 1 items
 
   g_menu_append( menu, "Quit", "app.quit" );
-
   itemsChangedSpy.wait();
 
   item_count = importer.GetItemCount();
@@ -64,15 +64,15 @@ TEST(TestQtGMenu, ExportImportMenu)
 
   // unexport menu
 
-//  g_dbus_connection_unexport_menu_model( connection, export_id );
+  g_dbus_connection_unexport_menu_model( connection, export_id );
 
-//  menuDisappearedSpy.wait();
+  menuDisappearedSpy.wait();
 
-//  qmenu = importer.Menu();
-//  EXPECT_EQ( nullptr, qmenu );
+  qmenu = importer.Menu();
+  EXPECT_EQ( nullptr, qmenu );
 
-//  item_count = importer.GetItemCount();
-//  EXPECT_EQ( 0, item_count );
+  item_count = importer.GetItemCount();
+  EXPECT_EQ( 0, item_count );
 
   g_object_unref( menu );
   g_object_unref( connection );
