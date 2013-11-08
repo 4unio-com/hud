@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QMenu>
 #include <memory>
+#include <mutex>
 
 #undef signals
 #include <gio/gio.h>
@@ -24,7 +25,7 @@ public:
   GMenuModel* GetGMenuModel();
   std::shared_ptr< QMenu > GetQMenu();
 
-  void StartPollTimer(int interval);
+  void StartPolling( int interval );
 
 private:
   static void ItemsChangedCallback( GMenuModel* model, gint position, gint removed, gint added,
@@ -51,7 +52,8 @@ private:
   GMenuModel* m_gmenu_model;
   std::shared_ptr< QMenu > m_qmenu;
 
-  QTimer menu_poll_timer;
+  QTimer m_poll_timer;
+  std::mutex m_poll_mutex;
 };
 
 } // namespace qtgmenu

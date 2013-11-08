@@ -21,13 +21,13 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QS
       m_gmenu_model( nullptr ),
       m_qmenu( new QMenu() )
 {
-  connect( &menu_poll_timer, SIGNAL( timeout() ), this, SLOT( RefreshGMenuModel() ) );
-  StartPollTimer( 100 );
+  connect( &m_poll_timer, SIGNAL( timeout() ), this, SLOT( RefreshGMenuModel() ) );
+  StartPolling( 100 );
 }
 
 QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
 {
-  menu_poll_timer.stop();
+  m_poll_timer.stop();
 
   g_object_unref( m_connection );
 
@@ -39,6 +39,8 @@ QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
 
 GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
 {
+  std::lock_guard<std::mutex> lock(m_poll_mutex);
+
   if( m_gmenu_model == nullptr )
   {
     return nullptr;
@@ -57,6 +59,8 @@ GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
 
 std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
 {
+  std::lock_guard<std::mutex> lock(m_poll_mutex);
+
   if( m_gmenu_model == nullptr )
   {
     return nullptr;
@@ -65,10 +69,11 @@ std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
   return m_qmenu;
 }
 
-void QtGMenuImporterPrivate::StartPollTimer( int interval )
+void QtGMenuImporterPrivate::StartPolling( int interval )
 {
-  menu_poll_timer.setInterval( interval );
-  menu_poll_timer.start();
+  m_poll_timer.stop();
+  m_poll_timer.setInterval( interval );
+  m_poll_timer.start();
 }
 
 void QtGMenuImporterPrivate::ItemsChangedCallback( GMenuModel* model, gint position, gint removed,
@@ -89,6 +94,8 @@ void QtGMenuImporterPrivate::MenuRefreshedCallback( GMenuModel* model, gint posi
 
 bool QtGMenuImporterPrivate::RefreshGMenuModel()
 {
+  std::lock_guard<std::mutex> lock(m_poll_mutex);
+
   bool menu_was_valid = m_gmenu_model != nullptr;
 
   if( menu_was_valid )
@@ -129,7 +136,7 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   if( menu_is_valid )
   {
     // menu is valid, so assign m_gmenu_model accordingly
-    menu_poll_timer.stop();
+    m_poll_timer.stop();
 
     m_gmenu_model = model;
     m_sig_handler =

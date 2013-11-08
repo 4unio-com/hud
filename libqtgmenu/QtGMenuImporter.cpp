@@ -24,7 +24,7 @@ std::shared_ptr< QMenu > QtGMenuImporter::Menu() const
 
 void QtGMenuImporter::ForceRefresh()
 {
-  d->StartPollTimer( 100 );
+  d->StartPolling( 100 );
 }
 
 int QtGMenuImporter::GetItemCount()
