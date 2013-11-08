@@ -23,6 +23,8 @@ public:
   ~QtGMenuImporter();
 
   std::shared_ptr< QMenu > Menu() const;
+
+  void ForceRefresh();
   int GetItemCount();
 
 Q_SIGNALS:

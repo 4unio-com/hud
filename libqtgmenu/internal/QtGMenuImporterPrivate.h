@@ -24,11 +24,13 @@ public:
   GMenuModel* GetGMenuModel();
   std::shared_ptr< QMenu > GetQMenu();
 
+  void StartPollTimer(int interval);
+
 private:
-  static void MenuItemsChanged( GMenuModel* model, gint position, gint removed, gint added,
+  static void ItemsChangedCallback( GMenuModel* model, gint position, gint removed, gint added,
       gpointer user_data );
 
-  static void MenuRefresh( GMenuModel* model, gint position, gint removed, gint added,
+  static void MenuRefreshedCallback( GMenuModel* model, gint position, gint removed, gint added,
       gpointer user_data );
 
 Q_SIGNALS:

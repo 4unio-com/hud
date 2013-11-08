@@ -22,6 +22,11 @@ std::shared_ptr< QMenu > QtGMenuImporter::Menu() const
   return d->GetQMenu();
 }
 
+void QtGMenuImporter::ForceRefresh()
+{
+  d->StartPollTimer( 100 );
+}
+
 int QtGMenuImporter::GetItemCount()
 {
   GMenuModel* model = d->GetGMenuModel();

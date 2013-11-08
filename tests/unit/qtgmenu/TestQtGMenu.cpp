@@ -66,6 +66,7 @@ TEST(TestQtGMenu, ExportImportMenu)
 
   g_dbus_connection_unexport_menu_model( connection, export_id );
 
+  importer.ForceRefresh();
   menu_disappeared_spy.wait();
 
   qmenu = importer.Menu();

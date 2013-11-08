@@ -22,8 +22,7 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QS
       m_qmenu( new QMenu() )
 {
   connect( &menu_poll_timer, SIGNAL( timeout() ), this, SLOT( RefreshGMenuModel() ) );
-  menu_poll_timer.setInterval( 100 );
-  menu_poll_timer.start();
+  StartPollTimer( 100 );
 }
 
 QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
@@ -66,7 +65,13 @@ std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
   return m_qmenu;
 }
 
-void QtGMenuImporterPrivate::MenuItemsChanged( GMenuModel* model, gint position, gint removed,
+void QtGMenuImporterPrivate::StartPollTimer( int interval )
+{
+  menu_poll_timer.setInterval( interval );
+  menu_poll_timer.start();
+}
+
+void QtGMenuImporterPrivate::ItemsChangedCallback( GMenuModel* model, gint position, gint removed,
     gint added, gpointer user_data )
 {
   unused( model, position, removed, added );
@@ -74,7 +79,7 @@ void QtGMenuImporterPrivate::MenuItemsChanged( GMenuModel* model, gint position,
   emit importer->MenuItemsChanged();
 }
 
-void QtGMenuImporterPrivate::MenuRefresh( GMenuModel* model, gint position, gint removed,
+void QtGMenuImporterPrivate::MenuRefreshedCallback( GMenuModel* model, gint position, gint removed,
     gint added, gpointer user_data )
 {
   unused( model, position, removed, added );
@@ -107,7 +112,7 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
     QEventLoop menu_refresh_wait;
     QTimer timeout;
     gulong menu_refresh_handler =
-        g_signal_connect( model, "items-changed", G_CALLBACK( MenuRefresh ), this );
+        g_signal_connect( model, "items-changed", G_CALLBACK( MenuRefreshedCallback ), this );
 
     menu_refresh_wait.connect( this, SIGNAL( MenuRefreshed() ), SLOT( quit() ) );
     timeout.singleShot( 100, &menu_refresh_wait, SLOT( quit() ) );
@@ -124,9 +129,11 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   if( menu_is_valid )
   {
     // menu is valid, so assign m_gmenu_model accordingly
+    menu_poll_timer.stop();
+
     m_gmenu_model = model;
     m_sig_handler =
-        g_signal_connect( m_gmenu_model, "items-changed", G_CALLBACK( MenuItemsChanged ), &m_parent );
+        g_signal_connect( m_gmenu_model, "items-changed", G_CALLBACK( ItemsChangedCallback ), &m_parent );
   }
   else if( !menu_is_valid )
   {
