@@ -39,7 +39,7 @@ QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
 
 GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
 {
-  std::lock_guard<std::mutex> lock(m_poll_mutex);
+  std::lock_guard < std::mutex > lock( m_poll_mutex );
 
   if( m_gmenu_model == nullptr )
   {
@@ -55,12 +55,12 @@ GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
     g_menu_append_item( menu, g_menu_item_new_from_model( m_gmenu_model, i ) );
   }
 
-  return G_MENU_MODEL( menu );
+  return G_MENU_MODEL( menu ) ;
 }
 
 std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
 {
-  std::lock_guard<std::mutex> lock(m_poll_mutex);
+  std::lock_guard < std::mutex > lock( m_poll_mutex );
 
   if( m_gmenu_model == nullptr )
   {
@@ -96,7 +96,7 @@ void QtGMenuImporterPrivate::MenuRefreshedCallback( GMenuModel* model, gint posi
 
 bool QtGMenuImporterPrivate::RefreshGMenuModel()
 {
-  std::lock_guard<std::mutex> lock(m_poll_mutex);
+  std::lock_guard < std::mutex > lock( m_poll_mutex );
 
   bool menu_was_valid = m_gmenu_model != nullptr;
 

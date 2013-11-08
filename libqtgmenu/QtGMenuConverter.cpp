@@ -13,7 +13,7 @@ class QtGMenuConverterPrivate
 };
 
 QtGMenuConverter::QtGMenuConverter()
-  : d( new QtGMenuConverterPrivate() )
+    : d( new QtGMenuConverterPrivate() )
 {
 }
 
@@ -23,7 +23,7 @@ QtGMenuConverter::~QtGMenuConverter()
 
 std::shared_ptr< QMenu > QtGMenuConverter::ToQMenu( const GMenuModel& from_menu )
 {
-  return std::shared_ptr< QMenu >( new QMenu() );
+  return std::shared_ptr < QMenu > ( new QMenu() );
 }
 
 GMenuModel* QtGMenuConverter::ToGMenuModel( const QMenu& from_menu )

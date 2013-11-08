@@ -3,8 +3,8 @@
 
 #include <QtGMenuImporter.h>
 
-#include <QTimer>
 #include <QMenu>
+#include <QTimer>
 #include <memory>
 #include <mutex>
 

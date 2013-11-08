@@ -17,10 +17,16 @@ QtGMenuImporter::~QtGMenuImporter()
 {
 }
 
-std::shared_ptr< QMenu > QtGMenuImporter::Menu() const
+GMenuModel* QtGMenuImporter::GetGMenuModel() const
+{
+  return d->GetGMenuModel();
+}
+
+std::shared_ptr< QMenu > QtGMenuImporter::GetQMenu() const
 {
   return d->GetQMenu();
 }
+
 
 void QtGMenuImporter::ForceRefresh()
 {
