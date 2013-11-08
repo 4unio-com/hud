@@ -46,6 +46,7 @@ GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
     return nullptr;
   }
 
+  // return a copy of m_gmenu_model
   GMenu* menu = g_menu_new();
   gint item_count = g_menu_model_get_n_items( m_gmenu_model );
 
@@ -66,7 +67,8 @@ std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
     return nullptr;
   }
 
-  return m_qmenu;
+  // return a copy of m_gmenu_model as a QMenu
+  return QtGMenuConverter::ToQMenu( *m_gmenu_model );;
 }
 
 void QtGMenuImporterPrivate::StartPolling( int interval )

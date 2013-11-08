@@ -1,30 +1,48 @@
-#include <gio/gio.h>
-#include <gtest/gtest.h>
-
 #include <libqtgmenu/QtGMenuImporter.h>
-#include <QApplication>
 
+#include <gtest/gtest.h>
 #include <QSignalSpy>
 
+#undef signals
+#include <gio/gio.h>
+
 using namespace qtgmenu;
+using namespace testing;
 
 namespace
 {
 
-TEST(TestQtGMenu, ExportImportMenu)
-{
-  QtGMenuImporter importer( "com.canonical.qtgmenu", "/com/canonical/qtgmenu" );
+class TestQtGMenu: public Test {
+protected:
+  TestQtGMenu()
+    : importer( "com.canonical.qtgmenu", "/com/canonical/qtgmenu" )
+  {
+    g_bus_own_name( G_BUS_TYPE_SESSION, "com.canonical.qtgmenu", G_BUS_NAME_OWNER_FLAGS_NONE, NULL,
+        NULL, NULL, NULL, NULL );
 
+    connection = g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL );
+    menu = g_menu_new();
+  }
+
+  virtual ~TestQtGMenu()
+  {
+    g_object_unref( menu );
+    g_object_unref( connection );
+  }
+
+  QtGMenuImporter importer;
+  GDBusConnection* connection;
+  GMenu* menu;
+};
+
+TEST_F(TestQtGMenu, ExportImportMenu)
+{
   QSignalSpy items_changed_spy( &importer, SIGNAL( MenuItemsChanged() ) );
   QSignalSpy menu_appeared_spy( &importer, SIGNAL( MenuAppeared() ) );
   QSignalSpy menu_disappeared_spy( &importer, SIGNAL( MenuDisappeared() ) );
 
-  g_bus_own_name( G_BUS_TYPE_SESSION, "com.canonical.qtgmenu", G_BUS_NAME_OWNER_FLAGS_NONE, NULL,
-      NULL, NULL, NULL, NULL );
+  // no menu exported
 
-  GDBusConnection* connection = g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL );
-
-  GMenu* menu = g_menu_new();
   g_menu_append( menu, "New", "app.new" );
 
   auto qmenu = importer.Menu();
@@ -74,9 +92,6 @@ TEST(TestQtGMenu, ExportImportMenu)
 
   item_count = importer.GetItemCount();
   EXPECT_EQ( 0, item_count );
-
-  g_object_unref( menu );
-  g_object_unref( connection );
 }
 
 } // namespace
