@@ -25,9 +25,11 @@
 using namespace hud::common;
 using namespace hud::service;
 
+static QList<QString> IGNORED_APPLICATION_IDS = { "compiz", "hud-gui" };
+
 ApplicationListImpl::ApplicationListImpl(Factory &factory,
 		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack) :
-		m_windowStack(windowStack), m_factory(factory) {
+		m_windowStack(windowStack), m_factory(factory), m_focusedWindowId(0) {
 
 	QDBusPendingReply<QList<WindowInfo>> windowsReply(
 			m_windowStack->GetWindowStack());
@@ -39,8 +41,11 @@ ApplicationListImpl::ApplicationListImpl(Factory &factory,
 
 	QList<WindowInfo> windows(windowsReply);
 	for (const WindowInfo &window : windows) {
-		Application::Ptr application(ensureApplication(window.app_id));
-		application->addWindow(window.window_id);
+		ensureApplicationWithWindow(window.window_id, window.app_id);
+		if (window.focused) {
+			//FIXME Stage is wrong
+			FocusedWindowChanged(window.window_id, window.app_id, 0);
+		}
 	}
 
 	connect(m_windowStack.data(),
@@ -59,18 +64,34 @@ ApplicationListImpl::ApplicationListImpl(Factory &factory,
 ApplicationListImpl::~ApplicationListImpl() {
 }
 
-Application::Ptr ApplicationListImpl::ensureApplication(
+bool ApplicationListImpl::isIgnoredApplication(const QString &applicationId) {
+	if (IGNORED_APPLICATION_IDS.contains(applicationId)) {
+		return true;
+	}
+
+	return false;
+}
+
+void ApplicationListImpl::ensureApplicationWithWindow(uint windowId,
 		const QString& applicationId) {
+	if (isIgnoredApplication(applicationId)) {
+		return;
+	}
+
 	Application::Ptr application(m_applications[applicationId]);
 	if (application.isNull()) {
 		application = m_factory.newApplication(applicationId);
 		m_applications[applicationId] = application;
 	}
-	return application;
+	application->addWindow(windowId);
 }
 
 void ApplicationListImpl::removeWindow(uint windowId,
 		const QString& applicationId) {
+	if (isIgnoredApplication(applicationId)) {
+		return;
+	}
+
 	Application::Ptr application(m_applications[applicationId]);
 
 	if (application.isNull()) {
@@ -85,20 +106,29 @@ void ApplicationListImpl::removeWindow(uint windowId,
 	// we can do is assume it has been closed.
 	if (application->isEmpty()) {
 		m_applications.remove(applicationId);
+
+		// If this was the focused application
+		if (application == m_focusedApplication) {
+			m_focusedApplication.reset();
+			m_focusedWindowId = 0;
+		}
 	}
 }
 
 void ApplicationListImpl::FocusedWindowChanged(uint windowId,
 		const QString &applicationId, uint stage) {
+	if (isIgnoredApplication(applicationId)) {
+		return;
+	}
+
 	qDebug() << "FocusedWindowChanged" << windowId << applicationId;
-	Application::Ptr application(ensureApplication(applicationId));
-	application->activateWindow(windowId);
+	m_focusedApplication = m_applications[applicationId];
+	m_focusedWindowId = windowId;
 }
 
 void ApplicationListImpl::WindowCreated(uint windowId,
 		const QString &applicationId) {
-	Application::Ptr application(ensureApplication(applicationId));
-	application->addWindow(windowId);
+	ensureApplicationWithWindow(windowId, applicationId);
 }
 
 void ApplicationListImpl::WindowDestroyed(uint windowId,
@@ -112,4 +142,12 @@ QList<NameObject> ApplicationListImpl::applications() const {
 		results << NameObject(i.key(), i.value()->path());
 	}
 	return results;
+}
+
+Application::Ptr ApplicationListImpl::focusedApplication() const {
+	return m_focusedApplication;
+}
+
+unsigned int ApplicationListImpl::focusedWindowId() const {
+	return m_focusedWindowId;
 }

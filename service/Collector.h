@@ -23,6 +23,8 @@
 #include <QSharedPointer>
 #include <QMenu>
 
+#include <service/Result.h>
+
 namespace hud {
 namespace service {
 
@@ -61,6 +63,8 @@ public:
 	virtual bool isValid() const = 0;
 
 	virtual CollectorToken::Ptr activate() = 0;
+
+	virtual void search(const QString &query, QList<Result> &results) = 0;
 
 protected:
 	virtual void deactivate() = 0;

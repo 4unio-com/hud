@@ -39,7 +39,13 @@ public:
 
 	virtual void activate();
 
+	virtual void setContext(const QString &context);
+
+	virtual void search(const QString &query, QList<Result> &results);
+
 protected:
+	QString m_context;
+
 	Collector::Ptr m_dbusMenuCollector;
 
 	Collector::Ptr m_gMenuCollector;

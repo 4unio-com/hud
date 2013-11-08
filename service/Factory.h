@@ -51,7 +51,7 @@ public:
 
 	virtual Query::Ptr newQuery(const QString &query, const QString &sender);
 
-	virtual ApplicationList::Ptr newApplicationList();
+	virtual ApplicationList::Ptr singletonApplicationList();
 
 	virtual Application::Ptr newApplication(const QString &applicationId);
 
@@ -75,9 +75,12 @@ protected:
 
 	HudService::Ptr m_hudService;
 
+	ApplicationList::Ptr m_applicationList;
+
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
 
 	QSharedPointer<ComCanonicalAppMenuRegistrarInterface> m_appmenu;
+
 }
 ;
 

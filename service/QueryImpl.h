@@ -21,6 +21,7 @@
 
 #include <common/ResultsModel.h>
 #include <common/AppstackModel.h>
+#include <service/ApplicationList.h>
 #include <service/Query.h>
 
 #include <QDBusContext>
@@ -42,6 +43,7 @@ Q_OBJECT
 public:
 	explicit QueryImpl(unsigned int id, const QString &query,
 			const QString &sender, HudService &service,
+			ApplicationList::Ptr applicationList,
 			const QDBusConnection &connection, QObject *parent = 0);
 
 	virtual ~QueryImpl();
@@ -80,6 +82,8 @@ protected Q_SLOTS:
 	void serviceUnregistered(const QString &service);
 
 protected:
+	void refresh();
+
 	QScopedPointer<QueryAdaptor> m_adaptor;
 
 	QDBusConnection m_connection;
@@ -87,6 +91,8 @@ protected:
 	QDBusObjectPath m_path;
 
 	HudService &m_service;
+
+	ApplicationList::Ptr m_applicationList;
 
 	QString m_query;
 

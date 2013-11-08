@@ -39,6 +39,10 @@ ApplicationImpl::~ApplicationImpl() {
 	m_connection.unregisterObject(m_path.path());
 }
 
+const QString & ApplicationImpl::id() const {
+	return m_applicationId;
+}
+
 void ApplicationImpl::addWindow(unsigned int windowId) {
 	if (m_windows.contains(windowId)) {
 		qWarning() << "Adding already known window" << windowId
@@ -65,6 +69,10 @@ void ApplicationImpl::activateWindow(unsigned int windowId) {
 		return;
 	}
 	window->activate();
+}
+
+Window::Ptr ApplicationImpl::window(unsigned int windowId) {
+	return m_windows[windowId];
 }
 
 bool ApplicationImpl::isEmpty() const {
@@ -122,8 +130,22 @@ QList<MenuModel> ApplicationImpl::menuModels() const {
 void ApplicationImpl::AddSources(const QList<Action> &actions,
 		const QList<Description> &descriptions) {
 	qDebug() << "AddSources";
+	for (const Action &action : actions) {
+		qDebug() << "  Action:" << action.m_windowId << action.m_context
+				<< action.m_prefix << action.m_object.path();
+	}
+	for (const Description &description : descriptions) {
+		qDebug() << "  Description:" << description.m_windowId
+				<< description.m_context << description.m_object.path();
+	}
 }
 
-void ApplicationImpl::SetWindowContext(uint window, const QString &context) {
-	qDebug() << "SetWindowContext";
+void ApplicationImpl::SetWindowContext(uint windowId, const QString &context) {
+	Window::Ptr window = m_windows[windowId];
+	if (window.isNull()) {
+		qWarning() << "Tried to set context on unknown window" << windowId
+				<< m_applicationId;
+		return;
+	}
+	window->setContext(context);
 }

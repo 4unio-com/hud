@@ -17,6 +17,7 @@
  */
 
 #include <common/DBusTypes.h>
+#include <common/Localisation.h>
 #include <service/DBusMenuCollector.h>
 #include <service/AppmenuRegistrarInterface.h>
 
@@ -91,6 +92,13 @@ static bool openMenu(QMenu *menu, const QStringList &position,
 
 	for (int i(0); i < menu->actions().size(); ++i) {
 		QAction *action = menu->actions().at(i);
+		if (!action->isEnabled()) {
+			continue;
+		}
+		if (action->isSeparator()) {
+			continue;
+		}
+
 		QStringList childPosition(position);
 		childPosition << action->text();
 
@@ -120,26 +128,6 @@ static void hideMenu(QMenu *menu) {
 	menu->aboutToHide();
 }
 
-static void printMenu(QMenu *menu) {
-//	qDebug() << "title:" << menu->title();
-
-	for (const QAction *action : menu->actions()) {
-		if (action) {
-			qDebug() << "action:" << action->text();
-			QList<QKeySequence> shortcuts(action->shortcuts());
-			if (!shortcuts.isEmpty()) {
-				qDebug() << "shortcuts:" << shortcuts;
-			}
-			QMenu *child(action->menu());
-			if (child) {
-				printMenu(child);
-			}
-		} else {
-			qDebug() << "null action";
-		}
-	}
-}
-
 CollectorToken::Ptr DBusMenuCollector::activate() {
 	if (m_viewerCount == 0) {
 		++m_viewerCount;
@@ -148,7 +136,7 @@ CollectorToken::Ptr DBusMenuCollector::activate() {
 		while (openMenu(m_menu, QStringList(), known)) {
 		}
 	}
-//	printMenu(m_menu);
+
 	return CollectorToken::Ptr(new CollectorToken(*this));
 }
 
@@ -171,5 +159,50 @@ void DBusMenuCollector::WindowRegistered(uint windowId, const QString &service,
 }
 
 void DBusMenuCollector::WindowUnregistered(uint windowId) {
+	// Simply ignore updates for other windows
+	if (windowId != m_windowId) {
+		return;
+	}
+
+	m_menuImporter.reset();
+	m_menu = nullptr;
 }
 
+static void searchy(QMenu *menu, QList<Result> &results,
+		const QStringList &stack) {
+//	qDebug() << "title:" << menu->title();
+
+	for (const QAction *action : menu->actions()) {
+		if (!action->isEnabled()) {
+			continue;
+		}
+		if (action->isSeparator()) {
+			continue;
+		}
+
+		QString text(action->text());
+
+		QMenu *child(action->menu());
+		if (child) {
+			QStringList childStack(stack);
+			childStack << text;
+			searchy(child, results, childStack);
+		} else {
+			QList<QPair<int, int>> commandHighlights;
+			commandHighlights << QPair<int, int>(2, 3);
+
+			QList<QPair<int, int>> descriptionHighlights;
+			descriptionHighlights << QPair<int, int>(3, 5);
+
+			results
+					<< Result(0, text, commandHighlights, stack.join(_(", ")),
+							descriptionHighlights,
+							action->shortcut().toString(), 0, false);
+		}
+	}
+}
+
+void DBusMenuCollector::search(const QString &query, QList<Result> &results) {
+	qDebug() << "DBusMenuCollector::search" << query;
+	searchy(m_menu, results, QStringList());
+}

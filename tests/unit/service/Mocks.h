@@ -30,7 +30,7 @@ namespace test {
 
 class MockFactory: public Factory {
 public:
-	MOCK_METHOD0(newApplicationList, ApplicationList::Ptr());
+	MOCK_METHOD0(singletonApplicationList, ApplicationList::Ptr());
 
 	MOCK_METHOD0(sessionBus, QDBusConnection());
 
@@ -65,15 +65,25 @@ public:
 class MockApplicationList: public ApplicationList {
 public:
 	MOCK_CONST_METHOD0(applications, QList<hud::common::NameObject>());
+
+	MOCK_CONST_METHOD0(focusedApplication, Application::Ptr());
+
+	MOCK_CONST_METHOD0(focusedWindowId, unsigned int());
 };
 
 class MockApplication: public Application {
 public:
+	MOCK_CONST_METHOD0(id, const QString &());
+
+	MOCK_METHOD0(icon, QString());
+
 	MOCK_METHOD1(addWindow, void(unsigned int));
 
 	MOCK_METHOD1(removeWindow, void(unsigned int));
 
 	MOCK_METHOD1(activateWindow, void(unsigned int));
+
+	MOCK_METHOD1(window, Window::Ptr(unsigned int));
 
 	MOCK_CONST_METHOD0(isEmpty, bool());
 
@@ -83,6 +93,10 @@ public:
 class MockWindow: public Window {
 public:
 	MOCK_METHOD0(activate, void());
+
+	MOCK_METHOD1(setContext, void(const QString &));
+
+	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
 };
 
 class MockCollector: public Collector {
@@ -90,6 +104,8 @@ public:
 	MOCK_CONST_METHOD0(isValid, bool());
 
 	MOCK_METHOD0(activate, CollectorToken::Ptr());
+
+	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
 
 protected:
 	MOCK_METHOD0(deactivate, void());

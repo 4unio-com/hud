@@ -46,6 +46,8 @@ public:
 
 	virtual CollectorToken::Ptr activate();
 
+	virtual void search(const QString &query, QList<Result> &results);
+
 protected Q_SLOTS:
 	void WindowRegistered(uint windowId, const QString &service,
 			const QDBusObjectPath &menuObjectPath);

@@ -39,6 +39,8 @@ public:
 
 	virtual CollectorToken::Ptr activate();
 
+	virtual void search(const QString &query, QList<Result> &results);
+
 protected:
 	virtual void deactivate();
 

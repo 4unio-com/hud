@@ -40,3 +40,17 @@ void WindowImpl::activate() {
 		m_gMenuCollector->activate();
 	}
 }
+
+void WindowImpl::setContext(const QString &context) {
+	m_context = context;
+	qDebug() << "Window updated context to" << context;
+}
+
+void WindowImpl::search(const QString &query, QList<Result> &results) {
+	if (m_dbusMenuCollector->isValid()) {
+		m_dbusMenuCollector->search(query, results);
+	}
+	if (m_gMenuCollector->isValid()) {
+		m_gMenuCollector->search(query, results);
+	}
+}

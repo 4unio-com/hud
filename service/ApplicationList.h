@@ -24,6 +24,7 @@
 #include <QSharedPointer>
 
 #include <common/NameObject.h>
+#include <service/Application.h>
 
 namespace hud {
 namespace service {
@@ -41,6 +42,10 @@ public:
 	virtual ~ApplicationList();
 
 	virtual QList<hud::common::NameObject> applications() const = 0;
+
+	virtual Application::Ptr focusedApplication() const = 0;
+
+	virtual unsigned int focusedWindowId() const = 0;
 };
 
 }

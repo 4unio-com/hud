@@ -37,11 +37,6 @@ class TestHudService: public Test {
 protected:
 	TestHudService() {
 		factory.setSessionBus(dbus.sessionConnection());
-
-		ON_CALL(factory, newApplicationList()).WillByDefault(
-				Return(
-						ApplicationList::Ptr(
-								new NiceMock<MockApplicationList>())));
 	}
 
 	virtual ~TestHudService() {
@@ -53,7 +48,9 @@ protected:
 };
 
 TEST_F(TestHudService, OpenCloseQuery) {
-	HudService hudService(factory, dbus.sessionConnection());
+	HudService hudService(factory,
+			ApplicationList::Ptr(new NiceMock<MockApplicationList>()),
+			dbus.sessionConnection());
 
 	QDBusObjectPath queryPath("/path/query0");
 	QString resultsModel("com.canonical.hud.results0");
@@ -83,7 +80,9 @@ TEST_F(TestHudService, OpenCloseQuery) {
 }
 
 TEST_F(TestHudService, CloseUnknownQuery) {
-	HudService hudService(factory, dbus.sessionConnection());
+	HudService hudService(factory,
+			ApplicationList::Ptr(new NiceMock<MockApplicationList>()),
+			dbus.sessionConnection());
 
 	QDBusObjectPath queryPath("/path/query0");
 
@@ -93,7 +92,9 @@ TEST_F(TestHudService, CloseUnknownQuery) {
 }
 
 TEST_F(TestHudService, CreateMultipleQueries) {
-	HudService hudService(factory, dbus.sessionConnection());
+	HudService hudService(factory,
+			ApplicationList::Ptr(new NiceMock<MockApplicationList>()),
+			dbus.sessionConnection());
 
 	QDBusObjectPath queryPath0("/path/query0");
 	QString resultsModel0("com.canonical.hud.results0");

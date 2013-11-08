@@ -47,8 +47,7 @@ const QDBusArgument & operator>>(const QDBusArgument &argument,
 
 static void append(QString &result, const QString& input, int start, int end) {
 	QStringRef substring(input.midRef(start, end));
-	char *temp = g_markup_escape_text(substring.toUtf8().data(),
-			substring.length());
+	char *temp = g_markup_escape_text(substring.toUtf8().data(), -1);
 	result.append(temp);
 	g_free(temp);
 }

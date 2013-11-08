@@ -33,7 +33,7 @@ public:
 
 	static void registerMetaTypes();
 
-	unsigned int m_idn;
+	unsigned int m_windowId;
 
 	QString m_context;
 

@@ -31,10 +31,12 @@ using namespace hud::service;
 
 QueryImpl::QueryImpl(unsigned int id, const QString &query,
 		const QString &sender, HudService &service,
-		const QDBusConnection &connection, QObject *parent) :
+		ApplicationList::Ptr applicationList, const QDBusConnection &connection,
+		QObject *parent) :
 		Query(parent), m_adaptor(new QueryAdaptor(this)), m_connection(
 				connection), m_path(DBusTypes::queryPath(id)), m_service(
-				service), m_query(query), m_serviceWatcher(sender, m_connection,
+				service), m_applicationList(applicationList), m_query(query), m_serviceWatcher(
+				sender, m_connection,
 				QDBusServiceWatcher::WatchForUnregistration) {
 	if (!m_connection.registerObject(m_path.path(), this)) {
 		throw std::logic_error(
@@ -44,52 +46,10 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query,
 	connect(&m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)),
 			this, SLOT(serviceUnregistered(const QString &)));
 
-	//FIXME Dummy data
-	{
-		QList<QPair<int, int>> commandHighlights;
-		commandHighlights << QPair<int, int>(1, 5);
-		commandHighlights << QPair<int, int>(8, 9);
-
-		QList<QPair<int, int>> descriptionHighlights;
-		descriptionHighlights << QPair<int, int>(3, 4);
-
-		m_results
-				<< Result(0, "simon & garfunkel", commandHighlights,
-						"description 1", descriptionHighlights, "shortcut 1", 1,
-						false);
-	}
-
-	{
-		QList<QPair<int, int>> commandHighlights;
-		commandHighlights << QPair<int, int>(2, 3);
-
-		QList<QPair<int, int>> descriptionHighlights;
-		descriptionHighlights << QPair<int, int>(4, 5);
-
-		m_results
-				<< Result(1, "command 2", commandHighlights, "description 2",
-						descriptionHighlights, "shortcut 2", 2, false);
-	}
-
 	m_resultsModel.reset(new ResultsModel(id));
 	m_appstackModel.reset(new AppstackModel(id));
 
-	m_resultsModel->beginChangeset();
-	for (const Result &result : m_results) {
-		m_resultsModel->addResult(result.id(), result.commandName(),
-				result.commandHighlights(), result.description(),
-				result.descriptionHighlights(), result.shortcut(),
-				result.distance(), result.parameterized());
-	}
-	m_resultsModel->endChangeset();
-
-	//FIXME Dummy data
-	m_appstackModel->beginChangeset();
-	m_appstackModel->addApplication("test-app-1", "icon 1",
-			AppstackModel::ITEM_TYPE_FOCUSED_APP);
-	m_appstackModel->addApplication("test-app-2", "icon 2",
-			AppstackModel::ITEM_TYPE_BACKGROUND_APP);
-	m_appstackModel->endChangeset();
+	refresh();
 }
 
 QueryImpl::~QueryImpl() {
@@ -154,9 +114,46 @@ int QueryImpl::UpdateQuery(const QString &query) {
 	if (m_query == query) {
 		return 0;
 	}
+
 	m_query = query;
-	//FIXME emit dbus property changed
+	refresh();
+
 	return 0;
+}
+
+void QueryImpl::refresh() {
+	Application::Ptr application(m_applicationList->focusedApplication());
+	if (application.isNull()) {
+		qWarning() << "No focused application during query refresh";
+		return;
+	}
+
+	// FIXME Rule of demeter breakage
+	Window::Ptr window(
+			application->window(m_applicationList->focusedWindowId()));
+
+	// TODO Only do this is the window is different from last time
+	// TODO Hold the menus open while the query is active
+	window->activate();
+
+	m_results.clear();
+	window->search(m_query, m_results);
+
+	// Convert to results list to Dee model
+	m_resultsModel->beginChangeset();
+	for (const Result &result : m_results) {
+		m_resultsModel->addResult(result.id(), result.commandName(),
+				result.commandHighlights(), result.description(),
+				result.descriptionHighlights(), result.shortcut(),
+				result.distance(), result.parameterized());
+	}
+	m_resultsModel->endChangeset();
+
+	m_appstackModel->beginChangeset();
+	m_appstackModel->addApplication(application->id(), application->icon(),
+			AppstackModel::ITEM_TYPE_FOCUSED_APP);
+	//TODO Apps other than the foreground one
+	m_appstackModel->endChangeset();
 }
 
 int QueryImpl::VoiceQuery(QString &query) {

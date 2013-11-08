@@ -20,6 +20,7 @@
 #define HUD_SERVICE_SERVICE_H_
 
 #include <common/DBusTypes.h>
+#include <service/ApplicationList.h>
 #include <service/Query.h>
 
 #include <QDBusContext>
@@ -34,7 +35,6 @@ class HudAdaptor;
 namespace hud {
 namespace service {
 
-class ApplicationList;
 class Factory;
 
 class Q_DECL_EXPORT HudService: public QObject, protected QDBusContext {
@@ -43,8 +43,8 @@ Q_OBJECT
 public:
 	typedef QSharedPointer<HudService> Ptr;
 
-	explicit HudService(Factory &factory, const QDBusConnection &connection,
-			QObject *parent = 0);
+	explicit HudService(Factory &factory, ApplicationList::Ptr applicationList,
+			const QDBusConnection &connection, QObject *parent = 0);
 
 	virtual ~HudService();
 

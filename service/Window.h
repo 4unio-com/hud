@@ -19,6 +19,9 @@
 #ifndef HUD_SERVICE_WINDOW_H_
 #define HUD_SERVICE_WINDOW_H_
 
+#include <service/Result.h>
+
+#include <QList>
 #include <QSharedPointer>
 
 namespace hud {
@@ -33,6 +36,10 @@ public:
 	virtual ~Window();
 
 	virtual void activate() = 0;
+
+	virtual void setContext(const QString &context) = 0;
+
+	virtual void search(const QString &query, QList<Result> &results) = 0;
 };
 
 }

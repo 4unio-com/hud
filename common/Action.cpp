@@ -24,7 +24,7 @@ using namespace hud::common;
 
 QDBusArgument & operator<<(QDBusArgument &argument, const Action &action) {
 	argument.beginStructure();
-	argument << action.m_idn << action.m_context << action.m_prefix
+	argument << action.m_windowId << action.m_context << action.m_prefix
 			<< action.m_object;
 	argument.endStructure();
 	return argument;
@@ -33,14 +33,14 @@ QDBusArgument & operator<<(QDBusArgument &argument, const Action &action) {
 const QDBusArgument & operator>>(const QDBusArgument &argument,
 		Action &action) {
 	argument.beginStructure();
-	argument >> action.m_idn >> action.m_context >> action.m_prefix
+	argument >> action.m_windowId >> action.m_context >> action.m_prefix
 			>> action.m_object;
 	argument.endStructure();
 	return argument;
 }
 
 Action::Action() :
-		m_idn(0) {
+		m_windowId(0) {
 }
 
 Action::~Action() {

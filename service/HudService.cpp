@@ -16,7 +16,6 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <service/ApplicationList.h>
 #include <service/Factory.h>
 #include <service/HudService.h>
 #include <service/HudAdaptor.h>
@@ -28,14 +27,11 @@ using namespace hud::common;
 namespace hud {
 namespace service {
 
-HudService::HudService(Factory &factory, const QDBusConnection &connection,
-		QObject *parent) :
+HudService::HudService(Factory &factory, ApplicationList::Ptr applicationList,
+		const QDBusConnection &connection, QObject *parent) :
 		QObject(parent), m_adaptor(new HudAdaptor(this)), m_connection(
-				connection), m_factory(factory) {
-	DBusTypes::registerMetaTypes();
-
-	m_applicationList = m_factory.newApplicationList();
-
+				connection), m_factory(factory), m_applicationList(
+				applicationList) {
 	if (!m_connection.registerObject(DBusTypes::HUD_SERVICE_DBUS_PATH, this)) {
 		throw std::logic_error(_("Unable to register HUD object on DBus"));
 	}
@@ -110,7 +106,13 @@ QString HudService::StartQuery(const QString &queryString, int entries,
 		query->UpdateQuery(queryString);
 	}
 
-	//FIXME Hard-coded icon value
+	// The legacy API only allows you to search the current application
+	Application::Ptr application(m_applicationList->focusedApplication());
+	QString icon;
+	if (!application.isNull()) {
+		icon = application->icon();
+	}
+
 	int count(0);
 	for (const Result &result : query->results()) {
 		if (count >= entries) {
@@ -120,7 +122,7 @@ QString HudService::StartQuery(const QString &queryString, int entries,
 		suggestions
 				<< Suggestion(result.id(), result.commandName(),
 						result.commandHighlights(), result.description(),
-						result.descriptionHighlights(), QString("icon"));
+						result.descriptionHighlights(), icon);
 		++count;
 	}
 
@@ -134,14 +136,13 @@ void HudService::ExecuteQuery(const QDBusVariant &itemKey, uint timestamp) {
 
 	QString sender(messageSender());
 
-	qDebug() << "ExecuteQuery" << sender << itemKey.variant() << timestamp;
+	qDebug() << "ExecuteQuery" << sender << itemKey.variant().toInt()
+			<< timestamp;
 }
 
 void HudService::CloseQuery(const QDBusVariant &querykey) {
 	Q_UNUSED(querykey);
 	QString sender(messageSender());
-
-	qDebug() << "CloseQuery";
 
 	// We don't actually close legacy queries, or we'd be constructing
 	// and destructing them during the search, due to the way that
