@@ -17,9 +17,9 @@ QtGMenuImporter::~QtGMenuImporter()
 {
 }
 
-GMenuModel* QtGMenuImporter::GetGMenuModel() const
+GMenu* QtGMenuImporter::GetGMenu() const
 {
-  return d->GetGMenuModel();
+  return d->GetGMenu();
 }
 
 std::shared_ptr< QMenu > QtGMenuImporter::GetQMenu() const
@@ -35,15 +35,15 @@ void QtGMenuImporter::ForceRefresh()
 
 int QtGMenuImporter::GetItemCount()
 {
-  GMenuModel* model = d->GetGMenuModel();
+  GMenu* menu = d->GetGMenu();
 
-  if( !model )
+  if( !menu )
   {
     return 0;
   }
 
-  gint item_count = g_menu_model_get_n_items( model );
-  g_object_unref( model );
+  gint item_count = g_menu_model_get_n_items( G_MENU_MODEL( menu ) );
+  g_object_unref( menu );
 
   return item_count;
 }

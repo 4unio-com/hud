@@ -22,7 +22,7 @@ public:
   QtGMenuImporterPrivate( const QString& service, const QString& path, QtGMenuImporter& parent );
   ~QtGMenuImporterPrivate();
 
-  GMenuModel* GetGMenuModel();
+  GMenu* GetGMenu();
   std::shared_ptr< QMenu > GetQMenu();
 
   void StartPolling( int interval );

@@ -37,7 +37,7 @@ QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
   }
 }
 
-GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
+GMenu *QtGMenuImporterPrivate::GetGMenu()
 {
   std::lock_guard < std::mutex > lock( m_poll_mutex );
 
@@ -55,7 +55,7 @@ GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
     g_menu_append_item( menu, g_menu_item_new_from_model( m_gmenu_model, i ) );
   }
 
-  return G_MENU_MODEL( menu ) ;
+  return menu;
 }
 
 std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
@@ -68,7 +68,8 @@ std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
   }
 
   // return a copy of m_gmenu_model as a QMenu
-  return QtGMenuConverter::ToQMenu( *m_gmenu_model );;
+  //return QtGMenuConverter::ToQMenu( *m_gmenu_model );;
+  return m_qmenu;
 }
 
 void QtGMenuImporterPrivate::StartPolling( int interval )

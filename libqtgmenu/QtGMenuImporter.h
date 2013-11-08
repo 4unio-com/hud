@@ -9,8 +9,8 @@ class QDBusPendingCallWatcher;
 class QIcon;
 class QMenu;
 
-class _GMenuModel;
-typedef _GMenuModel GMenuModel;
+class _GMenu;
+typedef _GMenu GMenu;
 
 namespace qtgmenu
 {
@@ -25,7 +25,7 @@ public:
   QtGMenuImporter( const QString& service, const QString& path, QObject* parent = 0 );
   ~QtGMenuImporter();
 
-  GMenuModel* GetGMenuModel() const;
+  GMenu* GetGMenu() const;
   std::shared_ptr< QMenu > GetQMenu() const;
 
   void ForceRefresh();

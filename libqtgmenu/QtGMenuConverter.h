@@ -4,8 +4,8 @@
 #include <memory>
 #include <QMenu>
 
-class _GMenuModel;
-typedef _GMenuModel GMenuModel;
+class _GMenu;
+typedef _GMenu GMenu;
 
 namespace qtgmenu
 {
@@ -18,8 +18,8 @@ public:
   QtGMenuConverter();
   ~QtGMenuConverter();
 
-  static std::shared_ptr< QMenu > ToQMenu( const GMenuModel& from_menu );
-  static GMenuModel* ToGMenuModel( const QMenu& from_menu );
+  static std::shared_ptr< QMenu > ToQMenu( const GMenu& from_menu );
+  static GMenu* ToGMenu( const QMenu& from_menu );
 
 private:
   Q_DISABLE_COPY(QtGMenuConverter)

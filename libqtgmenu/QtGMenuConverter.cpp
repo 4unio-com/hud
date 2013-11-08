@@ -21,14 +21,14 @@ QtGMenuConverter::~QtGMenuConverter()
 {
 }
 
-std::shared_ptr< QMenu > QtGMenuConverter::ToQMenu( const GMenuModel& from_menu )
+std::shared_ptr< QMenu > QtGMenuConverter::ToQMenu( const GMenu& from_menu )
 {
   return std::shared_ptr < QMenu > ( new QMenu() );
 }
 
-GMenuModel* QtGMenuConverter::ToGMenuModel( const QMenu& from_menu )
+GMenu* QtGMenuConverter::ToGMenu( const QMenu& from_menu )
 {
-  return new GMenuModel();
+  return g_menu_new();
 }
 
 } // namespace qtgmenu
