@@ -153,6 +153,17 @@ void QtGMenuImporterPrivate::ClearGActionGroup()
     return;
   }
 
+  gchar** actions_list = g_action_group_list_actions( m_gaction_group );
+
+  int action_index = 0;
+  while( actions_list[action_index] != nullptr )
+  {
+    ActionRemovedCallback( m_gaction_group, actions_list[action_index], &m_parent );
+    ++action_index;
+  }
+
+  g_strfreev( actions_list );
+
   g_signal_handler_disconnect( m_gaction_group, m_action_added_handler );
   g_signal_handler_disconnect( m_gaction_group, m_action_enabled_handler );
   g_signal_handler_disconnect( m_gaction_group, m_action_removed_handler );
