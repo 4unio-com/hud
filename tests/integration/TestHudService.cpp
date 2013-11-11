@@ -42,6 +42,7 @@ protected:
 				DBusTypes::BAMF_MATCHER_DBUS_PATH, "org.ayatana.bamf.control",
 				QDBusConnection::SessionBus);
 
+		// It seems that QApplication needs this
 		mock.registerCustomMock("org.gtk.vfs.Daemon", "/org/gtk/vfs/Daemon",
 				"org.gtk.vfs.Daemon", QDBusConnection::SessionBus);
 
