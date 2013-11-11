@@ -18,6 +18,6 @@ add_definitions(-DTEST_DATADIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
 add_definitions(-DDATA_DIR="${DATA_DIR}")
 
 #add_subdirectory(data)
-#add_subdirectory(integration)
+add_subdirectory(integration)
 add_subdirectory(unit)
 add_subdirectory(testutils)
