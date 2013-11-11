@@ -1,6 +1,7 @@
 set(
     QTGMENU_INTERNAL_SRC
     QtGMenuImporterPrivate.cpp
+    QtGMenuUtils.cpp
     ../QtGMenuConverter.cpp
 )
 
@@ -11,6 +12,11 @@ include_directories(
 add_library(
     qtgmenu-internal
     ${QTGMENU_INTERNAL_SRC}
+)
+
+target_link_libraries(
+    qtgmenu-internal
+    ${GIO2_LIBRARIES}
 )
 
 qt5_use_modules(

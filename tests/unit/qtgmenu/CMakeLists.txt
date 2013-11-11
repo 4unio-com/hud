@@ -13,11 +13,15 @@ qt5_use_modules(
     Test
 )
 
+add_library(
+    qtgmenu-test-main
+    main.cpp
+)
+
 target_link_libraries(
     qtgmenu-unit-tests
+    qtgmenu-test-main
     qtgmenu
-    test-utils
-    hud-service
     ${GIO2_LIBRARIES}
     ${GTEST_LIBRARIES}
     ${GMOCK_LIBRARIES}

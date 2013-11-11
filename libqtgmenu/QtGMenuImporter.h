@@ -1,13 +1,34 @@
+/*
+ * Copyright (C) 2013 Canonical, Ltd.
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3, as published
+ * by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranties of
+ * MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Author: Marcus Tomlinson <marcus.tomlinson@canonical.com>
+ */
+
 #ifndef QTGMENUIMPORTER_H
 #define QTGMENUIMPORTER_H
 
 #include <QObject>
 #include <memory>
 
-class QAction;
-class QDBusPendingCallWatcher;
-class QIcon;
 class QMenu;
+
+class _GMenuModel;
+typedef _GMenuModel GMenuModel;
+
+class _GActionGroup;
+typedef _GActionGroup GActionGroup;
 
 namespace qtgmenu
 {
@@ -22,15 +43,24 @@ public:
   QtGMenuImporter( const QString& service, const QString& path, QObject* parent = 0 );
   ~QtGMenuImporter();
 
-  std::shared_ptr< QMenu > Menu() const;
+  GMenuModel* GetGMenuModel() const;
+  GActionGroup* GetGActionGroup() const;
+
+  std::shared_ptr< QMenu > GetQMenu() const;
 
   void ForceRefresh();
-  int GetItemCount();
 
 Q_SIGNALS:
-  void MenuItemsChanged();
+  void MenuItemsChanged( int position, int removed, int added );
   void MenuAppeared();
   void MenuDisappeared();
+
+  void ActionAdded( QString action_name );
+  void ActionEnabled( QString action_name, bool enabled );
+  void ActionRemoved( QString action_name );
+  void ActionStateChanged( QString action_name, QVariant value );
+  void ActionsAppeared();
+  void ActionsDisappeared();
 
 private:
   Q_DISABLE_COPY(QtGMenuImporter)
