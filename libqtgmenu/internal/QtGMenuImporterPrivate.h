@@ -23,22 +23,21 @@ public:
   ~QtGMenuImporterPrivate();
 
   GMenu* GetGMenu();
+  GActionGroup* GetGActionGroup();
+
   std::shared_ptr< QMenu > GetQMenu();
 
   void StartPolling( int interval );
 
 private:
-  static void ItemsChangedCallback( GMenuModel* model, gint position, gint removed, gint added,
+  static void MenuItemsChangedCallback( GMenuModel* model, gint position, gint removed, gint added,
       gpointer user_data );
 
-  static void MenuRefreshedCallback( GMenuModel* model, gint position, gint removed, gint added,
-      gpointer user_data );
-
-Q_SIGNALS:
-  void MenuRefreshed();
+  void ClearGMenuModel();
 
 private Q_SLOTS:
   bool RefreshGMenuModel();
+  bool RefreshGActionGroup();
 
 private:
   QtGMenuImporter& m_parent;
@@ -47,13 +46,17 @@ private:
   std::string m_service;
   std::string m_path;
 
-  gulong m_sig_handler = 0;
-
-  GMenuModel* m_gmenu_model;
   std::shared_ptr< QMenu > m_qmenu;
 
-  QTimer m_poll_timer;
-  std::mutex m_poll_mutex;
+  GMenuModel* m_gmenu_model;
+  gulong m_menu_sig_handler = 0;
+  QTimer m_menu_poll_timer;
+  std::mutex m_menu_poll_mutex;
+
+  GActionGroup* m_gmenu_actions;
+  gulong m_actions_sig_handler = 0;
+  QTimer m_actions_poll_timer;
+  std::mutex m_actions_poll_mutex;
 };
 
 } // namespace qtgmenu

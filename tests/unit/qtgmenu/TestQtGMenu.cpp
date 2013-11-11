@@ -31,6 +31,21 @@ protected:
     g_object_unref( m_connection );
   }
 
+  int GetMenuItemCount()
+  {
+    GMenu* menu = m_importer.GetGMenu();
+
+    if( !menu )
+    {
+      return 0;
+    }
+
+    gint item_count = g_menu_model_get_n_items( G_MENU_MODEL( menu ) );
+    g_object_unref( menu );
+
+    return item_count;
+  }
+
   constexpr static const char* c_service = "com.canonical.qtgmenu";
   constexpr static const char* c_path = "/com/canonical/qtgmenu";
 
@@ -49,8 +64,7 @@ TEST_F(TestQtGMenu, ExportImportMenu)
 
   g_menu_append( m_menu, "New", "app.new" );
 
-  auto qmenu = m_importer.GetQMenu();
-  EXPECT_EQ( nullptr, qmenu );
+  EXPECT_EQ( nullptr, m_importer.GetQMenu() );
 
   // export menu
 
@@ -59,11 +73,8 @@ TEST_F(TestQtGMenu, ExportImportMenu)
 
   menu_appeared_spy.wait();
 
-  qmenu = m_importer.GetQMenu();
-  EXPECT_NE( nullptr, qmenu );
-
-  int item_count = m_importer.GetItemCount();
-  EXPECT_EQ( 1, item_count );
+  EXPECT_NE( nullptr, m_importer.GetQMenu() );
+  EXPECT_EQ( 1, GetMenuItemCount() );
 
   // add 2 items
 
@@ -73,16 +84,14 @@ TEST_F(TestQtGMenu, ExportImportMenu)
   g_menu_append( m_menu, "Del", "app.del" );
   items_changed_spy.wait();
 
-  item_count = m_importer.GetItemCount();
-  EXPECT_EQ( 3, item_count );
+  EXPECT_EQ( 3, GetMenuItemCount() );
 
   // add 1 items
 
   g_menu_append( m_menu, "Quit", "app.quit" );
   items_changed_spy.wait();
 
-  item_count = m_importer.GetItemCount();
-  EXPECT_EQ( 4, item_count );
+  EXPECT_EQ( 4, GetMenuItemCount() );
 
   // unexport menu
 
@@ -91,11 +100,8 @@ TEST_F(TestQtGMenu, ExportImportMenu)
   m_importer.ForceRefresh();
   menu_disappeared_spy.wait();
 
-  qmenu = m_importer.GetQMenu();
-  EXPECT_EQ( nullptr, qmenu );
-
-  item_count = m_importer.GetItemCount();
-  EXPECT_EQ( 0, item_count );
+  EXPECT_EQ( nullptr, m_importer.GetQMenu() );
+  EXPECT_EQ( 0, GetMenuItemCount() );
 }
 
 TEST_F(TestQtGMenu, ExportImportActions)

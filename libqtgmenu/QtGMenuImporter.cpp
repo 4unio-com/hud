@@ -22,30 +22,19 @@ GMenu* QtGMenuImporter::GetGMenu() const
   return d->GetGMenu();
 }
 
+GActionGroup* QtGMenuImporter::GetGActionGroup() const
+{
+  return d->GetGActionGroup();
+}
+
 std::shared_ptr< QMenu > QtGMenuImporter::GetQMenu() const
 {
   return d->GetQMenu();
 }
 
-
 void QtGMenuImporter::ForceRefresh()
 {
   d->StartPolling( 100 );
-}
-
-int QtGMenuImporter::GetItemCount()
-{
-  GMenu* menu = d->GetGMenu();
-
-  if( !menu )
-  {
-    return 0;
-  }
-
-  gint item_count = g_menu_model_get_n_items( G_MENU_MODEL( menu ) );
-  g_object_unref( menu );
-
-  return item_count;
 }
 
 } // namespace qtgmenu

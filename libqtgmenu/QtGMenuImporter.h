@@ -12,6 +12,9 @@ class QMenu;
 class _GMenu;
 typedef _GMenu GMenu;
 
+class _GActionGroup;
+typedef _GActionGroup GActionGroup;
+
 namespace qtgmenu
 {
 
@@ -26,10 +29,11 @@ public:
   ~QtGMenuImporter();
 
   GMenu* GetGMenu() const;
+  GActionGroup* GetGActionGroup() const;
+
   std::shared_ptr< QMenu > GetQMenu() const;
 
   void ForceRefresh();
-  int GetItemCount();
 
 Q_SIGNALS:
   void MenuItemsChanged();
