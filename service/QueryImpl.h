@@ -103,6 +103,8 @@ protected:
 	QSharedPointer<hud::common::AppstackModel> m_appstackModel;
 
 	QList<Result> m_results;
+
+	WindowToken::Ptr m_windowToken;
 };
 
 }

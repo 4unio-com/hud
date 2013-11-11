@@ -29,19 +29,37 @@ namespace hud {
 namespace service {
 
 class Factory;
+class WindowImpl;
+
+class WindowTokenImpl: public WindowToken {
+public:
+	explicit WindowTokenImpl(Collector::Ptr dbusMenuCollector,
+			Collector::Ptr gMenuCollector);
+
+	virtual ~WindowTokenImpl();
+
+	virtual void search(const QString &query, QList<Result> &results);
+
+protected:
+	ItemStore m_items;
+
+	CollectorToken::Ptr m_dbusMenuToken;
+
+	CollectorToken::Ptr m_gMenuToken;
+};
 
 class WindowImpl: public Window {
+	friend WindowTokenImpl;
+
 public:
 	explicit WindowImpl(unsigned int windowId, const QString &applicationId,
 			Factory &factory);
 
 	virtual ~WindowImpl();
 
-	virtual void activate();
+	virtual WindowToken::Ptr activate();
 
 	virtual void setContext(const QString &context);
-
-	virtual void search(const QString &query, QList<Result> &results);
 
 protected:
 	QString m_context;
@@ -50,7 +68,7 @@ protected:
 
 	Collector::Ptr m_gMenuCollector;
 
-	ItemStore m_items;
+	QWeakPointer<WindowToken> m_windowToken;
 };
 
 }

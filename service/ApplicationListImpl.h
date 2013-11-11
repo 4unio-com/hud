@@ -45,7 +45,7 @@ public:
 
 	virtual Application::Ptr focusedApplication() const;
 
-	virtual unsigned int focusedWindowId() const;
+	virtual Window::Ptr focusedWindow() const;
 
 public Q_SLOTS:
 	void FocusedWindowChanged(uint windowId, const QString &applicationId,

@@ -91,36 +91,12 @@ bool GMenuCollector::isValid() const {
 }
 
 CollectorToken::Ptr GMenuCollector::activate() {
-	return CollectorToken::Ptr(new CollectorToken(*this));
+	return CollectorToken::Ptr(new CollectorToken(shared_from_this()));
 }
 
 void GMenuCollector::deactivate() {
 }
 
-void GMenuCollector::search(const QString &query, QList<Result> &results) {
-	//FIXME Dummy data
-	{
-		QList<QPair<int, int>> commandHighlights;
-		commandHighlights << QPair<int, int>(1, 5);
-		commandHighlights << QPair<int, int>(8, 9);
-
-		QList<QPair<int, int>> descriptionHighlights;
-		descriptionHighlights << QPair<int, int>(3, 4);
-
-		results
-				<< Result(0, query, commandHighlights, "from GMenu 1",
-						descriptionHighlights, "shortcut 1", 1, false);
-	}
-
-	{
-		QList<QPair<int, int>> commandHighlights;
-		commandHighlights << QPair<int, int>(2, 3);
-
-		QList<QPair<int, int>> descriptionHighlights;
-		descriptionHighlights << QPair<int, int>(4, 5);
-
-		results
-				<< Result(1, "command 2", commandHighlights, "from GMenu 2",
-						descriptionHighlights, "shortcut 2", 2, false);
-	}
+const QMenu * GMenuCollector::menu() const {
+	return nullptr;
 }

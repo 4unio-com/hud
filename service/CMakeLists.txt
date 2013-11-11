@@ -62,6 +62,7 @@ target_link_libraries(hud-service
   ${DBUSMENU_LIBRARIES}
   ${GOBJECT2_LIBRARIES}
   ${DEE_LIBRARIES}
+  ${COLUMBUS_LIBRARIES}
 )
 
 qt5_use_modules(

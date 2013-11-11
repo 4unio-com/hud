@@ -19,11 +19,13 @@
 #ifndef HUD_SERVICE_COLLECTOR_H_
 #define HUD_SERVICE_COLLECTOR_H_
 
+#include <service/Result.h>
+
 #include <QObject>
 #include <QSharedPointer>
 #include <QMenu>
 
-#include <service/Result.h>
+#include <memory>
 
 namespace hud {
 namespace service {
@@ -43,9 +45,9 @@ public:
 	virtual ~CollectorToken();
 
 protected:
-	explicit CollectorToken(Collector &collector);
+	explicit CollectorToken(std::shared_ptr<Collector> collector);
 
-	Collector &m_collector;
+	std::weak_ptr<Collector> m_collector;
 };
 
 class Collector: public QObject {
@@ -54,7 +56,7 @@ Q_OBJECT
 	friend CollectorToken;
 
 public:
-	typedef QSharedPointer<Collector> Ptr;
+	typedef std::shared_ptr<Collector> Ptr;
 
 	explicit Collector(QObject *parent = 0);
 
@@ -64,7 +66,7 @@ public:
 
 	virtual CollectorToken::Ptr activate() = 0;
 
-	virtual void search(const QString &query, QList<Result> &results) = 0;
+	virtual const QMenu *menu() const = 0;
 
 protected:
 	virtual void deactivate() = 0;

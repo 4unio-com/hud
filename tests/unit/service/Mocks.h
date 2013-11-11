@@ -68,7 +68,7 @@ public:
 
 	MOCK_CONST_METHOD0(focusedApplication, Application::Ptr());
 
-	MOCK_CONST_METHOD0(focusedWindowId, unsigned int());
+	MOCK_CONST_METHOD0(focusedWindow, Window::Ptr());
 };
 
 class MockApplication: public Application {
@@ -92,7 +92,7 @@ public:
 
 class MockWindow: public Window {
 public:
-	MOCK_METHOD0(activate, void());
+	MOCK_METHOD0(activate, WindowToken::Ptr());
 
 	MOCK_METHOD1(setContext, void(const QString &));
 
@@ -106,6 +106,8 @@ public:
 	MOCK_METHOD0(activate, CollectorToken::Ptr());
 
 	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
+
+	MOCK_CONST_METHOD0(menu, const QMenu *());
 
 protected:
 	MOCK_METHOD0(deactivate, void());

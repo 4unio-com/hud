@@ -148,6 +148,11 @@ Application::Ptr ApplicationListImpl::focusedApplication() const {
 	return m_focusedApplication;
 }
 
-unsigned int ApplicationListImpl::focusedWindowId() const {
-	return m_focusedWindowId;
+Window::Ptr ApplicationListImpl::focusedWindow() const {
+	Window::Ptr window;
+	Application::Ptr application(focusedApplication());
+	if (!application.isNull()) {
+		window = application->window(m_focusedWindowId);
+	}
+	return window;
 }

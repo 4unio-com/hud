@@ -27,6 +27,18 @@
 namespace hud {
 namespace service {
 
+class WindowToken {
+public:
+	typedef QSharedPointer<WindowToken> Ptr;
+
+	virtual ~WindowToken();
+
+	virtual void search(const QString &query, QList<Result> &results) = 0;
+
+protected:
+	explicit WindowToken();
+};
+
 class Window {
 public:
 	typedef QSharedPointer<Window> Ptr;
@@ -35,11 +47,9 @@ public:
 
 	virtual ~Window();
 
-	virtual void activate() = 0;
+	virtual WindowToken::Ptr activate() = 0;
 
 	virtual void setContext(const QString &context) = 0;
-
-	virtual void search(const QString &query, QList<Result> &results) = 0;
 };
 
 }

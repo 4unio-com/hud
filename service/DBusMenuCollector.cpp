@@ -23,6 +23,7 @@
 
 #include <dbusmenuimporter.h>
 #include <QMenu>
+#include <columbus.hh>
 
 using namespace hud::common;
 using namespace hud::service;
@@ -137,7 +138,7 @@ CollectorToken::Ptr DBusMenuCollector::activate() {
 		}
 	}
 
-	return CollectorToken::Ptr(new CollectorToken(*this));
+	return CollectorToken::Ptr(new CollectorToken(shared_from_this()));
 }
 
 void DBusMenuCollector::deactivate() {
@@ -168,41 +169,6 @@ void DBusMenuCollector::WindowUnregistered(uint windowId) {
 	m_menu = nullptr;
 }
 
-static void searchy(QMenu *menu, QList<Result> &results,
-		const QStringList &stack) {
-//	qDebug() << "title:" << menu->title();
-
-	for (const QAction *action : menu->actions()) {
-		if (!action->isEnabled()) {
-			continue;
-		}
-		if (action->isSeparator()) {
-			continue;
-		}
-
-		QString text(action->text());
-
-		QMenu *child(action->menu());
-		if (child) {
-			QStringList childStack(stack);
-			childStack << text;
-			searchy(child, results, childStack);
-		} else {
-			QList<QPair<int, int>> commandHighlights;
-			commandHighlights << QPair<int, int>(2, 3);
-
-			QList<QPair<int, int>> descriptionHighlights;
-			descriptionHighlights << QPair<int, int>(3, 5);
-
-			results
-					<< Result(0, text, commandHighlights, stack.join(_(", ")),
-							descriptionHighlights,
-							action->shortcut().toString(), 0, false);
-		}
-	}
-}
-
-void DBusMenuCollector::search(const QString &query, QList<Result> &results) {
-	qDebug() << "DBusMenuCollector::search" << query;
-	searchy(m_menu, results, QStringList());
+const QMenu * DBusMenuCollector::menu() const {
+	return m_menu;
 }

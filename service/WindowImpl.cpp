@@ -22,6 +22,24 @@
 
 using namespace hud::service;
 
+WindowTokenImpl::WindowTokenImpl(Collector::Ptr dbusMenuCollector,
+		Collector::Ptr gMenuCollector) {
+	if (dbusMenuCollector->isValid()) {
+		m_dbusMenuToken = dbusMenuCollector->activate();
+		m_items.indexMenu(dbusMenuCollector->menu());
+	}
+	if (gMenuCollector->isValid()) {
+		gMenuCollector->activate();
+	}
+}
+
+WindowTokenImpl::~WindowTokenImpl() {
+}
+
+void WindowTokenImpl::search(const QString &query, QList<Result> &results) {
+	m_items.search(query, results);
+}
+
 WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,
 		Factory &factory) :
 		m_dbusMenuCollector(
@@ -32,13 +50,16 @@ WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,
 WindowImpl::~WindowImpl() {
 }
 
-void WindowImpl::activate() {
-	if (m_dbusMenuCollector->isValid()) {
-		m_dbusMenuCollector->activate();
+WindowToken::Ptr WindowImpl::activate() {
+	WindowToken::Ptr windowToken(m_windowToken);
+
+	if (windowToken.isNull()) {
+		windowToken.reset(
+				new WindowTokenImpl(m_dbusMenuCollector, m_gMenuCollector));
+		m_windowToken = windowToken;
 	}
-	if (m_gMenuCollector->isValid()) {
-		m_gMenuCollector->activate();
-	}
+
+	return windowToken;
 }
 
 void WindowImpl::setContext(const QString &context) {
@@ -46,11 +67,3 @@ void WindowImpl::setContext(const QString &context) {
 	qDebug() << "Window updated context to" << context;
 }
 
-void WindowImpl::search(const QString &query, QList<Result> &results) {
-	if (m_dbusMenuCollector->isValid()) {
-		m_dbusMenuCollector->search(query, results);
-	}
-	if (m_gMenuCollector->isValid()) {
-		m_gMenuCollector->search(query, results);
-	}
-}

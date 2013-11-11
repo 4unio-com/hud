@@ -19,7 +19,13 @@
 #ifndef HUD_SERVICE_ITEMSTORE_H_
 #define HUD_SERVICE_ITEMSTORE_H_
 
+#include <service/Result.h>
+
 #include <QSharedPointer>
+#include <QMenu>
+#include <QStringList>
+#include <Corpus.hh>
+#include <Matcher.hh>
 
 namespace hud {
 namespace service {
@@ -31,6 +37,21 @@ public:
 	explicit ItemStore();
 
 	virtual ~ItemStore();
+
+	void indexMenu(const QMenu *menu);
+
+	void search(const QString &query, QList<Result> &results);
+
+protected:
+	void indexMenu(const QMenu *menu, const QStringList &stack);
+
+	Columbus::Corpus m_corpus;
+
+	Columbus::Matcher m_matcher;
+
+	DocumentID m_nextId;
+
+	QMap<DocumentID, const QAction *> m_actions;
 };
 
 }

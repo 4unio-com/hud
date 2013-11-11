@@ -28,10 +28,12 @@ Collector::Collector(QObject *parent) :
 Collector::~Collector() {
 }
 
-CollectorToken::CollectorToken(Collector &collector) :
+CollectorToken::CollectorToken(Collector::Ptr collector) :
 		m_collector(collector) {
 }
 
 CollectorToken::~CollectorToken() {
-	m_collector.deactivate();
+	if (Collector::Ptr collector = m_collector.lock()) {
+		collector->deactivate();
+	}
 }

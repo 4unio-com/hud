@@ -20,7 +20,9 @@
 #define HUD_SERVICE_DBUSMENUCOLLECTOR_H_
 
 #include <service/Collector.h>
+
 #include <QDBusConnection>
+#include <memory>
 
 class ComCanonicalAppMenuRegistrarInterface;
 class DBusMenuImporter;
@@ -32,10 +34,11 @@ QT_END_NAMESPACE
 namespace hud {
 namespace service {
 
-class DBusMenuCollector: public Collector {
+class DBusMenuCollector: public Collector, public std::enable_shared_from_this<
+		DBusMenuCollector> {
 Q_OBJECT
 public:
-	typedef QSharedPointer<DBusMenuCollector> Ptr;
+	typedef std::shared_ptr<DBusMenuCollector> Ptr;
 
 	explicit DBusMenuCollector(unsigned int windowId,
 			QSharedPointer<ComCanonicalAppMenuRegistrarInterface> appmenu);
@@ -46,7 +49,7 @@ public:
 
 	virtual CollectorToken::Ptr activate();
 
-	virtual void search(const QString &query, QList<Result> &results);
+	virtual const QMenu *menu() const;
 
 protected Q_SLOTS:
 	void WindowRegistered(uint windowId, const QString &service,

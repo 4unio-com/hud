@@ -38,10 +38,6 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query,
 				service), m_applicationList(applicationList), m_query(query), m_serviceWatcher(
 				sender, m_connection,
 				QDBusServiceWatcher::WatchForUnregistration) {
-	if (!m_connection.registerObject(m_path.path(), this)) {
-		throw std::logic_error(
-				_("Unable to register HUD query object on DBus"));
-	}
 
 	connect(&m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)),
 			this, SLOT(serviceUnregistered(const QString &)));
@@ -50,6 +46,11 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query,
 	m_appstackModel.reset(new AppstackModel(id));
 
 	refresh();
+
+	if (!m_connection.registerObject(m_path.path(), this)) {
+		throw std::logic_error(
+				_("Unable to register HUD query object on DBus"));
+	}
 }
 
 QueryImpl::~QueryImpl() {
@@ -128,16 +129,12 @@ void QueryImpl::refresh() {
 		return;
 	}
 
-	// FIXME Rule of demeter breakage
-	Window::Ptr window(
-			application->window(m_applicationList->focusedWindowId()));
+	Window::Ptr window(m_applicationList->focusedWindow());
 
-	// TODO Only do this is the window is different from last time
-	// TODO Hold the menus open while the query is active
-	window->activate();
+	m_windowToken = window->activate();
 
 	m_results.clear();
-	window->search(m_query, m_results);
+	m_windowToken->search(m_query, m_results);
 
 	// Convert to results list to Dee model
 	m_resultsModel->beginChangeset();

@@ -45,7 +45,7 @@ public:
 
 	virtual Application::Ptr focusedApplication() const = 0;
 
-	virtual unsigned int focusedWindowId() const = 0;
+	virtual Window::Ptr focusedWindow() const = 0;
 };
 
 }

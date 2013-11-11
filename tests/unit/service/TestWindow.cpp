@@ -53,11 +53,11 @@ protected:
 };
 
 TEST_F(TestWindow, TrysDBusMenuAndGMenu) {
-	QSharedPointer<MockCollector> dbusMenuCollector(
+	shared_ptr<MockCollector> dbusMenuCollector(
 			new NiceMock<MockCollector>());
 	ON_CALL(*dbusMenuCollector, isValid()).WillByDefault(Return(false));
 
-	QSharedPointer<MockCollector> gmenuCollector(new NiceMock<MockCollector>());
+	shared_ptr<MockCollector> gmenuCollector(new NiceMock<MockCollector>());
 	ON_CALL(*gmenuCollector, isValid()).WillByDefault(Return(true));
 
 	EXPECT_CALL(factory, newDBusMenuCollector(1234, QString("application-id"))).Times(
