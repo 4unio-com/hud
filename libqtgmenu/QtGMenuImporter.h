@@ -1,7 +1,3 @@
-#ifndef QTGMENUIMPORTER_H
-#define QTGMENUIMPORTER_H
-
-#include <QObject>
 /*
  * Copyright (C) 2013 Canonical, Ltd.
  *
@@ -20,11 +16,12 @@
  * Author: Marcus Tomlinson <marcus.tomlinson@canonical.com>
  */
 
+#ifndef QTGMENUIMPORTER_H
+#define QTGMENUIMPORTER_H
+
+#include <QObject>
 #include <memory>
 
-class QAction;
-class QDBusPendingCallWatcher;
-class QIcon;
 class QMenu;
 
 class _GMenuModel;
