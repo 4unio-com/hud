@@ -33,7 +33,20 @@ private:
   static void MenuItemsChangedCallback( GMenuModel* model, gint position, gint removed, gint added,
       gpointer user_data );
 
+  static void ActionAddedCallback( GActionGroup *action_group, gchar *action_name,
+      gpointer user_data );
+
+  static void ActionEnabledCallback( GActionGroup *action_group, gchar *action_name,
+      gboolean enabled, gpointer user_data );
+
+  static void ActionRemovedCallback( GActionGroup *action_group, gchar *action_name,
+      gpointer user_data );
+
+  static void ActionStateChangedCallback( GActionGroup *action_group, gchar *action_name,
+      GVariant *value, gpointer user_data );
+
   void ClearGMenuModel();
+  void ClearGActionGroup();
 
 private Q_SLOTS:
   bool RefreshGMenuModel();
@@ -49,12 +62,15 @@ private:
   std::shared_ptr< QMenu > m_qmenu;
 
   GMenuModel* m_gmenu_model;
-  gulong m_menu_sig_handler = 0;
+  gulong m_menu_items_changed_handler = 0;
   QTimer m_menu_poll_timer;
   std::mutex m_menu_poll_mutex;
 
-  GActionGroup* m_gmenu_actions;
-  gulong m_actions_sig_handler = 0;
+  GActionGroup* m_gaction_group;
+  gulong m_action_added_handler = 0;
+  gulong m_action_enabled_handler = 0;
+  gulong m_action_removed_handler = 0;
+  gulong m_action_state_changed_handler = 0;
   QTimer m_actions_poll_timer;
   std::mutex m_actions_poll_mutex;
 };

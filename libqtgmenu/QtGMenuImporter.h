@@ -40,6 +40,13 @@ Q_SIGNALS:
   void MenuAppeared();
   void MenuDisappeared();
 
+  void ActionAdded();
+  void ActionEnabled();
+  void ActionRemoved();
+  void ActionStateChanged();
+  void ActionsAppeared();
+  void ActionsDisappeared();
+
 private:
   Q_DISABLE_COPY(QtGMenuImporter)
   std::unique_ptr< QtGMenuImporterPrivate > d;
