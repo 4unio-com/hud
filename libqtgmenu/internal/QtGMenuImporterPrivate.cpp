@@ -1,10 +1,10 @@
 #include <QtGMenuImporterPrivate.h>
 #include <QtGMenuConverter.h>
+#include <QtGMenuUtils.h>
 
 #include <QEventLoop>
 
-namespace qtgmenu
-{
+using namespace qtgmenu;
 
 // this is used to suppress compiler warnings about unused parameters
 template< typename ... T > void unused( T&& ... )
@@ -87,41 +87,41 @@ void QtGMenuImporterPrivate::StartPolling( int interval )
 void QtGMenuImporterPrivate::MenuItemsChangedCallback( GMenuModel* model, gint position,
     gint removed, gint added, gpointer user_data )
 {
-  unused( model, position, removed, added );
+  unused( model );
   QtGMenuImporter* importer = reinterpret_cast< QtGMenuImporter* >( user_data );
-  emit importer->MenuItemsChanged();
+  emit importer->MenuItemsChanged( position, removed, added );
 }
 
-void QtGMenuImporterPrivate::ActionAddedCallback( GActionGroup *action_group, gchar *action_name,
+void QtGMenuImporterPrivate::ActionAddedCallback( GActionGroup* action_group, gchar* action_name,
     gpointer user_data )
 {
-  unused( action_group, action_name );
+  unused( action_group );
   QtGMenuImporter* importer = reinterpret_cast< QtGMenuImporter* >( user_data );
-  emit importer->ActionAdded();
+  emit importer->ActionAdded( action_name );
 }
 
-void QtGMenuImporterPrivate::ActionEnabledCallback( GActionGroup *action_group, gchar *action_name,
+void QtGMenuImporterPrivate::ActionEnabledCallback( GActionGroup* action_group, gchar* action_name,
     gboolean enabled, gpointer user_data )
 {
-  unused( action_group, action_name, enabled );
+  unused( action_group );
   QtGMenuImporter* importer = reinterpret_cast< QtGMenuImporter* >( user_data );
-  emit importer->ActionEnabled();
+  emit importer->ActionEnabled( action_name, enabled );
 }
 
-void QtGMenuImporterPrivate::ActionRemovedCallback( GActionGroup *action_group, gchar *action_name,
+void QtGMenuImporterPrivate::ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
     gpointer user_data )
 {
-  unused( action_group, action_name );
+  unused( action_group );
   QtGMenuImporter* importer = reinterpret_cast< QtGMenuImporter* >( user_data );
-  emit importer->ActionRemoved();
+  emit importer->ActionRemoved( action_name );
 }
 
-void QtGMenuImporterPrivate::ActionStateChangedCallback( GActionGroup *action_group,
-    gchar *action_name, GVariant *value, gpointer user_data )
+void QtGMenuImporterPrivate::ActionStateChangedCallback( GActionGroup* action_group,
+    gchar* action_name, GVariant* value, gpointer user_data )
 {
-  unused( action_group, action_name, value );
+  unused( action_group );
   QtGMenuImporter* importer = reinterpret_cast< QtGMenuImporter* >( user_data );
-  emit importer->ActionStateChanged();
+  emit importer->ActionStateChanged( action_name, QtGMenuUtils::GVariantToQVariant( value ) );
 }
 
 void QtGMenuImporterPrivate::ClearGMenuModel()
@@ -199,7 +199,8 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
     QEventLoop menu_refresh_wait;
     QTimer timeout;
 
-    menu_refresh_wait.connect( &m_parent, SIGNAL( MenuItemsChanged() ), SLOT( quit() ) );
+    menu_refresh_wait.connect( &m_parent, SIGNAL( MenuItemsChanged( int, int, int ) ),
+        SLOT( quit() ) );
     timeout.singleShot( 100, &menu_refresh_wait, SLOT( quit() ) );
     menu_refresh_wait.exec();
 
@@ -259,7 +260,7 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
     QEventLoop actions_refresh_wait;
     QTimer timeout;
 
-    actions_refresh_wait.connect( &m_parent, SIGNAL( ActionAdded() ), SLOT( quit() ) );
+    actions_refresh_wait.connect( &m_parent, SIGNAL( ActionAdded( QString ) ), SLOT( quit() ) );
     timeout.singleShot( 100, &actions_refresh_wait, SLOT( quit() ) );
     actions_refresh_wait.exec();
 
@@ -294,7 +295,5 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
 
   return actions_are_valid;
 }
-
-} // namespace qtgmenu
 
 #include <QtGMenuImporterPrivate.moc>

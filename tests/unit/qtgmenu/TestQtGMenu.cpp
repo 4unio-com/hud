@@ -79,7 +79,7 @@ protected:
 
 TEST_F(TestQtGMenu, ExportImportMenu)
 {
-  QSignalSpy items_changed_spy( &m_importer, SIGNAL( MenuItemsChanged() ) );
+  QSignalSpy items_changed_spy( &m_importer, SIGNAL( MenuItemsChanged( int, int, int ) ) );
   QSignalSpy menu_appeared_spy( &m_importer, SIGNAL( MenuAppeared() ) );
   QSignalSpy menu_disappeared_spy( &m_importer, SIGNAL( MenuDisappeared() ) );
 
@@ -129,10 +129,11 @@ TEST_F(TestQtGMenu, ExportImportMenu)
 
 TEST_F(TestQtGMenu, ExportImportActions)
 {
-  QSignalSpy action_added_spy( &m_importer, SIGNAL( ActionAdded() ) );
-  QSignalSpy action_enabled_spy( &m_importer, SIGNAL( ActionEnabled() ) );
-  QSignalSpy action_removed_spy( &m_importer, SIGNAL( ActionRemoved() ) );
-  QSignalSpy action_state_chaged_spy( &m_importer, SIGNAL( ActionStateChanged() ) );
+  QSignalSpy action_added_spy( &m_importer, SIGNAL( ActionAdded( QString ) ) );
+  QSignalSpy action_enabled_spy( &m_importer, SIGNAL( ActionEnabled( QString, bool ) ) );
+  QSignalSpy action_removed_spy( &m_importer, SIGNAL( ActionRemoved( QString ) ) );
+  QSignalSpy action_state_chaged_spy( &m_importer,
+      SIGNAL( ActionStateChanged( QString, QVariant ) ) );
   QSignalSpy actions_appeared_spy( &m_importer, SIGNAL( ActionsAppeared() ) );
   QSignalSpy actions_disappeared_spy( &m_importer, SIGNAL( ActionsDisappeared() ) );
 

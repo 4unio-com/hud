@@ -32,17 +32,17 @@ private:
   static void MenuItemsChangedCallback( GMenuModel* model, gint position, gint removed, gint added,
       gpointer user_data );
 
-  static void ActionAddedCallback( GActionGroup *action_group, gchar *action_name,
+  static void ActionAddedCallback( GActionGroup* action_group, gchar* action_name,
       gpointer user_data );
 
-  static void ActionEnabledCallback( GActionGroup *action_group, gchar *action_name,
+  static void ActionEnabledCallback( GActionGroup* action_group, gchar* action_name,
       gboolean enabled, gpointer user_data );
 
-  static void ActionRemovedCallback( GActionGroup *action_group, gchar *action_name,
+  static void ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
       gpointer user_data );
 
-  static void ActionStateChangedCallback( GActionGroup *action_group, gchar *action_name,
-      GVariant *value, gpointer user_data );
+  static void ActionStateChangedCallback( GActionGroup* action_group, gchar* action_name,
+      GVariant* value, gpointer user_data );
 
   void ClearGMenuModel();
   void ClearGActionGroup();

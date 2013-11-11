@@ -2,12 +2,16 @@
 
 #include <QMenu>
 
+using namespace qtgmenu;
+
 namespace qtgmenu
 {
 
 class QtGMenuExporterPrivate
 {
 };
+
+} // namespace qtgmenu
 
 QtGMenuExporter::QtGMenuExporter( const QString& dbusObjectPath, QMenu* menu,
     const QDBusConnection& connection )
@@ -19,7 +23,5 @@ QtGMenuExporter::QtGMenuExporter( const QString& dbusObjectPath, QMenu* menu,
 QtGMenuExporter::~QtGMenuExporter()
 {
 }
-
-} // namespace qtgmenu
 
 #include "QtGMenuExporter.moc"

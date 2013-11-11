@@ -4,12 +4,16 @@
 #undef signals
 #include <gio/gio.h>
 
+using namespace qtgmenu;
+
 namespace qtgmenu
 {
 
 class QtGMenuConverterPrivate
 {
 };
+
+} // namespace qtgmenu
 
 QtGMenuConverter::QtGMenuConverter()
     : d( new QtGMenuConverterPrivate() )
@@ -29,5 +33,3 @@ GMenuModel* QtGMenuConverter::ToGMenuModel( const QMenu& from_menu )
 {
   return G_MENU_MODEL( g_menu_new() ) ;
 }
-
-} // namespace qtgmenu

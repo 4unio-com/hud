@@ -4,8 +4,7 @@
 #include <QIcon>
 #include <QMenu>
 
-namespace qtgmenu
-{
+using namespace qtgmenu;
 
 QtGMenuImporter::QtGMenuImporter( const QString &service, const QString &path, QObject *parent )
     : QObject( parent ),
@@ -36,7 +35,5 @@ void QtGMenuImporter::ForceRefresh()
 {
   d->StartPolling( 100 );
 }
-
-} // namespace qtgmenu
 
 #include <QtGMenuImporter.moc>

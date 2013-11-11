@@ -36,14 +36,14 @@ public:
   void ForceRefresh();
 
 Q_SIGNALS:
-  void MenuItemsChanged();
+  void MenuItemsChanged( int position, int removed, int added );
   void MenuAppeared();
   void MenuDisappeared();
 
-  void ActionAdded();
-  void ActionEnabled();
-  void ActionRemoved();
-  void ActionStateChanged();
+  void ActionAdded( QString action_name );
+  void ActionEnabled( QString action_name, bool enabled );
+  void ActionRemoved( QString action_name );
+  void ActionStateChanged( QString action_name, QVariant value );
   void ActionsAppeared();
   void ActionsDisappeared();
 
