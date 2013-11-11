@@ -23,10 +23,12 @@ protected:
 
     m_connection = g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL );
     m_menu = g_menu_new();
+    m_actions = g_simple_action_group_new();
   }
 
   virtual ~TestQtGMenu()
   {
+    g_object_unref( m_actions );
     g_object_unref( m_menu );
     g_object_unref( m_connection );
   }
@@ -46,12 +48,33 @@ protected:
     return item_count;
   }
 
+  int GetActionCount()
+  {
+    GActionGroup* actions = m_importer.GetGActionGroup();
+
+    if( !actions )
+    {
+      return 0;
+    }
+
+    gchar** actions_list = g_action_group_list_actions( actions );
+
+    int action_count = 0;
+    while( actions_list[ action_count ] != nullptr )
+    {
+      ++action_count;
+    }
+
+    return action_count;
+  }
+
   constexpr static const char* c_service = "com.canonical.qtgmenu";
   constexpr static const char* c_path = "/com/canonical/qtgmenu";
 
   QtGMenuImporter m_importer;
   GDBusConnection* m_connection;
   GMenu* m_menu;
+  GSimpleActionGroup* m_actions;
 };
 
 TEST_F(TestQtGMenu, ExportImportMenu)
@@ -106,6 +129,55 @@ TEST_F(TestQtGMenu, ExportImportMenu)
 
 TEST_F(TestQtGMenu, ExportImportActions)
 {
+  QSignalSpy actions_added_spy( &m_importer, SIGNAL( ActionAdded() ) );
+  QSignalSpy action_enabled_spy( &m_importer, SIGNAL( ActionEnabled() ) );
+  QSignalSpy action_removed_spy( &m_importer, SIGNAL( ActionRemoved() ) );
+  QSignalSpy action_state_chaged_spy( &m_importer, SIGNAL( ActionStateChanged() ) );
+  QSignalSpy actions_appeared_spy( &m_importer, SIGNAL( ActionsAppeared() ) );
+  QSignalSpy actions_disappeared_spy( &m_importer, SIGNAL( ActionsDisappeared() ) );
+
+  // no actions exported
+
+  g_simple_action_group_insert( m_actions, G_ACTION( g_simple_action_new_stateful( "app.new", G_VARIANT_TYPE_BOOLEAN, false ) ) );
+
+  EXPECT_EQ( nullptr, m_importer.GetGActionGroup() );
+
+  // export actions
+
+  guint export_id = g_dbus_connection_export_action_group( m_connection, c_path,
+      G_ACTION_GROUP( m_actions ), NULL );
+
+  actions_appeared_spy.wait();
+
+  EXPECT_NE( nullptr, m_importer.GetGActionGroup() );
+  EXPECT_EQ( 1, GetActionCount() );
+
+  // add 2 actions
+
+  g_simple_action_group_insert( m_actions, G_ACTION( g_simple_action_new_stateful( "app.add", G_VARIANT_TYPE_BOOLEAN, false ) ) );
+  actions_added_spy.wait();
+
+  g_simple_action_group_insert( m_actions, G_ACTION( g_simple_action_new_stateful( "app.del", G_VARIANT_TYPE_BOOLEAN, false ) ) );
+  actions_added_spy.wait();
+
+  EXPECT_EQ( 3, GetActionCount() );
+
+  // add 1 actions
+
+  g_simple_action_group_insert( m_actions, G_ACTION( g_simple_action_new_stateful( "app.quit", G_VARIANT_TYPE_BOOLEAN, false ) ) );
+  actions_added_spy.wait();
+
+  EXPECT_EQ( 4, GetActionCount() );
+
+  // unexport actions
+
+  g_dbus_connection_unexport_action_group( m_connection, export_id );
+
+  m_importer.ForceRefresh();
+  actions_disappeared_spy.wait();
+
+  EXPECT_EQ( nullptr, m_importer.GetGActionGroup() );
+  EXPECT_EQ( 0, GetActionCount() );
 }
 
 } // namespace
