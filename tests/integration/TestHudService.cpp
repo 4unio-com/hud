@@ -37,23 +37,43 @@ class TestHud: public Test {
 protected:
 	TestHud() :
 			mock(dbus) {
+
+		mock.registerCustomMock(DBusTypes::BAMF_DBUS_NAME,
+				DBusTypes::BAMF_MATCHER_DBUS_PATH, "org.ayatana.bamf.control",
+				QDBusConnection::SessionBus);
+
+		mock.registerCustomMock("org.gtk.vfs.Daemon", "/org/gtk/vfs/Daemon",
+				"org.gtk.vfs.Daemon", QDBusConnection::SessionBus);
+
+		dbus.startServices();
 	}
 
 	virtual ~TestHud() {
 	}
 
+	OrgFreedesktopDBusMockInterface & bamfMatcherMock() {
+		return mock.mockInterface(DBusTypes::BAMF_DBUS_NAME,
+				DBusTypes::BAMF_MATCHER_DBUS_PATH, "org.ayatana.bamf.control",
+				QDBusConnection::SessionBus);
+	}
+
+	void startHud() {
+		hud.reset(
+				new QProcessDBusService(DBusTypes::HUD_SERVICE_DBUS_NAME,
+						QDBusConnection::SessionBus,
+						HUD_SERVICE_BINARY, QStringList()));
+		hud->start(dbus.sessionConnection());
+	}
+
 	DBusTestRunner dbus;
 
 	DBusMock mock;
+
+	QSharedPointer<QProcessDBusService> hud;
 };
 
 TEST_F(TestHud, OpenCloseQuery) {
-	QSharedPointer<QProcessDBusService> hud(
-			new QProcessDBusService(DBusTypes::HUD_SERVICE_DBUS_NAME,
-					QDBusConnection::SessionBus,
-					HUD_SERVICE_BINARY, QStringList()));
-
-	dbus.registerService(hud);
+	startHud();
 }
 
 } // namespace
