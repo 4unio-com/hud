@@ -13,6 +13,11 @@ add_library(
     ${QTGMENU_INTERNAL_SRC}
 )
 
+target_link_libraries(
+    qtgmenu-internal
+    ${GIO2_LIBRARIES}
+)
+
 qt5_use_modules(
     qtgmenu-internal
     Core

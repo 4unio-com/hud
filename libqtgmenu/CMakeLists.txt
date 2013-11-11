@@ -21,5 +21,4 @@ qt5_use_modules(
 target_link_libraries(
     qtgmenu
     qtgmenu-internal
-    ${GIO2_LIBRARIES}
 )

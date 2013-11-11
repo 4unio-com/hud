@@ -6,7 +6,6 @@
 #include <QMenu>
 #include <QTimer>
 #include <memory>
-#include <mutex>
 
 #undef signals
 #include <gio/gio.h>
@@ -22,7 +21,7 @@ public:
   QtGMenuImporterPrivate( const QString& service, const QString& path, QtGMenuImporter& parent );
   ~QtGMenuImporterPrivate();
 
-  GMenu* GetGMenu();
+  GMenuModel* GetGMenuModel();
   GActionGroup* GetGActionGroup();
 
   std::shared_ptr< QMenu > GetQMenu();
@@ -64,7 +63,6 @@ private:
   GMenuModel* m_gmenu_model;
   gulong m_menu_items_changed_handler = 0;
   QTimer m_menu_poll_timer;
-  std::mutex m_menu_poll_mutex;
 
   GActionGroup* m_gaction_group;
   gulong m_action_added_handler = 0;
@@ -72,7 +70,6 @@ private:
   gulong m_action_removed_handler = 0;
   gulong m_action_state_changed_handler = 0;
   QTimer m_actions_poll_timer;
-  std::mutex m_actions_poll_mutex;
 };
 
 } // namespace qtgmenu

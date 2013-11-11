@@ -17,9 +17,9 @@ QtGMenuImporter::~QtGMenuImporter()
 {
 }
 
-GMenu* QtGMenuImporter::GetGMenu() const
+GMenuModel* QtGMenuImporter::GetGMenuModel() const
 {
-  return d->GetGMenu();
+  return d->GetGMenuModel();
 }
 
 GActionGroup* QtGMenuImporter::GetGActionGroup() const

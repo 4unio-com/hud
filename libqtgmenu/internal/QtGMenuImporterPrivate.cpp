@@ -38,32 +38,19 @@ QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
   ClearGActionGroup();
 }
 
-GMenu* QtGMenuImporterPrivate::GetGMenu()
+GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
 {
-  std::lock_guard < std::mutex > lock( m_menu_poll_mutex );
-
-  if( m_gmenu_model == nullptr )
+  if( m_menu_poll_timer.isActive() || m_gmenu_model == nullptr )
   {
     return nullptr;
   }
 
-  // return a copy of m_gmenu_model
-  GMenu* menu = g_menu_new();
-  gint item_count = g_menu_model_get_n_items( m_gmenu_model );
-
-  for( gint i = 0; i < item_count; ++i )
-  {
-    g_menu_append_item( menu, g_menu_item_new_from_model( m_gmenu_model, i ) );
-  }
-
-  return menu;
+  return m_gmenu_model;
 }
 
 GActionGroup* QtGMenuImporterPrivate::GetGActionGroup()
 {
-  std::lock_guard < std::mutex > lock( m_actions_poll_mutex );
-
-  if( m_gaction_group == nullptr )
+  if( m_actions_poll_timer.isActive() || m_gaction_group == nullptr )
   {
     return nullptr;
   }
@@ -73,7 +60,7 @@ GActionGroup* QtGMenuImporterPrivate::GetGActionGroup()
 
 std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
 {
-  GMenu* gmenu = GetGMenu();
+  GMenuModel* gmenu = GetGMenuModel();
 
   if( gmenu == nullptr )
   {
@@ -81,8 +68,6 @@ std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
   }
 
   std::shared_ptr< QMenu > qmenu = QtGMenuConverter::ToQMenu( *gmenu );
-
-  g_object_unref( gmenu );
 
   // return a copy of m_gmenu_model as a QMenu
   return qmenu;
@@ -131,8 +116,8 @@ void QtGMenuImporterPrivate::ActionRemovedCallback( GActionGroup *action_group, 
   emit importer->ActionRemoved();
 }
 
-void QtGMenuImporterPrivate::ActionStateChangedCallback( GActionGroup *action_group, gchar *action_name,
-    GVariant *value, gpointer user_data )
+void QtGMenuImporterPrivate::ActionStateChangedCallback( GActionGroup *action_group,
+    gchar *action_name, GVariant *value, gpointer user_data )
 {
   unused( action_group, action_name, value );
   QtGMenuImporter* importer = reinterpret_cast< QtGMenuImporter* >( user_data );
@@ -184,8 +169,6 @@ void QtGMenuImporterPrivate::ClearGActionGroup()
 
 bool QtGMenuImporterPrivate::RefreshGMenuModel()
 {
-  std::lock_guard < std::mutex > lock( m_menu_poll_mutex );
-
   bool menu_was_valid = m_gmenu_model != nullptr;
 
   // clear the menu model for the refresh
@@ -240,8 +223,6 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
 
 bool QtGMenuImporterPrivate::RefreshGActionGroup()
 {
-  std::lock_guard < std::mutex > lock( m_actions_poll_mutex );
-
   bool actions_were_valid = m_gaction_group != nullptr;
 
   // clear the action group for the refresh
@@ -272,10 +253,13 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
     actions_refresh_wait.exec();
 
     // check item count again
+    g_strfreev( actions_list );
     actions_list = g_action_group_list_actions( m_gaction_group );
   }
 
   bool actions_are_valid = actions_list[0] != nullptr;
+
+  g_strfreev( actions_list );
 
   if( actions_are_valid )
   {

@@ -23,7 +23,7 @@ protected:
 
     m_connection = g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL );
     m_menu = g_menu_new();
-    m_actions = g_simple_action_group_new();
+    m_actions = G_ACTION_MAP( g_simple_action_group_new() );
   }
 
   virtual ~TestQtGMenu()
@@ -35,7 +35,7 @@ protected:
 
   int GetMenuItemCount()
   {
-    GMenu* menu = m_importer.GetGMenu();
+    GMenuModel* menu = m_importer.GetGMenuModel();
 
     if( !menu )
     {
@@ -43,7 +43,6 @@ protected:
     }
 
     gint item_count = g_menu_model_get_n_items( G_MENU_MODEL( menu ) );
-    g_object_unref( menu );
 
     return item_count;
   }
@@ -60,11 +59,12 @@ protected:
     gchar** actions_list = g_action_group_list_actions( actions );
 
     int action_count = 0;
-    while( actions_list[ action_count ] != nullptr )
+    while( actions_list[action_count] != nullptr )
     {
       ++action_count;
     }
 
+    g_strfreev( actions_list );
     return action_count;
   }
 
@@ -74,7 +74,7 @@ protected:
   QtGMenuImporter m_importer;
   GDBusConnection* m_connection;
   GMenu* m_menu;
-  GSimpleActionGroup* m_actions;
+  GActionMap* m_actions;
 };
 
 TEST_F(TestQtGMenu, ExportImportMenu)
@@ -109,12 +109,12 @@ TEST_F(TestQtGMenu, ExportImportMenu)
 
   EXPECT_EQ( 3, GetMenuItemCount() );
 
-  // add 1 items
+  // remove 1 item
 
-  g_menu_append( m_menu, "Quit", "app.quit" );
+  g_menu_remove( m_menu, 2 );
   items_changed_spy.wait();
 
-  EXPECT_EQ( 4, GetMenuItemCount() );
+  EXPECT_EQ( 2, GetMenuItemCount() );
 
   // unexport menu
 
@@ -129,7 +129,7 @@ TEST_F(TestQtGMenu, ExportImportMenu)
 
 TEST_F(TestQtGMenu, ExportImportActions)
 {
-  QSignalSpy actions_added_spy( &m_importer, SIGNAL( ActionAdded() ) );
+  QSignalSpy action_added_spy( &m_importer, SIGNAL( ActionAdded() ) );
   QSignalSpy action_enabled_spy( &m_importer, SIGNAL( ActionEnabled() ) );
   QSignalSpy action_removed_spy( &m_importer, SIGNAL( ActionRemoved() ) );
   QSignalSpy action_state_chaged_spy( &m_importer, SIGNAL( ActionStateChanged() ) );
@@ -138,7 +138,8 @@ TEST_F(TestQtGMenu, ExportImportActions)
 
   // no actions exported
 
-  g_simple_action_group_insert( m_actions, G_ACTION( g_simple_action_new_stateful( "app.new", G_VARIANT_TYPE_BOOLEAN, false ) ) );
+  g_action_map_add_action( m_actions,
+      G_ACTION( g_simple_action_new_stateful( "app.new", G_VARIANT_TYPE_BOOLEAN, FALSE ) ) );
 
   EXPECT_EQ( nullptr, m_importer.GetGActionGroup() );
 
@@ -154,20 +155,22 @@ TEST_F(TestQtGMenu, ExportImportActions)
 
   // add 2 actions
 
-  g_simple_action_group_insert( m_actions, G_ACTION( g_simple_action_new_stateful( "app.add", G_VARIANT_TYPE_BOOLEAN, false ) ) );
-  actions_added_spy.wait();
+  g_action_map_add_action( m_actions,
+      G_ACTION( g_simple_action_new_stateful( "app.add", G_VARIANT_TYPE_BOOLEAN, FALSE ) ) );
+  action_added_spy.wait();
 
-  g_simple_action_group_insert( m_actions, G_ACTION( g_simple_action_new_stateful( "app.del", G_VARIANT_TYPE_BOOLEAN, false ) ) );
-  actions_added_spy.wait();
+  g_action_map_add_action( m_actions,
+      G_ACTION( g_simple_action_new_stateful( "app.del", G_VARIANT_TYPE_BOOLEAN, FALSE ) ) );
+  action_added_spy.wait();
 
   EXPECT_EQ( 3, GetActionCount() );
 
-  // add 1 actions
+  // remove 1 action
 
-  g_simple_action_group_insert( m_actions, G_ACTION( g_simple_action_new_stateful( "app.quit", G_VARIANT_TYPE_BOOLEAN, false ) ) );
-  actions_added_spy.wait();
+  g_action_map_remove_action( m_actions, "app.del" );
+  action_removed_spy.wait();
 
-  EXPECT_EQ( 4, GetActionCount() );
+  EXPECT_EQ( 2, GetActionCount() );
 
   // unexport actions
 

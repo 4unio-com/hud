@@ -9,7 +9,6 @@ namespace qtgmenu
 
 class QtGMenuConverterPrivate
 {
-
 };
 
 QtGMenuConverter::QtGMenuConverter()
@@ -21,14 +20,14 @@ QtGMenuConverter::~QtGMenuConverter()
 {
 }
 
-std::shared_ptr< QMenu > QtGMenuConverter::ToQMenu( const GMenu& from_menu )
+std::shared_ptr< QMenu > QtGMenuConverter::ToQMenu( const GMenuModel& from_menu )
 {
   return std::shared_ptr < QMenu > ( new QMenu() );
 }
 
-GMenu* QtGMenuConverter::ToGMenu( const QMenu& from_menu )
+GMenuModel* QtGMenuConverter::ToGMenuModel( const QMenu& from_menu )
 {
-  return g_menu_new();
+  return G_MENU_MODEL( g_menu_new() ) ;
 }
 
 } // namespace qtgmenu
