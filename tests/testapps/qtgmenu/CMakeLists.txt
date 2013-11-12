@@ -1,11 +1,12 @@
 add_executable(
     qtgmenu-test-app
-    QtGMenuTestApp.cpp
+    MainWindow.cpp
+    main.cpp
 )
 
 qt5_use_modules(
     qtgmenu-test-app
-    Core
+    Widgets
 )
 
 target_link_libraries(
