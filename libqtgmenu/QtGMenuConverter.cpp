@@ -42,7 +42,7 @@ QtGMenuConverter::~QtGMenuConverter()
 {
 }
 
-std::vector< std::shared_ptr< QMenu > > QtGMenuConverter::ToQMenus( const GMenuModel* menu_model )
+std::vector< std::shared_ptr< QMenu > > QtGMenuConverter::ToQMenus( GMenuModel* model )
 {
   std::vector< std::shared_ptr< QMenu > > menus;
 

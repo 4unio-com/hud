@@ -36,7 +36,7 @@ public:
   QtGMenuConverter();
   ~QtGMenuConverter();
 
-  static std::vector< std::shared_ptr< QMenu > > ToQMenus(const GMenuModel* menu_model );
+  static std::vector< std::shared_ptr< QMenu > > ToQMenus( GMenuModel* model );
 
 private:
   Q_DISABLE_COPY(QtGMenuConverter)
