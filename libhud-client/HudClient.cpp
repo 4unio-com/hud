@@ -21,84 +21,88 @@
 
 #include <QDebug>
 
-namespace {
-
-extern "C" {
-
-void loadingCB(GObject* /*src*/, gpointer dst) {
-	static_cast<HudClient*>(dst)->voiceQueryLoading();
-}
-
-void listeningCB(GObject* /*src*/, gpointer dst) {
-	static_cast<HudClient*>(dst)->voiceQueryListening();
-}
-
-void heardSomethingCB(GObject* /*src*/, gpointer dst) {
-	static_cast<HudClient*>(dst)->voiceQueryHeardSomething();
-}
-
-void failedCB(GObject* /*src*/, const gchar * /*reason*/, gpointer dst) {
-	static_cast<HudClient*>(dst)->voiceQueryFailed();
-}
-
-void finishedCB(GObject* /*src*/, const gchar* query, gpointer dst) {
-	static_cast<HudClient*>(dst)->voiceQueryFinished(QString::fromUtf8(query));
-}
-
-void modelReadyCB(GObject* /*src*/, gpointer dst) {
-	static_cast<HudClient*>(dst)->modelReady(true);
-}
-
-void modelReallyReadyCB(GObject* /*src*/, gint /*position*/, gint /*removed*/,
-		gint /*added*/, gpointer dst) {
-	static_cast<HudClient*>(dst)->modelReallyReady(true);
-}
-
-static void modelsChangedCB(GObject* /*src*/, gpointer dst) {
-	static_cast<HudClient*>(dst)->queryModelsChanged();
-}
-
-static void toolBarUpdatedCB(GObject* /*src*/, gpointer dst) {
-	static_cast<HudToolBarModel*>(dst)->updatedByBackend();
-}
-
-} // extern "C"
-
-} // namespace
-
 class HudClient::Priv {
 public:
+	static void loadingCB(GObject* /*src*/, gpointer dst) {
+		static_cast<HudClient*>(dst)->voiceQueryLoading();
+	}
+
+	static void listeningCB(GObject* /*src*/, gpointer dst) {
+		static_cast<HudClient*>(dst)->voiceQueryListening();
+	}
+
+	static void heardSomethingCB(GObject* /*src*/, gpointer dst) {
+		static_cast<HudClient*>(dst)->voiceQueryHeardSomething();
+	}
+
+	static void failedCB(GObject* /*src*/, const gchar * /*reason*/,
+			gpointer dst) {
+		static_cast<HudClient*>(dst)->voiceQueryFailed();
+	}
+
+	static void finishedCB(GObject* /*src*/, const gchar* query, gpointer dst) {
+		static_cast<HudClient*>(dst)->voiceQueryFinished(
+				QString::fromUtf8(query));
+	}
+
+	static void modelReadyCB(GObject* /*src*/, gpointer dst) {
+		static_cast<HudClient*>(dst)->modelReady(true);
+	}
+
+	static void modelReallyReadyCB(GObject* /*src*/, gint /*position*/,
+			gint /*removed*/, gint /*added*/, gpointer dst) {
+		static_cast<HudClient*>(dst)->modelReallyReady(true);
+	}
+
+	static void modelsChangedCB(GObject* /*src*/, gpointer dst) {
+		static_cast<HudClient*>(dst)->queryModelsChanged();
+	}
+
+	static void toolBarUpdatedCB(GObject* /*src*/, gpointer dst) {
+		static_cast<HudToolBarModel*>(dst)->updatedByBackend();
+	}
+
 	HudClientQuery *m_clientQuery;
-	DeeListModel *m_results;
-	QAbstractItemModel *m_toolBarModel;
+
+	QScopedPointer<DeeListModel> m_results;
+
+	QScopedPointer<DeeListModel> m_appstack;
+
+	QScopedPointer<QAbstractItemModel> m_toolBarModel;
+
 	int m_currentActionIndex;
+
 	HudClientParam *m_currentActionParam;
 };
 
 HudClient::HudClient() :
 		p(new Priv()) {
-	p->m_results = new DeeListModel();
 	p->m_clientQuery = hud_client_query_new("");
-	p->m_toolBarModel = new HudToolBarModel(p->m_clientQuery);
+	p->m_results.reset(new DeeListModel());
+	p->m_appstack.reset(new DeeListModel());
+	p->m_toolBarModel.reset(new HudToolBarModel(p->m_clientQuery));
 	p->m_currentActionParam = NULL;
-	p->m_results->setModel(hud_client_query_get_results_model(p->m_clientQuery));
+	p->m_results->setModel(
+			hud_client_query_get_results_model(p->m_clientQuery));
+	p->m_appstack->setModel(
+			hud_client_query_get_appstack_model(p->m_clientQuery));
 
 	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-loading",
-			G_CALLBACK(loadingCB), this);
+			G_CALLBACK(Priv::loadingCB), this);
 	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-listening",
-			G_CALLBACK(listeningCB), this);
+			G_CALLBACK(Priv::listeningCB), this);
 	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-heard-something",
-			G_CALLBACK(heardSomethingCB), this);
+			G_CALLBACK(Priv::heardSomethingCB), this);
 	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-finished",
-			G_CALLBACK(finishedCB), this);
+			G_CALLBACK(Priv::finishedCB), this);
 	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-failed",
-			G_CALLBACK(failedCB), this);
+			G_CALLBACK(Priv::failedCB), this);
 	g_signal_connect(G_OBJECT(p->m_clientQuery),
-			HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED, G_CALLBACK(modelsChangedCB),
-			this);
+			HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED,
+			G_CALLBACK(Priv::modelsChangedCB), this);
 	g_signal_connect(G_OBJECT(p->m_clientQuery),
 			HUD_CLIENT_QUERY_SIGNAL_TOOLBAR_UPDATED,
-			G_CALLBACK(toolBarUpdatedCB), p->m_toolBarModel);
+			G_CALLBACK(Priv::toolBarUpdatedCB), p->m_toolBarModel.data());
 }
 
 // Terrible hack to get around GLib. GLib stores function pointers as gpointer, which violates the C and C++ spec
@@ -127,33 +131,31 @@ private:
 
 HudClient::~HudClient() {
 	g_signal_handlers_disconnect_by_func(G_OBJECT(p->m_clientQuery),
-			TO_GPOINTER(loadingCB), this);
+			TO_GPOINTER(Priv::loadingCB), this);
 	g_signal_handlers_disconnect_by_func(G_OBJECT(p->m_clientQuery),
-			TO_GPOINTER(listeningCB), this);
+			TO_GPOINTER(Priv::listeningCB), this);
 	g_signal_handlers_disconnect_by_func(G_OBJECT(p->m_clientQuery),
-			TO_GPOINTER(heardSomethingCB), this);
+			TO_GPOINTER(Priv::heardSomethingCB), this);
 	g_signal_handlers_disconnect_by_func(G_OBJECT(p->m_clientQuery),
-			TO_GPOINTER(finishedCB), this);
+			TO_GPOINTER(Priv::finishedCB), this);
 	g_signal_handlers_disconnect_by_func(G_OBJECT(p->m_clientQuery),
-			TO_GPOINTER(toolBarUpdatedCB), p->m_toolBarModel);
+			TO_GPOINTER(Priv::toolBarUpdatedCB), p->m_toolBarModel.data());
 
-	delete p->m_results;
-	delete p->m_toolBarModel;
-
-	g_object_unref (p->m_clientQuery);
+	g_object_unref(p->m_clientQuery);
 }
 
 void HudClient::setQuery(const QString &new_query) {
-	hud_client_query_set_query(p->m_clientQuery, new_query.toUtf8().constData());
+	hud_client_query_set_query(p->m_clientQuery,
+			new_query.toUtf8().constData());
 }
 
 void HudClient::startVoiceQuery() {
-	hud_client_query_voice_query (p->m_clientQuery);
+	hud_client_query_voice_query(p->m_clientQuery);
 }
 
 void HudClient::executeParametrizedAction(const QVariant &values) {
 	updateParametrizedAction(values);
-	hud_client_param_send_commit (p->m_currentActionParam);
+	hud_client_param_send_commit(p->m_currentActionParam);
 	g_object_unref(p->m_currentActionParam);
 	p->m_currentActionParam = NULL;
 	Q_EMIT commandExecuted();
@@ -162,7 +164,8 @@ void HudClient::executeParametrizedAction(const QVariant &values) {
 void HudClient::updateParametrizedAction(const QVariant &values) {
 	if (p->m_currentActionParam != NULL) {
 		const QVariantMap map = values.value<QVariantMap>();
-		GActionGroup *ag = hud_client_param_get_actions(p->m_currentActionParam);
+		GActionGroup *ag = hud_client_param_get_actions(
+				p->m_currentActionParam);
 
 		auto it = map.begin();
 		for (; it != map.end(); ++it) {
@@ -188,7 +191,7 @@ void HudClient::updateParametrizedAction(const QVariant &values) {
 
 void HudClient::cancelParametrizedAction() {
 	if (p->m_currentActionParam != NULL) {
-		hud_client_param_send_cancel (p->m_currentActionParam);
+		hud_client_param_send_cancel(p->m_currentActionParam);
 		g_object_unref(p->m_currentActionParam);
 		p->m_currentActionParam = NULL;
 	}
@@ -200,12 +203,16 @@ void HudClient::executeToolBarAction(HudClientQueryToolbarItems action) {
 	Q_EMIT commandExecuted();
 }
 
-DeeListModel *HudClient::results() const {
-	return p->m_results;
+DeeListModel * HudClient::results() const {
+	return p->m_results.data();
 }
 
-QAbstractItemModel *HudClient::toolBarModel() const {
-	return p->m_toolBarModel;
+DeeListModel * HudClient::appstack() const {
+	return p->m_appstack.data();
+}
+
+QAbstractItemModel * HudClient::toolBarModel() const {
+	return p->m_toolBarModel.data();
 }
 
 void HudClient::executeCommand(int index) {
@@ -224,7 +231,7 @@ void HudClient::executeCommand(int index) {
 			if (menuModel == NULL) {
 				g_signal_connect(p->m_currentActionParam,
 						HUD_CLIENT_PARAM_SIGNAL_MODEL_READY,
-						G_CALLBACK(modelReadyCB), this);
+						G_CALLBACK(Priv::modelReadyCB), this);
 			} else {
 				modelReady(false);
 			}
@@ -245,12 +252,12 @@ void HudClient::executeCommand(int index) {
 void HudClient::modelReady(bool needDisconnect) {
 	if (needDisconnect) {
 		g_signal_handlers_disconnect_by_func(p->m_currentActionParam,
-				TO_GPOINTER(modelReadyCB), this);
+				TO_GPOINTER(Priv::modelReadyCB), this);
 	}
 	GMenuModel *menuModel = hud_client_param_get_model(p->m_currentActionParam);
 	if (g_menu_model_get_n_items(menuModel) == 0) {
 		g_signal_connect(menuModel, "items-changed",
-				G_CALLBACK(modelReallyReadyCB), this);
+				G_CALLBACK(Priv::modelReallyReadyCB), this);
 	} else {
 		modelReallyReady(false);
 	}
@@ -286,7 +293,7 @@ void HudClient::modelReallyReady(bool needDisconnect) {
 	GMenuModel *menuModel = hud_client_param_get_model(p->m_currentActionParam);
 	if (needDisconnect) {
 		g_signal_handlers_disconnect_by_func(menuModel,
-				TO_GPOINTER(modelReallyReadyCB), this);
+				TO_GPOINTER(Priv::modelReallyReadyCB), this);
 	}
 
 	QVariantList items;
@@ -314,7 +321,8 @@ void HudClient::modelReallyReady(bool needDisconnect) {
 	}
 
 	DeeModel *model = hud_client_query_get_results_model(p->m_clientQuery);
-	DeeModelIter *iter = dee_model_get_iter_at_row(model, p->m_currentActionIndex);
+	DeeModelIter *iter = dee_model_get_iter_at_row(model,
+			p->m_currentActionIndex);
 	GVariant *actionTextVariant = dee_model_get_value(model, iter, 1);
 	const QString actionText = QString::fromUtf8(
 			g_variant_get_string(actionTextVariant, NULL));
@@ -323,5 +331,6 @@ void HudClient::modelReallyReady(bool needDisconnect) {
 }
 
 void HudClient::queryModelsChanged() {
-	p->m_results->setModel(hud_client_query_get_results_model(p->m_clientQuery));
+	p->m_results->setModel(
+			hud_client_query_get_results_model(p->m_clientQuery));
 }

@@ -25,29 +25,31 @@
 class DeeListModel;
 class QAbstractItemModel;
 
-class HudClient: public QObject {
+class Q_DECL_EXPORT HudClient: public QObject {
 	class Priv;
+	friend Priv;
 
 Q_OBJECT
-
-Q_PROPERTY(DeeListModel* results READ results)
-
-Q_PROPERTY(QAbstractItemModel* toolBarModel READ toolBarModel)
 
 public:
 	explicit HudClient();
 
 	~HudClient();
 
-	DeeListModel *results() const;
+	Q_PROPERTY(DeeListModel* results READ results)
+	DeeListModel * results() const;
 
+	Q_PROPERTY(DeeListModel* appstack READ appstack)
+	DeeListModel * appstack() const;
+
+	Q_PROPERTY(QAbstractItemModel* toolBarModel READ toolBarModel)
 	QAbstractItemModel *toolBarModel() const;
 
 	Q_INVOKABLE
 	void executeCommand(int index);
 
 	Q_INVOKABLE
-	void setQuery(const QString &new_query);
+	void setQuery(const QString &newQuery);
 
 	Q_INVOKABLE
 	void startVoiceQuery();
@@ -64,22 +66,28 @@ public:
 	Q_INVOKABLE
 	void executeToolBarAction(HudClientQueryToolbarItems action);
 
+Q_SIGNALS:
+	void voiceQueryLoading();
+
+	void voiceQueryListening();
+
+	void voiceQueryHeardSomething();
+
+	void voiceQueryFailed();
+
+	void voiceQueryFinished(const QString &query);
+
+	void commandExecuted();
+
+	void showParametrizedAction(const QString &action, const QVariant &items);
+
+protected:
 	void modelReady(bool needDisconnect);
 
 	void modelReallyReady(bool needDisconnect);
 
 	void queryModelsChanged();
 
-Q_SIGNALS:
-	void voiceQueryLoading();
-	void voiceQueryListening();
-	void voiceQueryHeardSomething();
-	void voiceQueryFailed();
-	void voiceQueryFinished(const QString &query);
-	void commandExecuted();
-	void showParametrizedAction(const QString &action, const QVariant &items);
-
-private:
 	QScopedPointer<Priv> p;
 };
 

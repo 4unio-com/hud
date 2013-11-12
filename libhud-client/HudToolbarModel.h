@@ -33,7 +33,9 @@ public:
 	~HudToolBarModel();
 
 	int rowCount(const QModelIndex &parent = QModelIndex()) const;
+
 	QVariant data(const QModelIndex &parent, int role) const;
+
 	QHash<int, QByteArray> roleNames() const;
 
 	void updatedByBackend();
