@@ -85,6 +85,9 @@ include_directories(${Qt5Widgets_INCLUDE_DIRS})
 find_package(Qt5DBus REQUIRED)
 include_directories(${Qt5DBus_INCLUDE_DIRS})
 
+pkg_check_modules(DEE_QT REQUIRED libdee-qt5)
+include_directories(${DEE_QT_INCLUDE_DIRS})
+
 pkg_check_modules(DBUSMENU REQUIRED dbusmenu-qt5)
 include_directories(${DBUSMENU_INCLUDE_DIRS})
 
@@ -128,14 +131,17 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_definitions(
-	-fno-permissive
 	-pedantic
 	-Wall
 	-Wextra
 )
 
+add_definitions(
+	-DQT_NO_SIGNALS_SLOTS_KEYWORDS=1
+)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -fPIC")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-permissive")
 
 add_subdirectory(data)
 add_subdirectory(common)
@@ -143,7 +149,7 @@ add_subdirectory(libhud-client)
 add_subdirectory(libhud)
 add_subdirectory(libhud-gtk)
 add_subdirectory(libqtgmenu)
-add_subdirectory(src)
+#add_subdirectory(src)
 add_subdirectory(service)
 #add_subdirectory(tools)
 add_subdirectory(window-stack-bridge)
