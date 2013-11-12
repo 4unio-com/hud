@@ -1,19 +1,14 @@
 #include <MainWindow.h>
 
-#include <libqtgmenu/QtGMenuImporter.h>
-
 #include <QtWidgets>
 
-using namespace qtgmenu;
-
 MainWindow::MainWindow()
+  : m_menu_importer( "org.gnome.Terminal.Display_0", "/com/canonical/unity/gtk/window/0" )
 {
-  QtGMenuImporter importer( "org.gnome.Terminal.Display_0", "/com/canonical/unity/gtk/window/0" );
-
   QEventLoop menu_appeared_wait;
-  menu_appeared_wait.connect( &importer, SIGNAL( MenuAppeared() ), SLOT( quit() ) );
+  menu_appeared_wait.connect( &m_menu_importer, SIGNAL( MenuAppeared() ), SLOT( quit() ) );
   menu_appeared_wait.exec();
 
-  auto menu = importer.GetQMenu();
-  menuBar()->addMenu( menu.get() );
+  m_menu = m_menu_importer.GetQMenu();
+  menuBar()->addMenu( m_menu.get() );
 }
