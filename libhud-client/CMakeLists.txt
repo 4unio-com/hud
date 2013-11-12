@@ -74,14 +74,23 @@ set(HUD_CLIENT_HEADERS
 connection.h
 param.h
 query.h
+toolbar-items.h
 ${CMAKE_SOURCE_DIR}/src/query-columns.h
+)
+
+set(HUD_CLIENT_QT_HEADERS
+HudClient.h
+HudToolbarModel.h
 )
 
 set(HUD_CLIENT_SOURCES
 connection.c
 param.c
 query.c
+HudClient.cpp
+HudToolbarModel.cpp
 )
+
 
 add_glib_enumtypes_t(HUD_CLIENT_SOURCES
 enum-types
@@ -103,7 +112,12 @@ target_link_libraries(hud-client
 hud-client-generated
 ${GLIB2_LIBRARIES}
 ${GOBJECT2_LIBRARIES}
+${DEE_QT_LIBRARIES}
 -Wl,--no-undefined
+)
+
+qt5_use_modules(hud-client
+  Core
 )
 
 ###########################
@@ -182,7 +196,7 @@ install(
 )
 
 install(
-  FILES ${HUD_CLIENT_HEADERS}
+  FILES ${HUD_CLIENT_HEADERS} ${HUD_CLIENT_QT_HEADERS}
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libhud-client-${API_VERSION}/libhud-client"
 )
 
