@@ -105,7 +105,7 @@ static QVariant makeByteArrayQVariant( GVariant* gvariant )
 
   g_variant_iter_init( &iter, gvariant );
   while( g_variant_iter_loop( &iter, "y", &byte ) )
-    value.append(* byte );
+    value.append( *byte );
 
   return QVariant::fromValue( value );
 }

@@ -162,7 +162,8 @@ TEST_F(TestQtGMenu, ExportImportActions)
 
   // no actions exported
 
-  GSimpleAction* action = g_simple_action_new_stateful( "app.new", nullptr, g_variant_new_boolean( false ) );
+  GSimpleAction* action = g_simple_action_new_stateful( "app.new", nullptr,
+      g_variant_new_boolean( false ) );
   g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
   EXPECT_EQ( nullptr, m_importer.GetGActionGroup() );
