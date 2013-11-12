@@ -56,8 +56,8 @@ Q_SIGNALS:
   void MenuDisappeared();
 
   void ActionAdded( QString action_name );
-  void ActionEnabled( QString action_name, bool enabled );
   void ActionRemoved( QString action_name );
+  void ActionEnabled( QString action_name, bool enabled );
   void ActionStateChanged( QString action_name, QVariant value );
   void ActionsAppeared();
   void ActionsDisappeared();

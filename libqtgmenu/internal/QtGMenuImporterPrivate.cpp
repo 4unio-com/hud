@@ -119,20 +119,20 @@ void QtGMenuImporterPrivate::ActionAddedCallback( GActionGroup* action_group, gc
   emit importer->ActionAdded( action_name );
 }
 
-void QtGMenuImporterPrivate::ActionEnabledCallback( GActionGroup* action_group, gchar* action_name,
-    gboolean enabled, gpointer user_data )
-{
-  unused( action_group );
-  QtGMenuImporter* importer = reinterpret_cast< QtGMenuImporter* >( user_data );
-  emit importer->ActionEnabled( action_name, enabled );
-}
-
 void QtGMenuImporterPrivate::ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
     gpointer user_data )
 {
   unused( action_group );
   QtGMenuImporter* importer = reinterpret_cast< QtGMenuImporter* >( user_data );
   emit importer->ActionRemoved( action_name );
+}
+
+void QtGMenuImporterPrivate::ActionEnabledCallback( GActionGroup* action_group, gchar* action_name,
+    gboolean enabled, gpointer user_data )
+{
+  unused( action_group );
+  QtGMenuImporter* importer = reinterpret_cast< QtGMenuImporter* >( user_data );
+  emit importer->ActionEnabled( action_name, enabled );
 }
 
 void QtGMenuImporterPrivate::ActionStateChangedCallback( GActionGroup* action_group,
@@ -184,13 +184,13 @@ void QtGMenuImporterPrivate::ClearGActionGroup()
   g_strfreev( actions_list );
 
   g_signal_handler_disconnect( m_gaction_group, m_action_added_handler );
-  g_signal_handler_disconnect( m_gaction_group, m_action_enabled_handler );
   g_signal_handler_disconnect( m_gaction_group, m_action_removed_handler );
+  g_signal_handler_disconnect( m_gaction_group, m_action_enabled_handler );
   g_signal_handler_disconnect( m_gaction_group, m_action_state_changed_handler );
 
   m_action_added_handler = 0;
-  m_action_enabled_handler = 0;
   m_action_removed_handler = 0;
+  m_action_enabled_handler = 0;
   m_action_state_changed_handler = 0;
 
   g_object_unref( m_gaction_group );
@@ -264,10 +264,10 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
 
   m_action_added_handler =
       g_signal_connect( m_gaction_group, "action-added", G_CALLBACK( ActionAddedCallback ), &m_parent );
-  m_action_enabled_handler =
-      g_signal_connect( m_gaction_group, "action-enabled-changed", G_CALLBACK( ActionEnabledCallback ), &m_parent );
   m_action_removed_handler =
       g_signal_connect( m_gaction_group, "action-removed", G_CALLBACK( ActionRemovedCallback ), &m_parent );
+  m_action_enabled_handler =
+      g_signal_connect( m_gaction_group, "action-enabled-changed", G_CALLBACK( ActionEnabledCallback ), &m_parent );
   m_action_state_changed_handler =
       g_signal_connect( m_gaction_group, "action-state-changed", G_CALLBACK( ActionStateChangedCallback ), &m_parent );
 

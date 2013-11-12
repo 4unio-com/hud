@@ -16,41 +16,11 @@
  * Author: Marcus Tomlinson <marcus.tomlinson@canonical.com>
  */
 
-#include <QtGMenuImporter.h>
-#include <internal/QtGMenuImporterPrivate.h>
+#include <QApplication>
 
-#include <QMenu>
-
-using namespace qtgmenu;
-
-QtGMenuImporter::QtGMenuImporter( const QString &service, const QString &path, QObject* parent )
-    : QObject( parent ),
-      d( new QtGMenuImporterPrivate( service, path, *this ) )
+int main( int argc, char **argv )
 {
-}
+  QApplication application( argc, argv );
 
-QtGMenuImporter::~QtGMenuImporter()
-{
+  return application.exec();
 }
-
-GMenuModel* QtGMenuImporter::GetGMenuModel() const
-{
-  return d->GetGMenuModel();
-}
-
-GActionGroup* QtGMenuImporter::GetGActionGroup() const
-{
-  return d->GetGActionGroup();
-}
-
-std::shared_ptr< QMenu > QtGMenuImporter::GetQMenu() const
-{
-  return d->GetQMenu();
-}
-
-void QtGMenuImporter::ForceRefresh()
-{
-  d->StartPolling( 100 );
-}
-
-#include <QtGMenuImporter.moc>
