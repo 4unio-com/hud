@@ -28,7 +28,7 @@ using namespace hud::service;
 
 static void exitQt(int sig) {
 	Q_UNUSED(sig);
-	QCoreApplication::exit(0);
+	QApplication::exit(0);
 }
 
 int main(int argc, char *argv[]) {

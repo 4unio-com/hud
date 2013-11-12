@@ -39,7 +39,8 @@ namespace service {
 
 class Factory;
 
-class ApplicationImpl: public Application, protected QDBusContext {
+class Q_DECL_EXPORT ApplicationImpl: public Application, protected QDBusContext {
+Q_OBJECT
 
 public:
 	explicit ApplicationImpl(unsigned int id, const QString &applicationId,
@@ -48,9 +49,15 @@ public:
 
 	virtual ~ApplicationImpl();
 
+	const QString & id() const;
+
 	void addWindow(unsigned int windowId);
 
 	void removeWindow(unsigned int windowId);
+
+	void activateWindow(unsigned int windowId);
+
+	Window::Ptr window(unsigned int windowId);
 
 	bool isEmpty() const;
 
@@ -60,10 +67,10 @@ public:
 	QList<hud::common::ActionGroup> actionGroups() const;
 
 	Q_PROPERTY(QString DesktopPath READ desktopPath)
-	QString desktopPath() const;
+	QString desktopPath();
 
 	Q_PROPERTY(QString Icon READ icon)
-	QString icon() const;
+	QString icon();
 
 	Q_PROPERTY(QList<hud::common::MenuModel> MenuModels READ menuModels)
 	QList<hud::common::MenuModel> menuModels() const;
@@ -86,6 +93,10 @@ protected:
 	Factory &m_factory;
 
 	QMap<unsigned int, Window::Ptr> m_windows;
+
+	QString m_desktopPath;
+
+	QString m_icon;
 };
 
 }

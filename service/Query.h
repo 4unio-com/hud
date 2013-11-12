@@ -19,6 +19,8 @@
 #ifndef HUD_SERVICE_QUERY_H_
 #define HUD_SERVICE_QUERY_H_
 
+#include <service/Result.h>
+
 #include <QDBusContext>
 #include <QDBusConnection>
 #include <QDBusVariant>
@@ -54,6 +56,8 @@ public:
 	virtual QStringList toolbarItems() const = 0;
 
 	virtual const QDBusObjectPath & path() const = 0;
+
+	virtual const QList<Result> & results() const = 0;
 
 public Q_SLOTS:
 	virtual int UpdateQuery(const QString &query) = 0;

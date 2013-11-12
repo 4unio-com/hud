@@ -19,6 +19,7 @@
 #ifndef HUD_SERVICE_APPLICATION_H_
 #define HUD_SERVICE_APPLICATION_H_
 
+#include <service/Window.h>
 #include <service/Application.h>
 
 #include <QSharedPointer>
@@ -37,9 +38,17 @@ public:
 
 	virtual ~Application();
 
+	virtual const QString & id() const = 0;
+
+	virtual QString icon() = 0;
+
 	virtual void addWindow(unsigned int windowId) = 0;
 
 	virtual void removeWindow(unsigned int windowId) = 0;
+
+	virtual void activateWindow(unsigned int windowId) = 0;
+
+	virtual Window::Ptr window(unsigned int windowId) = 0;
 
 	virtual bool isEmpty() const = 0;
 

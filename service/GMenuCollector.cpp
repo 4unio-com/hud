@@ -76,6 +76,11 @@ GMenuCollector::GMenuCollector(unsigned int windowId,
 	m_valid = true;
 	qDebug() << "GMenu available for" << applicationId << windowId << "at"
 			<< m_busName;
+	qDebug() << "m_appmenuPath" << m_appmenuPath.path();
+	qDebug() << "m_menubarPath" << m_menubarPath.path();
+	qDebug() << "m_applicationPath" << m_applicationPath.path();
+	qDebug() << "m_windowPath" << m_windowPath.path();
+	qDebug() << "m_unityPath" << m_unityPath.path();
 }
 
 GMenuCollector::~GMenuCollector() {
@@ -85,10 +90,13 @@ bool GMenuCollector::isValid() const {
 	return m_valid;
 }
 
-void GMenuCollector::collect() {
-	qDebug() << "m_appmenuPath" << m_appmenuPath.path();
-	qDebug() << "m_menubarPath" << m_menubarPath.path();
-	qDebug() << "m_applicationPath" << m_applicationPath.path();
-	qDebug() << "m_windowPath" << m_windowPath.path();
-	qDebug() << "m_unityPath" << m_unityPath.path();
+CollectorToken::Ptr GMenuCollector::activate() {
+	return CollectorToken::Ptr(new CollectorToken(shared_from_this()));
+}
+
+void GMenuCollector::deactivate() {
+}
+
+const QMenu * GMenuCollector::menu() const {
+	return nullptr;
 }

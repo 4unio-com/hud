@@ -17,56 +17,158 @@
  */
 
 #include <common/DBusTypes.h>
+#include <common/Localisation.h>
 #include <service/DBusMenuCollector.h>
 #include <service/AppmenuRegistrarInterface.h>
 
 #include <dbusmenuimporter.h>
 #include <QMenu>
+#include <columbus.hh>
 
 using namespace hud::common;
 using namespace hud::service;
 
 DBusMenuCollector::DBusMenuCollector(unsigned int windowId,
-		QSharedPointer<ComCanonicalAppMenuRegistrarInterface> appmenu) :
-		m_valid(false), m_menu(nullptr) {
+		QSharedPointer<ComCanonicalAppMenuRegistrarInterface> registrar) :
+		m_windowId(windowId), m_registrar(registrar), m_viewerCount(0), m_menu(
+				nullptr) {
+
+	connect(registrar.data(),
+	SIGNAL(WindowRegistered(uint, const QString &, const QDBusObjectPath &)),
+			this,
+			SLOT( WindowRegistered(uint, const QString &, const QDBusObjectPath &)));
+
+	connect(registrar.data(), SIGNAL(
+			WindowUnregistered(uint)), this, SLOT(WindowUnregistered(uint)));
+
 	QDBusPendingReply<QString, QDBusObjectPath> windowReply =
-			appmenu->GetMenuForWindow(windowId);
+			registrar->GetMenuForWindow(m_windowId);
 
 	windowReply.waitForFinished();
 	if (windowReply.isError()) {
 		return;
 	}
 
-	m_service = windowReply.argumentAt<0>();
-	m_path = windowReply.argumentAt<1>();
-
-	if (m_service.isEmpty()) {
-		return;
-	}
-
-	m_valid = true;
-
-	qDebug() << "DBusMenu available for" << windowId << "at" << m_service
-			<< m_path.path();
+	windowRegistered(windowReply.argumentAt<0>(), windowReply.argumentAt<1>());
 }
 
 DBusMenuCollector::~DBusMenuCollector() {
 }
 
-bool DBusMenuCollector::isValid() const {
-	return m_valid;
-}
+void DBusMenuCollector::windowRegistered(const QString &service,
+		const QDBusObjectPath &menuObjectPath) {
+	m_service = service;
+	m_path = menuObjectPath;
 
-void DBusMenuCollector::collect() {
+	if (m_service.isEmpty()) {
+		m_menuImporter.reset();
+		m_menu = nullptr;
+		return;
+	}
+
+	qDebug() << "DBusMenu available for" << m_windowId << "at" << m_service
+			<< m_path.path();
+
 	m_menuImporter.reset(new DBusMenuImporter(m_service, m_path.path()));
 	m_menu = m_menuImporter->menu();
-
-	QTimer::singleShot(200, this, SLOT(timeout()));
 }
 
-void DBusMenuCollector::timeout() {
-	QList<QAction*> actions = m_menu->actions();
-	for (const QAction *action : actions) {
-		qDebug() << action->text();
+bool DBusMenuCollector::isValid() const {
+	return !m_menuImporter.isNull();
+}
+
+inline uint qHash(const QStringList &key, uint seed) {
+	uint hash(0);
+	for (const QString &s : key) {
+		hash ^= qHash(s, seed);
 	}
+	return hash;
+}
+
+static bool openMenu(QMenu *menu, const QStringList &position,
+		QSet<QStringList> &known) {
+	menu->aboutToShow();
+
+	bool added = false;
+
+	for (int i(0); i < menu->actions().size(); ++i) {
+		QAction *action = menu->actions().at(i);
+		if (!action->isEnabled()) {
+			continue;
+		}
+		if (action->isSeparator()) {
+			continue;
+		}
+
+		QStringList childPosition(position);
+		childPosition << action->text();
+
+		if (!known.contains(childPosition)) {
+			known.insert(childPosition);
+			added = true;
+		}
+
+		QMenu *child(action->menu());
+		if (child) {
+			added |= openMenu(child, childPosition, known);
+		}
+	}
+
+	return added;
+}
+
+static void hideMenu(QMenu *menu) {
+	for (int i(0); i < menu->actions().size(); ++i) {
+		QAction *action = menu->actions().at(i);
+		QMenu *child(action->menu());
+		if (child) {
+			hideMenu(child);
+		}
+	}
+
+	menu->aboutToHide();
+}
+
+CollectorToken::Ptr DBusMenuCollector::activate() {
+	if (m_viewerCount == 0) {
+		++m_viewerCount;
+		qDebug() << "Opening menus";
+		QSet<QStringList> known;
+		while (openMenu(m_menu, QStringList(), known)) {
+		}
+	}
+
+	return CollectorToken::Ptr(new CollectorToken(shared_from_this()));
+}
+
+void DBusMenuCollector::deactivate() {
+	--m_viewerCount;
+	if (m_viewerCount == 0) {
+		qDebug() << "Hiding menus";
+		hideMenu(m_menu);
+	}
+}
+
+void DBusMenuCollector::WindowRegistered(uint windowId, const QString &service,
+		const QDBusObjectPath &menuObjectPath) {
+	// Simply ignore updates for other windows
+	if (windowId != m_windowId) {
+		return;
+	}
+
+	windowRegistered(service, menuObjectPath);
+}
+
+void DBusMenuCollector::WindowUnregistered(uint windowId) {
+	// Simply ignore updates for other windows
+	if (windowId != m_windowId) {
+		return;
+	}
+
+	m_menuImporter.reset();
+	m_menu = nullptr;
+}
+
+const QMenu * DBusMenuCollector::menu() const {
+	return m_menu;
 }

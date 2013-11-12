@@ -26,9 +26,10 @@ class ComCanonicalUnityWindowStackInterface;
 namespace hud {
 namespace service {
 
-class GMenuCollector: public Collector {
+class GMenuCollector: public Collector, public std::enable_shared_from_this<
+		GMenuCollector> {
 public:
-	typedef QSharedPointer<GMenuCollector> Ptr;
+	typedef std::shared_ptr<GMenuCollector> Ptr;
 
 	explicit GMenuCollector(unsigned int windowId, const QString &applicationId,
 			QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack);
@@ -37,9 +38,13 @@ public:
 
 	virtual bool isValid() const;
 
-	virtual void collect();
+	virtual CollectorToken::Ptr activate();
+
+	virtual const QMenu *menu() const;
 
 protected:
+	virtual void deactivate();
+
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
 
 	bool m_valid;

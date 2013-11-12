@@ -47,3 +47,21 @@ void HudDee::setSchema(const char* const *columnSchemas,
 		unsigned int numColumns) {
 	dee_model_set_schema_full(p->m_model, columnSchemas, numColumns);
 }
+
+void HudDee::beginChangeset() {
+	dee_model_begin_changeset(p->m_model);
+	dee_model_clear(p->m_model);
+}
+
+void HudDee::appendRow(GVariant **row_members) {
+	dee_model_append_row(p->m_model, row_members);
+}
+
+void HudDee::insertRowSorted(GVariant **row_members, CompareRowFunc cmp_func) {
+	dee_model_insert_row_sorted(p->m_model, row_members, cmp_func, NULL);
+}
+
+void HudDee::endChangeset() {
+//	dee_shared_model_flush_revision_queue(DEE_SHARED_MODEL(p->m_model));
+	dee_model_end_changeset(p->m_model);
+}

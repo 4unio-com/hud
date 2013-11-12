@@ -10,6 +10,11 @@
 
 #include <memory>
 
+typedef struct _GVariant GVariant;
+
+typedef int (*CompareRowFunc)(GVariant** row1, GVariant** row2,
+		void* user_data);
+
 namespace hud {
 namespace common {
 
@@ -21,8 +26,16 @@ public:
 
 	const std::string & name() const;
 
+	void beginChangeset();
+
+	void endChangeset();
+
 protected:
 	void setSchema(const char* const *columnSchemas, unsigned int numColumns);
+
+	void appendRow(GVariant **row_members);
+
+	void insertRowSorted(GVariant **row_members, CompareRowFunc cmp_func);
 
 	class Priv;
 

@@ -30,7 +30,9 @@ using namespace hud::common;
 using namespace hud::service;
 
 Factory::Factory() :
-		m_sessionBus(QDBusConnection::sessionBus()) {
+		m_sessionBus(QDBusConnection::sessionBus()), m_applicationCounter(0), m_queryCounter(
+				0) {
+	DBusTypes::registerMetaTypes();
 }
 
 Factory::~Factory() {
@@ -42,7 +44,9 @@ void Factory::setSessionBus(const QDBusConnection &sessionBus) {
 
 HudService::Ptr Factory::singletonHudService() {
 	if (m_hudService.isNull()) {
-		m_hudService.reset(new HudService(*this, sessionBus()));
+		m_hudService.reset(
+				new HudService(*this, singletonApplicationList(),
+						sessionBus()));
 	}
 	return m_hudService;
 }
@@ -72,20 +76,25 @@ QDBusConnection Factory::sessionBus() {
 	return m_sessionBus;
 }
 
-Query::Ptr Factory::newQuery(unsigned int id, const QString &query) {
+Query::Ptr Factory::newQuery(const QString &query, const QString &sender) {
 	return Query::Ptr(
-			new QueryImpl(id, query, *singletonHudService(), sessionBus()));
+			new QueryImpl(m_queryCounter++, query, sender,
+					*singletonHudService(), singletonApplicationList(),
+					sessionBus()));
 }
 
-ApplicationList::Ptr Factory::newApplicationList() {
-	return ApplicationList::Ptr(
-			new ApplicationListImpl(*this, singletonWindowStack()));
+ApplicationList::Ptr Factory::singletonApplicationList() {
+	if (m_applicationList.isNull()) {
+		m_applicationList.reset(
+				new ApplicationListImpl(*this, singletonWindowStack()));
+	}
+	return m_applicationList;
 }
 
-Application::Ptr Factory::newApplication(unsigned int id,
-		const QString &applicationId) {
+Application::Ptr Factory::newApplication(const QString &applicationId) {
 	return Application::Ptr(
-			new ApplicationImpl(id, applicationId, *this, sessionBus()));
+			new ApplicationImpl(m_applicationCounter++, applicationId, *this,
+					sessionBus()));
 }
 
 ItemStore::Ptr Factory::newItemStore() {

@@ -20,10 +20,13 @@
 #define HUD_SERVICE_SERVICE_H_
 
 #include <common/DBusTypes.h>
+#include <service/ApplicationList.h>
 #include <service/Query.h>
 
 #include <QDBusContext>
+#include <QList>
 #include <QMap>
+#include <QPair>
 #include <QScopedPointer>
 #include <QSharedPointer>
 
@@ -32,7 +35,6 @@ class HudAdaptor;
 namespace hud {
 namespace service {
 
-class ApplicationList;
 class Factory;
 
 class Q_DECL_EXPORT HudService: public QObject, protected QDBusContext {
@@ -41,8 +43,8 @@ Q_OBJECT
 public:
 	typedef QSharedPointer<HudService> Ptr;
 
-	explicit HudService(Factory &factory, const QDBusConnection &connection,
-			QObject *parent = 0);
+	explicit HudService(Factory &factory, ApplicationList::Ptr applicationList,
+			const QDBusConnection &connection, QObject *parent = 0);
 
 	virtual ~HudService();
 
@@ -52,7 +54,7 @@ public:
 	Q_PROPERTY(QList<QDBusObjectPath> OpenQueries READ openQueries)
 	QList<QDBusObjectPath> openQueries() const;
 
-	void closeQuery(const QDBusObjectPath &path);
+	Query::Ptr closeQuery(const QDBusObjectPath &path);
 
 public Q_SLOTS:
 	QDBusObjectPath RegisterApplication(const QString &id);
@@ -73,19 +75,21 @@ public Q_SLOTS:
 	void CloseQuery(const QDBusVariant &querykey);
 
 protected:
+	Query::Ptr createQuery(const QString &query, const QString &service);
+
 	QScopedPointer<HudAdaptor> m_adaptor;
 
 	QDBusConnection m_connection;
 
 	Factory &m_factory;
 
-	unsigned int m_queryCounter;
-
 	QMap<QDBusObjectPath, Query::Ptr> m_queries;
 
 	QMap<QString, Query::Ptr> m_legacyQueries;
 
 	QSharedPointer<ApplicationList> m_applicationList;
+
+	QString messageSender();
 };
 
 }

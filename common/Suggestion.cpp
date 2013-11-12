@@ -16,9 +16,12 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
+#include <common/Localisation.h>
 #include <common/Suggestion.h>
 
+#include <QDebug>
 #include <QDBusMetaType>
+#include <glib.h>
 
 using namespace hud::common;
 
@@ -42,8 +45,89 @@ const QDBusArgument & operator>>(const QDBusArgument &argument,
 	return argument;
 }
 
-Suggestion::Suggestion() {
+static void append(QString &result, const QString& input, int start, int end) {
+	QStringRef substring(input.midRef(start, end));
+	char *temp = g_markup_escape_text(substring.toUtf8().data(), -1);
+	result.append(temp);
+	g_free(temp);
+}
 
+/**
+ * Builds a single line pango formatted description for
+ * the legacy HUD UI.
+ */
+static QString buildLegacyHighlights(const QString &input,
+		const QList<QPair<int, int>> &highlights) {
+
+	QString result;
+	int current(0);
+
+	for (const QPair<int, int> &pair : highlights) {
+		int start(pair.first);
+		int stop(pair.second);
+
+		// In theory there should be no overlapping, but we
+		// want to make sure
+		if (start < current) {
+			qWarning() << "Overlapping highlighting.  At character" << current
+					<< "and asked to highlight from" << start << "to" << stop;
+			continue;
+		}
+
+		// Get to the start of the highlight
+		int initialSkip = start - current;
+		if (initialSkip > 0) {
+			append(result, input, current, initialSkip);
+		}
+
+		result.append("<b>");
+
+		// Copy the characters in the highlight
+		int highlightSkip = stop - start;
+		if (highlightSkip > 0) {
+			append(result, input, start, highlightSkip);
+		} else {
+			qWarning() << "Zero character highlight!";
+		}
+
+		result.append("</b>");
+
+		current = stop;
+	}
+
+	int remaining(input.length() - current);
+	if (remaining > 0) {
+		append(result, input, current, remaining);
+	}
+
+	return result;
+}
+
+Suggestion::Suggestion() {
+}
+
+Suggestion::Suggestion(qulonglong id, const QString &commandName,
+		const QList<QPair<int, int>> &commandHighlights,
+		const QString &description,
+		const QList<QPair<int, int>> &descriptionHighlights,
+		const QString &icon) :
+		m_icon(icon), m_id(id) {
+
+	if (description.isEmpty()) {
+		m_description = commandName;
+	} else {
+		QString cmdHighlights(
+				buildLegacyHighlights(commandName, commandHighlights));
+		QString descHighlights(
+				buildLegacyHighlights(description, descriptionHighlights));
+
+		// TRANSLATORS: This is what is shown for Unity7 in
+		// the HUD entries.  %1 is the command name and %2 is a
+		// description or list of keywords that
+		// was used to find the entry.
+		m_description = QString(_("%1\xE2\x80\x82(%2)")).arg(cmdHighlights,
+				descHighlights);
+	}
 }
 
 Suggestion::~Suggestion() {

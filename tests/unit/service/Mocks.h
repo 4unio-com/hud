@@ -30,13 +30,13 @@ namespace test {
 
 class MockFactory: public Factory {
 public:
-	MOCK_METHOD0(newApplicationList, ApplicationList::Ptr());
+	MOCK_METHOD0(singletonApplicationList, ApplicationList::Ptr());
 
 	MOCK_METHOD0(sessionBus, QDBusConnection());
 
-	MOCK_METHOD2(newQuery, Query::Ptr(unsigned int, const QString &));
+	MOCK_METHOD2(newQuery, Query::Ptr( const QString &, const QString &));
 
-	MOCK_METHOD2(newApplication, Application::Ptr(unsigned int, const QString &));
+	MOCK_METHOD1(newApplication, Application::Ptr(const QString &));
 
 	MOCK_METHOD2(newWindow, Window::Ptr(unsigned int, const QString &));
 
@@ -57,19 +57,33 @@ public:
 
 	MOCK_CONST_METHOD0(path, const QDBusObjectPath &());
 
+	MOCK_CONST_METHOD0(results, const QList<Result> &());
+
 	MOCK_METHOD1(UpdateQuery, int(const QString &));
 };
 
 class MockApplicationList: public ApplicationList {
 public:
 	MOCK_CONST_METHOD0(applications, QList<hud::common::NameObject>());
+
+	MOCK_CONST_METHOD0(focusedApplication, Application::Ptr());
+
+	MOCK_CONST_METHOD0(focusedWindow, Window::Ptr());
 };
 
 class MockApplication: public Application {
 public:
+	MOCK_CONST_METHOD0(id, const QString &());
+
+	MOCK_METHOD0(icon, QString());
+
 	MOCK_METHOD1(addWindow, void(unsigned int));
 
 	MOCK_METHOD1(removeWindow, void(unsigned int));
+
+	MOCK_METHOD1(activateWindow, void(unsigned int));
+
+	MOCK_METHOD1(window, Window::Ptr(unsigned int));
 
 	MOCK_CONST_METHOD0(isEmpty, bool());
 
@@ -78,13 +92,25 @@ public:
 
 class MockWindow: public Window {
 public:
+	MOCK_METHOD0(activate, WindowToken::Ptr());
+
+	MOCK_METHOD1(setContext, void(const QString &));
+
+	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
 };
 
 class MockCollector: public Collector {
 public:
 	MOCK_CONST_METHOD0(isValid, bool());
 
-	MOCK_METHOD0(collect, void());
+	MOCK_METHOD0(activate, CollectorToken::Ptr());
+
+	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
+
+	MOCK_CONST_METHOD0(menu, const QMenu *());
+
+protected:
+	MOCK_METHOD0(deactivate, void());
 };
 
 }

@@ -47,7 +47,7 @@ configure_file("hud.conf.in"
 install(
 FILES
 "${HUD_UPSTART}"
-DESTINATION "/usr/share/upstart/sessions"
+DESTINATION "${CMAKE_INSTALL_DATADIR}/upstart/sessions"
 )
 
 set(pkglibexecdir "${CMAKE_INSTALL_FULL_LIBEXECDIR}/hud")
@@ -75,7 +75,7 @@ configure_file(
 
 install(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/window-stack-bridge.conf"
-  DESTINATION "/usr/share/upstart/sessions"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/upstart/sessions"
 )
 
 ###########################
@@ -84,3 +84,12 @@ install(
 
 add_schema ("com.canonical.indicator.appmenu.hud.gschema.xml")
 add_schema ("com.canonical.indicator.appmenu.hud.search.gschema.xml")
+
+###########################
+# Desktop files
+###########################
+
+install(
+  FILES hud-gui.desktop
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
+)

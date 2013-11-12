@@ -52,5 +52,17 @@
 				<dox:d>The path to the object which implements the com.canonical.dbusmenu interface.</dox:d>
 			</arg>
 		</method>
+		<signal name="WindowRegistered">
+			<arg type="u" name="windowId">
+			</arg>
+			<arg type="s" name="service">
+			</arg>
+			<arg type="o" name="menuObjectPath">
+			</arg>
+		</signal>
+		<signal name="WindowUnregistered">
+			<arg type="u" name="windowId">
+			</arg>
+		</signal>
 	</interface>
 </node>

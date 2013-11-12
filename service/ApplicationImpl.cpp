@@ -39,6 +39,10 @@ ApplicationImpl::~ApplicationImpl() {
 	m_connection.unregisterObject(m_path.path());
 }
 
+const QString & ApplicationImpl::id() const {
+	return m_applicationId;
+}
+
 void ApplicationImpl::addWindow(unsigned int windowId) {
 	if (m_windows.contains(windowId)) {
 		qWarning() << "Adding already known window" << windowId
@@ -57,6 +61,20 @@ void ApplicationImpl::removeWindow(unsigned int windowId) {
 	m_windows.remove(windowId);
 }
 
+void ApplicationImpl::activateWindow(unsigned int windowId) {
+	Window::Ptr window(m_windows[windowId]);
+	if (window.isNull()) {
+		qWarning() << "Activating unknown window" << windowId
+				<< "from application" << m_applicationId;
+		return;
+	}
+	window->activate();
+}
+
+Window::Ptr ApplicationImpl::window(unsigned int windowId) {
+	return m_windows[windowId];
+}
+
 bool ApplicationImpl::isEmpty() const {
 	return m_windows.isEmpty();
 }
@@ -66,24 +84,68 @@ const QDBusObjectPath & ApplicationImpl::path() const {
 }
 
 QList<ActionGroup> ApplicationImpl::actionGroups() const {
+	qDebug() << "actionGroups";
 	return QList<ActionGroup>();
 }
 
-QString ApplicationImpl::desktopPath() const {
-	return QString();
+QString ApplicationImpl::desktopPath() {
+	if (m_desktopPath.isEmpty()) {
+		QString desktopFile(QString("%1.desktop").arg(m_applicationId));
+
+		QStringList xdgDataDirs(
+				QString::fromUtf8(qgetenv("XDG_DATA_DIRS")).split(':'));
+		for (const QString &dir : xdgDataDirs) {
+			QString desktopPath(
+					QDir(QDir(dir).filePath("applications")).filePath(
+							desktopFile));
+			if (QFile::exists(desktopPath)) {
+				m_desktopPath = desktopPath;
+				break;
+			}
+		}
+	}
+
+	return m_desktopPath;
 }
 
-QString ApplicationImpl::icon() const {
-	return QString();
+QString ApplicationImpl::icon() {
+	if (m_icon.isEmpty()) {
+		QString path(desktopPath());
+		if (!path.isEmpty()) {
+			QSettings settings(path, QSettings::IniFormat);
+			settings.beginGroup("Desktop Entry");
+			m_icon = settings.value("Icon").toString();
+			settings.endGroup();
+		}
+	}
+
+	return m_icon;
 }
 
 QList<MenuModel> ApplicationImpl::menuModels() const {
+	qDebug() << "menuModels";
 	return QList<MenuModel>();
 }
 
 void ApplicationImpl::AddSources(const QList<Action> &actions,
 		const QList<Description> &descriptions) {
+	qDebug() << "AddSources";
+	for (const Action &action : actions) {
+		qDebug() << "  Action:" << action.m_windowId << action.m_context
+				<< action.m_prefix << action.m_object.path();
+	}
+	for (const Description &description : descriptions) {
+		qDebug() << "  Description:" << description.m_windowId
+				<< description.m_context << description.m_object.path();
+	}
 }
 
-void ApplicationImpl::SetWindowContext(uint window, const QString &context) {
+void ApplicationImpl::SetWindowContext(uint windowId, const QString &context) {
+	Window::Ptr window = m_windows[windowId];
+	if (window.isNull()) {
+		qWarning() << "Tried to set context on unknown window" << windowId
+				<< m_applicationId;
+		return;
+	}
+	window->setContext(context);
 }

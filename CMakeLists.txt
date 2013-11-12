@@ -67,24 +67,14 @@ include_directories(${GIO_UNIX2_INCLUDE_DIRS})
 pkg_check_modules(DEE REQUIRED dee-1.0)
 include_directories(${DEE_INCLUDE_DIRS})
 
-pkg_check_modules(SQLITE3 REQUIRED sqlite3)
-include_directories(${SQLITE3_INCLUDE_DIRS})
-
 pkg_check_modules(DBUSMENU_GLIB REQUIRED dbusmenu-glib-0.4)
 include_directories(${DBUSMENU_GLIB_INCLUDE_DIRS})
 
 pkg_search_module(GTK3 REQUIRED gtk+-3.0)
 include_directories(${GTK3_INCLUDE_DIRS})
 
-pkg_check_modules(NIH REQUIRED libnih)
-include_directories(${NIH_INCLUDE_DIRS})
-
-pkg_check_modules(NIH_DBUS REQUIRED libnih-dbus)
-include_directories(${NIH_DBUS_INCLUDE_DIRS})
-
-pkg_check_modules(DBUS REQUIRED dbus-1)
-include_directories(${DBUS_INCLUDE_DIRS})
-
+pkg_check_modules(COLUMBUS REQUIRED libcolumbus)
+include_directories(${COLUMBUS_INCLUDE_DIRS})
 
 find_package(Qt5Core REQUIRED)
 include_directories(${Qt5Core_INCLUDE_DIRS})
@@ -116,8 +106,6 @@ if(${HAVE_SIGNAL_H})
   set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} "signal.h")
   check_function_exists(kill HAVE_KILL)
 endif()
-
-pkg_search_module(PANGO REQUIRED pango)
 
 if(${LOCAL_INSTALL})
   set(DBUSSERVICEDIR "${CMAKE_INSTALL_DATADIR}/dbus-1/services/")

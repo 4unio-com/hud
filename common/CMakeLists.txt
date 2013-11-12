@@ -52,3 +52,8 @@ qt5_use_modules(
 	DBus
 )
 
+target_link_libraries(
+	hud-common
+	${GLIB2_LIBRARIES}
+)
+

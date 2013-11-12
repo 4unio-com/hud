@@ -43,6 +43,10 @@ public:
 
 	virtual QList<hud::common::NameObject> applications() const;
 
+	virtual Application::Ptr focusedApplication() const;
+
+	virtual Window::Ptr focusedWindow() const;
+
 public Q_SLOTS:
 	void FocusedWindowChanged(uint windowId, const QString &applicationId,
 			uint stage);
@@ -52,9 +56,12 @@ public Q_SLOTS:
 	void WindowDestroyed(uint windowId, const QString &applicationId);
 
 protected:
-	Application::Ptr ensureApplication(const QString& window);
+	void ensureApplicationWithWindow(uint windowId,
+			const QString& applicationId);
 
 	void removeWindow(uint windowId, const QString& applicationId);
+
+	static bool isIgnoredApplication(const QString &applicationId);
 
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
 
@@ -62,7 +69,9 @@ protected:
 
 	QMap<QString, Application::Ptr> m_applications;
 
-	unsigned int m_applicationCounter;
+	Application::Ptr m_focusedApplication;
+
+	uint m_focusedWindowId;
 };
 
 }

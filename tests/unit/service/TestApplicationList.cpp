@@ -87,7 +87,7 @@ TEST_F(TestApplicationList, CreatesSingleApplicationOnStartup) {
 	ON_CALL(*application, path()).WillByDefault(ReturnRef(path));
 	EXPECT_CALL(*application, addWindow(0));
 
-	EXPECT_CALL(factory, newApplication(0, QString("app0"))).WillOnce(
+	EXPECT_CALL(factory, newApplication(QString("app0"))).WillOnce(
 			Return(application));
 
 	ApplicationListImpl applicationList(factory, windowStack);
@@ -108,7 +108,7 @@ TEST_F(TestApplicationList, CreatesSingleApplicationWithMultipleWindowsOnStartup
 	EXPECT_CALL(*application, addWindow(0));
 	EXPECT_CALL(*application, addWindow(1));
 
-	EXPECT_CALL(factory, newApplication(0, QString("app0"))).WillOnce(
+	EXPECT_CALL(factory, newApplication(QString("app0"))).WillOnce(
 			Return(application));
 
 	ApplicationListImpl applicationList(factory, windowStack);
@@ -134,9 +134,9 @@ TEST_F(TestApplicationList, CreatesMultipleApplicationOnStartup) {
 	ON_CALL(*application1, path()).WillByDefault(ReturnRef(path1));
 	EXPECT_CALL(*application1, addWindow(456));
 
-	EXPECT_CALL(factory, newApplication(0, QString("app0"))).WillOnce(
+	EXPECT_CALL(factory, newApplication(QString("app0"))).WillOnce(
 			Return(application0));
-	EXPECT_CALL(factory, newApplication(1, QString("app1"))).WillOnce(
+	EXPECT_CALL(factory, newApplication(QString("app1"))).WillOnce(
 			Return(application1));
 
 	ApplicationListImpl applicationList(factory, windowStack);
@@ -158,7 +158,7 @@ TEST_F(TestApplicationList, RemovesApplicationWhenAllWindowsClosed) {
 	ON_CALL(*application, path()).WillByDefault(ReturnRef(path));
 	ON_CALL(*application, isEmpty()).WillByDefault(Return(false));
 
-	EXPECT_CALL(factory, newApplication(0, QString("app0"))).WillOnce(
+	EXPECT_CALL(factory, newApplication(QString("app0"))).WillOnce(
 			Return(application));
 
 	EXPECT_CALL(*application, addWindow(0));
@@ -198,14 +198,14 @@ TEST_F(TestApplicationList, StartsEmptyThenAddsAndRemovesApplications) {
 	ApplicationListImpl applicationList(factory, windowStack);
 	ASSERT_TRUE(applicationList.applications().isEmpty());
 
-	EXPECT_CALL(factory, newApplication(0, QString("app0"))).WillOnce(
+	EXPECT_CALL(factory, newApplication(QString("app0"))).WillOnce(
 			Return(application0));
 	EXPECT_CALL(*application0, addWindow(123));
 	applicationList.WindowCreated(123, "app0");
 	ASSERT_EQ(1, applicationList.applications().size());
 	EXPECT_EQ(NameObject("app0", path0), applicationList.applications().at(0));
 
-	EXPECT_CALL(factory, newApplication(1, QString("app1"))).WillOnce(
+	EXPECT_CALL(factory, newApplication(QString("app1"))).WillOnce(
 			Return(application1));
 	EXPECT_CALL(*application1, addWindow(456));
 	applicationList.WindowCreated(456, "app1");

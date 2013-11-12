@@ -1,4 +1,5 @@
 usr/bin
 usr/share/hud-gtk
+usr/share/applications
 usr/share/man
 usr/lib/python*

@@ -19,11 +19,14 @@
 #ifndef HUD_SERVICE_QUERYIMPL_H_
 #define HUD_SERVICE_QUERYIMPL_H_
 
-#include <common/HudDee.h>
+#include <common/ResultsModel.h>
+#include <common/AppstackModel.h>
+#include <service/ApplicationList.h>
 #include <service/Query.h>
 
 #include <QDBusContext>
 #include <QDBusConnection>
+#include <QDBusServiceWatcher>
 #include <QDBusVariant>
 #include <QScopedPointer>
 #include <QSharedPointer>
@@ -39,12 +42,15 @@ class Q_DECL_EXPORT QueryImpl: public Query, protected QDBusContext {
 Q_OBJECT
 public:
 	explicit QueryImpl(unsigned int id, const QString &query,
-			HudService &service, const QDBusConnection &connection,
-			QObject *parent = 0);
+			const QString &sender, HudService &service,
+			ApplicationList::Ptr applicationList,
+			const QDBusConnection &connection, QObject *parent = 0);
 
 	virtual ~QueryImpl();
 
 	const QDBusObjectPath & path() const;
+
+	const QList<Result> & results() const;
 
 	QString appstackModel() const;
 
@@ -72,7 +78,12 @@ public Q_SLOTS:
 
 	int VoiceQuery(QString &query);
 
+protected Q_SLOTS:
+	void serviceUnregistered(const QString &service);
+
 protected:
+	void refresh();
+
 	QScopedPointer<QueryAdaptor> m_adaptor;
 
 	QDBusConnection m_connection;
@@ -81,11 +92,19 @@ protected:
 
 	HudService &m_service;
 
+	ApplicationList::Ptr m_applicationList;
+
 	QString m_query;
 
-	QSharedPointer<hud::common::HudDee> m_resultsModel;
+	QDBusServiceWatcher m_serviceWatcher;
 
-	QSharedPointer<hud::common::HudDee> m_appstackModel;
+	QSharedPointer<hud::common::ResultsModel> m_resultsModel;
+
+	QSharedPointer<hud::common::AppstackModel> m_appstackModel;
+
+	QList<Result> m_results;
+
+	WindowToken::Ptr m_windowToken;
 };
 
 }

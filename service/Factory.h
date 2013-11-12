@@ -22,7 +22,8 @@
 #include <service/HudService.h>
 #include <service/Application.h>
 #include <service/ApplicationList.h>
-#include <service/Collector.h>
+#include <service/DBusMenuCollector.h>
+#include <service/GMenuCollector.h>
 #include <service/ItemStore.h>
 #include <service/Window.h>
 #include <service/Query.h>
@@ -49,12 +50,11 @@ public:
 
 	virtual QSharedPointer<ComCanonicalAppMenuRegistrarInterface> singletonAppmenu();
 
-	virtual Query::Ptr newQuery(unsigned int id, const QString &query);
+	virtual Query::Ptr newQuery(const QString &query, const QString &sender);
 
-	virtual ApplicationList::Ptr newApplicationList();
+	virtual ApplicationList::Ptr singletonApplicationList();
 
-	virtual Application::Ptr newApplication(unsigned int id,
-			const QString &applicationId);
+	virtual Application::Ptr newApplication(const QString &applicationId);
 
 	virtual ItemStore::Ptr newItemStore();
 
@@ -70,11 +70,18 @@ public:
 protected:
 	QDBusConnection m_sessionBus;
 
+	unsigned int m_applicationCounter;
+
+	unsigned int m_queryCounter;
+
 	HudService::Ptr m_hudService;
+
+	ApplicationList::Ptr m_applicationList;
 
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
 
 	QSharedPointer<ComCanonicalAppMenuRegistrarInterface> m_appmenu;
+
 }
 ;
 

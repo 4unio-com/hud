@@ -17,6 +17,7 @@ set(HUD_SERVICE_LIB_SOURCES
   ItemStore.cpp
   Query.cpp
   QueryImpl.cpp
+  Result.cpp
   Window.cpp
   WindowImpl.cpp
 )
@@ -61,6 +62,7 @@ target_link_libraries(hud-service
   ${DBUSMENU_LIBRARIES}
   ${GOBJECT2_LIBRARIES}
   ${DEE_LIBRARIES}
+  ${COLUMBUS_LIBRARIES}
 )
 
 qt5_use_modules(

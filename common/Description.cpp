@@ -25,7 +25,7 @@ using namespace hud::common;
 QDBusArgument & operator<<(QDBusArgument &argument,
 		const Description &description) {
 	argument.beginStructure();
-	argument << description.m_idn << description.m_context
+	argument << description.m_windowId << description.m_context
 			<< description.m_object;
 	argument.endStructure();
 	return argument;
@@ -34,14 +34,14 @@ QDBusArgument & operator<<(QDBusArgument &argument,
 const QDBusArgument & operator>>(const QDBusArgument &argument,
 		Description &description) {
 	argument.beginStructure();
-	argument >> description.m_idn >> description.m_context
+	argument >> description.m_windowId >> description.m_context
 			>> description.m_object;
 	argument.endStructure();
 	return argument;
 }
 
 Description::Description() :
-		m_idn(0) {
+		m_windowId(0) {
 }
 
 Description::~Description() {

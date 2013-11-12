@@ -20,6 +20,12 @@
 
 using namespace hud::service;
 
+WindowToken::WindowToken() {
+}
+
+WindowToken::~WindowToken() {
+}
+
 Window::Window() {
 }
 
