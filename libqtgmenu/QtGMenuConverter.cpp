@@ -42,12 +42,14 @@ QtGMenuConverter::~QtGMenuConverter()
 {
 }
 
-std::shared_ptr< QMenu > QtGMenuConverter::ToQMenu( const GMenuModel& from_menu )
+std::vector< std::shared_ptr< QMenu > > QtGMenuConverter::ToQMenus( const GMenuModel* menu_model )
 {
-  return std::shared_ptr < QMenu > ( new QMenu() );
-}
+  std::vector< std::shared_ptr< QMenu > > menus;
 
-GMenuModel* QtGMenuConverter::ToGMenuModel( const QMenu& from_menu )
-{
-  return G_MENU_MODEL( g_menu_new() ) ;
+  QMenu* menu = new QMenu( "hello" );
+  menu->addAction( "there" );
+
+  menus.push_back( std::shared_ptr< QMenu >( menu ) );
+
+  return menus;
 }

@@ -37,7 +37,6 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QS
       m_connection( g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL ) ),
       m_service( service.toStdString() ),
       m_path( path.toStdString() ),
-      m_qmenu( new QMenu() ),
       m_gmenu_model( nullptr ),
       m_gaction_group( nullptr )
 {
@@ -77,16 +76,16 @@ GActionGroup* QtGMenuImporterPrivate::GetGActionGroup()
   return m_gaction_group;
 }
 
-std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
+std::vector< std::shared_ptr< QMenu > > QtGMenuImporterPrivate::GetQMenus()
 {
   GMenuModel* gmenu = GetGMenuModel();
 
   if( gmenu == nullptr )
   {
-    return nullptr;
+    return std::vector< std::shared_ptr< QMenu > >();
   }
 
-  std::shared_ptr< QMenu > qmenu = QtGMenuConverter::ToQMenu( *gmenu );
+  std::vector< std::shared_ptr< QMenu > > qmenu = QtGMenuConverter::ToQMenus( gmenu );
 
   // return a copy of m_gmenu_model as a QMenu
   return qmenu;

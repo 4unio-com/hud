@@ -14,7 +14,7 @@ public:
 
 private:
   qtgmenu::QtGMenuImporter m_menu_importer;
-  std::shared_ptr< QMenu > m_menu;
+  std::vector< std::shared_ptr< QMenu > > m_menus;
 };
 
 #endif

@@ -105,7 +105,7 @@ TEST_F(TestQtGMenu, ExportImportMenu)
 
   g_menu_append( m_menu, "New", "app.new" );
 
-  EXPECT_EQ( nullptr, m_importer.GetQMenu() );
+  EXPECT_EQ( 0, m_importer.GetQMenus().size() );
 
   // export menu
 
@@ -115,7 +115,7 @@ TEST_F(TestQtGMenu, ExportImportMenu)
   menu_appeared_spy.wait();
   EXPECT_FALSE( menu_appeared_spy.empty() );
 
-  EXPECT_NE( nullptr, m_importer.GetQMenu() );
+  EXPECT_NE( 0, m_importer.GetQMenus().size() );
   EXPECT_EQ( 1, GetMenuItemCount() );
 
   // add 2 items
@@ -146,7 +146,7 @@ TEST_F(TestQtGMenu, ExportImportMenu)
   menu_disappeared_spy.wait();
   EXPECT_FALSE( menu_disappeared_spy.empty() );
 
-  EXPECT_EQ( nullptr, m_importer.GetQMenu() );
+  EXPECT_EQ( 0, m_importer.GetQMenus().size() );
   EXPECT_EQ( 0, GetMenuItemCount() );
 }
 

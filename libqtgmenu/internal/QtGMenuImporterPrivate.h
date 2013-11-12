@@ -42,7 +42,7 @@ public:
   GMenuModel* GetGMenuModel();
   GActionGroup* GetGActionGroup();
 
-  std::shared_ptr< QMenu > GetQMenu();
+  std::vector< std::shared_ptr< QMenu > > GetQMenus();
 
   void StartPolling( int interval );
 
@@ -76,7 +76,7 @@ private:
   std::string m_service;
   std::string m_path;
 
-  std::shared_ptr< QMenu > m_qmenu;
+  std::vector< std::shared_ptr< QMenu > > m_qmenus;
 
   GMenuModel* m_gmenu_model;
   gulong m_menu_items_changed_handler = 0;

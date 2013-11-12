@@ -9,6 +9,10 @@ MainWindow::MainWindow()
   menu_appeared_wait.connect( &m_menu_importer, SIGNAL( MenuAppeared() ), SLOT( quit() ) );
   menu_appeared_wait.exec();
 
-  m_menu = m_menu_importer.GetQMenu();
-  menuBar()->addMenu( m_menu.get() );
+  m_menus = m_menu_importer.GetQMenus();
+
+  for( auto& menu : m_menus )
+  {
+    menuBar()->addMenu( menu.get() );
+  }
 }

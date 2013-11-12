@@ -46,7 +46,7 @@ public:
   GMenuModel* GetGMenuModel() const;
   GActionGroup* GetGActionGroup() const;
 
-  std::shared_ptr< QMenu > GetQMenu() const;
+  std::vector< std::shared_ptr< QMenu > > GetQMenus() const;
 
   void ForceRefresh();
 

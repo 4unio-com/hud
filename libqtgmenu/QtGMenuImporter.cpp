@@ -43,9 +43,9 @@ GActionGroup* QtGMenuImporter::GetGActionGroup() const
   return d->GetGActionGroup();
 }
 
-std::shared_ptr< QMenu > QtGMenuImporter::GetQMenu() const
+std::vector< std::shared_ptr< QMenu > > QtGMenuImporter::GetQMenus() const
 {
-  return d->GetQMenu();
+  return d->GetQMenus();
 }
 
 void QtGMenuImporter::ForceRefresh()
