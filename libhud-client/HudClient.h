@@ -84,6 +84,8 @@ Q_SIGNALS:
 
 	void showParametrizedAction(const QString &action, const QVariant &items);
 
+	void modelsChanged();
+
 protected:
 	void modelReady(bool needDisconnect);
 

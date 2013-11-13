@@ -23,6 +23,7 @@
 #include <QDebug>
 #include <QDBusConnection>
 #include <QString>
+#include <QSignalSpy>
 #include <QTestEventLoop>
 #include <deelistmodel.h>
 #include <libqtdbustest/QProcessDBusService.h>
@@ -128,14 +129,12 @@ TEST_F(TestHud, OpenCloseQuery) {
 	startHud();
 
 	HudClient client;
+	QSignalSpy modelsChangedSpy(&client, SIGNAL(modelsChanged()));
+	modelsChangedSpy.wait();
 
-	//FIXME Remove the wait
-	QTestEventLoop::instance().enterLoopMSecs(100);
-
+	QSignalSpy countChangedSpy(client.results(), SIGNAL(countChanged()));
 	client.setQuery("piece hook");
-
-	//FIXME Remove the wait
-	QTestEventLoop::instance().enterLoopMSecs(100);
+	countChangedSpy.wait();
 
 	DeeListModel &results(*client.results());
 	for (int i(0); i < results.rowCount(); ++i) {

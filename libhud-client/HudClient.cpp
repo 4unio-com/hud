@@ -335,4 +335,9 @@ void HudClient::modelReallyReady(bool needDisconnect) {
 void HudClient::queryModelsChanged() {
 	p->m_results->setModel(
 			hud_client_query_get_results_model(p->m_clientQuery));
+	p->m_appstack->setModel(
+			hud_client_query_get_appstack_model(p->m_clientQuery));
+
+	Q_EMIT modelsChanged();
 }
+
