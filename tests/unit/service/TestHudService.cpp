@@ -179,7 +179,7 @@ TEST_F(TestHudService, LegacyStartQuery) {
 	EXPECT_EQ("query text",
 			hudService.StartQuery("query text", 3, suggestions, querykey));
 	EXPECT_EQ(QList<QDBusObjectPath>() << queryPath, hudService.openQueries());
-
+	EXPECT_EQ(queryPath.path(), querykey.variant().toString());
 	ASSERT_EQ(2, suggestions.size());
 	{
 		const Suggestion &suggestion(suggestions.at(0));
