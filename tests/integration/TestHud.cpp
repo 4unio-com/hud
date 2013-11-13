@@ -59,14 +59,6 @@ protected:
 				DBusTypes::APPMENU_REGISTRAR_DBUS_PATH,
 				"com.canonical.AppMenu.Registrar", QDBusConnection::SessionBus);
 
-		menuService.reset(
-				new QProcessDBusService("menu.name",
-						QDBusConnection::SessionBus, DBUSMENU_JSON_LOADER,
-						QStringList() << "menu.name" << "/menu"
-								<< JSON_SOURCE));
-
-		dbus.registerService(menuService);
-
 		dbus.startServices();
 	}
 
@@ -100,6 +92,14 @@ protected:
 		hud->start(dbus.sessionConnection());
 	}
 
+	void startDBusMenu(const QString &name, const QString &path,
+			const QString &json) {
+		menuService.reset(
+				new QProcessDBusService(name, QDBusConnection::SessionBus,
+				DBUSMENU_JSON_LOADER, QStringList() << name << path << json));
+		menuService->start(dbus.sessionConnection());
+	}
+
 	QDBusConnection connection() {
 		return dbus.sessionConnection();
 	}
@@ -114,6 +114,8 @@ protected:
 };
 
 TEST_F(TestHud, OpenCloseQuery) {
+	startDBusMenu("menu.name", "/menu", JSON_SOURCE);
+
 	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
 			"GetWindowStack", "", "a(usbu)", "ret = [(0, 'app0', True, 0)]").waitForFinished();
 
@@ -134,6 +136,38 @@ TEST_F(TestHud, OpenCloseQuery) {
 
 	QSignalSpy countChangedSpy(client.results(), SIGNAL(countChanged()));
 	client.setQuery("piece hook");
+	countChangedSpy.wait();
+
+	DeeListModel &results(*client.results());
+	for (int i(0); i < results.rowCount(); ++i) {
+		qDebug() << results.data(results.index(i), 1);
+		qDebug() << results.data(results.index(i), 3);
+	}
+}
+
+TEST_F(TestHud, OpenCloseQuery2) {
+	startDBusMenu("menu.name", "/menu", JSON_SHORTCUTS);
+
+	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
+			"GetWindowStack", "", "a(usbu)", "ret = [(0, 'app0', True, 0)]").waitForFinished();
+
+	// There are no GMenus in this test
+	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
+			"GetWindowProperties", "usas", "as", "ret = []\n"
+					"for arg in args:\n"
+					"  ret.append('')").waitForFinished();
+
+	appmenuRegstrarMock().AddMethod(DBusTypes::APPMENU_REGISTRAR_DBUS_NAME,
+			"GetMenuForWindow", "u", "so", "ret = ('menu.name', '/menu')").waitForFinished();
+
+	startHud();
+
+	HudClient client;
+	QSignalSpy modelsChangedSpy(&client, SIGNAL(modelsChanged()));
+	modelsChangedSpy.wait();
+
+	QSignalSpy countChangedSpy(client.results(), SIGNAL(countChanged()));
+	client.setQuery("quit");
 	countChangedSpy.wait();
 
 	DeeListModel &results(*client.results());
