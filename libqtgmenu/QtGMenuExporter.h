@@ -33,7 +33,7 @@ class QtGMenuExporterPrivate;
 
 class QtGMenuExporter final : public QObject
 {
-Q_OBJECT
+  Q_OBJECT
 
 public:
   QtGMenuExporter( const QString& dbusObjectPath, QMenu* menu, const QDBusConnection& connection =

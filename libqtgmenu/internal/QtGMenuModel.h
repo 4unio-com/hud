@@ -21,6 +21,7 @@
 
 #include <QObject>
 #include <QMap>
+#include <QMenu>
 
 #include <memory>
 
@@ -32,14 +33,12 @@ namespace qtgmenu
 
 class QtGMenuModel : public QObject
 {
-Q_OBJECT
+  Q_OBJECT
 
 public:
   enum class LinkType
   {
-    Root,
-    Section,
-    SubMenu
+    Root, Section, SubMenu
   };
 
   QtGMenuModel( GMenuModel* model );
@@ -53,6 +52,8 @@ public:
   std::shared_ptr< QtGMenuModel > Parent() const;
   std::shared_ptr< QtGMenuModel > Child( int position ) const;
 
+  std::vector< std::shared_ptr< QMenu > > GetQMenus();
+
 Q_SIGNALS:
   void MenuItemsChanged( QtGMenuModel* model, int position, int removed, int added );
 
@@ -62,19 +63,22 @@ private:
   static void MenuItemsChangedCallback( GMenuModel* model, gint position, gint removed, gint added,
       gpointer user_data );
 
-  static void AddModelToParent( QtGMenuModel* parent, GMenuModel* model, int position );
+  static QtGMenuModel* CreateModel( QtGMenuModel* parent, GMenuModel* model, int position );
 
   void ConnectCallback();
   void DisconnectCallback();
 
-  void InsertChild( QtGMenuModel* child, int position );
+  void InsertChild( std::shared_ptr< QtGMenuModel > child, int position );
   void ChangeMenuItems( int position, int added, int removed );
+
+  void AppendQMenu( std::vector< std::shared_ptr< QMenu > >& menus );
 
 private:
   QtGMenuModel* m_parent;
-  QMap< int, QtGMenuModel* > m_children;
+  QMap< int, std::shared_ptr< QtGMenuModel > > m_children;
 
   GMenuModel* m_model;
+  std::shared_ptr< QMenu > m_menu;
   LinkType m_link_type;
   int m_size;
   gulong m_signal_id;

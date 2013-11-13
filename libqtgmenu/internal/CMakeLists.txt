@@ -3,7 +3,6 @@ set(
     QtGMenuImporterPrivate.cpp
     QtGMenuUtils.cpp
     QtGMenuModel.cpp
-    ../QtGMenuConverter.cpp
 )
 
 include_directories(

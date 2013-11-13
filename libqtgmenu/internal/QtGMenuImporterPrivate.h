@@ -34,7 +34,7 @@ namespace qtgmenu
 
 class QtGMenuImporterPrivate : public QObject
 {
-Q_OBJECT
+  Q_OBJECT
 
 public:
   QtGMenuImporterPrivate( const QString& service, const QString& path, QtGMenuImporter& parent );
@@ -73,8 +73,6 @@ private:
   GDBusConnection* m_connection;
   std::string m_service;
   std::string m_path;
-
-  std::vector< std::shared_ptr< QMenu > > m_qmenus;
 
   QtGMenuModel* m_gmenu_model;
   QTimer m_menu_poll_timer;

@@ -37,7 +37,7 @@ class QtGMenuImporterPrivate;
 
 class QtGMenuImporter final : public QObject
 {
-Q_OBJECT
+  Q_OBJECT
 
 public:
   QtGMenuImporter( const QString& service, const QString& path, QObject* parent = 0 );
@@ -63,7 +63,7 @@ Q_SIGNALS:
   void ActionsDisappeared();
 
 private:
-  Q_DISABLE_COPY(QtGMenuImporter)
+  Q_DISABLE_COPY (QtGMenuImporter)
   std::unique_ptr< QtGMenuImporterPrivate > d;
 };
 

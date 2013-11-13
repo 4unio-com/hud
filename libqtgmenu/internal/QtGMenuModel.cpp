@@ -17,11 +17,12 @@
  */
 
 #include <QtGMenuModel.h>
+#include <QtGMenuUtils.h>
 
 using namespace qtgmenu;
 
 QtGMenuModel::QtGMenuModel( GMenuModel* model )
-  : QtGMenuModel( model, LinkType::Root, nullptr, 0 )
+    : QtGMenuModel( model, LinkType::Root, nullptr, 0 )
 {
 }
 
@@ -29,10 +30,6 @@ QtGMenuModel::~QtGMenuModel()
 {
   DisconnectCallback();
 
-  for( auto& child : m_children )
-  {
-    delete child;
-  }
   m_children.clear();
 
   if( m_model )
@@ -58,28 +55,50 @@ int QtGMenuModel::Size() const
 
 std::shared_ptr< QtGMenuModel > QtGMenuModel::Parent() const
 {
-  return std::shared_ptr< QtGMenuModel >( m_parent );
+  return std::shared_ptr < QtGMenuModel > ( m_parent );
 }
 
 std::shared_ptr< QtGMenuModel > QtGMenuModel::Child( int position ) const
 {
   if( m_children.contains( position ) )
   {
-    return std::shared_ptr< QtGMenuModel >( m_children.value( position ) );
+    return std::shared_ptr < QtGMenuModel > ( m_children.value( position ) );
   }
 
   return nullptr;
 }
 
-QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int position )
+std::vector< std::shared_ptr< QMenu > > QtGMenuModel::GetQMenus()
+{
+  std::vector< std::shared_ptr< QMenu > > menus;
+
+  AppendQMenu( menus );
+
+  return menus;
+}
+
+QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent,
+    int position )
     : m_parent( parent ),
       m_model( model ),
+      m_menu( new QMenu() ),
       m_link_type( link_type ),
       m_signal_id( 0 )
 {
   if( m_parent )
   {
-    m_parent->InsertChild( this, position );
+    m_parent->InsertChild( std::shared_ptr < QtGMenuModel > ( this ), position );
+
+    GVariant* label = g_menu_model_get_item_attribute_value( m_parent->m_model, position,
+        G_MENU_ATTRIBUTE_LABEL, G_VARIANT_TYPE_STRING );
+    if( label )
+    {
+      QString qlabel = QtGMenuUtils::GVariantToQVariant( label ).toString();
+      qlabel.replace( '_', '&' );
+      g_variant_unref( label );
+
+      m_menu->setTitle( qlabel );
+    }
   }
 
   if( m_model )
@@ -89,20 +108,20 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 
   for( int i = 0; i < m_size; ++i )
   {
-    QtGMenuModel::AddModelToParent( this, model, i );
+    QtGMenuModel::CreateModel( this, model, i );
   }
 
   ConnectCallback();
 }
 
-void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint position, gint removed, gint added,
-    gpointer user_data )
+void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint position, gint removed,
+    gint added, gpointer user_data )
 {
   QtGMenuModel* self = reinterpret_cast< QtGMenuModel* >( user_data );
   self->ChangeMenuItems( position, added, removed );
 }
 
-void QtGMenuModel::AddModelToParent( QtGMenuModel* parent, GMenuModel* model, int position )
+QtGMenuModel* QtGMenuModel::CreateModel( QtGMenuModel* parent, GMenuModel* model, int position )
 {
   LinkType linkType( LinkType::SubMenu );
   GMenuModel* link = g_menu_model_get_item_link( model, position, G_MENU_LINK_SUBMENU );
@@ -115,18 +134,18 @@ void QtGMenuModel::AddModelToParent( QtGMenuModel* parent, GMenuModel* model, in
 
   if( link )
   {
-    new QtGMenuModel( link, linkType, parent, position );
+    return new QtGMenuModel( link, linkType, parent, position );
   }
+
+  return nullptr;
 }
 
 void QtGMenuModel::ConnectCallback()
 {
   if( m_model && m_signal_id == 0 )
   {
-    m_signal_id = g_signal_connect(m_model,
-        "items-changed",
-        G_CALLBACK(QtGMenuModel::MenuItemsChangedCallback),
-        this);
+    m_signal_id = g_signal_connect( m_model, "items-changed",
+        G_CALLBACK( QtGMenuModel::MenuItemsChangedCallback ), this );
   }
 }
 
@@ -138,7 +157,7 @@ void QtGMenuModel::DisconnectCallback()
   }
 }
 
-void QtGMenuModel::InsertChild( QtGMenuModel* child, int position )
+void QtGMenuModel::InsertChild( std::shared_ptr< QtGMenuModel > child, int position )
 {
   if( m_children.contains( position ) )
   {
@@ -148,7 +167,8 @@ void QtGMenuModel::InsertChild( QtGMenuModel* child, int position )
   child->m_parent = this;
   m_children.insert( position, child );
 
-  connect( child, SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)), this, SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)) );
+  connect( child.get(), SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)), this,
+      SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)) );
 }
 
 void QtGMenuModel::ChangeMenuItems( int position, int added, int removed )
@@ -165,9 +185,28 @@ void QtGMenuModel::ChangeMenuItems( int position, int added, int removed )
 
     m_size += added;
 
+    auto menu = m_menu;
+    if( m_link_type == LinkType::Section && m_parent )
+    {
+      menu = m_parent->m_menu;
+      if( menu->actions().size() != 0 )
+      {
+        menu->addSeparator();
+      }
+    }
+
     for( int i = position; i < ( position + added ); ++i )
     {
-      QtGMenuModel::AddModelToParent( this, m_model, i );
+      if( !QtGMenuModel::CreateModel( this, m_model, i ) )
+      {
+        GVariant* label = g_menu_model_get_item_attribute_value( m_model, i, G_MENU_ATTRIBUTE_LABEL,
+            G_VARIANT_TYPE_STRING );
+        QString qlabel = QtGMenuUtils::GVariantToQVariant( label ).toString();
+        qlabel.replace( '_', '&' );
+        g_variant_unref( label );
+
+        menu->addAction( qlabel );
+      }
     }
   }
 
@@ -178,7 +217,7 @@ void QtGMenuModel::ChangeMenuItems( int position, int added, int removed )
     {
       if( i <= removedEnd )
       {
-        delete m_children.take( i );
+        m_children.take( i );
       }
       else if( m_children.contains( i ) )
       {
@@ -189,6 +228,23 @@ void QtGMenuModel::ChangeMenuItems( int position, int added, int removed )
   }
 
   emit MenuItemsChanged( this, position, removed, added );
+}
+
+void QtGMenuModel::AppendQMenu( std::vector< std::shared_ptr< QMenu > >& menus )
+{
+  menus.push_back( m_menu );
+
+  if( m_link_type == LinkType::SubMenu )
+  {
+    // only append one menu containing nested menus
+  }
+  else
+  {
+    for( auto& child : m_children )
+    {
+      child->AppendQMenu( menus );
+    }
+  }
 }
 
 #include <QtGMenuModel.moc>

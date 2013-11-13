@@ -17,8 +17,6 @@
  */
 
 #include <QtGMenuImporterPrivate.h>
-
-#include <QtGMenuConverter.h>
 #include <QtGMenuUtils.h>
 
 #include <QEventLoop>
@@ -85,10 +83,7 @@ std::vector< std::shared_ptr< QMenu > > QtGMenuImporterPrivate::GetQMenus()
     return std::vector< std::shared_ptr< QMenu > >();
   }
 
-  std::vector< std::shared_ptr< QMenu > > qmenu = QtGMenuConverter::ToQMenus( gmenu );
-
-  // return a copy of m_gmenu_model as a QMenu
-  return qmenu;
+  return m_gmenu_model->GetQMenus();
 }
 
 void QtGMenuImporterPrivate::StartPolling( int interval )
@@ -190,9 +185,11 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   // clear the menu model for the refresh
   ClearGMenuModel();
 
-  m_gmenu_model = new QtGMenuModel( G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str()) ) );
+  m_gmenu_model = new QtGMenuModel(
+      G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str() ) ) );
 
-  connect( m_gmenu_model, SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)), &m_parent, SIGNAL( MenuItemsChanged()) );
+  connect( m_gmenu_model, SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)), &m_parent,
+      SIGNAL( MenuItemsChanged()) );
 
   gint item_count = m_gmenu_model->Size();
 
@@ -202,8 +199,7 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
     QEventLoop menu_refresh_wait;
     QTimer timeout;
 
-    menu_refresh_wait.connect( &m_parent, SIGNAL( MenuItemsChanged() ),
-        SLOT( quit() ) );
+    menu_refresh_wait.connect( &m_parent, SIGNAL( MenuItemsChanged() ), SLOT( quit() ) );
     timeout.singleShot( 100, &menu_refresh_wait, SLOT( quit() ) );
     menu_refresh_wait.exec();
 
@@ -243,17 +239,17 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
   // clear the action group for the refresh
   ClearGActionGroup();
 
-  m_gaction_group =
-      G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), m_path.c_str()) );
+  m_gaction_group = G_ACTION_GROUP(
+      g_dbus_action_group_get( m_connection, m_service.c_str(), m_path.c_str() ) );
 
-  m_action_added_handler =
-      g_signal_connect( m_gaction_group, "action-added", G_CALLBACK( ActionAddedCallback ), &m_parent );
-  m_action_removed_handler =
-      g_signal_connect( m_gaction_group, "action-removed", G_CALLBACK( ActionRemovedCallback ), &m_parent );
-  m_action_enabled_handler =
-      g_signal_connect( m_gaction_group, "action-enabled-changed", G_CALLBACK( ActionEnabledCallback ), &m_parent );
-  m_action_state_changed_handler =
-      g_signal_connect( m_gaction_group, "action-state-changed", G_CALLBACK( ActionStateChangedCallback ), &m_parent );
+  m_action_added_handler = g_signal_connect( m_gaction_group, "action-added",
+      G_CALLBACK( ActionAddedCallback ), &m_parent );
+  m_action_removed_handler = g_signal_connect( m_gaction_group, "action-removed",
+      G_CALLBACK( ActionRemovedCallback ), &m_parent );
+  m_action_enabled_handler = g_signal_connect( m_gaction_group, "action-enabled-changed",
+      G_CALLBACK( ActionEnabledCallback ), &m_parent );
+  m_action_state_changed_handler = g_signal_connect( m_gaction_group, "action-state-changed",
+      G_CALLBACK( ActionStateChangedCallback ), &m_parent );
 
   gchar** actions_list = g_action_group_list_actions( m_gaction_group );
 
