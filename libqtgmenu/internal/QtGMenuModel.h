@@ -68,14 +68,14 @@ private:
   void ConnectCallback();
   void DisconnectCallback();
 
-  void InsertChild( std::shared_ptr< QtGMenuModel > child, int position );
+  void InsertChild( QtGMenuModel* child, int position );
   void ChangeMenuItems( int position, int added, int removed );
 
   void AppendQMenu( std::vector< std::shared_ptr< QMenu > >& menus );
 
 private:
   QtGMenuModel* m_parent;
-  QMap< int, std::shared_ptr< QtGMenuModel > > m_children;
+  QMap< int, QtGMenuModel* > m_children;
 
   GMenuModel* m_model;
   std::shared_ptr< QMenu > m_menu;

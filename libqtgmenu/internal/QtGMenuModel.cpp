@@ -87,7 +87,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 {
   if( m_parent )
   {
-    m_parent->InsertChild( std::shared_ptr < QtGMenuModel > ( this ), position );
+    m_parent->InsertChild( this, position );
 
     GVariant* label = g_menu_model_get_item_attribute_value( m_parent->m_model, position,
         G_MENU_ATTRIBUTE_LABEL, G_VARIANT_TYPE_STRING );
@@ -157,7 +157,7 @@ void QtGMenuModel::DisconnectCallback()
   }
 }
 
-void QtGMenuModel::InsertChild( std::shared_ptr< QtGMenuModel > child, int position )
+void QtGMenuModel::InsertChild( QtGMenuModel* child, int position )
 {
   if( m_children.contains( position ) )
   {
@@ -167,7 +167,7 @@ void QtGMenuModel::InsertChild( std::shared_ptr< QtGMenuModel > child, int posit
   child->m_parent = this;
   m_children.insert( position, child );
 
-  connect( child.get(), SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)), this,
+  connect( child, SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)), this,
       SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)) );
 }
 
