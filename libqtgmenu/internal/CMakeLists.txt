@@ -2,6 +2,7 @@ set(
     QTGMENU_INTERNAL_SRC
     QtGMenuImporterPrivate.cpp
     QtGMenuUtils.cpp
+    QtGMenuModel.cpp
     ../QtGMenuConverter.cpp
 )
 
