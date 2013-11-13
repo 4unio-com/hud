@@ -28,6 +28,7 @@
 using namespace std;
 using namespace testing;
 using namespace QtDBusTest;
+using namespace hud::common;
 using namespace hud::service;
 using namespace hud::service::test;
 
@@ -37,6 +38,8 @@ class TestHudService: public Test {
 protected:
 	TestHudService() {
 		factory.setSessionBus(dbus.sessionConnection());
+
+		applicationList.reset(new NiceMock<MockApplicationList>());
 	}
 
 	virtual ~TestHudService() {
@@ -45,12 +48,12 @@ protected:
 	DBusTestRunner dbus;
 
 	NiceMock<MockFactory> factory;
+
+	QSharedPointer<MockApplicationList> applicationList;
 };
 
 TEST_F(TestHudService, OpenCloseQuery) {
-	HudService hudService(factory,
-			ApplicationList::Ptr(new NiceMock<MockApplicationList>()),
-			dbus.sessionConnection());
+	HudService hudService(factory, applicationList, dbus.sessionConnection());
 
 	QDBusObjectPath queryPath("/path/query0");
 	QString resultsModel("com.canonical.hud.results0");
@@ -80,9 +83,7 @@ TEST_F(TestHudService, OpenCloseQuery) {
 }
 
 TEST_F(TestHudService, CloseUnknownQuery) {
-	HudService hudService(factory,
-			ApplicationList::Ptr(new NiceMock<MockApplicationList>()),
-			dbus.sessionConnection());
+	HudService hudService(factory, applicationList, dbus.sessionConnection());
 
 	QDBusObjectPath queryPath("/path/query0");
 
@@ -92,9 +93,7 @@ TEST_F(TestHudService, CloseUnknownQuery) {
 }
 
 TEST_F(TestHudService, CreateMultipleQueries) {
-	HudService hudService(factory,
-			ApplicationList::Ptr(new NiceMock<MockApplicationList>()),
-			dbus.sessionConnection());
+	HudService hudService(factory, applicationList, dbus.sessionConnection());
 
 	QDBusObjectPath queryPath0("/path/query0");
 	QString resultsModel0("com.canonical.hud.results0");
@@ -143,6 +142,63 @@ TEST_F(TestHudService, CreateMultipleQueries) {
 
 	hudService.closeQuery(queryPath1);
 	EXPECT_EQ(QList<QDBusObjectPath>(), hudService.openQueries());
+}
+
+TEST_F(TestHudService, LegacyStartQuery) {
+	QSharedPointer<MockApplication> application(
+			new NiceMock<MockApplication>());
+	ON_CALL(*application, icon()).WillByDefault(Return("app0-icon"));
+
+	ON_CALL(*applicationList, focusedApplication()).WillByDefault(
+			Return(application));
+
+	HudService hudService(factory, applicationList, dbus.sessionConnection());
+
+	QDBusObjectPath queryPath("/path/query0");
+	QList<Result> results;
+	results
+			<< Result(1, "command1",
+					Result::HighlightList() << Result::Highlight(1, 4)
+							<< Result::Highlight(5, 6), "descripton1",
+					Result::HighlightList() << Result::Highlight(0, 3),
+					"shortcut1", 10, false);
+	results
+			<< Result(2, "simon & garfunkel",
+					Result::HighlightList() << Result::Highlight(4, 8),
+					"descripton2", Result::HighlightList(), "shortcut2", 20,
+					false);
+	QSharedPointer<MockQuery> query(new NiceMock<MockQuery>());
+	ON_CALL(*query, path()).WillByDefault(ReturnRef(queryPath));
+	ON_CALL(*query, results()).WillByDefault(ReturnRef(results));
+
+	EXPECT_CALL(factory, newQuery(QString("query text"), QString("local"))).Times(
+			1).WillOnce(Return(query));
+
+	QList<Suggestion> suggestions;
+	QDBusVariant querykey;
+	EXPECT_EQ("query text",
+			hudService.StartQuery("query text", 3, suggestions, querykey));
+	EXPECT_EQ(QList<QDBusObjectPath>() << queryPath, hudService.openQueries());
+
+	ASSERT_EQ(2, suggestions.size());
+	{
+		const Suggestion &suggestion(suggestions.at(0));
+		EXPECT_EQ(1, suggestion.m_id);
+		EXPECT_EQ(QString("c<b>omm</b>a<b>n</b>d1 (<b>des</b>cripton1)"),
+				suggestion.m_description);
+		EXPECT_EQ(QString("app0-icon"), suggestion.m_icon);
+	}
+	{
+		const Suggestion &suggestion(suggestions.at(1));
+		EXPECT_EQ(2, suggestion.m_id);
+		EXPECT_EQ(QString("simo<b>n &amp; </b>garfunkel (descripton2)"),
+				suggestion.m_description);
+		EXPECT_EQ(QString("app0-icon"), suggestion.m_icon);
+	}
+
+	// We don't close legacy queries :-(
+	hudService.CloseQuery(querykey);
+	EXPECT_EQ(QList<QDBusObjectPath>() << queryPath, hudService.openQueries());
 }
 
 } // namespace

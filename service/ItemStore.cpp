@@ -54,11 +54,11 @@ void ItemStore::indexMenu(const QMenu *menu, const QStringList &stack) {
 			childStack << text;
 			indexMenu(child, childStack);
 		} else {
-			QList<QPair<int, int>> commandHighlights;
-			commandHighlights << QPair<int, int>(2, 3);
+			Result::HighlightList commandHighlights;
+			commandHighlights << Result::Highlight(2, 3);
 
-			QList<QPair<int, int>> descriptionHighlights;
-			descriptionHighlights << QPair<int, int>(3, 5);
+			Result::HighlightList descriptionHighlights;
+			descriptionHighlights << Result::Highlight(3, 5);
 
 			Document document(m_nextId);
 
@@ -67,6 +67,7 @@ void ItemStore::indexMenu(const QMenu *menu, const QStringList &stack) {
 				command.addWord(Word(word.toStdString()));
 			}
 			document.addText(Word("command"), command);
+			qDebug() << text;
 
 			WordList wordList;
 			for (const QString &word : stack) {
@@ -103,8 +104,8 @@ void ItemStore::search(const QString &query, QList<Result> &results) {
 		results
 				<< Result(id,
 						action->text().remove(SINGLE_AMPERSAND).replace("&&",
-								"&"), QList<QPair<int, int>>(), QString(),
-						QList<QPair<int, int>>(), QString(), relevancy * 100,
+								"&"), Result::HighlightList(), QString(),
+						Result::HighlightList(), QString(), relevancy * 100,
 						false);
 
 	}
