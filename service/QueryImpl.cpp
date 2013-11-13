@@ -39,6 +39,8 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query,
 				sender, m_connection,
 				QDBusServiceWatcher::WatchForUnregistration) {
 
+	qDebug() << "new query" << query;
+
 	connect(&m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)),
 			this, SLOT(serviceUnregistered(const QString &)));
 
@@ -55,6 +57,7 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query,
 
 QueryImpl::~QueryImpl() {
 	m_connection.unregisterObject(m_path.path());
+	qDebug() << "~QueryImpl";
 }
 
 const QDBusObjectPath & QueryImpl::path() const {

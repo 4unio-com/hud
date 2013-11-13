@@ -1,7 +1,7 @@
 
 set(
 	INTEGRATION_TESTS_SRC
-	TestHudService.cpp
+	TestHud.cpp
 )
 
 add_executable(
@@ -13,13 +13,18 @@ target_link_libraries(
 	integration-tests
 	test-utils
 	hud-common
+	hud-client
 	${GTEST_LIBRARIES}
 	${GMOCK_LIBRARIES}
 	${QTDBUSTEST_LIBRARIES}
 	${QTDBUSMOCK_LIBRARIES}
 )
 
-add_valgrind_test(
+qt5_use_modules(integration-tests
+	Test
+)
+
+add_test(
 	integration-tests
-	integration-tests
+	qdbus-simple-test-runne integration-tests
 )

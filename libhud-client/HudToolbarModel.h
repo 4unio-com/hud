@@ -22,6 +22,9 @@
 
 typedef struct _HudClientQuery HudClientQuery;
 
+namespace hud {
+namespace client {
+
 class HudToolBarModel: public QAbstractListModel {
 	class Priv;
 
@@ -43,5 +46,8 @@ public:
 private:
 	QScopedPointer<Priv> p;
 };
+
+}
+}
 
 #endif

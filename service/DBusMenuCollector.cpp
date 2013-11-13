@@ -30,8 +30,7 @@ using namespace hud::service;
 
 DBusMenuCollector::DBusMenuCollector(unsigned int windowId,
 		QSharedPointer<ComCanonicalAppMenuRegistrarInterface> registrar) :
-		m_windowId(windowId), m_registrar(registrar), m_viewerCount(0), m_menu(
-				nullptr) {
+		m_windowId(windowId), m_registrar(registrar), m_menu(nullptr) {
 
 	connect(registrar.data(),
 	SIGNAL(WindowRegistered(uint, const QString &, const QDBusObjectPath &)),
@@ -130,23 +129,23 @@ static void hideMenu(QMenu *menu) {
 }
 
 CollectorToken::Ptr DBusMenuCollector::activate() {
-	if (m_viewerCount == 0) {
-		++m_viewerCount;
+	CollectorToken::Ptr collectorToken(m_collectorToken);
+
+	if (collectorToken.isNull()) {
 		qDebug() << "Opening menus";
 		QSet<QStringList> known;
 		while (openMenu(m_menu, QStringList(), known)) {
 		}
+		collectorToken.reset(new CollectorToken(shared_from_this()));
+		m_collectorToken = collectorToken;
 	}
 
-	return CollectorToken::Ptr(new CollectorToken(shared_from_this()));
+	return collectorToken;
 }
 
 void DBusMenuCollector::deactivate() {
-	--m_viewerCount;
-	if (m_viewerCount == 0) {
-		qDebug() << "Hiding menus";
-		hideMenu(m_menu);
-	}
+	qDebug() << "Hiding menus";
+	hideMenu(m_menu);
 }
 
 void DBusMenuCollector::WindowRegistered(uint windowId, const QString &service,

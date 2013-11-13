@@ -25,6 +25,9 @@
 class DeeListModel;
 class QAbstractItemModel;
 
+namespace hud {
+namespace client {
+
 class Q_DECL_EXPORT HudClient: public QObject {
 	class Priv;
 	friend Priv;
@@ -90,6 +93,9 @@ protected:
 
 	QScopedPointer<Priv> p;
 };
+
+}
+}
 
 Q_DECLARE_METATYPE(HudClientQueryToolbarItems)
 

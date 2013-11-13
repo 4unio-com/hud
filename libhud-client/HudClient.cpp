@@ -21,6 +21,8 @@
 
 #include <QDebug>
 
+using namespace hud::client;
+
 class HudClient::Priv {
 public:
 	static void loadingCB(GObject* /*src*/, gpointer dst) {

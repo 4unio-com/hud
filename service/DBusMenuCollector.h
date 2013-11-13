@@ -68,7 +68,7 @@ protected:
 
 	QSharedPointer<ComCanonicalAppMenuRegistrarInterface> m_registrar;
 
-	unsigned int m_viewerCount;
+	QWeakPointer<CollectorToken> m_collectorToken;
 
 	QScopedPointer<DBusMenuImporter> m_menuImporter;
 
