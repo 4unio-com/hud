@@ -84,7 +84,6 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 
   if( m_model )
   {
-    g_object_ref( model );
     m_size = g_menu_model_get_n_items( model );
   }
 

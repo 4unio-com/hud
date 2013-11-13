@@ -97,7 +97,7 @@ protected:
 
 TEST_F(TestQtGMenu, ExportImportMenu)
 {
-  QSignalSpy items_changed_spy( &m_importer, SIGNAL( MenuItemsChanged( int, int, int ) ) );
+  QSignalSpy items_changed_spy( &m_importer, SIGNAL( MenuItemsChanged() ) );
   QSignalSpy menu_appeared_spy( &m_importer, SIGNAL( MenuAppeared() ) );
   QSignalSpy menu_disappeared_spy( &m_importer, SIGNAL( MenuDisappeared() ) );
 

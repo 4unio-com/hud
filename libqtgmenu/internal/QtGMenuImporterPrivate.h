@@ -20,6 +20,7 @@
 #define QTGMENUEXPORTERPRIVATE_H
 
 #include <QtGMenuImporter.h>
+#include <internal/QtGMenuModel.h>
 
 #include <QMenu>
 #include <QTimer>
@@ -47,9 +48,6 @@ public:
   void StartPolling( int interval );
 
 private:
-  static void MenuItemsChangedCallback( GMenuModel* model, gint position, gint removed, gint added,
-      gpointer user_data );
-
   static void ActionAddedCallback( GActionGroup* action_group, gchar* action_name,
       gpointer user_data );
 
@@ -78,8 +76,7 @@ private:
 
   std::vector< std::shared_ptr< QMenu > > m_qmenus;
 
-  GMenuModel* m_gmenu_model;
-  gulong m_menu_items_changed_handler = 0;
+  QtGMenuModel* m_gmenu_model;
   QTimer m_menu_poll_timer;
 
   GActionGroup* m_gaction_group;

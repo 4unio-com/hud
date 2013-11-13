@@ -51,7 +51,7 @@ public:
   void ForceRefresh();
 
 Q_SIGNALS:
-  void MenuItemsChanged( int position, int removed, int added );
+  void MenuItemsChanged();
   void MenuAppeared();
   void MenuDisappeared();
 

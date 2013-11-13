@@ -63,7 +63,7 @@ GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
     return nullptr;
   }
 
-  return m_gmenu_model;
+  return m_gmenu_model->Model();
 }
 
 GActionGroup* QtGMenuImporterPrivate::GetGActionGroup()
@@ -100,14 +100,6 @@ void QtGMenuImporterPrivate::StartPolling( int interval )
   m_actions_poll_timer.stop();
   m_actions_poll_timer.setInterval( interval );
   m_actions_poll_timer.start();
-}
-
-void QtGMenuImporterPrivate::MenuItemsChangedCallback( GMenuModel* model, gint position,
-    gint removed, gint added, gpointer user_data )
-{
-  unused( model );
-  QtGMenuImporter* importer = reinterpret_cast< QtGMenuImporter* >( user_data );
-  emit importer->MenuItemsChanged( position, removed, added );
 }
 
 void QtGMenuImporterPrivate::ActionAddedCallback( GActionGroup* action_group, gchar* action_name,
@@ -149,18 +141,13 @@ void QtGMenuImporterPrivate::ClearGMenuModel()
     return;
   }
 
-  gint item_count = g_menu_model_get_n_items( m_gmenu_model );
-
-  if( item_count > 0 )
+  if( m_gmenu_model->Size() > 0 )
   {
-    // notify parent that all items are being removed
-    MenuItemsChangedCallback( m_gmenu_model, 0, item_count, 0, &m_parent );
+    // notify parent that items are being removed
+    emit m_parent.MenuItemsChanged();
   }
 
-  g_signal_handler_disconnect( m_gmenu_model, m_menu_items_changed_handler );
-  m_menu_items_changed_handler = 0;
-
-  g_object_unref( m_gmenu_model );
+  delete m_gmenu_model;
   m_gmenu_model = nullptr;
 }
 
@@ -203,13 +190,11 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   // clear the menu model for the refresh
   ClearGMenuModel();
 
-  m_gmenu_model =
-      G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str()) );
+  m_gmenu_model = new QtGMenuModel( G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str()) ) );
 
-  m_menu_items_changed_handler =
-      g_signal_connect( m_gmenu_model, "items-changed", G_CALLBACK( MenuItemsChangedCallback ), &m_parent );
+  connect( m_gmenu_model, SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)), &m_parent, SIGNAL( MenuItemsChanged()) );
 
-  gint item_count = g_menu_model_get_n_items( m_gmenu_model );
+  gint item_count = m_gmenu_model->Size();
 
   if( item_count == 0 )
   {
@@ -217,13 +202,13 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
     QEventLoop menu_refresh_wait;
     QTimer timeout;
 
-    menu_refresh_wait.connect( &m_parent, SIGNAL( MenuItemsChanged( int, int, int ) ),
+    menu_refresh_wait.connect( &m_parent, SIGNAL( MenuItemsChanged() ),
         SLOT( quit() ) );
     timeout.singleShot( 100, &menu_refresh_wait, SLOT( quit() ) );
     menu_refresh_wait.exec();
 
     // check item count again
-    item_count = g_menu_model_get_n_items( m_gmenu_model );
+    item_count = m_gmenu_model->Size();
   }
 
   bool menu_is_valid = item_count != 0;
