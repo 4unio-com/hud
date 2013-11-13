@@ -26,5 +26,5 @@ qt5_use_modules(integration-tests
 
 add_test(
 	integration-tests
-	qdbus-simple-test-runne integration-tests
+	qdbus-simple-test-runner "${CMAKE_CURRENT_BINARY_DIR}/integration-tests"
 )

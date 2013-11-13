@@ -22,8 +22,6 @@ add_definitions(-DDATA_DIR="${DATA_DIR}")
 # Test Fixtures
 #######################
 
-message("dat adir = ${TEST_DATADIR}")
-
 add_definitions(-DJSON_SIMPLE="${TEST_DATADIR}/test-menu-input-simple.json")
 add_definitions(-DJSON_SHORTCUTS="${TEST_DATADIR}/test-menu-input-shortcuts.json")
 add_definitions(-DJSON_SOURCE_ONE="${TEST_DATADIR}/test-app-indicator-source-one.json")
