@@ -49,10 +49,10 @@ public:
 
   int Size() const;
 
-  std::shared_ptr< QtGMenuModel > Parent() const;
-  std::shared_ptr< QtGMenuModel > Child( int position ) const;
+  QtGMenuModel* Parent() const;
+  QtGMenuModel* Child( int position ) const;
 
-  std::vector< std::shared_ptr< QMenu > > GetQMenus();
+  std::vector< QMenu* > GetQMenus();
 
 Q_SIGNALS:
   void MenuItemsChanged( QtGMenuModel* model, int position, int removed, int added );
@@ -71,14 +71,14 @@ private:
   void InsertChild( QtGMenuModel* child, int position );
   void ChangeMenuItems( int position, int added, int removed );
 
-  void AppendQMenu( std::vector< std::shared_ptr< QMenu > >& menus );
+  void AppendQMenu( std::vector< QMenu* >& menus );
 
 private:
   QtGMenuModel* m_parent;
   QMap< int, QtGMenuModel* > m_children;
 
   GMenuModel* m_model;
-  std::shared_ptr< QMenu > m_menu;
+  QMenu* m_menu;
   LinkType m_link_type;
   int m_size;
   gulong m_signal_id;

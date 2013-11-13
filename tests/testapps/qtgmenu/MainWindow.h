@@ -18,7 +18,7 @@ private Q_SLOTS:
 
 private:
   qtgmenu::QtGMenuImporter m_menu_importer;
-  std::vector< std::shared_ptr< QMenu > > m_menus;
+  std::vector< QMenu* > m_menus;
   QMetaObject::Connection m_refresh_connection;
 };
 

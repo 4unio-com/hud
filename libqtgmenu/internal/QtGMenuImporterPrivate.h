@@ -43,7 +43,7 @@ public:
   GMenuModel* GetGMenuModel();
   GActionGroup* GetGActionGroup();
 
-  std::vector< std::shared_ptr< QMenu > > GetQMenus();
+  std::vector< QMenu* > GetQMenus();
 
   void StartPolling( int interval );
 

@@ -74,13 +74,13 @@ GActionGroup* QtGMenuImporterPrivate::GetGActionGroup()
   return m_gaction_group;
 }
 
-std::vector< std::shared_ptr< QMenu > > QtGMenuImporterPrivate::GetQMenus()
+std::vector< QMenu* > QtGMenuImporterPrivate::GetQMenus()
 {
   GMenuModel* gmenu = GetGMenuModel();
 
   if( gmenu == nullptr )
   {
-    return std::vector< std::shared_ptr< QMenu > >();
+    return std::vector< QMenu* >();
   }
 
   return m_gmenu_model->GetQMenus();

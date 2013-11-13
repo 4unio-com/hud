@@ -30,7 +30,13 @@ QtGMenuModel::~QtGMenuModel()
 {
   DisconnectCallback();
 
+  for( auto child : m_children )
+  {
+    delete child;
+  }
   m_children.clear();
+
+  delete m_menu;
 
   if( m_model )
   {
@@ -53,24 +59,24 @@ int QtGMenuModel::Size() const
   return m_size;
 }
 
-std::shared_ptr< QtGMenuModel > QtGMenuModel::Parent() const
+QtGMenuModel* QtGMenuModel::Parent() const
 {
-  return std::shared_ptr < QtGMenuModel > ( m_parent );
+  return m_parent;
 }
 
-std::shared_ptr< QtGMenuModel > QtGMenuModel::Child( int position ) const
+QtGMenuModel* QtGMenuModel::Child( int position ) const
 {
   if( m_children.contains( position ) )
   {
-    return std::shared_ptr < QtGMenuModel > ( m_children.value( position ) );
+    return m_children.value( position );
   }
 
   return nullptr;
 }
 
-std::vector< std::shared_ptr< QMenu > > QtGMenuModel::GetQMenus()
+std::vector< QMenu* > QtGMenuModel::GetQMenus()
 {
-  std::vector< std::shared_ptr< QMenu > > menus;
+  std::vector< QMenu* > menus;
 
   AppendQMenu( menus );
 
@@ -217,7 +223,7 @@ void QtGMenuModel::ChangeMenuItems( int position, int added, int removed )
     {
       if( i <= removedEnd )
       {
-        m_children.take( i );
+        delete m_children.take( i );
       }
       else if( m_children.contains( i ) )
       {
@@ -230,7 +236,7 @@ void QtGMenuModel::ChangeMenuItems( int position, int added, int removed )
   emit MenuItemsChanged( this, position, removed, added );
 }
 
-void QtGMenuModel::AppendQMenu( std::vector< std::shared_ptr< QMenu > >& menus )
+void QtGMenuModel::AppendQMenu( std::vector< QMenu* >& menus )
 {
   menus.push_back( m_menu );
 

@@ -25,6 +25,6 @@ bool MainWindow::RefreshMenus()
   m_menus = m_menu_importer.GetQMenus();
   for( auto& menu : m_menus )
   {
-    menuBar()->addMenu( menu.get() );
+    menuBar()->addMenu( menu );
   }
 }
