@@ -71,6 +71,7 @@ private:
   void InsertChild( QtGMenuModel* child, int position );
   void ChangeMenuItems( int position, int added, int removed );
 
+  QAction* CreateAction( int position );
   QAction* GetSeparator( QtGMenuModel* for_section );
 
   void AppendQMenu( std::vector< QMenu* >& menus );

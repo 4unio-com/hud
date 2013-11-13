@@ -193,8 +193,6 @@ void QtGMenuModel::ChangeMenuItems( int position, int added, int removed )
 
     QMenu* changed_menu = m_menu;
     QAction* before_separator = nullptr;
-    QActionGroup* new_actions = new QActionGroup( this );
-
     if( m_link_type == LinkType::Section && m_parent )
     {
       changed_menu = m_parent->m_menu;
@@ -203,25 +201,21 @@ void QtGMenuModel::ChangeMenuItems( int position, int added, int removed )
 
     if( changed_menu->actions().size() != 0 )
     {
-      new_actions->addAction( "" );
-      new_actions->actions().at( 0 )->setSeparator( true );
+      changed_menu->insertSeparator( before_separator );
     }
 
     for( int i = position; i < ( position + added ); ++i )
     {
-      if( !QtGMenuModel::CreateModel( this, m_model, i ) )
+      QtGMenuModel* model = QtGMenuModel::CreateModel( this, m_model, i );
+      if( !model )
       {
-        GVariant* label = g_menu_model_get_item_attribute_value( m_model, i, G_MENU_ATTRIBUTE_LABEL,
-            G_VARIANT_TYPE_STRING );
-        QString qlabel = QtGMenuUtils::GVariantToQVariant( label ).toString();
-        qlabel.replace( '_', '&' );
-        g_variant_unref( label );
-
-        new_actions->addAction( qlabel );
+        changed_menu->insertAction( before_separator, CreateAction( i ) );
+      }
+      else if( model->Type() == LinkType::SubMenu )
+      {
+        changed_menu->insertMenu( before_separator, model->m_menu );
       }
     }
-
-    changed_menu->insertActions( before_separator, new_actions->actions() );
   }
 
   if( removed > 0 )
@@ -244,11 +238,22 @@ void QtGMenuModel::ChangeMenuItems( int position, int added, int removed )
   emit MenuItemsChanged( this, position, removed, added );
 }
 
+QAction* QtGMenuModel::CreateAction( int position )
+{
+  GVariant* label = g_menu_model_get_item_attribute_value( m_model, position, G_MENU_ATTRIBUTE_LABEL,
+      G_VARIANT_TYPE_STRING );
+  QString qlabel = QtGMenuUtils::GVariantToQVariant( label ).toString();
+  qlabel.replace( '_', '&' );
+  g_variant_unref( label );
+
+  return new QAction( qlabel, this );
+}
+
 QAction* QtGMenuModel::GetSeparator( QtGMenuModel* for_section )
 {
   int separator_no = 0;
 
-  for( int i = 1; i < m_children.size() - 1; ++i )
+  for( int i = 0; i < m_children.size(); ++i )
   {
     if( for_section == m_children[i] )
     {
@@ -281,11 +286,7 @@ void QtGMenuModel::AppendQMenu( std::vector< QMenu* >& menus )
 {
   menus.push_back( m_menu );
 
-  if( m_link_type == LinkType::SubMenu )
-  {
-    // only append one menu containing nested menus
-  }
-  else
+  if( m_link_type != LinkType::SubMenu )
   {
     for( auto& child : m_children )
     {
