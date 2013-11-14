@@ -28,7 +28,7 @@
 #include "query-iface.h"
 #include "enum-types.h"
 #include "query-columns.h"
-#include "shared-values.h"
+#include "common/shared-values.h"
 
 struct _HudClientQueryPrivate {
 	_HudQueryComCanonicalHudQuery * proxy;

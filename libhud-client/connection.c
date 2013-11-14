@@ -23,7 +23,7 @@
 #include "connection.h"
 #include "service-iface.h"
 
-#include "shared-values.h"
+#include "common/shared-values.h"
 
 struct _HudClientConnectionPrivate {
 	_HudServiceComCanonicalHud * proxy;

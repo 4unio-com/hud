@@ -75,4 +75,15 @@ TEST_F(TestBamfWindowStack, ExportsDBusInterface) {
 	ASSERT_TRUE(windowStackInterface.isValid());
 }
 
+TEST_F(TestBamfWindowStack, GetWindowStack) {
+	bamfMatcherMock().AddMethod(
+			OrgAyatanaBamfMatcherInterface::staticInterfaceName(),
+			"WindowPaths", "", "as", "ret = []").waitForFinished();
+
+	BamfWindowStack windowStack(dbus.sessionConnection());
+
+	QList<WindowInfo> windowInfos(windowStack.GetWindowStack());
+
+}
+
 } // namespace
