@@ -22,6 +22,8 @@ MockHudService::MockHudService(DBusTestRunner &dbus, DBusMock &mock) :
 			QDBusConnection::SessionBus);
 }
 
+static const QString QUERY_PATH("/com/canonical/hud/query0");
+
 static void addMethod(QList<Method> &methods, const QString &name,
 		const QString &inSig, const QString &outSig, const QString &code) {
 	Method method;
@@ -49,16 +51,25 @@ OrgFreedesktopDBusMockInterface & MockHudService::applicationInterface() {
 	return *m_applicationInterface;
 }
 
+OrgFreedesktopDBusMockInterface & MockHudService::queryInterface() {
+	//TODO Changed to be the same as the method above when lp:XXXX is fixed
+	if (m_queryInterface.isNull()) {
+		m_queryInterface.reset(
+				new OrgFreedesktopDBusMockInterface(
+						DBusTypes::HUD_SERVICE_DBUS_NAME, QUERY_PATH,
+						m_dbus.sessionConnection()));
+	}
+	return *m_queryInterface;
+}
+
 void MockHudService::loadMethods() {
 	OrgFreedesktopDBusMockInterface &hud(hudInterface());
-
-	QString queryPath("/com/canonical/hud/query0");
 
 	{
 		QVariantMap properties;
 		properties["ResultsModel"] = "com.canonical.hud.query0.results";
 		properties["AppstackModel"] = "com.canonical.hud.query0.appstack";
-		properties["ToolbarItems"] = "";
+		properties["ToolbarItems"] = QStringList();
 
 		QList<Method> methods;
 		addMethod(methods, "UpdateQuery", "s", "i", "ret = 1");
@@ -70,7 +81,7 @@ void MockHudService::loadMethods() {
 				"ret = ('action', '/action/path', '/model/path', 1)");
 		addMethod(methods, "ExecuteToolbar", "su", "", "");
 
-		hud.AddObject(queryPath, "com.canonical.hud.query", properties, methods).waitForFinished();
+		hud.AddObject(QUERY_PATH, "com.canonical.hud.query", properties, methods).waitForFinished();
 	}
 
 	m_results.reset(new ResultsModel(0));

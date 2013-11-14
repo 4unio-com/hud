@@ -36,6 +36,8 @@ public:
 
 	OrgFreedesktopDBusMockInterface & applicationInterface();
 
+	OrgFreedesktopDBusMockInterface & queryInterface();
+
 protected:
 	QtDBusTest::DBusTestRunner &m_dbus;
 
@@ -46,6 +48,8 @@ protected:
 	QScopedPointer<hud::common::ResultsModel> m_results;
 
 	QSharedPointer<OrgFreedesktopDBusMockInterface> m_applicationInterface;
+
+	QSharedPointer<OrgFreedesktopDBusMockInterface> m_queryInterface;
 };
 
 }

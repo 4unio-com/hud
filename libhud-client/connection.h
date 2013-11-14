@@ -87,8 +87,8 @@ struct _HudClientConnection {
 
 GType                   hud_client_connection_get_type   (void);
 HudClientConnection *   hud_client_connection_get_ref    (void);
-HudClientConnection *   hud_client_connection_new        (gchar * dbus_address,
-                                                          gchar * dbus_path);
+HudClientConnection *   hud_client_connection_new        (const gchar * dbus_address,
+                                                          const gchar * dbus_path);
 void                    hud_client_connection_new_query  (HudClientConnection * connection,
                                                           const gchar * query,
                                                           HudClientConnectionNewQueryCallback cb,

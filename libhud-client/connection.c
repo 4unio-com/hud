@@ -301,7 +301,7 @@ hud_client_connection_get_ref (void)
  * Return value: (transfer full): A new #HudClientConnection
  */
 HudClientConnection *
-hud_client_connection_new (gchar * dbus_address, gchar * dbus_path)
+hud_client_connection_new (const gchar * dbus_address, const gchar * dbus_path)
 {
 	return HUD_CLIENT_CONNECTION(g_object_new(HUD_CLIENT_TYPE_CONNECTION,
 			PROP_ADDRESS_S, dbus_address,
