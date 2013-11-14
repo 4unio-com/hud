@@ -26,9 +26,55 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model )
 {
 }
 
+QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent,
+    int position )
+    : m_model( model ),
+      m_parent( parent ),
+      m_link_type( link_type )
+{
+  // we should always have at least one section in a menu
+  m_sections.push_back( std::deque< QObject* >() );
+
+  if( m_parent )
+  {
+    m_parent->InsertChild( this, position );
+
+    GVariant* label = g_menu_model_get_item_attribute_value( m_parent->m_model, position,
+        G_MENU_ATTRIBUTE_LABEL, G_VARIANT_TYPE_STRING );
+
+    if( label )
+    {
+      QString qlabel = QtGMenuUtils::GVariantToQVariant( label ).toString();
+      qlabel.replace( '_', '&' );
+      g_variant_unref( label );
+
+      m_menu->setTitle( qlabel );
+    }
+  }
+
+  if( m_model )
+  {
+    m_size = g_menu_model_get_n_items( m_model );
+  }
+
+  for( int i = 0; i < m_size; ++i )
+  {
+    CreateModel( this, m_model, i );
+  }
+
+  ConnectMenuCallback();
+}
+
 QtGMenuModel::~QtGMenuModel()
 {
-  DisconnectCallback();
+  SetActionGroup( nullptr );
+
+  if( m_model )
+  {
+    //MenuItemsChangedCallback( m_model, 0, Size(), 0, this );
+    g_object_unref( m_model );
+  }
+  DisconnectMenuCallback();
 
   for( auto child : m_children )
   {
@@ -37,11 +83,6 @@ QtGMenuModel::~QtGMenuModel()
   m_children.clear();
 
   delete m_menu;
-
-  if( m_model )
-  {
-    g_object_unref( m_model );
-  }
 }
 
 GMenuModel* QtGMenuModel::Model() const
@@ -83,50 +124,73 @@ std::vector< QMenu* > QtGMenuModel::GetQMenus()
   return menus;
 }
 
-QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent,
-    int position )
-    : m_parent( parent ),
-      m_model( model ),
-      m_link_type( link_type ),
-      m_signal_id( 0 ),
-      m_menu( new QMenu() )
+GActionGroup* QtGMenuModel::ActionGroup() const
 {
-  // we should always have at least one section in a menu
-  m_sections.push_back( std::deque< QObject* >() );
+  return m_action_group;
+}
 
-  if( m_parent )
+void QtGMenuModel::SetActionGroup( GActionGroup* action_group )
+{
+  if( action_group == nullptr )
   {
-    m_parent->InsertChild( this, position );
-
-    GVariant* label = g_menu_model_get_item_attribute_value( m_parent->m_model, position,
-        G_MENU_ATTRIBUTE_LABEL, G_VARIANT_TYPE_STRING );
-    if( label )
+    if( m_action_group == nullptr )
     {
-      QString qlabel = QtGMenuUtils::GVariantToQVariant( label ).toString();
-      qlabel.replace( '_', '&' );
-      g_variant_unref( label );
-
-      m_menu->setTitle( qlabel );
+      return;
     }
 
-    if( m_link_type == LinkType::Section )
+    for( int i = 0; i < ActionsCount(); i++ )
     {
-      auto it = m_parent->m_sections.begin();
-      m_parent->m_sections.insert( it + position, 1, std::deque< QObject* >() );
+      emit ActionRemoved( ActionAt( i ) );
     }
+
+    DisconnectActionCallbacks();
+
+    g_object_unref( m_action_group );
+    m_action_group = nullptr;
+
+    return;
   }
 
-  if( m_model )
+  m_action_group = action_group;
+
+  ConnectActionCallbacks();
+}
+
+QString QtGMenuModel::ActionAt( int position )
+{
+  if( position >= ActionsCount() )
   {
-    m_size = g_menu_model_get_n_items( model );
+    return QString();
   }
 
-  for( int i = 0; i < m_size; ++i )
+  QString action_name;
+  gchar** actions_list = g_action_group_list_actions( m_action_group );
+
+  action_name = QString( actions_list[ position ] );
+
+  g_strfreev( actions_list );
+
+  return action_name;
+}
+
+int QtGMenuModel::ActionsCount()
+{
+  gchar** actions_list = g_action_group_list_actions( m_action_group );
+
+  if( !actions_list )
   {
-    CreateModel( this, model, i );
+    return 0;
   }
 
-  ConnectCallback();
+  int action_count = 0;
+  while( actions_list[action_count] != nullptr )
+  {
+    ++action_count;
+  }
+
+  g_strfreev( actions_list );
+
+  return action_count;
 }
 
 void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint position, gint removed,
@@ -136,54 +200,32 @@ void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint position, g
   self->ChangeMenuItems( position, added, removed );
 }
 
-QtGMenuModel* QtGMenuModel::CreateModel( QtGMenuModel* parent, GMenuModel* model, int position )
+void QtGMenuModel::ActionAddedCallback( GActionGroup* action_group, gchar* action_name,
+    gpointer user_data )
 {
-  LinkType linkType( LinkType::SubMenu );
-  GMenuModel* link = g_menu_model_get_item_link( model, position, G_MENU_LINK_SUBMENU );
-
-  if( !link )
-  {
-    linkType = LinkType::Section;
-    link = g_menu_model_get_item_link( model, position, G_MENU_LINK_SECTION );
-  }
-
-  if( link )
-  {
-    return new QtGMenuModel( link, linkType, parent, position );
-  }
-
-  return nullptr;
+  QtGMenuModel* self = reinterpret_cast< QtGMenuModel* >( user_data );
+  emit self->ActionAdded( action_name );
 }
 
-void QtGMenuModel::ConnectCallback()
+void QtGMenuModel::ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
+    gpointer user_data )
 {
-  if( m_model && m_signal_id == 0 )
-  {
-    m_signal_id = g_signal_connect( m_model, "items-changed",
-        G_CALLBACK( MenuItemsChangedCallback ), this );
-  }
+  QtGMenuModel* self = reinterpret_cast< QtGMenuModel* >( user_data );
+  emit self->ActionRemoved( action_name );
 }
 
-void QtGMenuModel::DisconnectCallback()
+void QtGMenuModel::ActionEnabledCallback( GActionGroup* action_group, gchar* action_name,
+    gboolean enabled, gpointer user_data )
 {
-  if( m_signal_id != 0 )
-  {
-    g_signal_handler_disconnect( m_model, m_signal_id );
-  }
+  QtGMenuModel* self = reinterpret_cast< QtGMenuModel* >( user_data );
+  emit self->ActionEnabled( action_name, enabled );
 }
 
-void QtGMenuModel::InsertChild( QtGMenuModel* child, int position )
+void QtGMenuModel::ActionStateChangedCallback( GActionGroup* action_group,
+    gchar* action_name, GVariant* value, gpointer user_data )
 {
-  if( m_children.contains( position ) )
-  {
-    return;
-  }
-
-  child->m_parent = this;
-  m_children.insert( position, child );
-
-  connect( child, SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)), this,
-      SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)) );
+  QtGMenuModel* self = reinterpret_cast< QtGMenuModel* >( user_data );
+  emit self->ActionStateChanged( action_name, QtGMenuUtils::GVariantToQVariant( value ) );
 }
 
 void QtGMenuModel::ChangeMenuItems( int position, int added, int removed )
@@ -250,6 +292,126 @@ void QtGMenuModel::ChangeMenuItems( int position, int added, int removed )
   emit MenuItemsChanged( this, position, removed, added );
 }
 
+QtGMenuModel* QtGMenuModel::CreateModel( QtGMenuModel* parent, GMenuModel* model, int position )
+{
+  LinkType linkType( LinkType::SubMenu );
+  GMenuModel* link = g_menu_model_get_item_link( model, position, G_MENU_LINK_SUBMENU );
+
+  if( !link )
+  {
+    linkType = LinkType::Section;
+    link = g_menu_model_get_item_link( model, position, G_MENU_LINK_SECTION );
+  }
+
+  if( link )
+  {
+    return new QtGMenuModel( link, linkType, parent, position );
+  }
+
+  return nullptr;
+}
+
+void QtGMenuModel::ConnectMenuCallback()
+{
+  if( m_model && m_items_changed_handler == 0 )
+  {
+    m_items_changed_handler = g_signal_connect( m_model, "items-changed",
+        G_CALLBACK( MenuItemsChangedCallback ), this );
+  }
+}
+
+void QtGMenuModel::DisconnectMenuCallback()
+{
+  if( m_model && m_items_changed_handler != 0 )
+  {
+    g_signal_handler_disconnect( m_model, m_items_changed_handler );
+  }
+
+  m_items_changed_handler = 0;
+}
+
+void QtGMenuModel::ConnectActionCallbacks()
+{
+  if( m_action_group && m_action_added_handler == 0 )
+  {
+    m_action_added_handler = g_signal_connect( m_action_group, "action-added",
+        G_CALLBACK( ActionAddedCallback ), this );
+  }
+  if( m_action_group && m_action_removed_handler == 0 )
+  {
+    m_action_removed_handler = g_signal_connect( m_action_group, "action-removed",
+        G_CALLBACK( ActionRemovedCallback ), this );
+  }
+  if( m_action_group && m_action_enabled_handler == 0 )
+  {
+    m_action_enabled_handler = g_signal_connect( m_action_group, "action-enabled-changed",
+        G_CALLBACK( ActionEnabledCallback ), this );
+  }
+  if( m_action_group && m_action_state_changed_handler == 0 )
+  {
+    m_action_state_changed_handler = g_signal_connect( m_action_group, "action-state-changed",
+        G_CALLBACK( ActionStateChangedCallback ), this );
+  }
+}
+
+void QtGMenuModel::DisconnectActionCallbacks()
+{
+  if( m_action_group && m_action_added_handler != 0 )
+  {
+    g_signal_handler_disconnect( m_action_group, m_action_added_handler );
+  }
+  if( m_action_group && m_action_removed_handler != 0 )
+  {
+    g_signal_handler_disconnect( m_action_group, m_action_removed_handler );
+  }
+  if( m_action_group && m_action_enabled_handler != 0 )
+  {
+    g_signal_handler_disconnect( m_action_group, m_action_enabled_handler );
+  }
+  if( m_action_group && m_action_state_changed_handler != 0 )
+  {
+    g_signal_handler_disconnect( m_action_group, m_action_state_changed_handler );
+  }
+
+  m_action_added_handler = 0;
+  m_action_removed_handler = 0;
+  m_action_enabled_handler = 0;
+  m_action_state_changed_handler = 0;
+}
+
+void QtGMenuModel::InsertChild( QtGMenuModel* child, int position )
+{
+  if( m_children.contains( position ) )
+  {
+    return;
+  }
+
+  if( child->Type() == LinkType::Section )
+  {
+    auto it = m_sections.begin();
+    m_sections.insert( it + position, 1, std::deque< QObject* >() );
+  }
+
+  child->m_parent = this;
+  m_children.insert( position, child );
+
+  connect( child, SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)), this,
+      SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)) );
+}
+
+int QtGMenuModel::ChildPosition( QtGMenuModel* child )
+{
+  for( int i = 0; i < m_children.size(); ++i )
+  {
+    if( child == m_children[i] )
+    {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
 QAction* QtGMenuModel::CreateAction( int position )
 {
   QAction* action = new QAction( this );
@@ -268,19 +430,6 @@ QAction* QtGMenuModel::CreateAction( int position )
 
   action->setText( qlabel );
   return action;
-}
-
-int QtGMenuModel::ChildPosition( QtGMenuModel* child )
-{
-  for( int i = 0; i < m_children.size(); ++i )
-  {
-    if( child == m_children[i] )
-    {
-      return i;
-    }
-  }
-
-  return -1;
 }
 
 void QtGMenuModel::AppendQMenu( std::vector< QMenu* >& menus )

@@ -48,18 +48,6 @@ public:
   void StartPolling( int interval );
 
 private:
-  static void ActionAddedCallback( GActionGroup* action_group, gchar* action_name,
-      gpointer user_data );
-
-  static void ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
-      gpointer user_data );
-
-  static void ActionEnabledCallback( GActionGroup* action_group, gchar* action_name,
-      gboolean enabled, gpointer user_data );
-
-  static void ActionStateChangedCallback( GActionGroup* action_group, gchar* action_name,
-      GVariant* value, gpointer user_data );
-
   void ClearGMenuModel();
   void ClearGActionGroup();
 
@@ -74,15 +62,14 @@ private:
   std::string m_service;
   std::string m_path;
 
-  QtGMenuModel* m_gmenu_model;
+  QtGMenuModel* m_gmenu_model = nullptr;
   QTimer m_menu_poll_timer;
-
-  GActionGroup* m_gaction_group;
-  gulong m_action_added_handler = 0;
-  gulong m_action_removed_handler = 0;
-  gulong m_action_enabled_handler = 0;
-  gulong m_action_state_changed_handler = 0;
   QTimer m_actions_poll_timer;
+  QMetaObject::Connection m_items_changed_conn;
+  QMetaObject::Connection m_action_added_conn;
+  QMetaObject::Connection m_action_removed_conn;
+  QMetaObject::Connection m_action_enabled_conn;
+  QMetaObject::Connection m_action_state_changed_conn;
 };
 
 } // namespace qtgmenu

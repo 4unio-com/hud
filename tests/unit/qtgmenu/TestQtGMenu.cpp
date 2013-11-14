@@ -152,6 +152,7 @@ TEST_F(TestQtGMenu, ExportImportMenu)
 
 TEST_F(TestQtGMenu, ExportImportActions)
 {
+  QSignalSpy menu_appeared_spy( &m_importer, SIGNAL( MenuAppeared() ) );
   QSignalSpy action_added_spy( &m_importer, SIGNAL( ActionAdded( QString ) ) );
   QSignalSpy action_removed_spy( &m_importer, SIGNAL( ActionRemoved( QString ) ) );
   QSignalSpy action_enabled_spy( &m_importer, SIGNAL( ActionEnabled( QString, bool ) ) );
@@ -159,6 +160,16 @@ TEST_F(TestQtGMenu, ExportImportActions)
       SIGNAL( ActionStateChanged( QString, QVariant ) ) );
   QSignalSpy actions_appeared_spy( &m_importer, SIGNAL( ActionsAppeared() ) );
   QSignalSpy actions_disappeared_spy( &m_importer, SIGNAL( ActionsDisappeared() ) );
+
+  // export menu
+
+  g_menu_append( m_menu, "New", "app.new" );
+
+  g_dbus_connection_export_menu_model( m_connection, c_path,
+      G_MENU_MODEL( m_menu ), NULL );
+
+  menu_appeared_spy.wait();
+  EXPECT_FALSE( menu_appeared_spy.empty() );
 
   // no actions exported
 
