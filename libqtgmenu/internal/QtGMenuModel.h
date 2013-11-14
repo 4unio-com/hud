@@ -51,51 +51,30 @@ public:
   int Size() const;
 
   QtGMenuModel* Parent() const;
-  QtGMenuModel* Child( int position ) const;
+  QtGMenuModel* Child( int index ) const;
 
   std::vector< QMenu* > GetQMenus();
 
-  GActionGroup* ActionGroup() const;
-  void SetActionGroup( GActionGroup* action_group );
-  QString ActionAt( int position );
-  int ActionsCount();
-
 Q_SIGNALS:
-  void MenuItemsChanged( QtGMenuModel* model, int position, int removed, int added );
-
-  void ActionAdded( QString action_name );
-  void ActionRemoved( QString action_name );
-  void ActionEnabled( QString action_name, bool enabled );
-  void ActionStateChanged( QString action_name, QVariant value );
+  void MenuItemsChanged( QtGMenuModel* model, int index, int removed, int added );
 
 private:
-  QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int position );
+  QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index );
 
-  static void MenuItemsChangedCallback( GMenuModel* model, gint position, gint removed, gint added,
+  static void MenuItemsChangedCallback( GMenuModel* model, gint index, gint removed, gint added,
       gpointer user_data );
-  static void ActionAddedCallback( GActionGroup* action_group, gchar* action_name,
-      gpointer user_data );
-  static void ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
-      gpointer user_data );
-  static void ActionEnabledCallback( GActionGroup* action_group, gchar* action_name,
-      gboolean enabled, gpointer user_data );
-  static void ActionStateChangedCallback( GActionGroup* action_group, gchar* action_name,
-      GVariant* value, gpointer user_data );
 
-  void ChangeMenuItems( int position, int added, int removed );
+  void ChangeMenuItems( int index, int added, int removed );
 
-  static QtGMenuModel* CreateModel( QtGMenuModel* parent, GMenuModel* model, int position );
+  static QtGMenuModel* CreateModel( QtGMenuModel* parent, GMenuModel* model, int index );
 
-  void ConnectMenuCallback();
-  void DisconnectMenuCallback();
+  void ConnectCallback();
+  void DisconnectCallback();
 
-  void ConnectActionCallbacks();
-  void DisconnectActionCallbacks();
+  void InsertChild( QtGMenuModel* child, int index );
+  int ChildIndex( QtGMenuModel* child );
 
-  void InsertChild( QtGMenuModel* child, int position );
-  int ChildPosition( QtGMenuModel* child );
-
-  QAction* CreateAction( int position );
+  QAction* CreateAction( int index );
 
   void AppendQMenu( std::vector< QMenu* >& menus );
   void RefreshQMenu();
@@ -106,12 +85,6 @@ private:
 
   GMenuModel* m_model = nullptr;
   gulong m_items_changed_handler = 0;
-
-  GActionGroup* m_action_group = nullptr;
-  gulong m_action_added_handler = 0;
-  gulong m_action_removed_handler = 0;
-  gulong m_action_enabled_handler = 0;
-  gulong m_action_state_changed_handler = 0;
 
   LinkType m_link_type;
   int m_size = 0;

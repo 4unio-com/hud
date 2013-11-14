@@ -48,28 +48,28 @@ QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
 
   g_object_unref( m_connection );
 
-  ClearGActionGroup();
-  ClearGMenuModel();
+  ClearMenuModel();
+  ClearActionGroup();
 }
 
 GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
 {
-  if( m_menu_poll_timer.isActive() || m_gmenu_model == nullptr )
+  if( m_menu_poll_timer.isActive() || m_menu_model == nullptr )
   {
     return nullptr;
   }
 
-  return m_gmenu_model->Model();
+  return m_menu_model->Model();
 }
 
 GActionGroup* QtGMenuImporterPrivate::GetGActionGroup()
 {
-  if( m_menu_poll_timer.isActive() || m_actions_poll_timer.isActive() || m_gmenu_model == nullptr )
+  if( m_actions_poll_timer.isActive() || m_action_group == nullptr )
   {
     return nullptr;
   }
 
-  return m_gmenu_model->ActionGroup();
+  return m_action_group->ActionGroup();
 }
 
 std::vector< QMenu* > QtGMenuImporterPrivate::GetQMenus()
@@ -81,77 +81,63 @@ std::vector< QMenu* > QtGMenuImporterPrivate::GetQMenus()
     return std::vector< QMenu* >();
   }
 
-  return m_gmenu_model->GetQMenus();
+  return m_menu_model->GetQMenus();
 }
 
 void QtGMenuImporterPrivate::StartPolling( int interval )
 {
   m_menu_poll_timer.stop();
   m_menu_poll_timer.setInterval( interval );
+  m_menu_poll_timer.start();
 
   m_actions_poll_timer.stop();
   m_actions_poll_timer.setInterval( interval );
-
-  // start polling for menu first
-  m_menu_poll_timer.start();
+  m_actions_poll_timer.start();
 }
 
-void QtGMenuImporterPrivate::ClearGMenuModel()
+void QtGMenuImporterPrivate::ClearMenuModel()
 {
-  if( m_gmenu_model == nullptr )
+  if( m_menu_model == nullptr )
   {
     return;
   }
 
-  if( m_gmenu_model->Size() > 0 )
-  {
-    // notify parent that items are being removed
-    emit m_parent.MenuItemsChanged();
-  }
-
   disconnect( m_items_changed_conn );
 
-  delete m_gmenu_model;
-  m_gmenu_model = nullptr;
+  delete m_menu_model;
+  m_menu_model = nullptr;
 }
 
-void QtGMenuImporterPrivate::ClearGActionGroup()
+void QtGMenuImporterPrivate::ClearActionGroup()
 {
-  if( m_gmenu_model != nullptr )
+  if( m_action_group == nullptr )
   {
-    m_gmenu_model->SetActionGroup( nullptr );
+    return;
   }
 
   disconnect( m_action_added_conn );
   disconnect( m_action_removed_conn );
   disconnect( m_action_enabled_conn );
   disconnect( m_action_state_changed_conn );
+
+  delete m_action_group;
+  m_action_group = nullptr;
 }
 
 bool QtGMenuImporterPrivate::RefreshGMenuModel()
 {
-  bool menu_was_valid = m_gmenu_model != nullptr;
-  GActionGroup* actions_backup = nullptr;
-
-  if( menu_was_valid )
-  {
-    actions_backup = m_gmenu_model->ActionGroup();
-    if( actions_backup )
-    {
-      g_object_ref( actions_backup );
-    }
-  }
+  bool menu_was_valid = m_menu_model != nullptr;
 
   // clear the menu model for the refresh
-  ClearGMenuModel();
+  ClearMenuModel();
 
-  m_gmenu_model = new QtGMenuModel(
+  m_menu_model = new QtGMenuModel(
       G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str() ) ) );
 
-  m_items_changed_conn = connect( m_gmenu_model, SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
+  m_items_changed_conn = connect( m_menu_model, SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
       int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );
 
-  gint item_count = m_gmenu_model->Size();
+  gint item_count = m_menu_model->Size();
 
   if( item_count == 0 )
   {
@@ -164,23 +150,20 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
     menu_refresh_wait.exec();
 
     // check item count again
-    item_count = m_gmenu_model->Size();
+    item_count = m_menu_model->Size();
   }
 
   bool menu_is_valid = item_count != 0;
 
   if( menu_is_valid )
   {
-    m_gmenu_model->SetActionGroup( actions_backup );
-
     // menu is valid, start polling for actions
     m_menu_poll_timer.stop();
-    m_actions_poll_timer.start();
   }
   else if( !menu_is_valid )
   {
     // clear the menu model
-    ClearGMenuModel();
+    ClearMenuModel();
   }
 
   if( !menu_was_valid && menu_is_valid )
@@ -197,26 +180,26 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
 
 bool QtGMenuImporterPrivate::RefreshGActionGroup()
 {
-  bool actions_were_valid = m_gmenu_model->ActionGroup() != nullptr;
+  bool actions_were_valid = m_action_group != nullptr;
 
   // clear the action group for the refresh
-  ClearGActionGroup();
+  ClearActionGroup();
 
-  m_gmenu_model->SetActionGroup( G_ACTION_GROUP( g_dbus_action_group_get( m_connection,
-      m_service.c_str(), m_path.c_str() ) ) );
+  m_action_group = new QtGActionGroup(
+      G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), m_path.c_str() ) ) );
 
-  m_action_added_conn = connect( m_gmenu_model, SIGNAL( ActionAdded( QString ) ), &m_parent,
+  m_action_added_conn = connect( m_action_group, SIGNAL( ActionAdded( QString ) ), &m_parent,
       SIGNAL( ActionAdded( QString ) ) );
-  m_action_removed_conn = connect( m_gmenu_model, SIGNAL( ActionRemoved( QString ) ), &m_parent,
+  m_action_removed_conn = connect( m_action_group, SIGNAL( ActionRemoved( QString ) ), &m_parent,
       SIGNAL( ActionRemoved( QString ) ) );
-  m_action_enabled_conn = connect( m_gmenu_model, SIGNAL( ActionEnabled( QString, bool ) ),
+  m_action_enabled_conn = connect( m_action_group, SIGNAL( ActionEnabled( QString, bool ) ),
       &m_parent, SIGNAL( ActionEnabled( QString, bool ) ) );
-  m_action_state_changed_conn = connect( m_gmenu_model, SIGNAL( ActionStateChanged( QString,
+  m_action_state_changed_conn = connect( m_action_group, SIGNAL( ActionStateChanged( QString,
       QVariant ) ), &m_parent, SIGNAL( ActionStateChanged( QString, QVariant) ) );
 
-  int item_count = m_gmenu_model->ActionsCount();
+  int action_count = m_action_group->Size();
 
-  if( item_count == 0 )
+  if( action_count == 0 )
   {
     // block until "items-changed" fires or timeout reached
     QEventLoop actions_refresh_wait;
@@ -227,10 +210,10 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
     actions_refresh_wait.exec();
 
     // check item count again
-    item_count = m_gmenu_model->ActionsCount();
+    action_count = m_action_group->Size();
   }
 
-  bool actions_are_valid = item_count != 0;
+  bool actions_are_valid = action_count != 0;
 
   if( actions_are_valid )
   {
@@ -240,7 +223,7 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
   else if( !actions_are_valid )
   {
     // clear the action group
-    ClearGActionGroup();
+    ClearActionGroup();
   }
 
   if( !actions_were_valid && actions_are_valid )

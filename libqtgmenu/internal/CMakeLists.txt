@@ -1,5 +1,6 @@
 set(
     QTGMENU_INTERNAL_SRC
+    QtGActionGroup.cpp
     QtGMenuImporterPrivate.cpp
     QtGMenuUtils.cpp
     QtGMenuModel.cpp
