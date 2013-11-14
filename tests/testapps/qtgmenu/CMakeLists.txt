@@ -13,3 +13,8 @@ target_link_libraries(
     qtgmenu-test-app
     qtgmenu
 )
+
+add_valgrind_test(
+    qtgmenu-test-app
+    qtgmenu-test-app
+)

@@ -24,6 +24,7 @@
 #include <QMenu>
 
 #include <memory>
+#include <deque>
 
 #undef signals
 #include <gio/gio.h>
@@ -72,19 +73,22 @@ private:
   void ChangeMenuItems( int position, int added, int removed );
 
   QAction* CreateAction( int position );
-  QAction* GetSeparator( QtGMenuModel* for_section );
+  int ChildPosition( QtGMenuModel* child );
 
   void AppendQMenu( std::vector< QMenu* >& menus );
+  void RefreshQMenu();
 
 private:
   QtGMenuModel* m_parent;
   QMap< int, QtGMenuModel* > m_children;
 
-  GMenuModel* m_model;
-  QMenu* m_menu;
+  GMenuModel* m_model;  
   LinkType m_link_type;
   int m_size;
   gulong m_signal_id;
+
+  QMenu* m_menu;
+  std::deque< std::deque< QObject* > > m_sections;
 };
 
 } // namespace qtgmenu
