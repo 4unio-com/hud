@@ -61,12 +61,12 @@ Q_SIGNALS:
 private:
   QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index );
 
+  static QtGMenuModel* CreateModel( QtGMenuModel* parent, GMenuModel* model, int index );
+
   static void MenuItemsChangedCallback( GMenuModel* model, gint index, gint removed, gint added,
       gpointer user_data );
 
   void ChangeMenuItems( int index, int added, int removed );
-
-  static QtGMenuModel* CreateModel( QtGMenuModel* parent, GMenuModel* model, int index );
 
   void ConnectCallback();
   void DisconnectCallback();

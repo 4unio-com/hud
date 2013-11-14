@@ -72,9 +72,9 @@ int QtGActionGroup::Size()
   return action_count;
 }
 
-QString QtGActionGroup::Action( int position )
+QString QtGActionGroup::Action( int index )
 {
-  if( position >= Size() )
+  if( index >= Size() )
   {
     return QString();
   }
@@ -82,7 +82,7 @@ QString QtGActionGroup::Action( int position )
   QString action_name;
   gchar** actions_list = g_action_group_list_actions( m_action_group );
 
-  action_name = QString( actions_list[ position ] );
+  action_name = QString( actions_list[ index ] );
 
   g_strfreev( actions_list );
 

@@ -5,10 +5,6 @@
 MainWindow::MainWindow()
     : m_menu_importer( "org.gnome.Gedit", "/com/canonical/unity/gtk/window/0" )
 {
-  QEventLoop menu_appeared_wait;
-  menu_appeared_wait.connect( &m_menu_importer, SIGNAL( MenuAppeared() ), SLOT( quit() ) );
-  menu_appeared_wait.exec();
-
   m_refresh_connection = connect( &m_menu_importer, SIGNAL( MenuItemsChanged() ), this,
       SLOT( RefreshMenus() ) );
 }

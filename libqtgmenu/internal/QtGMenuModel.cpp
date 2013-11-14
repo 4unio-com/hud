@@ -124,6 +124,25 @@ std::vector< QMenu* > QtGMenuModel::GetQMenus()
   return menus;
 }
 
+QtGMenuModel* QtGMenuModel::CreateModel( QtGMenuModel* parent, GMenuModel* model, int index )
+{
+  LinkType linkType( LinkType::SubMenu );
+  GMenuModel* link = g_menu_model_get_item_link( model, index, G_MENU_LINK_SUBMENU );
+
+  if( !link )
+  {
+    linkType = LinkType::Section;
+    link = g_menu_model_get_item_link( model, index, G_MENU_LINK_SECTION );
+  }
+
+  if( link )
+  {
+    return new QtGMenuModel( link, linkType, parent, index );
+  }
+
+  return nullptr;
+}
+
 void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint removed,
     gint added, gpointer user_data )
 {
@@ -193,25 +212,6 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
 
   model_effected->RefreshQMenu();
   emit MenuItemsChanged( this, index, removed, added );
-}
-
-QtGMenuModel* QtGMenuModel::CreateModel( QtGMenuModel* parent, GMenuModel* model, int index )
-{
-  LinkType linkType( LinkType::SubMenu );
-  GMenuModel* link = g_menu_model_get_item_link( model, index, G_MENU_LINK_SUBMENU );
-
-  if( !link )
-  {
-    linkType = LinkType::Section;
-    link = g_menu_model_get_item_link( model, index, G_MENU_LINK_SECTION );
-  }
-
-  if( link )
-  {
-    return new QtGMenuModel( link, linkType, parent, index );
-  }
-
-  return nullptr;
 }
 
 void QtGMenuModel::ConnectCallback()
@@ -316,8 +316,8 @@ void QtGMenuModel::RefreshQMenu()
 
     for( auto& item : section )
     {
-      action = dynamic_cast< QAction* >( item );
-      menu = dynamic_cast< QMenu* >( item );
+      action = qobject_cast< QAction* >( item );
+      menu = qobject_cast< QMenu* >( item );
 
       if( action != nullptr )
       {

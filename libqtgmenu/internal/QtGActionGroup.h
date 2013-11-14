@@ -39,7 +39,7 @@ public:
   GActionGroup* ActionGroup() const;
   int Size();
 
-  QString Action( int position );
+  QString Action( int index );
 
 Q_SIGNALS:
   void ActionAdded( QString action_name );
