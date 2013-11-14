@@ -31,21 +31,18 @@ add_definitions(-DJSON_SOURCE_DATETIME="${TEST_DATADIR}/test-indicator-source-da
 add_definitions(-DJSON_SOURCE_SOUND="${TEST_DATADIR}/test-indicator-source-sound.json")
 add_definitions(-DJSON_SOURCE="${TEST_DATADIR}/test-source.json")
 
-#######################
-# Dbus JSON Loader
-#######################
+add_definitions(-DDBUSMENU_JSON_LOADER="${CMAKE_CURRENT_BINARY_DIR}/menus/dbusmenu-json-loader")
 
-pkg_check_modules(DBUSMENU_JSONLOADER REQUIRED dbusmenu-jsonloader-0.4)
-include_directories(${DBUSMENU_JSONLOADER_INCLUDE_DIRS})
-
-add_definitions(-DDBUSMENU_JSON_LOADER="${CMAKE_CURRENT_BINARY_DIR}/dbusmenu-json-loader")
-
-add_executable(dbusmenu-json-loader dbusmenu-json-loader.c)
-target_link_libraries(dbusmenu-json-loader
-${DBUSMENU_JSONLOADER_LIBRARIES}
-)
+add_definitions(-DMODEL_DEEP="${CMAKE_CURRENT_BINARY_DIR}/menus/test-menu-input-model-deep")
+add_definitions(-DMODEL_SIMPLE="${CMAKE_CURRENT_BINARY_DIR}/menus/test-menu-input-model-simple")
+add_definitions(-DMODEL_SHORTCUTS="${CMAKE_CURRENT_BINARY_DIR}/menus/test-menu-input-model-shortcuts")
+add_definitions(-DMODEL_TOOLBAR_UNDO="${CMAKE_CURRENT_BINARY_DIR}/menus/test-menu-input-model-toolbar-undo")
+add_definitions(-DMODEL_TOOLBAR_UNKNOWN="${CMAKE_CURRENT_BINARY_DIR}/menus/test-menu-input-model-toolbar-unknown")
+add_definitions(-DMODEL_TOOLBAR_ALL="${CMAKE_CURRENT_BINARY_DIR}/menus/test-menu-input-model-toolbar-all")
+add_definitions(-DMODEL_TOOLBAR_DYNAMIC="${CMAKE_CURRENT_BINARY_DIR}/menus/test-menu-input-model-toolbar-dynamic")
 
 #add_subdirectory(data)
 add_subdirectory(integration)
-add_subdirectory(unit)
+add_subdirectory(menus)
 add_subdirectory(testutils)
+add_subdirectory(unit)

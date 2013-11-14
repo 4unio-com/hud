@@ -26,14 +26,14 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 gchar * name = NULL;
 
 static void
-name_got (GDBusConnection * con, const gchar * name, gpointer user_data)
+name_got (G_GNUC_UNUSED GDBusConnection * con, const gchar * name, G_GNUC_UNUSED gpointer user_data)
 {
 	g_debug("Got name: %s", name);
 	return;
 }
 
 static void
-name_lost (GDBusConnection * con, const gchar * name, gpointer user_data)
+name_lost (G_GNUC_UNUSED GDBusConnection * con, const gchar * name, G_GNUC_UNUSED gpointer user_data)
 {
   g_message("Lost (or unable to get) name: %s", name);
 	return;
