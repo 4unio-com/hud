@@ -20,14 +20,11 @@
 #include <libhud/hud.h>
 #include <common/shared-values.h>
 
-#include <gio/gio.h>
 #include <libqtdbustest/DBusTestRunner.h>
 #include <libqtdbusmock/DBusMock.h>
 #include <QTestEventLoop>
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
-using namespace std;
 using namespace testing;
 using namespace QtDBusTest;
 using namespace QtDBusMock;
@@ -39,12 +36,15 @@ namespace {
 class TestActionPublisher: public Test {
 protected:
 	TestActionPublisher() :
-			mock(dbus), hud(mock) {
+			mock(dbus), hud(dbus, mock) {
 		dbus.startServices();
 		hud.loadMethods();
+
+		connection = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 	}
 
 	virtual ~TestActionPublisher() {
+		g_object_unref(connection);
 	}
 
 	DBusTestRunner dbus;
@@ -52,12 +52,14 @@ protected:
 	DBusMock mock;
 
 	MockHudService hud;
+
+	GDBusConnection *connection;
 };
 
 class TestActionDescription: public Test {
 protected:
 	TestActionDescription() :
-			mock(dbus), hud(mock) {
+			mock(dbus), hud(dbus, mock) {
 		dbus.startServices();
 		hud.loadMethods();
 	}
@@ -135,9 +137,6 @@ TEST_F(TestActionPublisher, AddActionGroup) {
 
 	hud_action_publisher_add_action_group(publisher, "prefix", "/object/path");
 
-	GDBusConnection *connection = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL,
-	NULL);
-
 	// FIXME Waiting in tests
 	QTestEventLoop::instance().enterLoopMSecs(100);
 	{
@@ -174,7 +173,6 @@ TEST_F(TestActionPublisher, AddActionGroup) {
 
 	g_object_unref(application);
 	g_object_unref(publisher);
-	g_object_unref(connection);
 }
 
 TEST_F(TestActionPublisher, AddDescription) {
@@ -192,9 +190,6 @@ TEST_F(TestActionPublisher, AddDescription) {
 	G_MENU_ATTRIBUTE_LABEL, g_variant_new_string("Simple Action"));
 
 	hud_action_publisher_add_description(publisher, description);
-
-	GDBusConnection *connection = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL,
-	NULL);
 
 	// FIXME Waiting in tests
 	QTestEventLoop::instance().enterLoopMSecs(100);
@@ -238,7 +233,6 @@ TEST_F(TestActionPublisher, AddDescription) {
 	g_object_unref(application);
 	g_object_unref(publisher);
 	hud_action_description_unref(description);
-	g_object_unref(connection);
 }
 
 TEST_F(TestActionDescription, WithAttributeValue) {

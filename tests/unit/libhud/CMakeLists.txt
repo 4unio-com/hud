@@ -1,6 +1,7 @@
 
 set(
 	UNIT_TESTS_SRC
+	TestManager.cpp
 	TestActionPublisher.cpp
 )
 
@@ -26,6 +27,6 @@ qt5_use_modules(
 
 add_test(
 	libhud-unit-tests
-	libhud-unit-tests
+	qdbus-simple-test-runner "${CMAKE_CURRENT_BINARY_DIR}/libhud-unit-tests"
 )
 
