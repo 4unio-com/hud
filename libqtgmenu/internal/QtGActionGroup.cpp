@@ -89,6 +89,20 @@ QString QtGActionGroup::Action( int index )
   return action_name;
 }
 
+void QtGActionGroup::TriggerAction( QString action_name, bool checked )
+{
+  int name_length = action_name.size() - action_name.indexOf( '.' ) - 1;
+  QString action_only = action_name.right( name_length );
+
+  const gchar* action = action_only.toStdString().c_str();
+  const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group, action );
+
+  if( type == nullptr )
+  {
+    g_action_group_activate_action( m_action_group, action, nullptr );
+  }
+}
+
 void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* action_name,
     gpointer user_data )
 {

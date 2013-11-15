@@ -57,6 +57,10 @@ public:
 
 Q_SIGNALS:
   void MenuItemsChanged( QtGMenuModel* model, int index, int removed, int added );
+  void ActionTriggered( QString action_name, bool checked );
+
+private Q_SLOTS:
+  void TriggerAction( bool );
 
 private:
   QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index );

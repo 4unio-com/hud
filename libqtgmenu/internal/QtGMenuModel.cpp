@@ -67,11 +67,10 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 
 QtGMenuModel::~QtGMenuModel()
 {
-  DisconnectCallback();
-
   if( m_model )
   {
-    //MenuItemsChangedCallback( m_model, 0, Size(), 0, this );
+    MenuItemsChangedCallback( m_model, 0, Size(), 0, this );
+    DisconnectCallback();
     g_object_unref( m_model );
   }
 
@@ -122,6 +121,12 @@ std::vector< QMenu* > QtGMenuModel::GetQMenus()
   AppendQMenu( menus );
 
   return menus;
+}
+
+void QtGMenuModel::TriggerAction( bool checked )
+{
+  QAction* action = dynamic_cast< QAction* >( QObject::sender() );
+  emit ActionTriggered( action->objectName(), checked );
 }
 
 QtGMenuModel* QtGMenuModel::CreateModel( QtGMenuModel* parent, GMenuModel* model, int index )
@@ -249,8 +254,11 @@ void QtGMenuModel::InsertChild( QtGMenuModel* child, int index )
   child->m_parent = this;
   m_children.insert( index, child );
 
-  connect( child, SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)), this,
-      SIGNAL( MenuItemsChanged(QtGMenuModel*,int,int,int)) );
+  connect( child, SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int, int ) ), this,
+      SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int, int ) ) );
+
+  connect( child, SIGNAL( ActionTriggered( QString, bool ) ), this,
+      SIGNAL( ActionTriggered( QString, bool ) ) );
 }
 
 int QtGMenuModel::ChildIndex( QtGMenuModel* child )
@@ -273,14 +281,23 @@ QAction* QtGMenuModel::CreateAction( int index )
   GVariant* label = g_menu_model_get_item_attribute_value( m_model, index,
       G_MENU_ATTRIBUTE_LABEL, G_VARIANT_TYPE_STRING );
 
-  GVariant* icon = g_menu_model_get_item_attribute_value( m_model, index,
-      G_MENU_ATTRIBUTE_ICON, G_VARIANT_TYPE_VARIANT );
-
   QString qlabel = QtGMenuUtils::GVariantToQVariant( label ).toString();
   qlabel.replace( '_', '&' );
   g_variant_unref( label );
 
+  GVariant* action_name = g_menu_model_get_item_attribute_value( m_model, index,
+      G_MENU_ATTRIBUTE_ACTION, G_VARIANT_TYPE_STRING );
+
+  QString qaction_name = QtGMenuUtils::GVariantToQVariant( action_name ).toString();
+  g_variant_unref( action_name );
+
+  GVariant* icon = g_menu_model_get_item_attribute_value( m_model, index,
+      G_MENU_ATTRIBUTE_ICON, G_VARIANT_TYPE_VARIANT );
+
+  action->connect( action, SIGNAL( triggered( bool ) ), this, SLOT( TriggerAction( bool ) ) );
+
   action->setEnabled( true );
+  action->setObjectName( qaction_name );
 
   action->setText( qlabel );
   return action;

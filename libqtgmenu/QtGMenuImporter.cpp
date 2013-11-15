@@ -50,7 +50,7 @@ std::vector< QMenu* > QtGMenuImporter::GetQMenus() const
 
 void QtGMenuImporter::ForceRefresh()
 {
-  d->StartPolling( 100 );
+  d->StartPolling();
 }
 
 #include <QtGMenuImporter.moc>

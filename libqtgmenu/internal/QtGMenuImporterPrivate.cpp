@@ -19,6 +19,7 @@
 #include <QtGMenuImporterPrivate.h>
 #include <QtGMenuUtils.h>
 
+#include <QDBusConnection>
 #include <QEventLoop>
 
 using namespace qtgmenu;
@@ -31,14 +32,19 @@ template< typename ... T > void unused( T&& ... )
 QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QString& path,
     QtGMenuImporter& parent )
     : QObject( 0 ),
+      m_service_watcher( service, QDBusConnection::sessionBus(),
+          QDBusServiceWatcher::WatchForUnregistration ),
       m_parent( parent ),
       m_connection( g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL ) ),
       m_service( service.toStdString() ),
       m_path( path.toStdString() )
 {
+  connect( &m_service_watcher, SIGNAL( serviceUnregistered( const QString& ) ), this,
+      SLOT( ServiceUnregistered( const QString& ) ) );
+
   connect( &m_menu_poll_timer, SIGNAL( timeout() ), this, SLOT( RefreshGMenuModel() ) );
   connect( &m_actions_poll_timer, SIGNAL( timeout() ), this, SLOT( RefreshGActionGroup() ) );
-  StartPolling( 100 );
+  StartPolling();
 }
 
 QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
@@ -84,14 +90,14 @@ std::vector< QMenu* > QtGMenuImporterPrivate::GetQMenus()
   return m_menu_model->GetQMenus();
 }
 
-void QtGMenuImporterPrivate::StartPolling( int interval )
+void QtGMenuImporterPrivate::StartPolling()
 {
   m_menu_poll_timer.stop();
-  m_menu_poll_timer.setInterval( interval );
+  m_menu_poll_timer.setInterval( 100 );
   m_menu_poll_timer.start();
 
   m_actions_poll_timer.stop();
-  m_actions_poll_timer.setInterval( interval );
+  m_actions_poll_timer.setInterval( 100 );
   m_actions_poll_timer.start();
 }
 
@@ -122,6 +128,17 @@ void QtGMenuImporterPrivate::ClearActionGroup()
 
   delete m_action_group;
   m_action_group = nullptr;
+}
+
+void QtGMenuImporterPrivate::ConnectMenuAndActions()
+{
+  connect( m_menu_model, SIGNAL( ActionTriggered( QString, bool ) ), m_action_group,
+      SLOT( TriggerAction( QString, bool ) ) );
+}
+
+void QtGMenuImporterPrivate::ServiceUnregistered( const QString& service )
+{
+  StartPolling();
 }
 
 bool QtGMenuImporterPrivate::RefreshGMenuModel()
@@ -157,6 +174,11 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
 
   if( menu_is_valid )
   {
+    if( m_action_group )
+    {
+      ConnectMenuAndActions();
+    }
+
     // menu is valid, start polling for actions
     m_menu_poll_timer.stop();
   }
@@ -217,6 +239,11 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
 
   if( actions_are_valid )
   {
+    if( m_menu_model )
+    {
+      ConnectMenuAndActions();
+    }
+
     // actions are valid, no need to continue polling
     m_actions_poll_timer.stop();
   }

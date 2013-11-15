@@ -23,6 +23,7 @@
 #include <internal/QtGMenuModel.h>
 #include <internal/QtGActionGroup.h>
 
+#include <QDBusServiceWatcher>
 #include <QMenu>
 #include <QTimer>
 #include <memory>
@@ -46,17 +47,22 @@ public:
 
   std::vector< QMenu* > GetQMenus();
 
-  void StartPolling( int interval );
+  void StartPolling();
 
 private:
   void ClearMenuModel();
   void ClearActionGroup();
 
+  void ConnectMenuAndActions();
+
 private Q_SLOTS:
+  void ServiceUnregistered( const QString& service );
   bool RefreshGMenuModel();
   bool RefreshGActionGroup();
 
 private:
+  QDBusServiceWatcher m_service_watcher;
+
   QtGMenuImporter& m_parent;
 
   GDBusConnection* m_connection;
