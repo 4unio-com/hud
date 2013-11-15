@@ -48,16 +48,19 @@ public:
   std::shared_ptr< QMenu > GetQMenu();
 
   void StartPolling();
+  void StopPolling();
 
 private:
   void ClearMenuModel();
   void ClearActionGroup();
 
-  void LinkInterfaces();
-  void UnlinkInterfaces();
+  void LinkMenuActions();
+  void UnlinkMenuActions();
 
 private Q_SLOTS:
-  void ServiceUnregistered( const QString& service );
+  void ServiceRegistered();
+  void ServiceUnregistered();
+
   bool RefreshGMenuModel();
   bool RefreshGActionGroup();
 
@@ -81,7 +84,7 @@ private:
   QMetaObject::Connection m_action_enabled_conn;
   QMetaObject::Connection m_action_state_changed_conn;
 
-  bool m_interfaces_linked = false;
+  bool m_menu_actions_linked = false;
   QMetaObject::Connection m_action_activated_conn;
 };
 
