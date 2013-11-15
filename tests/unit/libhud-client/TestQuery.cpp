@@ -44,8 +44,6 @@ protected:
 			mock(dbus), hud(dbus, mock), query(nullptr) {
 		dbus.startServices();
 		hud.loadMethods();
-
-		connection = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 	}
 
 	void createQuery() {
@@ -84,7 +82,6 @@ protected:
 
 	virtual ~TestQuery() {
 		g_clear_object(&query);
-		g_clear_object(&connection);
 	}
 
 	void EXPECT_CALL(const QList<QVariantList> &spy, int index,
@@ -140,8 +137,6 @@ protected:
 	DBusMock mock;
 
 	MockHudService hud;
-
-	GDBusConnection *connection;
 
 	HudClientQuery *query;
 };
