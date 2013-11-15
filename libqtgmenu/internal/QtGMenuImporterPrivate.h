@@ -45,7 +45,7 @@ public:
   GMenuModel* GetGMenuModel();
   GActionGroup* GetGActionGroup();
 
-  std::vector< QMenu* > GetQMenus();
+  std::shared_ptr< QMenu > GetQMenu();
 
   void StartPolling();
 

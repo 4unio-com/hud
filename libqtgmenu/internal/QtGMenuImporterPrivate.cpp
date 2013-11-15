@@ -78,16 +78,16 @@ GActionGroup* QtGMenuImporterPrivate::GetGActionGroup()
   return m_action_group->ActionGroup();
 }
 
-std::vector< QMenu* > QtGMenuImporterPrivate::GetQMenus()
+std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
 {
   GMenuModel* gmenu = GetGMenuModel();
 
   if( gmenu == nullptr )
   {
-    return std::vector< QMenu* >();
+    return nullptr;
   }
 
-  return m_menu_model->GetQMenus();
+  return m_menu_model->GetQMenu();
 }
 
 void QtGMenuImporterPrivate::StartPolling()

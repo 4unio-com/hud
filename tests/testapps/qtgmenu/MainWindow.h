@@ -14,11 +14,11 @@ public:
   ~MainWindow();
 
 private Q_SLOTS:
-  bool RefreshMenus();
+  void RefreshMenus();
 
 private:
   qtgmenu::QtGMenuImporter m_menu_importer;
-  std::vector< QMenu* > m_menus;
+  std::shared_ptr< QMenu > m_top_menu = nullptr;
   QMetaObject::Connection m_refresh_connection;
 };
 

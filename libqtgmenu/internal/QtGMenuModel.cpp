@@ -110,16 +110,16 @@ QtGMenuModel* QtGMenuModel::Child( int index ) const
   return nullptr;
 }
 
-std::vector< QMenu* > QtGMenuModel::GetQMenus()
+std::shared_ptr< QMenu > QtGMenuModel::GetQMenu()
 {
-  std::vector< QMenu* > menus;
+  auto top_menu = std::make_shared< QMenu >();
 
-  AppendQMenu( menus );
+  AppendQMenu( top_menu );
 
-  return menus;
+  return top_menu;
 }
 
-void QtGMenuModel::TriggerAction( bool checked )
+void QtGMenuModel::ActionTriggered( bool checked )
 {
   QAction* action = dynamic_cast< QAction* >( QObject::sender() );
   emit ActionTriggered( action->objectName(), checked );
@@ -297,7 +297,7 @@ QAction* QtGMenuModel::CreateAction( int index )
   GVariant* icon = g_menu_model_get_item_attribute_value( m_model, index, G_MENU_ATTRIBUTE_ICON,
       G_VARIANT_TYPE_VARIANT );
 
-  action->connect( action, SIGNAL( triggered( bool ) ), this, SLOT( TriggerAction( bool ) ) );
+  connect( action, SIGNAL( triggered( bool ) ), this, SLOT( ActionTriggered( bool ) ) );
 
   action->setEnabled( true );
   action->setObjectName( qaction_name );
@@ -306,15 +306,15 @@ QAction* QtGMenuModel::CreateAction( int index )
   return action;
 }
 
-void QtGMenuModel::AppendQMenu( std::vector< QMenu* >& menus )
+void QtGMenuModel::AppendQMenu( std::shared_ptr< QMenu > top_menu )
 {
-  menus.push_back( m_menu );
+  top_menu->addAction( m_menu->menuAction() );
 
   if( m_link_type != LinkType::SubMenu )
   {
     for( auto& child : m_children )
     {
-      child->AppendQMenu( menus );
+      child->AppendQMenu( top_menu );
     }
   }
 }

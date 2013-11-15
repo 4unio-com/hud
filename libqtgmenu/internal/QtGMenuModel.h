@@ -53,14 +53,14 @@ public:
   QtGMenuModel* Parent() const;
   QtGMenuModel* Child( int index ) const;
 
-  std::vector< QMenu* > GetQMenus();
+  std::shared_ptr< QMenu > GetQMenu();
 
 Q_SIGNALS:
   void MenuItemsChanged( QtGMenuModel* model, int index, int removed, int added );
   void ActionTriggered( QString action_name, bool checked );
 
 private Q_SLOTS:
-  void TriggerAction( bool );
+  void ActionTriggered( bool );
 
 private:
   QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index );
@@ -80,7 +80,7 @@ private:
 
   QAction* CreateAction( int index );
 
-  void AppendQMenu( std::vector< QMenu* >& menus );
+  void AppendQMenu( std::shared_ptr< QMenu > top_menu );
   void RefreshQMenu();
 
 private:
