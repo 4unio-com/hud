@@ -182,6 +182,8 @@ TEST_F(TestBamfWindowStack, HandlesTwoWindows) {
 	ASSERT_EQ(2, windowInfos.size());
 	EXPECT_EQ(WindowInfo(0, "appid-0", true, WindowInfo::MAIN),
 			windowInfos.at(0));
+	EXPECT_EQ(WindowInfo(1, "appid-0", false, WindowInfo::MAIN),
+			windowInfos.at(1));
 }
 
 TEST_F(TestBamfWindowStack, HandlesMissingWindow) {
