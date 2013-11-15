@@ -1,6 +1,7 @@
 
 set(
 	UNIT_TESTS_SRC
+	TestConnection.cpp
 	TestParam.cpp
 	TestQuery.cpp
 )
