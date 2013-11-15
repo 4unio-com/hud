@@ -31,9 +31,6 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
       m_model( model ),
       m_link_type( link_type )
 {
-  // we should always have at least one section in a menu
-  m_sections.push_back( std::deque< QObject* >() );
-
   if( m_parent )
   {
     m_parent->InsertChild( this, index );
@@ -156,19 +153,24 @@ void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint
 
 void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
 {
-  auto model_effected = this;
-  auto section_effected = &m_sections[0];
+  QtGMenuModel* model_effected = this;
+  QAction* at_action = nullptr;
   if( m_link_type == LinkType::Section && m_parent )
   {
     model_effected = m_parent;
-    section_effected = &m_parent->m_sections[m_parent->ChildIndex( this )];
   }
 
   if( removed > 0 )
   {
-    auto start_it = section_effected->begin() + index;
-    auto end_it = start_it + removed;
-    section_effected->erase( start_it, end_it );
+    for( int i = 0; i < removed; ++i )
+    {
+      if( index < m_menu->actions().size() )
+      {
+        at_action = m_menu->actions().at( index );
+      }
+
+      m_menu->removeAction( at_action );
+    }
 
     for( int i = index; i < m_size; ++i )
     {
@@ -203,13 +205,21 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
       QtGMenuModel* model = CreateModel( this, m_model, i );
       if( !model )
       {
-        auto it = section_effected->begin();
-        section_effected->insert( it + i, 1, CreateAction( i ) );
+        if( index + i < m_menu->actions().size() )
+        {
+          at_action = m_menu->actions().at( index + i );
+        }
+
+        m_menu->insertAction( at_action, CreateAction( i ) );
       }
       else if( model->Type() == LinkType::SubMenu )
       {
-        auto it = section_effected->begin();
-        section_effected->insert( it + i, 1, model->m_menu );
+        if( index + i < m_menu->actions().size() )
+        {
+          at_action = m_menu->actions().at( index + i );
+        }
+
+        m_menu->insertMenu( at_action, model->m_menu );
       }
     }
   }
@@ -242,12 +252,6 @@ void QtGMenuModel::InsertChild( QtGMenuModel* child, int index )
   if( m_children.contains( index ) )
   {
     return;
-  }
-
-  if( child->Type() == LinkType::Section )
-  {
-    auto it = m_sections.begin();
-    m_sections.insert( it + index, 1, std::deque< QObject* >() );
   }
 
   child->m_parent = this;
@@ -317,32 +321,33 @@ void QtGMenuModel::AppendQMenu( std::vector< QMenu* >& menus )
 
 void QtGMenuModel::RefreshQMenu()
 {
-  QAction* action = nullptr;
-  QMenu* menu = nullptr;
+  // loop through children
+  // if child is action, add action
+  // if child section, add its menu items to this qmenu
+  // if child is submenu, add menu
+
   QAction* last_separator = nullptr;
 
   m_menu->clear();
 
-  for( auto& section : m_sections )
+  for( int i = 0; i < m_size; ++i )
   {
-    if( section.size() == 0 )
+    QtGMenuModel* child = Child( i );
+
+    if( !child )
     {
-      continue;
+      ///!
     }
-
-    for( auto& item : section )
+    else if( child->Type() == LinkType::Section )
     {
-      action = qobject_cast< QAction* >( item );
-      menu = qobject_cast< QMenu* >( item );
-
-      if( action != nullptr )
+      for( QAction* action : child->m_menu->actions() )
       {
         m_menu->addAction( action );
       }
-      else if( menu != nullptr )
-      {
-        m_menu->addMenu( menu );
-      }
+    }
+    else if( child->Type() == LinkType::SubMenu )
+    {
+      m_menu->addMenu( child->m_menu );
     }
 
     last_separator = m_menu->addSeparator();

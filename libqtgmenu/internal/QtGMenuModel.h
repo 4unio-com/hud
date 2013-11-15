@@ -94,7 +94,6 @@ private:
   int m_size = 0;
 
   QMenu* m_menu = new QMenu();
-  std::deque< std::deque< QObject* > > m_sections;
 };
 
 } // namespace qtgmenu
