@@ -50,6 +50,11 @@ WindowInfo::WindowInfo(unsigned int window_id, const QString &app_id,
 WindowInfo::~WindowInfo() {
 }
 
+bool WindowInfo::operator==(const WindowInfo &other) const {
+	return (window_id == other.window_id) && (app_id == other.app_id)
+			&& (focused == other.focused) && (stage == other.stage);
+}
+
 void WindowInfo::registerMetaTypes() {
 	qRegisterMetaType<WindowInfo>();
 	qRegisterMetaType<QList<WindowInfo>>();

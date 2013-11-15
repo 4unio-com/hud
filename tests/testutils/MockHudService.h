@@ -48,10 +48,6 @@ protected:
 	QScopedPointer<hud::common::AppstackModel> m_appstack;
 
 	QScopedPointer<hud::common::ResultsModel> m_results;
-
-	QSharedPointer<OrgFreedesktopDBusMockInterface> m_applicationInterface;
-
-	QSharedPointer<OrgFreedesktopDBusMockInterface> m_queryInterface;
 };
 
 }

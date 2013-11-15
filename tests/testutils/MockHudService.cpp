@@ -41,25 +41,13 @@ OrgFreedesktopDBusMockInterface & MockHudService::hudInterface() {
 }
 
 OrgFreedesktopDBusMockInterface & MockHudService::applicationInterface() {
-	//TODO Changed to be the same as the method above when lp:XXXX is fixed
-	if (m_applicationInterface.isNull()) {
-		m_applicationInterface.reset(
-				new OrgFreedesktopDBusMockInterface(
-						DBusTypes::HUD_SERVICE_DBUS_NAME, "/app/object",
-						m_dbus.sessionConnection()));
-	}
-	return *m_applicationInterface;
+	return m_mock.mockInterface(DBusTypes::HUD_SERVICE_DBUS_NAME, "/app/object",
+			"com.canonical.hud.Application", QDBusConnection::SessionBus);
 }
 
 OrgFreedesktopDBusMockInterface & MockHudService::queryInterface() {
-	//TODO Changed to be the same as the method above when lp:XXXX is fixed
-	if (m_queryInterface.isNull()) {
-		m_queryInterface.reset(
-				new OrgFreedesktopDBusMockInterface(
-						DBusTypes::HUD_SERVICE_DBUS_NAME, QUERY_PATH,
-						m_dbus.sessionConnection()));
-	}
-	return *m_queryInterface;
+	return m_mock.mockInterface(DBusTypes::HUD_SERVICE_DBUS_NAME, QUERY_PATH,
+			"com.canonical.hud.query", QDBusConnection::SessionBus);
 }
 
 void MockHudService::loadMethods() {
@@ -81,7 +69,8 @@ void MockHudService::loadMethods() {
 				"ret = ('action', '/action/path', '/model/path', 1)");
 		addMethod(methods, "ExecuteToolbar", "su", "", "");
 
-		hud.AddObject(QUERY_PATH, "com.canonical.hud.query", properties, methods).waitForFinished();
+		hud.AddObject(QUERY_PATH, "com.canonical.hud.query", properties,
+				methods).waitForFinished();
 	}
 
 	m_results.reset(new ResultsModel(0));

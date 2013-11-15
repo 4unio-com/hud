@@ -49,11 +49,97 @@ protected:
 	virtual ~TestBamfWindowStack() {
 	}
 
-	virtual OrgFreedesktopDBusMockInterface & bamfMatcherMock() {
+	OrgFreedesktopDBusMockInterface & bamfMatcherMock() {
 		return mock.mockInterface(DBusTypes::BAMF_DBUS_NAME,
 				DBusTypes::BAMF_MATCHER_DBUS_PATH,
 				OrgAyatanaBamfMatcherInterface::staticInterfaceName(),
 				QDBusConnection::SessionBus);
+	}
+
+	OrgFreedesktopDBusMockInterface & windowMock(uint id) {
+		return mock.mockInterface(DBusTypes::BAMF_DBUS_NAME, windowPath(id),
+				OrgAyatanaBamfWindowInterface::staticInterfaceName(),
+				QDBusConnection::SessionBus);
+	}
+
+	static void addMethod(QList<Method> &methods, const QString &name,
+			const QString &inSig, const QString &outSig, const QString &code) {
+		Method method;
+		method.setName(name);
+		method.setInSig(inSig);
+		method.setOutSig(outSig);
+		method.setCode(code);
+		methods << method;
+	}
+
+	static QString applicationPath(uint id) {
+		return QString("/org/ayatana/bamf/application%1").arg(id);
+	}
+
+	static QString windowPath(uint id) {
+		return QString("/org/ayatana/bamf/window%1").arg(id);
+	}
+
+	void createApplication(uint applicationId) {
+		QVariantMap properties;
+
+		QList<Method> methods;
+		addMethod(methods, "DesktopFile", "", "s",
+				QString("ret = '/usr/share/applications/appid-%1.desktop'").arg(
+						applicationId));
+
+		bamfMatcherMock().AddObject(applicationPath(applicationId),
+				OrgAyatanaBamfApplicationInterface::staticInterfaceName(),
+				properties, methods).waitForFinished();
+	}
+
+	void createWindow(uint windowId, uint applicationId, bool propertyMethod =
+			true) {
+		QVariantMap properties;
+
+		QList<Method> methods;
+		addMethod(methods, "GetXid", "", "u",
+				QString("ret = %1").arg(windowId));
+		if (propertyMethod) {
+			addMethod(methods, "Xprop", "s", "s", "ret = 'foo'");
+		}
+
+		bamfMatcherMock().AddObject(windowPath(windowId),
+				OrgAyatanaBamfWindowInterface::staticInterfaceName(),
+				properties, methods).waitForFinished();
+
+		QList<Method> viewMethods;
+		addMethod(viewMethods, "Parents", "", "as",
+				QString("ret = ['%1']").arg(applicationPath(applicationId)));
+
+		windowMock(windowId).AddMethods("org.ayatana.bamf.view", viewMethods).waitForFinished();
+	}
+
+	void createMatcherMethods(uint windowCount, uint activeWindow) {
+		bamfMatcherMock().AddMethod(
+				OrgAyatanaBamfMatcherInterface::staticInterfaceName(),
+				"ActiveWindow", "", "s",
+				QString("ret = '%1'").arg(windowPath(activeWindow))).waitForFinished();
+
+		QString windowStack("ret = [");
+		if (windowCount > 0) {
+			windowStack.append(QString("'%1'").arg(windowPath(activeWindow)));
+			for (uint i(0); i < windowCount; ++i) {
+				if (i != activeWindow) {
+					windowStack.append(",\'");
+					windowStack.append(windowPath(i));
+					windowStack.append('\'');
+				}
+			}
+		}
+		windowStack.append(']');
+
+		bamfMatcherMock().AddMethod(
+				OrgAyatanaBamfMatcherInterface::staticInterfaceName(),
+				"WindowPaths", "", "as", windowStack).waitForFinished();
+		bamfMatcherMock().AddMethod(
+				OrgAyatanaBamfMatcherInterface::staticInterfaceName(),
+				"WindowStackForMonitor", "i", "as", windowStack).waitForFinished();
 	}
 
 	DBusTestRunner dbus;
@@ -75,15 +161,55 @@ TEST_F(TestBamfWindowStack, ExportsDBusInterface) {
 	ASSERT_TRUE(windowStackInterface.isValid());
 }
 
-TEST_F(TestBamfWindowStack, GetWindowStack) {
-	bamfMatcherMock().AddMethod(
-			OrgAyatanaBamfMatcherInterface::staticInterfaceName(),
-			"WindowPaths", "", "as", "ret = []").waitForFinished();
+TEST_F(TestBamfWindowStack, HandlesEmptyWindowStack) {
+	createMatcherMethods(0, 0);
 
 	BamfWindowStack windowStack(dbus.sessionConnection());
 
 	QList<WindowInfo> windowInfos(windowStack.GetWindowStack());
+	EXPECT_TRUE(windowInfos.empty());
+}
 
+TEST_F(TestBamfWindowStack, HandlesTwoWindows) {
+	createApplication(0);
+	createWindow(0, 0);
+	createWindow(1, 0);
+	createMatcherMethods(2, 0);
+
+	BamfWindowStack windowStack(dbus.sessionConnection());
+
+	QList<WindowInfo> windowInfos(windowStack.GetWindowStack());
+	ASSERT_EQ(2, windowInfos.size());
+	EXPECT_EQ(WindowInfo(0, "appid-0", true, WindowInfo::MAIN),
+			windowInfos.at(0));
+}
+
+TEST_F(TestBamfWindowStack, HandlesMissingWindow) {
+	createMatcherMethods(1, 0);
+
+	qDebug() << "EXPECTED ERROR BELOW";
+	BamfWindowStack windowStack(dbus.sessionConnection());
+	qDebug() << "EXPECTED ERROR ABOVE";
+
+	QList<WindowInfo> windowInfos(windowStack.GetWindowStack());
+	ASSERT_EQ(0, windowInfos.size());
+}
+
+TEST_F(TestBamfWindowStack, GetWindowPropertiesForBrokenWindow) {
+	createWindow(0, 0, false);
+	createApplication(0);
+
+	createMatcherMethods(1, 0);
+
+	BamfWindowStack windowStack(dbus.sessionConnection());
+
+	qDebug() << "EXPECTED ERROR BELOW";
+	QStringList properties(
+			windowStack.GetWindowProperties(0, "unknown",
+					QStringList() << "some-random-property"));
+	qDebug() << "EXPECTED ERROR ABOVE";
+
+	ASSERT_EQ(QStringList() << "", properties);
 }
 
 } // namespace
