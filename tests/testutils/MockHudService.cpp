@@ -22,7 +22,7 @@ MockHudService::MockHudService(DBusTestRunner &dbus, DBusMock &mock) :
 			QDBusConnection::SessionBus);
 }
 
-static const QString QUERY_PATH("/com/canonical/hud/query0");
+const QString MockHudService::QUERY_PATH("/com/canonical/hud/query0");
 
 static void addMethod(QList<Method> &methods, const QString &name,
 		const QString &inSig, const QString &outSig, const QString &code) {

@@ -25,6 +25,8 @@ namespace testutils {
 
 class Q_DECL_EXPORT MockHudService {
 public:
+	static const QString QUERY_PATH;
+
 	MockHudService(QtDBusTest::DBusTestRunner &dbus,
 			QtDBusMock::DBusMock &mock);
 
