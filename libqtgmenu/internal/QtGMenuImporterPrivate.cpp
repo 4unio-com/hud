@@ -92,6 +92,8 @@ std::vector< QMenu* > QtGMenuImporterPrivate::GetQMenus()
 
 void QtGMenuImporterPrivate::StartPolling()
 {
+  UnlinkInterfaces();
+
   m_menu_poll_timer.stop();
   m_menu_poll_timer.setInterval( 100 );
   m_menu_poll_timer.start();
@@ -130,10 +132,25 @@ void QtGMenuImporterPrivate::ClearActionGroup()
   m_action_group = nullptr;
 }
 
-void QtGMenuImporterPrivate::ConnectMenuAndActions()
+void QtGMenuImporterPrivate::LinkInterfaces()
 {
-  connect( m_menu_model, SIGNAL( ActionTriggered( QString, bool ) ), m_action_group,
-      SLOT( TriggerAction( QString, bool ) ) );
+  if( m_menu_model && m_action_group && !m_interfaces_linked )
+  {
+    m_action_activated_conn = connect( m_menu_model, SIGNAL( ActionTriggered( QString, bool ) ), m_action_group,
+        SLOT( TriggerAction( QString, bool ) ) );
+
+    m_interfaces_linked = true;
+  }
+}
+
+void QtGMenuImporterPrivate::UnlinkInterfaces()
+{
+  if( m_interfaces_linked )
+  {
+    disconnect( m_action_activated_conn );
+
+    m_interfaces_linked = false;
+  }
 }
 
 void QtGMenuImporterPrivate::ServiceUnregistered( const QString& service )
@@ -174,12 +191,8 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
 
   if( menu_is_valid )
   {
-    if( m_action_group )
-    {
-      ConnectMenuAndActions();
-    }
-
     // menu is valid, start polling for actions
+    LinkInterfaces();
     m_menu_poll_timer.stop();
   }
   else if( !menu_is_valid )
@@ -240,12 +253,8 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
 
   if( actions_are_valid )
   {
-    if( m_menu_model )
-    {
-      ConnectMenuAndActions();
-    }
-
     // actions are valid, no need to continue polling
+    LinkInterfaces();
     m_actions_poll_timer.stop();
   }
   else if( !actions_are_valid )
