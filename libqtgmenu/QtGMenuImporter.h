@@ -37,7 +37,7 @@ class QtGMenuImporterPrivate;
 
 class QtGMenuImporter final : public QObject
 {
-  Q_OBJECT
+Q_OBJECT
 
 public:
   QtGMenuImporter( const QString& service, const QString& path, QObject* parent = 0 );

@@ -36,7 +36,7 @@ namespace qtgmenu
 
 class QtGMenuImporterPrivate : public QObject
 {
-  Q_OBJECT
+Q_OBJECT
 
 public:
   QtGMenuImporterPrivate( const QString& service, const QString& path, QtGMenuImporter& parent );

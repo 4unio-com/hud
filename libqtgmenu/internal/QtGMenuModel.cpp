@@ -26,8 +26,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model )
 {
 }
 
-QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent,
-    int index )
+QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index )
     : m_parent( parent ),
       m_model( model ),
       m_link_type( link_type )
@@ -162,7 +161,7 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
   if( m_link_type == LinkType::Section && m_parent )
   {
     model_effected = m_parent;
-    section_effected = &m_parent->m_sections[ m_parent->ChildIndex( this ) ];
+    section_effected = &m_parent->m_sections[m_parent->ChildIndex( this )];
   }
 
   if( removed > 0 )
@@ -278,8 +277,8 @@ QAction* QtGMenuModel::CreateAction( int index )
 {
   QAction* action = new QAction( this );
 
-  GVariant* label = g_menu_model_get_item_attribute_value( m_model, index,
-      G_MENU_ATTRIBUTE_LABEL, G_VARIANT_TYPE_STRING );
+  GVariant* label = g_menu_model_get_item_attribute_value( m_model, index, G_MENU_ATTRIBUTE_LABEL,
+      G_VARIANT_TYPE_STRING );
 
   QString qlabel = QtGMenuUtils::GVariantToQVariant( label ).toString();
   qlabel.replace( '_', '&' );
@@ -291,8 +290,8 @@ QAction* QtGMenuModel::CreateAction( int index )
   QString qaction_name = QtGMenuUtils::GVariantToQVariant( action_name ).toString();
   g_variant_unref( action_name );
 
-  GVariant* icon = g_menu_model_get_item_attribute_value( m_model, index,
-      G_MENU_ATTRIBUTE_ICON, G_VARIANT_TYPE_VARIANT );
+  GVariant* icon = g_menu_model_get_item_attribute_value( m_model, index, G_MENU_ATTRIBUTE_ICON,
+      G_VARIANT_TYPE_VARIANT );
 
   action->connect( action, SIGNAL( triggered( bool ) ), this, SLOT( TriggerAction( bool ) ) );
 

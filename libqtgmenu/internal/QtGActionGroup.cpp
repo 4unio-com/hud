@@ -22,7 +22,7 @@
 using namespace qtgmenu;
 
 QtGActionGroup::QtGActionGroup( GActionGroup* action_group )
-  : m_action_group( action_group )
+    : m_action_group( action_group )
 {
   ConnectCallbacks();
 }
@@ -82,7 +82,7 @@ QString QtGActionGroup::Action( int index )
   QString action_name;
   gchar** actions_list = g_action_group_list_actions( m_action_group );
 
-  action_name = QString( actions_list[ index ] );
+  action_name = QString( actions_list[index] );
 
   g_strfreev( actions_list );
 
@@ -121,7 +121,7 @@ void QtGActionGroup::ActionEnabledCallback( GActionGroup* action_group, gchar* a
     gboolean enabled, gpointer user_data )
 {
   QtGActionGroup* self = reinterpret_cast< QtGActionGroup* >( user_data );
-  emit self->ActionEnabled( action_name , enabled );
+  emit self->ActionEnabled( action_name, enabled );
 }
 
 void QtGActionGroup::ActionStateChangedCallback( GActionGroup* action_group, gchar* action_name,

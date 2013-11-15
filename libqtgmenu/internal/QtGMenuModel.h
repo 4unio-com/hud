@@ -34,7 +34,7 @@ namespace qtgmenu
 
 class QtGMenuModel : public QObject
 {
-  Q_OBJECT
+Q_OBJECT
 
 public:
   enum class LinkType

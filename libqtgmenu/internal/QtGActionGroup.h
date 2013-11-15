@@ -30,7 +30,7 @@ namespace qtgmenu
 
 class QtGActionGroup : public QObject
 {
-  Q_OBJECT
+Q_OBJECT
 
 public:
   QtGActionGroup( GActionGroup* action_group );
