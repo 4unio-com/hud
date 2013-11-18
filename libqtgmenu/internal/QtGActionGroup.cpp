@@ -126,7 +126,7 @@ void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* act
   QtGActionGroup* self = reinterpret_cast< QtGActionGroup* >( user_data );
   emit self->ActionAdded( action_name );
 
-  bool enabled = G_ACTION_GROUP_GET_IFACE( self->m_action_group ) ->get_action_enabled(
+  bool enabled = G_ACTION_GROUP_GET_IFACE( self->m_action_group )->get_action_enabled(
       self->m_action_group, action_name );
   if( !enabled )
   {

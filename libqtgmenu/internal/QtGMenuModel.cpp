@@ -317,23 +317,38 @@ QAction* QtGMenuModel::CreateAction( int index )
   GVariant* action_name = g_menu_model_get_item_attribute_value( m_model, index,
       G_MENU_ATTRIBUTE_ACTION, G_VARIANT_TYPE_STRING );
 
-  QString qaction_name = QtGMenuUtils::GVariantToQVariant( action_name ).toString();
-  g_variant_unref( action_name );
+  if( action_name )
+  {
+    QString qaction_name = QtGMenuUtils::GVariantToQVariant( action_name ).toString();
+    g_variant_unref( action_name );
 
-  int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
-  qaction_name = qaction_name.right( name_length );
+    int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
+    qaction_name = qaction_name.right( name_length );
 
-  action->setObjectName( qaction_name );
+    action->setObjectName( qaction_name );
+  }
 
   // action icon
   GVariant* icon = g_menu_model_get_item_attribute_value( m_model, index, G_MENU_ATTRIBUTE_ICON,
       G_VARIANT_TYPE_VARIANT );
 
+  if( icon )
+  {
+    g_variant_unref( icon );
+  }
+
   // action shortcut
   GMenuItem* menu_item = g_menu_item_new_from_model( m_model, index );
   GVariant* shortcut = g_menu_item_get_attribute_value( menu_item, "accel", G_VARIANT_TYPE_STRING );
-  QString qshortcut = QtGMenuUtils::GVariantToQVariant( shortcut ).toString();
-  action->setShortcut( QtGMenuUtils::QStringToQKeySequence( qshortcut ) );
+  g_object_unref( menu_item );
+
+  if( shortcut )
+  {
+    QString qshortcut = QtGMenuUtils::GVariantToQVariant( shortcut ).toString();
+    g_variant_unref( shortcut );
+
+    action->setShortcut( QtGMenuUtils::QStringToQKeySequence( qshortcut ) );
+  }
 
   // action trigger
   connect( action, SIGNAL( triggered( bool ) ), this, SLOT( ActionTriggered( bool ) ) );
