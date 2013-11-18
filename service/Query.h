@@ -61,6 +61,8 @@ public:
 
 public Q_SLOTS:
 	virtual int UpdateQuery(const QString &query) = 0;
+
+	virtual void ExecuteCommand(const QDBusVariant &item, uint timestamp) = 0;
 };
 
 }

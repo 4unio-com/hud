@@ -144,7 +144,7 @@ TEST_F(TestHudService, CreateMultipleQueries) {
 	EXPECT_EQ(QList<QDBusObjectPath>(), hudService.openQueries());
 }
 
-TEST_F(TestHudService, LegacyStartQuery) {
+TEST_F(TestHudService, LegacyQuery) {
 	QSharedPointer<MockApplication> application(
 			new NiceMock<MockApplication>());
 	ON_CALL(*application, icon()).WillByDefault(Return("app0-icon"));
@@ -196,9 +196,15 @@ TEST_F(TestHudService, LegacyStartQuery) {
 		EXPECT_EQ(QString("app0-icon"), suggestion.m_icon);
 	}
 
-	// We don't close legacy queries :-(
+	// We don't close legacy queries when the close method is called
+	EXPECT_CALL(*query, UpdateQuery(QString())).Times(1);
 	hudService.CloseQuery(querykey);
 	EXPECT_EQ(QList<QDBusObjectPath>() << queryPath, hudService.openQueries());
+
+	QDBusVariant itemKey(qulonglong(1));
+	EXPECT_CALL(*query, ExecuteCommand(itemKey, 12345)).Times(1);
+	hudService.ExecuteQuery(itemKey, 12345);
+	EXPECT_TRUE(hudService.openQueries().isEmpty());
 }
 
 } // namespace

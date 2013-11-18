@@ -133,11 +133,13 @@ QString HudService::StartQuery(const QString &queryString, int entries,
 
 void HudService::ExecuteQuery(const QDBusVariant &itemKey, uint timestamp) {
 	Q_UNUSED(timestamp);
-
 	QString sender(messageSender());
 
-	qDebug() << "ExecuteQuery" << sender << itemKey.variant().toInt()
-			<< timestamp;
+	Query::Ptr query(m_legacyQueries.take(sender));
+	if (!query.isNull()) {
+		query->ExecuteCommand(itemKey, timestamp);
+		closeQuery(query->path());
+	}
 }
 
 void HudService::CloseQuery(const QDBusVariant &querykey) {
