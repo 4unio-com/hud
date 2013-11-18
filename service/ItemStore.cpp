@@ -67,7 +67,6 @@ void ItemStore::indexMenu(const QMenu *menu, const QStringList &stack) {
 				command.addWord(Word(word.toStdString()));
 			}
 			document.addText(Word("command"), command);
-			qDebug() << text;
 
 			WordList wordList;
 			for (const QString &word : stack) {
@@ -84,8 +83,24 @@ void ItemStore::indexMenu(const QMenu *menu, const QStringList &stack) {
 }
 
 void ItemStore::indexMenu(const QMenu *menu) {
+	if (menu == nullptr) {
+		qWarning() << "Attempt to index null menu";
+		return;
+	}
 	indexMenu(menu, QStringList());
 	m_matcher.index(m_corpus);
+}
+
+static void findHighlights(Result::HighlightList &highlights,
+		const QStringMatcher &matcher, const QString &query, const QString &s) {
+
+	if (!query.isEmpty()) {
+		int idx = matcher.indexIn(s);
+		while (idx != -1) {
+			highlights << Result::Highlight(idx, idx + query.length());
+			idx = matcher.indexIn(s, idx + 1);
+		}
+	}
 }
 
 void ItemStore::search(const QString &query, QList<Result> &results) {
@@ -96,17 +111,30 @@ void ItemStore::search(const QString &query, QList<Result> &results) {
 
 	MatchResults matchResults(m_matcher.match(queryList));
 
+	QStringMatcher stringMatcher(query, Qt::CaseInsensitive);
+
 	for (size_t i(0); i < matchResults.size(); ++i) {
 		DocumentID id(matchResults.getDocumentID(i));
 		double relevancy(matchResults.getRelevancy(i));
 
 		const QAction *action = m_actions[id];
+
+		QString commandName(
+				action->text().remove(SINGLE_AMPERSAND).replace("&&", "&"));
+
+		Result::HighlightList commandHighlights;
+		findHighlights(commandHighlights, stringMatcher, query, commandName);
+
+		//TODO Generate the description
+		QString description;
+		Result::HighlightList descriptionHighlights;
+		findHighlights(descriptionHighlights, stringMatcher, query,
+				description);
+
 		results
-				<< Result(id,
-						action->text().remove(SINGLE_AMPERSAND).replace("&&",
-								"&"), Result::HighlightList(), QString(),
-						Result::HighlightList(), QString(), relevancy * 100,
-						false);
+				<< Result(id, commandName, commandHighlights, description,
+						descriptionHighlights, action->shortcut().toString(),
+						relevancy * 100, false);
 
 	}
 

@@ -114,7 +114,7 @@ Suggestion::Suggestion(qulonglong id, const QString &commandName,
 		m_icon(icon), m_id(id) {
 
 	if (description.isEmpty()) {
-		m_description = commandName;
+		m_description = buildLegacyHighlights(commandName, commandHighlights);
 	} else {
 		QString cmdHighlights(
 				buildLegacyHighlights(commandName, commandHighlights));
