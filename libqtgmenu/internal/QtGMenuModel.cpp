@@ -157,13 +157,11 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
   {
     for( int i = 0; i < removed; ++i )
     {
-      QAction* at_action = nullptr;
       if( index < m_menu->actions().size() )
       {
-        at_action = m_menu->actions().at( index );
+        QAction* at_action = m_menu->actions().at( index );
+        m_menu->removeAction( at_action );
       }
-
-      m_menu->removeAction( at_action );
     }
 
     for( int i = index; i < m_size; ++i )
@@ -194,7 +192,7 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
 
     m_size += added;
 
-    for( int i = index; i < ( index + added ); ++i )
+    for( int i = 0; i < added; ++i )
     {      
       QAction* at_action = nullptr;
       if( index + i < m_menu->actions().size() )
@@ -202,11 +200,11 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
         at_action = m_menu->actions().at( index + i );
       }
 
-      QtGMenuModel* model = CreateChild( this, m_model, i );
+      QtGMenuModel* model = CreateChild( this, m_model, index + i );
 
       if( !model )
       {
-        m_menu->insertAction( at_action, CreateAction( i ) );
+        m_menu->insertAction( at_action, CreateAction( index + i ) );
       }
       else if( model->Type() == LinkType::Section )
       {
