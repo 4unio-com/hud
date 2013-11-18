@@ -51,19 +51,19 @@ public:
   void ForceRefresh();
 
 Q_SIGNALS:
-  void MenuItemsChanged( int position, int removed, int added );
+  void MenuItemsChanged();
   void MenuAppeared();
   void MenuDisappeared();
 
   void ActionAdded( QString action_name );
-  void ActionEnabled( QString action_name, bool enabled );
   void ActionRemoved( QString action_name );
+  void ActionEnabled( QString action_name, bool enabled );
   void ActionStateChanged( QString action_name, QVariant value );
   void ActionsAppeared();
   void ActionsDisappeared();
 
 private:
-  Q_DISABLE_COPY(QtGMenuImporter)
+  Q_DISABLE_COPY (QtGMenuImporter)
   std::unique_ptr< QtGMenuImporterPrivate > d;
 };
 

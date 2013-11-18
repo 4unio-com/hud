@@ -105,7 +105,7 @@ static QVariant makeByteArrayQVariant( GVariant* gvariant )
 
   g_variant_iter_init( &iter, gvariant );
   while( g_variant_iter_loop( &iter, "y", &byte ) )
-    value.append(* byte );
+    value.append( *byte );
 
   return QVariant::fromValue( value );
 }
@@ -170,7 +170,7 @@ QVariant QtGMenuUtils::GVariantToQVariant( GVariant* gvariant )
   {
     return makeStringQVariant( gvariant );
   }
-  else if( g_variant_is_of_type( gvariant, G_VARIANT_TYPE ("as") ) )
+  else if( g_variant_is_of_type( gvariant, G_VARIANT_TYPE( "as" ) ) )
   {
     return makeStringListQVariant( gvariant );
   }
@@ -178,15 +178,15 @@ QVariant QtGMenuUtils::GVariantToQVariant( GVariant* gvariant )
   {
     return makeVariantQVariant( gvariant );
   }
-  else if( g_variant_is_of_type( gvariant, G_VARIANT_TYPE ("ay") ) )
+  else if( g_variant_is_of_type( gvariant, G_VARIANT_TYPE( "ay" ) ) )
   {
     return makeByteArrayQVariant( gvariant );
   }
-  else if( g_variant_is_of_type( gvariant, G_VARIANT_TYPE ("av") ) )
+  else if( g_variant_is_of_type( gvariant, G_VARIANT_TYPE( "av" ) ) )
   {
     return makeVariantListQVariant( gvariant );
   }
-  else if( g_variant_is_of_type( gvariant, G_VARIANT_TYPE ("a{sv}") ) )
+  else if( g_variant_is_of_type( gvariant, G_VARIANT_TYPE( "a{sv}" ) ) )
   {
     return makeVariantMapQVariant( gvariant );
   }

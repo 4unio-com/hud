@@ -20,7 +20,10 @@
 #define QTGMENUEXPORTERPRIVATE_H
 
 #include <QtGMenuImporter.h>
+#include <internal/QtGMenuModel.h>
+#include <internal/QtGActionGroup.h>
 
+#include <QDBusServiceWatcher>
 #include <QMenu>
 #include <QTimer>
 #include <memory>
@@ -44,50 +47,47 @@ public:
 
   std::shared_ptr< QMenu > GetQMenu();
 
-  void StartPolling( int interval );
+  void StartPolling();
+  void StopPolling();
 
 private:
-  static void MenuItemsChangedCallback( GMenuModel* model, gint position, gint removed, gint added,
-      gpointer user_data );
+  void ClearMenuModel();
+  void ClearActionGroup();
 
-  static void ActionAddedCallback( GActionGroup* action_group, gchar* action_name,
-      gpointer user_data );
-
-  static void ActionEnabledCallback( GActionGroup* action_group, gchar* action_name,
-      gboolean enabled, gpointer user_data );
-
-  static void ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
-      gpointer user_data );
-
-  static void ActionStateChangedCallback( GActionGroup* action_group, gchar* action_name,
-      GVariant* value, gpointer user_data );
-
-  void ClearGMenuModel();
-  void ClearGActionGroup();
+  void LinkMenuActions();
+  void UnlinkMenuActions();
 
 private Q_SLOTS:
+  void ServiceRegistered();
+  void ServiceUnregistered();
+
   bool RefreshGMenuModel();
   bool RefreshGActionGroup();
 
 private:
+  QDBusServiceWatcher m_service_watcher;
+
   QtGMenuImporter& m_parent;
 
   GDBusConnection* m_connection;
   std::string m_service;
   std::string m_path;
 
-  std::shared_ptr< QMenu > m_qmenu;
-
-  GMenuModel* m_gmenu_model;
-  gulong m_menu_items_changed_handler = 0;
+  QtGMenuModel* m_menu_model = nullptr;
   QTimer m_menu_poll_timer;
+  QMetaObject::Connection m_items_changed_conn;
 
-  GActionGroup* m_gaction_group;
-  gulong m_action_added_handler = 0;
-  gulong m_action_enabled_handler = 0;
-  gulong m_action_removed_handler = 0;
-  gulong m_action_state_changed_handler = 0;
+  QtGActionGroup* m_action_group = nullptr;
   QTimer m_actions_poll_timer;
+  QMetaObject::Connection m_action_added_conn;
+  QMetaObject::Connection m_action_removed_conn;
+  QMetaObject::Connection m_action_enabled_conn;
+  QMetaObject::Connection m_action_state_changed_conn;
+
+  bool m_menu_actions_linked = false;
+  QMetaObject::Connection m_action_activated_link;
+  QMetaObject::Connection m_action_enabled_link;
+  QMetaObject::Connection m_items_changed_link;
 };
 
 } // namespace qtgmenu

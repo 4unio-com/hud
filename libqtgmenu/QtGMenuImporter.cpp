@@ -19,7 +19,6 @@
 #include <QtGMenuImporter.h>
 #include <internal/QtGMenuImporterPrivate.h>
 
-#include <QIcon>
 #include <QMenu>
 
 using namespace qtgmenu;
@@ -51,7 +50,7 @@ std::shared_ptr< QMenu > QtGMenuImporter::GetQMenu() const
 
 void QtGMenuImporter::ForceRefresh()
 {
-  d->StartPolling( 100 );
+  d->StartPolling();
 }
 
 #include <QtGMenuImporter.moc>

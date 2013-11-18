@@ -44,5 +44,6 @@ add_definitions(-DMODEL_TOOLBAR_DYNAMIC="${CMAKE_CURRENT_BINARY_DIR}/menus/test-
 #add_subdirectory(data)
 add_subdirectory(integration)
 add_subdirectory(menus)
+add_subdirectory(testapps)
 add_subdirectory(testutils)
 add_subdirectory(unit)

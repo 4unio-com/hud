@@ -16,34 +16,15 @@
  * Author: Marcus Tomlinson <marcus.tomlinson@canonical.com>
  */
 
-#ifndef QTGMENUCONVERTER_H
-#define QTGMENUCONVERTER_H
+#include <MainWindow.h>
+#include <QApplication>
 
-#include <memory>
-#include <QMenu>
-
-class _GMenuModel;
-typedef _GMenuModel GMenuModel;
-
-namespace qtgmenu
+int main( int argc, char **argv )
 {
+  QApplication application( argc, argv );
 
-class QtGMenuConverterPrivate;
+  MainWindow mainWindow;
+  mainWindow.show();
 
-class QtGMenuConverter final
-{
-public:
-  QtGMenuConverter();
-  ~QtGMenuConverter();
-
-  static std::shared_ptr< QMenu > ToQMenu( const GMenuModel& from_menu );
-  static GMenuModel* ToGMenuModel( const QMenu& from_menu );
-
-private:
-  Q_DISABLE_COPY(QtGMenuConverter)
-  std::unique_ptr< QtGMenuConverterPrivate > d;
-};
-
-} // namespace qtgmenu
-
-#endif // QTGMENUCONVERTER_H
+  return application.exec();
+}
