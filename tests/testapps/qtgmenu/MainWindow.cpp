@@ -16,39 +16,12 @@ MainWindow::~MainWindow()
 
 void MainWindow::RefreshMenus()
 {
+  menuBar()->clear();
+
   m_top_menu = m_menu_importer.GetQMenu();
-
-  // remove missing items
-  for( int i = 0; i < menuBar()->actions().size(); ++i )
+  if( m_top_menu )
   {
-    QAction* action = menuBar()->actions().at( i );
-
-    if( !m_top_menu || i >= m_top_menu->actions().size()
-        || !m_top_menu->actions().contains( action ) )
-    {
-      menuBar()->removeAction( action );
-      --i;
-    }
-  }
-
-  if( !m_top_menu )
-  {
-    return;
-  }
-
-  // add new items
-  for( int i = 0; i < m_top_menu->actions().size(); ++i )
-  {
-    QAction* action = m_top_menu->actions().at( i );
-
-    if( i >= menuBar()->actions().size() )
-    {
-      menuBar()->addAction( action );
-    }
-    else if( action != menuBar()->actions().at( i ) )
-    {
-      menuBar()->insertAction( menuBar()->actions().at( i ), action );
-    }
+    menuBar()->addActions( m_top_menu->actions() );
   }
 
   menuBar()->repaint();
