@@ -22,6 +22,7 @@
 
 #include <libqtdbustest/DBusTestRunner.h>
 #include <libqtdbusmock/DBusMock.h>
+#include <QSignalSpy>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
@@ -142,6 +143,35 @@ protected:
 				"WindowStackForMonitor", "i", "as", windowStack).waitForFinished();
 	}
 
+	void windowChanged(const QString &oldPath, const QString &newPath) {
+		bamfMatcherMock().EmitSignal(
+				OrgAyatanaBamfMatcherInterface::staticInterfaceName(),
+				"ActiveWindowChanged", "ss", QVariantList() << oldPath << "");
+		bamfMatcherMock().EmitSignal(
+				OrgAyatanaBamfMatcherInterface::staticInterfaceName(),
+				"ActiveWindowChanged", "ss", QVariantList() << "" << newPath);
+	}
+
+	void windowClosed(const QString &closedPath, const QString &newPath) {
+		bamfMatcherMock().EmitSignal(
+				OrgAyatanaBamfMatcherInterface::staticInterfaceName(),
+				"ActiveWindowChanged", "ss",
+				QVariantList() << closedPath << newPath);
+		bamfMatcherMock().EmitSignal(
+				OrgAyatanaBamfMatcherInterface::staticInterfaceName(),
+				"ViewClosed", "ss", QVariantList() << closedPath << "window");
+	}
+
+	void windowOpened(const QString &oldPath, const QString &openedPath) {
+		bamfMatcherMock().EmitSignal(
+				OrgAyatanaBamfMatcherInterface::staticInterfaceName(),
+				"ViewOpened", "ss", QVariantList() << openedPath << "window");
+		bamfMatcherMock().EmitSignal(
+				OrgAyatanaBamfMatcherInterface::staticInterfaceName(),
+				"ActiveWindowChanged", "ss",
+				QVariantList() << oldPath << openedPath);
+	}
+
 	DBusTestRunner dbus;
 
 	DBusMock mock;
@@ -242,6 +272,96 @@ TEST_F(TestBamfWindowStack, HandlesTwoApplications) {
 			windowInfos.at(3));
 	EXPECT_EQ(WindowInfo(4, "appid-1", false, WindowInfo::MAIN),
 			windowInfos.at(4));
+}
+
+TEST_F(TestBamfWindowStack, FocusedWindowChanged) {
+	// app 0
+	createApplication(0);
+	createWindow(0, 0);
+	createWindow(1, 0);
+	createWindow(2, 0);
+
+	// app 1
+	createApplication(1);
+	createWindow(3, 1);
+	createWindow(4, 1);
+
+	createMatcherMethods(5, 3);
+
+	BamfWindowStack windowStack(dbus.sessionConnection());
+	QSignalSpy windowChangedSpy(&windowStack,
+	SIGNAL(FocusedWindowChanged(uint, const QString &, uint)));
+
+	windowChanged(windowPath(0), windowPath(3));
+	windowChangedSpy.wait();
+	ASSERT_EQ(1, windowChangedSpy.size());
+	EXPECT_EQ(QVariantList() << uint(3) << "appid-1" << uint(0),
+			windowChangedSpy.at(0));
+
+	{
+		QList<WindowInfo> windowInfos(windowStack.GetWindowStack());
+		ASSERT_EQ(5, windowInfos.size());
+		EXPECT_EQ(WindowInfo(3, "appid-1", true, WindowInfo::MAIN),
+				windowInfos.at(0));
+		EXPECT_EQ(WindowInfo(0, "appid-0", false, WindowInfo::MAIN),
+				windowInfos.at(1));
+		EXPECT_EQ(WindowInfo(1, "appid-0", false, WindowInfo::MAIN),
+				windowInfos.at(2));
+		EXPECT_EQ(WindowInfo(2, "appid-0", false, WindowInfo::MAIN),
+				windowInfos.at(3));
+		EXPECT_EQ(WindowInfo(4, "appid-1", false, WindowInfo::MAIN),
+				windowInfos.at(4));
+	}
+}
+
+TEST_F(TestBamfWindowStack, WindowDestroyed) {
+	// app 0
+	createApplication(0);
+	createWindow(0, 0);
+	createWindow(1, 0);
+	createWindow(2, 0);
+
+	// app 1
+	createApplication(1);
+	createWindow(3, 1);
+	createWindow(4, 1);
+
+	createMatcherMethods(5, 4);
+
+	BamfWindowStack windowStack(dbus.sessionConnection());
+	QSignalSpy windowDestroyedSpy(&windowStack,
+	SIGNAL(WindowDestroyed(uint, const QString &)));
+
+	windowClosed(windowPath(4), windowPath(0));
+	windowDestroyedSpy.wait();
+	ASSERT_EQ(1, windowDestroyedSpy.size());
+	EXPECT_EQ(QVariantList() << uint(4) << "appid-1", windowDestroyedSpy.at(0));
+}
+
+TEST_F(TestBamfWindowStack, WindowCreated) {
+	// app 0
+	createApplication(0);
+	createWindow(0, 0);
+	createWindow(1, 0);
+	createWindow(2, 0);
+
+	// app 1
+	createApplication(1);
+	createWindow(3, 1);
+	createWindow(4, 1);
+
+
+	createMatcherMethods(5, 4);
+
+	BamfWindowStack windowStack(dbus.sessionConnection());
+	QSignalSpy windowCreatedSpy(&windowStack,
+	SIGNAL(WindowCreated(uint, const QString &)));
+
+	createWindow(5, 1);
+	windowOpened(windowPath(4), windowPath(5));
+	windowCreatedSpy.wait();
+	ASSERT_EQ(1, windowCreatedSpy.size());
+	EXPECT_EQ(QVariantList() << uint(5) << "appid-1", windowCreatedSpy.at(0));
 }
 
 } // namespace

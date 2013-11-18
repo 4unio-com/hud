@@ -24,6 +24,11 @@ target_link_libraries(
 	${QTDBUSMOCK_LIBRARIES}
 )
 
+qt5_use_modules(
+	window-stack-bridge-unit-tests
+	Test
+)
+
 add_valgrind_test(
 	window-stack-bridge-unit-tests
 	window-stack-bridge-unit-tests
