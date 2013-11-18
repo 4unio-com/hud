@@ -31,6 +31,8 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
       m_model( model ),
       m_link_type( link_type )
 {
+  ConnectCallback();
+
   if( m_parent )
   {
     m_parent->InsertChild( this, index );
@@ -71,8 +73,6 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
   {
     CreateChild( this, m_model, i );
   }
-
-  ConnectCallback();
 }
 
 QtGMenuModel::~QtGMenuModel()
@@ -301,6 +301,7 @@ int QtGMenuModel::ChildIndex( QtGMenuModel* child )
 
 QAction* QtGMenuModel::CreateAction( int index )
 {
+  // action label
   QAction* action = new QAction( this );
 
   GVariant* label = g_menu_model_get_item_attribute_value( m_model, index, G_MENU_ATTRIBUTE_LABEL,
@@ -310,6 +311,9 @@ QAction* QtGMenuModel::CreateAction( int index )
   qlabel.replace( '_', '&' );
   g_variant_unref( label );
 
+  action->setText( qlabel );
+
+  // action name
   GVariant* action_name = g_menu_model_get_item_attribute_value( m_model, index,
       G_MENU_ATTRIBUTE_ACTION, G_VARIANT_TYPE_STRING );
 
@@ -319,14 +323,15 @@ QAction* QtGMenuModel::CreateAction( int index )
   int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
   qaction_name = qaction_name.right( name_length );
 
+  action->setObjectName( qaction_name );
+
+  // action icon
   GVariant* icon = g_menu_model_get_item_attribute_value( m_model, index, G_MENU_ATTRIBUTE_ICON,
       G_VARIANT_TYPE_VARIANT );
 
+  // action trigger
   connect( action, SIGNAL( triggered( bool ) ), this, SLOT( ActionTriggered( bool ) ) );
 
-  action->setObjectName( qaction_name );
-
-  action->setText( qlabel );
   return action;
 }
 

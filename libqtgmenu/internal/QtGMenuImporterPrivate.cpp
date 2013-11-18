@@ -194,8 +194,6 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   m_menu_model = new QtGMenuModel(
       G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str() ) ) );
 
-  LinkMenuActions();
-
   m_items_changed_conn = connect( m_menu_model, SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
           int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );
 
@@ -219,6 +217,8 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
 
   if( menu_is_valid )
   {
+    LinkMenuActions();
+
     // menu is valid, start polling for actions
     m_menu_poll_timer.stop();
   }
@@ -251,8 +251,6 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
       new QtGActionGroup(
           G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), m_path.c_str() ) ) );
 
-  LinkMenuActions();
-
   m_action_added_conn = connect( m_action_group, SIGNAL( ActionAdded( QString ) ), &m_parent,
       SIGNAL( ActionAdded( QString ) ) );
   m_action_removed_conn = connect( m_action_group, SIGNAL( ActionRemoved( QString ) ), &m_parent,
@@ -282,6 +280,8 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
 
   if( actions_are_valid )
   {
+    LinkMenuActions();
+
     // actions are valid, no need to continue polling
     m_actions_poll_timer.stop();
   }
