@@ -209,9 +209,6 @@ QKeySequence QtGMenuUtils::QStringToQKeySequence( QString& shortcut )
     return QKeySequence();
   }
 
-  QKeySequence x( Qt::Key_PageUp );
-  QString y = x.toString();
-
   shortcut.replace( "<primary>", "Ctrl+", Qt::CaseInsensitive );
   shortcut.replace( "<control>", "Ctrl+", Qt::CaseInsensitive );
   shortcut.replace( "<shift>", "Shift+", Qt::CaseInsensitive );
