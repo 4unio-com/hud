@@ -329,6 +329,12 @@ QAction* QtGMenuModel::CreateAction( int index )
   GVariant* icon = g_menu_model_get_item_attribute_value( m_model, index, G_MENU_ATTRIBUTE_ICON,
       G_VARIANT_TYPE_VARIANT );
 
+  // action shortcut
+  GMenuItem* menu_item = g_menu_item_new_from_model( m_model, index );
+  GVariant* shortcut = g_menu_item_get_attribute_value( menu_item, "accel", G_VARIANT_TYPE_STRING );
+  QString qshortcut = QtGMenuUtils::GVariantToQVariant( shortcut ).toString();
+  action->setShortcut( QtGMenuUtils::QStringToQKeySequence( qshortcut ) );
+
   // action trigger
   connect( action, SIGNAL( triggered( bool ) ), this, SLOT( ActionTriggered( bool ) ) );
 

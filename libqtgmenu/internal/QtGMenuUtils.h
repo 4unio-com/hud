@@ -19,10 +19,12 @@
 #ifndef QTGMENUUTILS_H
 #define QTGMENUUTILS_H
 
-#include <QtCore>
-
 class _GVariant;
 typedef _GVariant GVariant;
+
+class QKeySequence;
+class QString;
+class QVariant;
 
 namespace qtgmenu
 {
@@ -31,6 +33,7 @@ class QtGMenuUtils final
 {
 public:
   static QVariant GVariantToQVariant( GVariant* gvariant );
+  static QKeySequence QStringToQKeySequence( QString& shortcut );
 };
 
 } // namespace qtgmenu

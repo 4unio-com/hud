@@ -18,6 +18,9 @@
 
 #include <QtGMenuUtils.h>
 
+#include <QtCore>
+#include <QKeySequence>
+
 #undef signals
 #include <gio/gio.h>
 
@@ -197,4 +200,29 @@ QVariant QtGMenuUtils::GVariantToQVariant( GVariant* gvariant )
   }
 
   return QVariant();
+}
+
+QKeySequence QtGMenuUtils::QStringToQKeySequence( QString& shortcut )
+{
+  if( shortcut.isEmpty() )
+  {
+    return QKeySequence();
+  }
+
+  QKeySequence x( Qt::Key_PageUp );
+  QString y = x.toString();
+
+  shortcut.replace( "<primary>", "Ctrl+", Qt::CaseInsensitive );
+  shortcut.replace( "<control>", "Ctrl+", Qt::CaseInsensitive );
+  shortcut.replace( "<shift>", "Shift+", Qt::CaseInsensitive );
+  shortcut.replace( "<alt>", "Alt+", Qt::CaseInsensitive );
+  shortcut.replace( "<meta>", "Meta+", Qt::CaseInsensitive );
+  shortcut.replace( "<super>", "Super+", Qt::CaseInsensitive );
+  shortcut.replace( "<hyper>", "Hyper+", Qt::CaseInsensitive );
+  shortcut.replace( "plus", "+", Qt::CaseInsensitive );
+  shortcut.replace( "minus", "-", Qt::CaseInsensitive );
+  shortcut.replace( "page_up", "PgUp", Qt::CaseInsensitive );
+  shortcut.replace( "page_down", "PgDown", Qt::CaseInsensitive );
+
+  return QKeySequence::fromString( shortcut );
 }
