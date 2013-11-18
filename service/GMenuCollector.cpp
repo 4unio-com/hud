@@ -19,10 +19,13 @@
 #include <common/WindowStackInterface.h>
 #include <service/GMenuCollector.h>
 
+#include <libqtgmenu/QtGMenuImporter.h>
+
 #include <QStringList>
 #include <QDebug>
 
 using namespace hud::service;
+using namespace qtgmenu;
 
 static const QStringList GMENU_WINDOW_PROPERTIES( { "_GTK_UNIQUE_BUS_NAME",
 		"_GTK_APP_MENU_OBJECT_PATH", "_GTK_MENUBAR_OBJECT_PATH",
@@ -32,7 +35,7 @@ static const QStringList GMENU_WINDOW_PROPERTIES( { "_GTK_UNIQUE_BUS_NAME",
 GMenuCollector::GMenuCollector(unsigned int windowId,
 		const QString &applicationId,
 		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack) :
-		m_windowStack(windowStack), m_valid(false) {
+		m_windowStack(windowStack) {
 
 	QDBusPendingReply<QStringList> windowPropertiesReply(
 			windowStack->GetWindowProperties(windowId, applicationId,
@@ -73,7 +76,6 @@ GMenuCollector::GMenuCollector(unsigned int windowId,
 		m_unityPath = QDBusObjectPath(windowProperties.at(5));
 	}
 
-	m_valid = true;
 	qDebug() << "GMenu available for" << applicationId << windowId << "at"
 			<< m_busName;
 	qDebug() << "m_appmenuPath" << m_appmenuPath.path();
@@ -81,22 +83,36 @@ GMenuCollector::GMenuCollector(unsigned int windowId,
 	qDebug() << "m_applicationPath" << m_applicationPath.path();
 	qDebug() << "m_windowPath" << m_windowPath.path();
 	qDebug() << "m_unityPath" << m_unityPath.path();
+
+	m_menubarImporter.reset(
+			new QtGMenuImporter(m_busName, m_menubarPath.path()));
 }
 
 GMenuCollector::~GMenuCollector() {
 }
 
 bool GMenuCollector::isValid() const {
-	return m_valid;
+	return !m_menubarPath.path().isEmpty();
 }
 
 CollectorToken::Ptr GMenuCollector::activate() {
-	return CollectorToken::Ptr(new CollectorToken(shared_from_this()));
+	qDebug() << "GMenuCollector::activate";
+	CollectorToken::Ptr collectorToken(m_collectorToken);
+
+	if (collectorToken.isNull()) {
+		qDebug() << "GMenuCollector::opening menus";
+		m_menubar = m_menubarImporter->GetQMenu();
+		collectorToken.reset(new CollectorToken(shared_from_this()));
+		m_collectorToken = collectorToken;
+	}
+
+	return collectorToken;
 }
 
 void GMenuCollector::deactivate() {
+	qDebug() << "GMenuCollector::deactivate";
 }
 
 const QMenu * GMenuCollector::menu() const {
-	return nullptr;
+	return m_menubar.get();
 }

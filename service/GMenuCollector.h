@@ -21,7 +21,13 @@
 
 #include <service/Collector.h>
 
+#include <QScopedPointer>
+
 class ComCanonicalUnityWindowStackInterface;
+
+namespace qtgmenu {
+class QtGMenuImporter;
+}
 
 namespace hud {
 namespace service {
@@ -47,7 +53,7 @@ protected:
 
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
 
-	bool m_valid;
+	QWeakPointer<CollectorToken> m_collectorToken;
 
 	QString m_busName;
 
@@ -60,6 +66,10 @@ protected:
 	QDBusObjectPath m_windowPath;
 
 	QDBusObjectPath m_unityPath;
+
+	QScopedPointer<qtgmenu::QtGMenuImporter> m_menubarImporter;
+
+	std::shared_ptr<QMenu> m_menubar;
 };
 
 }

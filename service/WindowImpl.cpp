@@ -30,6 +30,7 @@ WindowTokenImpl::WindowTokenImpl(Collector::Ptr dbusMenuCollector,
 	}
 	if (gMenuCollector->isValid()) {
 		gMenuCollector->activate();
+		m_items.indexMenu(gMenuCollector->menu());
 	}
 }
 

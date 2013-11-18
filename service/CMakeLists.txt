@@ -59,6 +59,7 @@ add_library(hud-service
 
 target_link_libraries(hud-service
   hud-common
+  qtgmenu
   ${DBUSMENU_LIBRARIES}
   ${GOBJECT2_LIBRARIES}
   ${DEE_LIBRARIES}
