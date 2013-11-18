@@ -36,7 +36,7 @@ ItemStore::~ItemStore() {
 }
 
 void ItemStore::indexMenu(const QMenu *menu, const QStringList &stack) {
-	for (const QAction *action : menu->actions()) {
+	for (QAction *action : menu->actions()) {
 		if (!action->isEnabled()) {
 			continue;
 		}
@@ -140,4 +140,12 @@ void ItemStore::search(const QString &query, QList<Result> &results) {
 
 	}
 
+}
+
+void ItemStore::execute(unsigned long long int commandId, uint timestamp) {
+	QAction *action = m_actions[commandId];
+	if (action == nullptr) {
+		qWarning() << "Tried to execute unknown command" << commandId;
+	}
+	action->activate(QAction::ActionEvent::Trigger);
 }

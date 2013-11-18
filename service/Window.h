@@ -35,6 +35,8 @@ public:
 
 	virtual void search(const QString &query, QList<Result> &results) = 0;
 
+	virtual void execute(unsigned long long commandId, uint timestamp) = 0;
+
 protected:
 	explicit WindowToken();
 };

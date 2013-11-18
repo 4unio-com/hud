@@ -29,7 +29,7 @@ WindowTokenImpl::WindowTokenImpl(Collector::Ptr dbusMenuCollector,
 		m_items.indexMenu(dbusMenuCollector->menu());
 	}
 	if (gMenuCollector->isValid()) {
-		gMenuCollector->activate();
+		m_gMenuToken = gMenuCollector->activate();
 		m_items.indexMenu(gMenuCollector->menu());
 	}
 }
@@ -39,6 +39,9 @@ WindowTokenImpl::~WindowTokenImpl() {
 
 void WindowTokenImpl::search(const QString &query, QList<Result> &results) {
 	m_items.search(query, results);
+}
+void WindowTokenImpl::execute(unsigned long long commandId, uint timestamp) {
+	m_items.execute(commandId, timestamp);
 }
 
 WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,

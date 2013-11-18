@@ -40,6 +40,8 @@ public:
 
 	virtual void search(const QString &query, QList<Result> &results);
 
+	virtual void execute(unsigned long long commandId, uint timestamp);
+
 protected:
 	ItemStore m_items;
 

@@ -87,7 +87,16 @@ void QueryImpl::CloseQuery() {
 }
 
 void QueryImpl::ExecuteCommand(const QDBusVariant &item, uint timestamp) {
-	qDebug() << "ExecuteCommand" << item.variant() << timestamp;
+	if (!item.variant().canConvert<qlonglong>()) {
+		qWarning() << "Failed to execute command - invalid item key"
+				<< item.variant();
+		sendErrorReply(QDBusError::InvalidArgs,
+				"Failed to execute command - invalid item key");
+		return;
+	}
+
+	qulonglong commandId(item.variant().toULongLong());
+	m_windowToken->execute(commandId, timestamp);
 }
 
 QString QueryImpl::ExecuteParameterized(const QDBusVariant &item,
@@ -111,7 +120,6 @@ int QueryImpl::UpdateApp(const QString &app) {
 }
 
 int QueryImpl::UpdateQuery(const QString &query) {
-	qDebug() << "UpdateQuery" << query;
 	if (m_query == query) {
 		return 0;
 	}

@@ -42,6 +42,8 @@ public:
 
 	void search(const QString &query, QList<Result> &results);
 
+	void execute(unsigned long long commandId, uint timestamp);
+
 protected:
 	void indexMenu(const QMenu *menu, const QStringList &stack);
 
@@ -51,7 +53,7 @@ protected:
 
 	DocumentID m_nextId;
 
-	QMap<DocumentID, const QAction *> m_actions;
+	QMap<DocumentID, QAction *> m_actions;
 };
 
 }
