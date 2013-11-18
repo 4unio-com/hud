@@ -43,6 +43,8 @@ public:
 
 	~WindowInfo();
 
+	bool operator==(const WindowInfo &other) const;
+
 	static void registerMetaTypes();
 };
 

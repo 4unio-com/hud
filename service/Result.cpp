@@ -25,10 +25,9 @@ Result::Result() :
 }
 
 Result::Result(qulonglong id, const QString &commandName,
-		const QList<QPair<int, int>> &commandHighlights,
-		const QString &description,
-		const QList<QPair<int, int>> &descriptionHighlights,
-		const QString &shortcut, int distance, bool parameterized) :
+		const HighlightList &commandHighlights, const QString &description,
+		const HighlightList &descriptionHighlights, const QString &shortcut,
+		int distance, bool parameterized) :
 		m_id(id), m_commandName(commandName), m_commandHighlights(
 				commandHighlights), m_description(description), m_descriptionHighlights(
 				descriptionHighlights), m_shortcut(shortcut), m_distance(
@@ -46,7 +45,7 @@ const QString & Result::commandName() const {
 	return m_commandName;
 }
 
-const QList<QPair<int, int>> & Result::commandHighlights() const {
+const Result::HighlightList & Result::commandHighlights() const {
 	return m_commandHighlights;
 }
 
@@ -54,7 +53,7 @@ const QString & Result::description() const {
 	return m_description;
 }
 
-const QList<QPair<int, int>> & Result::descriptionHighlights() const {
+const Result::HighlightList & Result::descriptionHighlights() const {
 	return m_descriptionHighlights;
 }
 

@@ -60,6 +60,8 @@ public:
 	MOCK_CONST_METHOD0(results, const QList<Result> &());
 
 	MOCK_METHOD1(UpdateQuery, int(const QString &));
+
+	MOCK_METHOD2(ExecuteCommand, void(const QDBusVariant &, uint));
 };
 
 class MockApplicationList: public ApplicationList {

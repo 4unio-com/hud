@@ -17,6 +17,7 @@
  */
 
 #include <common/DBusTypes.h>
+#include <libqtdbusmock/DBusMock.h>
 #include <QApplication>
 #include <gtest/gtest.h>
 
@@ -30,6 +31,7 @@ int main(int argc, char **argv) {
 
 	QApplication application(argc, argv);
 	hud::common::DBusTypes::registerMetaTypes();
+	QtDBusMock::DBusMock::registerMetaTypes();
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }

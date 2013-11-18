@@ -19,6 +19,8 @@
 
 #include <hud-client.h>
 
+using namespace hud::client;
+
 static const int ActionRole = Qt::UserRole;
 static const int EnabledRole = Qt::UserRole + 1;
 
@@ -46,7 +48,8 @@ public:
 HudToolBarModel::HudToolBarModel(HudClientQuery *query) :
 		p(new Priv()) {
 	p->m_query = query;
-	p->m_actions << HUD_CLIENT_QUERY_TOOLBAR_UNDO << HUD_CLIENT_QUERY_TOOLBAR_HELP
+	p->m_actions << HUD_CLIENT_QUERY_TOOLBAR_UNDO
+			<< HUD_CLIENT_QUERY_TOOLBAR_HELP
 			<< HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN
 			<< HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES;
 }

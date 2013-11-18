@@ -22,6 +22,9 @@
 
 typedef struct _HudClientQuery HudClientQuery;
 
+namespace hud {
+namespace client {
+
 class HudToolBarModel: public QAbstractListModel {
 	class Priv;
 
@@ -33,7 +36,9 @@ public:
 	~HudToolBarModel();
 
 	int rowCount(const QModelIndex &parent = QModelIndex()) const;
+
 	QVariant data(const QModelIndex &parent, int role) const;
+
 	QHash<int, QByteArray> roleNames() const;
 
 	void updatedByBackend();
@@ -41,5 +46,8 @@ public:
 private:
 	QScopedPointer<Priv> p;
 };
+
+}
+}
 
 #endif

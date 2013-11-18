@@ -28,13 +28,15 @@ namespace service {
 
 class Result {
 public:
+	typedef QPair<int, int> Highlight;
+	typedef QList<Highlight> HighlightList;
+
 	explicit Result();
 
 	explicit Result(qulonglong id, const QString &commandName,
-			const QList<QPair<int, int>> &commandHighlights,
-			const QString &description,
-			const QList<QPair<int, int>> &descriptionHighlights,
-			const QString &shortcut, int distance, bool parameterized);
+			const HighlightList &commandHighlights, const QString &description,
+			const HighlightList &descriptionHighlights, const QString &shortcut,
+			int distance, bool parameterized);
 
 	virtual ~Result();
 
@@ -42,11 +44,11 @@ public:
 
 	const QString & commandName() const;
 
-	const QList<QPair<int, int>> & commandHighlights() const;
+	const HighlightList & commandHighlights() const;
 
 	const QString & description() const;
 
-	const QList<QPair<int, int>> & descriptionHighlights() const;
+	const HighlightList & descriptionHighlights() const;
 
 	const QString & shortcut() const;
 
@@ -59,11 +61,11 @@ protected:
 
 	QString m_commandName;
 
-	QList<QPair<int, int>> m_commandHighlights;
+	HighlightList m_commandHighlights;
 
 	QString m_description;
 
-	QList<QPair<int, int>> m_descriptionHighlights;
+	HighlightList m_descriptionHighlights;
 
 	QString m_shortcut;
 
