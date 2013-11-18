@@ -214,4 +214,34 @@ TEST_F(TestBamfWindowStack, GetWindowPropertiesForBrokenWindow) {
 	ASSERT_EQ(QStringList() << "", properties);
 }
 
+TEST_F(TestBamfWindowStack, HandlesTwoApplications) {
+	// app 0
+	createApplication(0);
+	createWindow(0, 0);
+	createWindow(1, 0);
+	createWindow(2, 0);
+
+	// app 1
+	createApplication(1);
+	createWindow(3, 1);
+	createWindow(4, 1);
+
+	createMatcherMethods(5, 0);
+
+	BamfWindowStack windowStack(dbus.sessionConnection());
+
+	QList<WindowInfo> windowInfos(windowStack.GetWindowStack());
+	ASSERT_EQ(5, windowInfos.size());
+	EXPECT_EQ(WindowInfo(0, "appid-0", true, WindowInfo::MAIN),
+			windowInfos.at(0));
+	EXPECT_EQ(WindowInfo(1, "appid-0", false, WindowInfo::MAIN),
+			windowInfos.at(1));
+	EXPECT_EQ(WindowInfo(2, "appid-0", false, WindowInfo::MAIN),
+			windowInfos.at(2));
+	EXPECT_EQ(WindowInfo(3, "appid-1", false, WindowInfo::MAIN),
+			windowInfos.at(3));
+	EXPECT_EQ(WindowInfo(4, "appid-1", false, WindowInfo::MAIN),
+			windowInfos.at(4));
+}
+
 } // namespace
