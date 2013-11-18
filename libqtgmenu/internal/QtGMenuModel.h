@@ -65,7 +65,7 @@ private Q_SLOTS:
 private:
   QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index );
 
-  static QtGMenuModel* CreateModel( QtGMenuModel* parent, GMenuModel* model, int index );
+  static QtGMenuModel* CreateChild( QtGMenuModel* parent, GMenuModel* model, int index );
 
   static void MenuItemsChangedCallback( GMenuModel* model, gint index, gint removed, gint added,
       gpointer user_data );
@@ -81,7 +81,7 @@ private:
   QAction* CreateAction( int index );
 
   void AppendQMenu( std::shared_ptr< QMenu > top_menu );
-  void RefreshQMenu();
+  void UpdateExtQMenu();
 
 private:
   QtGMenuModel* m_parent = nullptr;
@@ -94,6 +94,7 @@ private:
   int m_size = 0;
 
   QMenu* m_menu = new QMenu();
+  QMenu* m_ext_menu = new QMenu();
 };
 
 } // namespace qtgmenu

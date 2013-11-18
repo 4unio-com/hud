@@ -19,15 +19,16 @@ void MainWindow::RefreshMenus()
   m_top_menu = m_menu_importer.GetQMenu();
 
   // remove missing items
-  for( int i = 0; i < menuBar()->actions().size(); i++ )
+  for( int i = 0; i < menuBar()->actions().size(); ++i )
   {
     QAction* action = menuBar()->actions().at( i );
 
     if( !m_top_menu ||
         i >= m_top_menu->actions().size() ||
-        action != m_top_menu->actions().at( i ) )
+        !m_top_menu->actions().contains( action ) )
     {
       menuBar()->removeAction( action );
+      --i;
     }
   }
 
@@ -37,7 +38,7 @@ void MainWindow::RefreshMenus()
   }
 
   // add new items
-  for( int i = 0; i < m_top_menu->actions().size(); i++  )
+  for( int i = 0; i < m_top_menu->actions().size(); ++i  )
   {
     QAction* action = m_top_menu->actions().at( i );
 

@@ -44,7 +44,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
       qlabel.replace( '_', '&' );
       g_variant_unref( label );
 
-      m_menu->setTitle( qlabel );
+      m_ext_menu->setTitle( qlabel );
     }
   }
 
@@ -55,7 +55,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 
   for( int i = 0; i < m_size; ++i )
   {
-    CreateModel( this, m_model, i );
+    CreateChild( this, m_model, i );
   }
 
   ConnectCallback();
@@ -77,7 +77,7 @@ QtGMenuModel::~QtGMenuModel()
   m_children.clear();
 
   delete m_menu;
-  m_menu = nullptr;
+  delete m_ext_menu;
 }
 
 GMenuModel* QtGMenuModel::Model() const
@@ -125,7 +125,7 @@ void QtGMenuModel::ActionTriggered( bool checked )
   emit ActionTriggered( action->objectName(), checked );
 }
 
-QtGMenuModel* QtGMenuModel::CreateModel( QtGMenuModel* parent, GMenuModel* model, int index )
+QtGMenuModel* QtGMenuModel::CreateChild( QtGMenuModel* parent, GMenuModel* model, int index )
 {
   LinkType linkType( LinkType::SubMenu );
   GMenuModel* link = g_menu_model_get_item_link( model, index, G_MENU_LINK_SUBMENU );
@@ -153,17 +153,11 @@ void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint
 
 void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
 {
-  QtGMenuModel* model_effected = this;
-  QAction* at_action = nullptr;
-  if( m_link_type == LinkType::Section && m_parent )
-  {
-    model_effected = m_parent;
-  }
-
   if( removed > 0 )
   {
     for( int i = 0; i < removed; ++i )
     {
+      QAction* at_action = nullptr;
       if( index < m_menu->actions().size() )
       {
         at_action = m_menu->actions().at( index );
@@ -201,30 +195,37 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
     m_size += added;
 
     for( int i = index; i < ( index + added ); ++i )
-    {
-      QtGMenuModel* model = CreateModel( this, m_model, i );
+    {      
+      QAction* at_action = nullptr;
+      if( index + i < m_menu->actions().size() )
+      {
+        at_action = m_menu->actions().at( index + i );
+      }
+
+      QtGMenuModel* model = CreateChild( this, m_model, i );
+
       if( !model )
       {
-        if( index + i < m_menu->actions().size() )
-        {
-          at_action = m_menu->actions().at( index + i );
-        }
-
         m_menu->insertAction( at_action, CreateAction( i ) );
+      }
+      else if( model->Type() == LinkType::Section )
+      {
+        m_menu->insertSeparator( at_action );
       }
       else if( model->Type() == LinkType::SubMenu )
       {
-        if( index + i < m_menu->actions().size() )
-        {
-          at_action = m_menu->actions().at( index + i );
-        }
-
-        m_menu->insertMenu( at_action, model->m_menu );
+        m_menu->insertMenu( at_action, model->m_ext_menu );
       }
     }
   }
 
-  model_effected->RefreshQMenu();
+  // update external menu
+  UpdateExtQMenu();
+  if( m_link_type == LinkType::Section && m_parent )
+  {
+    m_parent->UpdateExtQMenu();
+  }
+
   emit MenuItemsChanged( this, index, removed, added );
 }
 
@@ -308,7 +309,7 @@ QAction* QtGMenuModel::CreateAction( int index )
 
 void QtGMenuModel::AppendQMenu( std::shared_ptr< QMenu > top_menu )
 {
-  top_menu->addAction( m_menu->menuAction() );
+  top_menu->addAction( m_ext_menu->menuAction() );
 
   if( m_link_type != LinkType::SubMenu )
   {
@@ -319,41 +320,43 @@ void QtGMenuModel::AppendQMenu( std::shared_ptr< QMenu > top_menu )
   }
 }
 
-void QtGMenuModel::RefreshQMenu()
+void QtGMenuModel::UpdateExtQMenu()
 {
-  // loop through children
-  // if child is action, add action
-  // if child section, add its menu items to this qmenu
-  // if child is submenu, add menu
+  m_ext_menu->clear();
 
-  QAction* last_separator = nullptr;
-
-  m_menu->clear();
-
-  for( int i = 0; i < m_size; ++i )
+  for( int i = 0; i < m_menu->actions().size(); ++i )
   {
-    QtGMenuModel* child = Child( i );
+    QAction* action = m_menu->actions().at( i );
 
-    if( !child )
+    if( action->isSeparator() )
     {
-      ///!
-    }
-    else if( child->Type() == LinkType::Section )
-    {
-      for( QAction* action : child->m_menu->actions() )
+      QtGMenuModel* child = Child( i );
+      if( !child || child->Type() != LinkType::Section )
       {
-        m_menu->addAction( action );
+        continue;
       }
-    }
-    else if( child->Type() == LinkType::SubMenu )
-    {
-      m_menu->addMenu( child->m_menu );
-    }
+      QMenu* section = child->m_ext_menu;
 
-    last_separator = m_menu->addSeparator();
+      for( QAction* sub_action : section->actions() )
+      {
+        m_ext_menu->addAction( sub_action );
+      }
+      m_ext_menu->addSeparator();
+    }
+    else
+    {
+      m_ext_menu->addAction( action );
+    }
   }
 
-  m_menu->removeAction( last_separator );
+  if( m_ext_menu->actions().size() > 0 )
+  {
+    QAction* last_action = m_ext_menu->actions().last();
+    if( last_action && last_action->isSeparator() )
+    {
+      m_ext_menu->removeAction( last_action );
+    }
+  }
 }
 
 #include <QtGMenuModel.moc>
