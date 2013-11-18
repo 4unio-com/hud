@@ -92,13 +92,13 @@ void ItemStore::indexMenu(const QMenu *menu) {
 }
 
 static void findHighlights(Result::HighlightList &highlights,
-		const QStringMatcher &matcher, const QString &query, const QString &s) {
+		const QStringMatcher &matcher, int length, const QString &s) {
 
-	if (!query.isEmpty()) {
+	if (length > 0) {
 		int idx = matcher.indexIn(s);
 		while (idx != -1) {
-			highlights << Result::Highlight(idx, idx + query.length());
-			idx = matcher.indexIn(s, idx + 1);
+			highlights << Result::Highlight(idx, idx + length);
+			idx = matcher.indexIn(s, idx + length);
 		}
 	}
 }
@@ -112,6 +112,7 @@ void ItemStore::search(const QString &query, QList<Result> &results) {
 	MatchResults matchResults(m_matcher.match(queryList));
 
 	QStringMatcher stringMatcher(query, Qt::CaseInsensitive);
+	int queryLength(query.length());
 
 	for (size_t i(0); i < matchResults.size(); ++i) {
 		DocumentID id(matchResults.getDocumentID(i));
@@ -123,12 +124,13 @@ void ItemStore::search(const QString &query, QList<Result> &results) {
 				action->text().remove(SINGLE_AMPERSAND).replace("&&", "&"));
 
 		Result::HighlightList commandHighlights;
-		findHighlights(commandHighlights, stringMatcher, query, commandName);
+		findHighlights(commandHighlights, stringMatcher, queryLength,
+				commandName);
 
 		//TODO Generate the description
 		QString description;
 		Result::HighlightList descriptionHighlights;
-		findHighlights(descriptionHighlights, stringMatcher, query,
+		findHighlights(descriptionHighlights, stringMatcher, queryLength,
 				description);
 
 		results
