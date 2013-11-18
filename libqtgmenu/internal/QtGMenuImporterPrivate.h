@@ -85,7 +85,9 @@ private:
   QMetaObject::Connection m_action_state_changed_conn;
 
   bool m_menu_actions_linked = false;
-  QMetaObject::Connection m_action_activated_conn;
+  QMetaObject::Connection m_action_activated_link;
+  QMetaObject::Connection m_action_enabled_link;
+  QMetaObject::Connection m_items_changed_link;
 };
 
 } // namespace qtgmenu

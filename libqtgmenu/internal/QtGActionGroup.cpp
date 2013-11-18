@@ -91,20 +91,33 @@ QString QtGActionGroup::Action( int index )
 
 void QtGActionGroup::TriggerAction( QString action_name, bool checked )
 {
-  int name_length = action_name.size() - action_name.indexOf( '.' ) - 1;
-  QString action_only = action_name.right( name_length );
-
   const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,
-      action_only.toStdString().c_str() );
+      action_name.toStdString().c_str() );
 
   if( type == nullptr )
   {
-    g_action_group_activate_action( m_action_group, action_only.toStdString().c_str(), nullptr );
+    g_action_group_activate_action( m_action_group, action_name.toStdString().c_str(), nullptr );
   }
   else
   {
-    ///!
+    ///! this is temporary. Need to evaluate and send parameter value
+    g_action_group_activate_action( m_action_group, action_name.toStdString().c_str(), nullptr );
   }
+}
+
+void QtGActionGroup::RefreshStates()
+{
+  gchar** actions_list = g_action_group_list_actions( m_action_group );
+
+  for( int i = 0; i < Size(); ++i )
+  {
+    gchar* action_name = actions_list[i];
+    bool enabled = G_ACTION_GROUP_GET_IFACE( m_action_group ) ->get_action_enabled( m_action_group,
+        action_name );
+    emit ActionEnabled( action_name, enabled );
+  }
+
+  g_strfreev( actions_list );
 }
 
 void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* action_name,
@@ -112,6 +125,13 @@ void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* act
 {
   QtGActionGroup* self = reinterpret_cast< QtGActionGroup* >( user_data );
   emit self->ActionAdded( action_name );
+
+  bool enabled = G_ACTION_GROUP_GET_IFACE( self->m_action_group ) ->get_action_enabled(
+      self->m_action_group, action_name );
+  if( !enabled )
+  {
+    emit self->ActionEnabled( action_name, false );
+  }
 }
 
 void QtGActionGroup::ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
@@ -183,3 +203,5 @@ void QtGActionGroup::DisconnectCallbacks()
   m_action_enabled_handler = 0;
   m_action_state_changed_handler = 0;
 }
+
+#include <QtGActionGroup.moc>

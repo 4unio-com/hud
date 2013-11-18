@@ -46,6 +46,20 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 
       m_ext_menu->setTitle( qlabel );
     }
+
+    GVariant* action_name = g_menu_model_get_item_attribute_value( m_parent->m_model, index,
+        G_MENU_ATTRIBUTE_ACTION, G_VARIANT_TYPE_STRING );
+
+    if( action_name )
+    {
+      QString qaction_name = QtGMenuUtils::GVariantToQVariant( action_name ).toString();
+      g_variant_unref( action_name );
+
+      int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
+      qaction_name = qaction_name.right( name_length );
+
+      m_ext_menu->setObjectName( qaction_name );
+    }
   }
 
   if( m_model )
@@ -125,6 +139,15 @@ void QtGMenuModel::ActionTriggered( bool checked )
   emit ActionTriggered( action->objectName(), checked );
 }
 
+void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
+{
+  QAction* action = FindAction( action_name );
+  if( action )
+  {
+    action->setEnabled( enabled );
+  }
+}
+
 QtGMenuModel* QtGMenuModel::CreateChild( QtGMenuModel* parent, GMenuModel* model, int index )
 {
   LinkType linkType( LinkType::SubMenu );
@@ -192,19 +215,19 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
 
     m_size += added;
 
-    for( int i = 0; i < added; ++i )
-    {      
+    for( int i = index; i < ( index + added ); ++i )
+    {
       QAction* at_action = nullptr;
-      if( index + i < m_menu->actions().size() )
+      if( i < m_menu->actions().size() )
       {
-        at_action = m_menu->actions().at( index + i );
+        at_action = m_menu->actions().at( i );
       }
 
-      QtGMenuModel* model = CreateChild( this, m_model, index + i );
+      QtGMenuModel* model = CreateChild( this, m_model, i );
 
       if( !model )
       {
-        m_menu->insertAction( at_action, CreateAction( index + i ) );
+        m_menu->insertAction( at_action, CreateAction( i ) );
       }
       else if( model->Type() == LinkType::Section )
       {
@@ -293,16 +316,45 @@ QAction* QtGMenuModel::CreateAction( int index )
   QString qaction_name = QtGMenuUtils::GVariantToQVariant( action_name ).toString();
   g_variant_unref( action_name );
 
+  int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
+  qaction_name = qaction_name.right( name_length );
+
   GVariant* icon = g_menu_model_get_item_attribute_value( m_model, index, G_MENU_ATTRIBUTE_ICON,
       G_VARIANT_TYPE_VARIANT );
 
   connect( action, SIGNAL( triggered( bool ) ), this, SLOT( ActionTriggered( bool ) ) );
 
-  action->setEnabled( true );
   action->setObjectName( qaction_name );
 
   action->setText( qlabel );
   return action;
+}
+
+QAction* QtGMenuModel::FindAction( QString name )
+{
+  if( m_ext_menu->objectName() == name )
+  {
+    return m_ext_menu->menuAction();
+  }
+
+  for( QAction* action : m_menu->actions() )
+  {
+    if( action->objectName() == name )
+    {
+      return action;
+    }
+  }
+
+  for( QtGMenuModel* child : m_children )
+  {
+    QAction* action = child->FindAction( name );
+    if( action )
+    {
+      return action;
+    }
+  }
+
+  return nullptr;
 }
 
 void QtGMenuModel::AppendQMenu( std::shared_ptr< QMenu > top_menu )

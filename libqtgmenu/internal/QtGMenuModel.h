@@ -59,6 +59,9 @@ Q_SIGNALS:
   void MenuItemsChanged( QtGMenuModel* model, int index, int removed, int added );
   void ActionTriggered( QString action_name, bool checked );
 
+public Q_SLOTS:
+  void ActionEnabled( QString action_name, bool enabled );
+
 private Q_SLOTS:
   void ActionTriggered( bool );
 
@@ -79,6 +82,7 @@ private:
   int ChildIndex( QtGMenuModel* child );
 
   QAction* CreateAction( int index );
+  QAction* FindAction( QString name );
 
   void AppendQMenu( std::shared_ptr< QMenu > top_menu );
   void UpdateExtQMenu();

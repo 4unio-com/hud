@@ -145,8 +145,15 @@ void QtGMenuImporterPrivate::LinkMenuActions()
 {
   if( m_menu_model && m_action_group && !m_menu_actions_linked )
   {
-    m_action_activated_conn = connect( m_menu_model, SIGNAL( ActionTriggered( QString, bool ) ), m_action_group,
-        SLOT( TriggerAction( QString, bool ) ) );
+    m_action_activated_link = connect( m_menu_model, SIGNAL( ActionTriggered( QString, bool ) ),
+        m_action_group, SLOT( TriggerAction( QString, bool ) ) );
+
+    m_action_enabled_link = connect( m_action_group, SIGNAL( ActionEnabled( QString, bool ) ),
+        m_menu_model, SLOT( ActionEnabled( QString, bool ) ) );
+
+    m_items_changed_link = connect( m_menu_model,
+        SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int, int ) ), m_action_group,
+        SLOT( RefreshStates() ) );
 
     m_menu_actions_linked = true;
   }
@@ -156,7 +163,9 @@ void QtGMenuImporterPrivate::UnlinkMenuActions()
 {
   if( m_menu_actions_linked )
   {
-    disconnect( m_action_activated_conn );
+    disconnect( m_action_activated_link );
+    disconnect( m_action_enabled_link );
+    disconnect( m_items_changed_link );
 
     m_menu_actions_linked = false;
   }
@@ -185,6 +194,8 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   m_menu_model = new QtGMenuModel(
       G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str() ) ) );
 
+  LinkMenuActions();
+
   m_items_changed_conn = connect( m_menu_model, SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
           int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );
 
@@ -209,7 +220,6 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   if( menu_is_valid )
   {
     // menu is valid, start polling for actions
-    LinkMenuActions();
     m_menu_poll_timer.stop();
   }
   else if( !menu_is_valid )
@@ -241,6 +251,8 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
       new QtGActionGroup(
           G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), m_path.c_str() ) ) );
 
+  LinkMenuActions();
+
   m_action_added_conn = connect( m_action_group, SIGNAL( ActionAdded( QString ) ), &m_parent,
       SIGNAL( ActionAdded( QString ) ) );
   m_action_removed_conn = connect( m_action_group, SIGNAL( ActionRemoved( QString ) ), &m_parent,
@@ -271,7 +283,6 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
   if( actions_are_valid )
   {
     // actions are valid, no need to continue polling
-    LinkMenuActions();
     m_actions_poll_timer.stop();
   }
   else if( !actions_are_valid )

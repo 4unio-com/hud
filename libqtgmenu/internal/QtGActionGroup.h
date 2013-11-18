@@ -49,6 +49,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
   void TriggerAction( QString action_name, bool checked );
+  void RefreshStates();
 
 private:
   static void ActionAddedCallback( GActionGroup* action_group, gchar* action_name,
