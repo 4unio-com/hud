@@ -106,6 +106,11 @@ void QtGMenuImporterPrivate::StopPolling()
 {
   m_menu_poll_timer.stop();
   m_actions_poll_timer.stop();
+
+  QEventLoop menu_refresh_wait;
+  QTimer timeout;
+  timeout.singleShot( 1000, &menu_refresh_wait, SLOT( quit() ) );
+  menu_refresh_wait.exec();
 }
 
 void QtGMenuImporterPrivate::ClearMenuModel()
@@ -210,7 +215,10 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
     menu_refresh_wait.exec();
 
     // check item count again
-    item_count = m_menu_model->Size();
+    if( m_menu_model )
+    {
+      item_count = m_menu_model->Size();
+    }
   }
 
   bool menu_is_valid = item_count != 0;
@@ -273,7 +281,10 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
     actions_refresh_wait.exec();
 
     // check item count again
-    action_count = m_action_group->Size();
+    if( m_action_group )
+    {
+      action_count = m_action_group->Size();
+    }
   }
 
   bool actions_are_valid = action_count != 0;
