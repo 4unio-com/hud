@@ -2,6 +2,7 @@
 set(
 	UNIT_TESTS_SRC
 	TestConnection.cpp
+	TestHudClient.cpp
 	TestParam.cpp
 	TestQuery.cpp
 )

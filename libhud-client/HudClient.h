@@ -55,6 +55,9 @@ public:
 	void setQuery(const QString &newQuery);
 
 	Q_INVOKABLE
+	void setAppstackApp(const QString &applicationId);
+
+	Q_INVOKABLE
 	void startVoiceQuery();
 
 	Q_INVOKABLE

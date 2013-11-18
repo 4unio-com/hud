@@ -151,6 +151,11 @@ void HudClient::setQuery(const QString &new_query) {
 			new_query.toUtf8().constData());
 }
 
+void HudClient::setAppstackApp(const QString &applicationId) {
+	hud_client_query_set_appstack_app(p->m_clientQuery,
+			applicationId.toUtf8().constData());
+}
+
 void HudClient::startVoiceQuery() {
 	hud_client_query_voice_query(p->m_clientQuery);
 }

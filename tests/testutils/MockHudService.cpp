@@ -74,7 +74,16 @@ void MockHudService::loadMethods() {
 	}
 
 	m_results.reset(new ResultsModel(0));
+	m_results->beginChangeset();
+	m_results->addResult(0, "result1", QList<QPair<int, int>>(), "description1",
+			QList<QPair<int, int>>(), "shortcut", 1, false);
+	m_results->endChangeset();
+
 	m_appstack.reset(new AppstackModel(0));
+	m_appstack->beginChangeset();
+	m_appstack->addApplication("application-id", "icon",
+			AppstackModel::ITEM_TYPE_FOCUSED_APP);
+	m_appstack->endChangeset();
 
 	// Mock application
 	{
