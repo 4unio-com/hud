@@ -385,9 +385,11 @@ QAction* QtGMenuModel::FindAction( QString name )
 
 void QtGMenuModel::AppendQMenu( std::shared_ptr< QMenu > top_menu )
 {
-  top_menu->addAction( m_ext_menu->menuAction() );
-
-  if( m_link_type != LinkType::SubMenu )
+  if( m_link_type == LinkType::SubMenu )
+  {
+    top_menu->addAction( m_ext_menu->menuAction() );
+  }
+  else
   {
     for( auto& child : m_children )
     {

@@ -102,9 +102,11 @@ protected:
 
   void ExportGMenu()
   {
+    // build m_menu
+
     GMenu* menus_section = g_menu_new();
 
-      // build file menu
+    //-- build file menu
 
     GMenu* file_submenu = g_menu_new();
     GMenu* files_section = g_menu_new();
@@ -125,7 +127,7 @@ protected:
     g_menu_append_submenu( menus_section, "File", G_MENU_MODEL( file_submenu ) );
     g_object_unref( file_submenu );
 
-      // build edit menu
+    //-- build edit menu
 
     GMenu* edit_submenu = g_menu_new();
     GMenu* style_section = g_menu_new();
@@ -139,36 +141,35 @@ protected:
     g_menu_append_submenu( menus_section, "Edit", G_MENU_MODEL( edit_submenu ) );
     g_object_unref( edit_submenu );
 
-      // add menus section to m_menu
+    //-- add menus section to m_menu
 
-    g_menu_append_section( m_menu, "Menus", G_MENU_MODEL( menus_section ) );
+    g_menu_append_section( m_menu, "", G_MENU_MODEL( menus_section ) );
 
     g_object_unref( menus_section );
 
     // define actions
 
-      // stateless
+    //-- stateless
 
-    GSimpleAction* action = g_simple_action_new( "app.new", nullptr);
+    GSimpleAction* action = g_simple_action_new( "app.new", nullptr );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
-    action = g_simple_action_new( "app.open", nullptr);
+    action = g_simple_action_new( "app.open", nullptr );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
-      // boolean state
+    //-- boolean state
 
-    action = g_simple_action_new_stateful( "app.lock", nullptr,
-        g_variant_new_boolean( false ) );
+    action = g_simple_action_new_stateful( "app.lock", nullptr, g_variant_new_boolean( false ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
-      // string param + state
+    //-- string param + state
 
     action = g_simple_action_new_stateful( "app.text_plain", G_VARIANT_TYPE_STRING,
-                                           g_variant_new_string( "app.text_plain" ) );
+        g_variant_new_string( "app.text_plain" ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
     action = g_simple_action_new_stateful( "app.text_bold", G_VARIANT_TYPE_STRING,
-                                           g_variant_new_string( "app.text_plain" ) );
+        g_variant_new_string( "app.text_plain" ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
     // export menu
@@ -386,6 +387,8 @@ TEST_F( TestQtGMenu, QMenuStructure )
 
   std::shared_ptr< QMenu > menu = m_importer.GetQMenu();
   EXPECT_NE( nullptr, m_importer.GetQMenu() );
+
+  EXPECT_EQ( 2, menu->actions().size() );
 
   UnexportGMenu();
 }
