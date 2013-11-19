@@ -55,10 +55,10 @@ QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
 {
   StopPolling();
 
-  g_object_unref( m_connection );
-
   ClearMenuModel();
   ClearActionGroup();
+
+  g_object_unref( m_connection );
 }
 
 GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
@@ -83,9 +83,7 @@ GActionGroup* QtGMenuImporterPrivate::GetGActionGroup()
 
 std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
 {
-  GMenuModel* gmenu = GetGMenuModel();
-
-  if( gmenu == nullptr )
+  if( m_menu_poll_timer.isActive() || m_menu_model == nullptr )
   {
     return nullptr;
   }
@@ -107,10 +105,8 @@ void QtGMenuImporterPrivate::StopPolling()
   m_menu_poll_timer.stop();
   m_actions_poll_timer.stop();
 
-  QEventLoop menu_refresh_wait;
-  QTimer timeout;
-  timeout.singleShot( 1000, &menu_refresh_wait, SLOT( quit() ) );
-  menu_refresh_wait.exec();
+  RefreshGMenuModel();
+  RefreshGActionGroup();
 }
 
 void QtGMenuImporterPrivate::ClearMenuModel()
@@ -120,9 +116,8 @@ void QtGMenuImporterPrivate::ClearMenuModel()
     return;
   }
 
-  UnlinkMenuActions();
-
-  disconnect( m_items_changed_conn );
+  m_menu_model->disconnect();
+  m_menu_actions_linked = false;
 
   delete m_menu_model;
   m_menu_model = nullptr;
@@ -135,12 +130,8 @@ void QtGMenuImporterPrivate::ClearActionGroup()
     return;
   }
 
-  UnlinkMenuActions();
-
-  disconnect( m_action_added_conn );
-  disconnect( m_action_removed_conn );
-  disconnect( m_action_enabled_conn );
-  disconnect( m_action_state_changed_conn );
+  m_action_group->disconnect();
+  m_menu_actions_linked = false;
 
   delete m_action_group;
   m_action_group = nullptr;
@@ -150,29 +141,16 @@ void QtGMenuImporterPrivate::LinkMenuActions()
 {
   if( m_menu_model && m_action_group && !m_menu_actions_linked )
   {
-    m_action_activated_link = connect( m_menu_model, SIGNAL( ActionTriggered( QString, bool ) ),
-        m_action_group, SLOT( TriggerAction( QString, bool ) ) );
+    connect( m_menu_model, SIGNAL( ActionTriggered( QString, bool ) ), m_action_group,
+        SLOT( TriggerAction( QString, bool ) ) );
 
-    m_action_enabled_link = connect( m_action_group, SIGNAL( ActionEnabled( QString, bool ) ),
-        m_menu_model, SLOT( ActionEnabled( QString, bool ) ) );
+    connect( m_action_group, SIGNAL( ActionEnabled( QString, bool ) ), m_menu_model,
+        SLOT( ActionEnabled( QString, bool ) ) );
 
-    m_items_changed_link = connect( m_menu_model,
-        SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int, int ) ), m_action_group,
-        SLOT( RefreshStates() ) );
+    connect( m_menu_model, SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int, int ) ),
+        m_action_group, SLOT( RefreshStates() ) );
 
     m_menu_actions_linked = true;
-  }
-}
-
-void QtGMenuImporterPrivate::UnlinkMenuActions()
-{
-  if( m_menu_actions_linked )
-  {
-    disconnect( m_action_activated_link );
-    disconnect( m_action_enabled_link );
-    disconnect( m_items_changed_link );
-
-    m_menu_actions_linked = false;
   }
 }
 
@@ -199,7 +177,7 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   m_menu_model = new QtGMenuModel(
       G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str() ) ) );
 
-  m_items_changed_conn = connect( m_menu_model, SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
+  connect( m_menu_model, SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
           int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );
 
   gint item_count = m_menu_model->Size();
@@ -259,13 +237,13 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
       new QtGActionGroup(
           G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), m_path.c_str() ) ) );
 
-  m_action_added_conn = connect( m_action_group, SIGNAL( ActionAdded( QString ) ), &m_parent,
+  connect( m_action_group, SIGNAL( ActionAdded( QString ) ), &m_parent,
       SIGNAL( ActionAdded( QString ) ) );
-  m_action_removed_conn = connect( m_action_group, SIGNAL( ActionRemoved( QString ) ), &m_parent,
+  connect( m_action_group, SIGNAL( ActionRemoved( QString ) ), &m_parent,
       SIGNAL( ActionRemoved( QString ) ) );
-  m_action_enabled_conn = connect( m_action_group, SIGNAL( ActionEnabled( QString, bool ) ),
-      &m_parent, SIGNAL( ActionEnabled( QString, bool ) ) );
-  m_action_state_changed_conn = connect( m_action_group, SIGNAL( ActionStateChanged( QString,
+  connect( m_action_group, SIGNAL( ActionEnabled( QString, bool ) ), &m_parent,
+      SIGNAL( ActionEnabled( QString, bool ) ) );
+  connect( m_action_group, SIGNAL( ActionStateChanged( QString,
           QVariant ) ), &m_parent, SIGNAL( ActionStateChanged( QString, QVariant) ) );
 
   int action_count = m_action_group->Size();

@@ -55,7 +55,6 @@ private:
   void ClearActionGroup();
 
   void LinkMenuActions();
-  void UnlinkMenuActions();
 
 private Q_SLOTS:
   void ServiceRegistered();
@@ -75,19 +74,11 @@ private:
 
   QtGMenuModel* m_menu_model = nullptr;
   QTimer m_menu_poll_timer;
-  QMetaObject::Connection m_items_changed_conn;
 
   QtGActionGroup* m_action_group = nullptr;
   QTimer m_actions_poll_timer;
-  QMetaObject::Connection m_action_added_conn;
-  QMetaObject::Connection m_action_removed_conn;
-  QMetaObject::Connection m_action_enabled_conn;
-  QMetaObject::Connection m_action_state_changed_conn;
 
   bool m_menu_actions_linked = false;
-  QMetaObject::Connection m_action_activated_link;
-  QMetaObject::Connection m_action_enabled_link;
-  QMetaObject::Connection m_items_changed_link;
 };
 
 } // namespace qtgmenu
