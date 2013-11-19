@@ -91,17 +91,23 @@ QString QtGActionGroup::Action( int index )
 
 void QtGActionGroup::TriggerAction( QString action_name, bool checked )
 {
+  std::string action = action_name.toStdString();
+
   const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,
-      action_name.toStdString().c_str() );
+      action.c_str() );
 
   if( type == nullptr )
   {
-    g_action_group_activate_action( m_action_group, action_name.toStdString().c_str(), nullptr );
+    g_action_group_activate_action( m_action_group, action.c_str(), nullptr );
   }
   else
   {
-    ///! this is temporary. Need to evaluate and send parameter value
-    g_action_group_activate_action( m_action_group, action_name.toStdString().c_str(), nullptr );
+    ///! need to evaluate and send parameter value
+    if( g_variant_type_is_subtype_of( type, G_VARIANT_TYPE_STRING ) )
+    {
+      GVariant* param = g_variant_new_string( action.c_str() );
+      g_action_group_activate_action( m_action_group, action.c_str(), param );
+    }
   }
 }
 
@@ -126,7 +132,7 @@ void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* act
   QtGActionGroup* self = reinterpret_cast< QtGActionGroup* >( user_data );
   emit self->ActionAdded( action_name );
 
-  bool enabled = G_ACTION_GROUP_GET_IFACE( self->m_action_group )->get_action_enabled(
+  bool enabled = G_ACTION_GROUP_GET_IFACE( self->m_action_group ) ->get_action_enabled(
       self->m_action_group, action_name );
   if( !enabled )
   {

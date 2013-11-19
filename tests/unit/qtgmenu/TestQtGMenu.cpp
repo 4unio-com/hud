@@ -32,8 +32,11 @@ using namespace testing;
 namespace
 {
 
-class TestQtGMenu : public Test
+class TestQtGMenu : public QObject,
+                    public Test
 {
+Q_OBJECT
+
 protected:
   TestQtGMenu()
       : m_importer( c_service, c_path ),
@@ -48,7 +51,9 @@ protected:
         m_action_state_changed_spy( &m_importer,
             SIGNAL( ActionStateChanged( QString, QVariant ) ) ),
         m_actions_appeared_spy( &m_importer, SIGNAL( ActionsAppeared() ) ),
-        m_actions_disappeared_spy( &m_importer, SIGNAL( ActionsDisappeared() ) )
+        m_actions_disappeared_spy( &m_importer, SIGNAL( ActionsDisappeared() ) ),
+
+        m_action_activated_spy( this, SIGNAL( ActionActivated( QString ) ) )
   {
     g_bus_own_name( G_BUS_TYPE_SESSION, c_service, G_BUS_NAME_OWNER_FLAGS_NONE, NULL, NULL, NULL,
         NULL, NULL );
@@ -100,6 +105,14 @@ protected:
     return action_count;
   }
 
+  static void ActivateAction( GSimpleAction* simple, GVariant* parameter, gpointer user_data )
+  {
+    TestQtGMenu* self = reinterpret_cast< TestQtGMenu* >( user_data );
+
+    const gchar* action_name = g_action_get_name( G_ACTION( simple ) );
+    emit self->ActionActivated( action_name );
+  }
+
   void ExportGMenu()
   {
     // build m_menu
@@ -111,7 +124,11 @@ protected:
     GMenu* file_submenu = g_menu_new();
     GMenu* files_section = g_menu_new();
 
-    g_menu_append( files_section, "New", "app.new" );
+    GMenuItem* menu_item = g_menu_item_new( "New", "app.new" );
+    g_menu_item_set_attribute_value( menu_item, "accel", g_variant_new_string( "<Control>N" ) );
+    g_menu_append_item( files_section, menu_item );
+    g_object_unref( menu_item );
+
     g_menu_append( files_section, "Open", "app.open" );
 
     g_menu_append_section( file_submenu, "Files", G_MENU_MODEL( files_section ) );
@@ -151,25 +168,40 @@ protected:
 
     //-- stateless
 
-    GSimpleAction* action = g_simple_action_new( "app.new", nullptr );
+    GSimpleAction* action = g_simple_action_new( "new", nullptr );
+    m_exported_actions.push_back(
+        std::make_pair( action,
+            g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
-    action = g_simple_action_new( "app.open", nullptr );
+    action = g_simple_action_new( "open", nullptr );
+    m_exported_actions.push_back(
+        std::make_pair( action,
+            g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
     //-- boolean state
 
-    action = g_simple_action_new_stateful( "app.lock", nullptr, g_variant_new_boolean( false ) );
+    action = g_simple_action_new_stateful( "lock", nullptr, g_variant_new_boolean( false ) );
+    m_exported_actions.push_back(
+        std::make_pair( action,
+            g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
     //-- string param + state
 
-    action = g_simple_action_new_stateful( "app.text_plain", G_VARIANT_TYPE_STRING,
+    action = g_simple_action_new_stateful( "text_plain", G_VARIANT_TYPE_STRING,
         g_variant_new_string( "app.text_plain" ) );
+    m_exported_actions.push_back(
+        std::make_pair( action,
+            g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
-    action = g_simple_action_new_stateful( "app.text_bold", G_VARIANT_TYPE_STRING,
+    action = g_simple_action_new_stateful( "text_bold", G_VARIANT_TYPE_STRING,
         g_variant_new_string( "app.text_plain" ) );
+    m_exported_actions.push_back(
+        std::make_pair( action,
+            g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
     // export menu
@@ -191,6 +223,12 @@ protected:
 
   void UnexportGMenu()
   {
+    // disconnect signal handlers
+    for( auto& action : m_exported_actions )
+    {
+      g_signal_handler_disconnect( action.first, action.second );
+    }
+
     // unexport menu
 
     g_dbus_connection_unexport_menu_model( m_connection, m_menu_export_id );
@@ -218,6 +256,11 @@ protected:
     EXPECT_EQ( 0, GetGActionCount() );
   }
 
+Q_SIGNALS:
+  void ActionActivated( QString action_name );
+
+protected:
+
   constexpr static const char* c_service = "com.canonical.qtgmenu";
   constexpr static const char* c_path = "/com/canonical/qtgmenu";
 
@@ -240,6 +283,10 @@ protected:
   QSignalSpy m_action_state_changed_spy;
   QSignalSpy m_actions_appeared_spy;
   QSignalSpy m_actions_disappeared_spy;
+
+  QSignalSpy m_action_activated_spy;
+
+  std::vector< std::pair< GSimpleAction*, gulong > > m_exported_actions;
 };
 
 TEST_F( TestQtGMenu, ExportImportGMenu )
@@ -313,10 +360,14 @@ TEST_F( TestQtGMenu, ExportImportGActions )
 
   m_actions_export_id = g_dbus_connection_export_action_group( m_connection, c_path,
       G_ACTION_GROUP( m_actions ), NULL );
-
   m_actions_appeared_spy.wait();
+
   EXPECT_FALSE( m_actions_appeared_spy.empty() );
   m_actions_appeared_spy.clear();
+
+  EXPECT_FALSE( m_action_added_spy.empty() );
+  EXPECT_EQ( "app.new", m_action_added_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  m_action_added_spy.clear();
 
   EXPECT_NE( nullptr, m_importer.GetGActionGroup() );
   EXPECT_EQ( 1, GetGActionCount() );
@@ -325,19 +376,36 @@ TEST_F( TestQtGMenu, ExportImportGActions )
 
   g_simple_action_set_enabled( action, false );
   m_action_enabled_spy.wait();
+
   EXPECT_FALSE( m_action_enabled_spy.empty() );
+  EXPECT_EQ( "app.new", m_action_enabled_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  EXPECT_EQ( "false", m_action_enabled_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_enabled_spy.clear();
 
   g_simple_action_set_enabled( action, true );
   m_action_enabled_spy.wait();
+
   EXPECT_FALSE( m_action_enabled_spy.empty() );
+  EXPECT_EQ( "app.new", m_action_enabled_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  EXPECT_EQ( "true", m_action_enabled_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_enabled_spy.clear();
 
   // change action state
 
   g_action_change_state( G_ACTION( action ), g_variant_new_boolean( true ) );
   m_action_state_changed_spy.wait();
+
   EXPECT_FALSE( m_action_state_changed_spy.empty() );
+  EXPECT_EQ( "app.new", m_action_state_changed_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  EXPECT_EQ( "true", m_action_state_changed_spy.at( 0 ).at( 1 ).toString().toStdString() );
+  m_action_state_changed_spy.clear();
+
+  g_action_change_state( G_ACTION( action ), g_variant_new_boolean( false ) );
+  m_action_state_changed_spy.wait();
+
+  EXPECT_FALSE( m_action_state_changed_spy.empty() );
+  EXPECT_EQ( "app.new", m_action_state_changed_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  EXPECT_EQ( "false", m_action_state_changed_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_state_changed_spy.clear();
 
   // add 2 actions
@@ -345,13 +413,17 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   action = g_simple_action_new_stateful( "app.add", G_VARIANT_TYPE_BOOLEAN, FALSE );
   g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
   m_action_added_spy.wait();
+
   EXPECT_FALSE( m_action_added_spy.empty() );
+  EXPECT_EQ( "app.add", m_action_added_spy.at( 0 ).at( 0 ).toString().toStdString() );
   m_action_added_spy.clear();
 
   action = g_simple_action_new_stateful( "app.del", G_VARIANT_TYPE_BOOLEAN, FALSE );
   g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
   m_action_added_spy.wait();
+
   EXPECT_FALSE( m_action_added_spy.empty() );
+  EXPECT_EQ( "app.del", m_action_added_spy.at( 0 ).at( 0 ).toString().toStdString() );
   m_action_added_spy.clear();
 
   EXPECT_EQ( 3, GetGActionCount() );
@@ -360,7 +432,9 @@ TEST_F( TestQtGMenu, ExportImportGActions )
 
   g_action_map_remove_action( G_ACTION_MAP( m_actions ), "app.del" );
   m_action_removed_spy.wait();
+
   EXPECT_FALSE( m_action_removed_spy.empty() );
+  EXPECT_EQ( "app.del", m_action_removed_spy.at( 0 ).at( 0 ).toString().toStdString() );
   m_action_removed_spy.clear();
 
   EXPECT_EQ( 2, GetGActionCount() );
@@ -403,6 +477,8 @@ TEST_F( TestQtGMenu, QMenuStructure )
   EXPECT_EQ( "File", file_menu->title() );
 
   EXPECT_EQ( "New", file_menu->actions().at( 0 )->text() );
+  EXPECT_EQ( "Ctrl+N", file_menu->actions().at( 0 )->shortcut().toString().toStdString() );
+
   EXPECT_EQ( "Open", file_menu->actions().at( 1 )->text() );
   EXPECT_TRUE( file_menu->actions().at( 2 )->isSeparator() );
   EXPECT_EQ( "Lock", file_menu->actions().at( 3 )->text() );
@@ -433,7 +509,7 @@ TEST_F( TestQtGMenu, QMenuStructure )
   UnexportGMenu();
 }
 
-TEST_F( TestQtGMenu, QMenuActions )
+TEST_F( TestQtGMenu, QMenuActionStates )
 {
   ExportGMenu();
 
@@ -442,7 +518,70 @@ TEST_F( TestQtGMenu, QMenuActions )
   std::shared_ptr< QMenu > menu = m_importer.GetQMenu();
   EXPECT_NE( nullptr, m_importer.GetQMenu() );
 
+  // trigger file menu items
+
+  QMenu* file_menu = menu->actions().at( 0 )->menu();
+  ASSERT_NE( nullptr, file_menu );
+
+  file_menu->actions().at( 0 )->trigger();
+  m_action_activated_spy.wait();
+
+  EXPECT_FALSE( m_action_activated_spy.empty() );
+  EXPECT_EQ( "new", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  m_action_activated_spy.clear();
+
+  file_menu->actions().at( 1 )->trigger();
+  m_action_activated_spy.wait();
+
+  EXPECT_FALSE( m_action_activated_spy.empty() );
+  EXPECT_EQ( "open", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  m_action_activated_spy.clear();
+
+  file_menu->actions().at( 3 )->trigger();
+  m_action_activated_spy.wait();
+
+  EXPECT_FALSE( m_action_activated_spy.empty() );
+  EXPECT_EQ( "lock", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  m_action_activated_spy.clear();
+
+  // trigger edit menu items
+
+  QMenu* edit_menu = menu->actions().at( 1 )->menu();
+  ASSERT_NE( nullptr, edit_menu );
+  QMenu* style_submenu = edit_menu->actions().at( 0 )->menu();
+  ASSERT_NE( nullptr, style_submenu );
+
+  style_submenu->actions().at( 0 )->trigger();
+  m_action_activated_spy.wait();
+
+  EXPECT_FALSE( m_action_activated_spy.empty() );
+  EXPECT_EQ( "text_plain", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  m_action_activated_spy.clear();
+
+  style_submenu->actions().at( 1 )->trigger();
+  m_action_activated_spy.wait();
+
+  EXPECT_FALSE( m_action_activated_spy.empty() );
+  EXPECT_EQ( "text_bold", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  m_action_activated_spy.clear();
+
+  // enable / disable menu items
+
+  EXPECT_TRUE( file_menu->actions().at( 0 )->isEnabled() );
+
+  g_simple_action_set_enabled( m_exported_actions[0].first, false );
+  m_action_enabled_spy.wait();
+
+  EXPECT_FALSE( file_menu->actions().at( 0 )->isEnabled() );
+
+  g_simple_action_set_enabled( m_exported_actions[0].first, true );
+  m_action_enabled_spy.wait();
+
+  EXPECT_TRUE( file_menu->actions().at( 0 )->isEnabled() );
+
   UnexportGMenu();
 }
 
 } // namespace
+
+#include <TestQtGMenu.moc>
