@@ -72,10 +72,10 @@ private:
   std::string m_service;
   std::string m_path;
 
-  QtGMenuModel* m_menu_model = nullptr;
+  std::shared_ptr< QtGMenuModel > m_menu_model = nullptr;
   QTimer m_menu_poll_timer;
 
-  QtGActionGroup* m_action_group = nullptr;
+  std::shared_ptr< QtGActionGroup > m_action_group = nullptr;
   QTimer m_actions_poll_timer;
 
   bool m_menu_actions_linked = false;

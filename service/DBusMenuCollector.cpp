@@ -86,7 +86,11 @@ inline uint qHash(const QStringList &key, uint seed) {
 
 static bool openMenu(QMenu *menu, const QStringList &position,
 		QSet<QStringList> &known) {
-	menu->aboutToShow();
+  if( !menu ){
+    return false;
+  }
+
+  menu->aboutToShow();
 
 	bool added = false;
 
