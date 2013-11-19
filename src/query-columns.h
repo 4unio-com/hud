@@ -19,7 +19,6 @@
 #ifndef __QUERY_COLUMNS_H__
 #define __QUERY_COLUMNS_H__
 
-typedef enum _HudQueryResultsColumns HudQueryResultsColumns;
 enum _HudQueryResultsColumns {
 	HUD_QUERY_RESULTS_COMMAND_ID = 0,
 	HUD_QUERY_RESULTS_COMMAND_NAME,
@@ -32,6 +31,7 @@ enum _HudQueryResultsColumns {
 	/* Last */
 	HUD_QUERY_RESULTS_COUNT
 };
+typedef enum _HudQueryResultsColumns HudQueryResultsColumns;
 
 #define HUD_QUERY_RESULTS_COMMAND_ID_TYPE "v"
 #define HUD_QUERY_RESULTS_COMMAND_NAME_TYPE "s"
@@ -42,7 +42,6 @@ enum _HudQueryResultsColumns {
 #define HUD_QUERY_RESULTS_DISTANCE_TYPE "u"
 #define HUD_QUERY_RESULTS_PARAMETERIZED_TYPE "b"
 
-typedef enum _HudQueryAppstackColumns HudQueryAppstackColumns;
 enum _HudQueryAppstackColumns {
 	HUD_QUERY_APPSTACK_APPLICATION_ID = 0,
 	HUD_QUERY_APPSTACK_ICON_NAME,
@@ -50,6 +49,7 @@ enum _HudQueryAppstackColumns {
 	/* Last */
 	HUD_QUERY_APPSTACK_COUNT
 };
+typedef enum _HudQueryAppstackColumns HudQueryAppstackColumns;
 
 #define HUD_QUERY_APPSTACK_APPLICATION_ID_TYPE "s"
 #define HUD_QUERY_APPSTACK_ICON_NAME_TYPE "s"

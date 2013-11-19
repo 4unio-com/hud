@@ -69,7 +69,7 @@ static void base_model_items            (GMenuModel *      model,
 #define HUD_CLIENT_PARAM_GET_PRIVATE(o) \
 (G_TYPE_INSTANCE_GET_PRIVATE ((o), HUD_CLIENT_TYPE_PARAM, HudClientParamPrivate))
 
-G_DEFINE_TYPE (HudClientParam, hud_client_param, G_TYPE_OBJECT);
+G_DEFINE_TYPE (HudClientParam, hud_client_param, G_TYPE_OBJECT)
 
 /* Code */
 static void
@@ -206,7 +206,7 @@ action_write_state (HudClientParam * param, const gchar * action)
 /* Look at the items changed and make sure we're getting the
    item that we expect.  Then signal. */
 static void
-base_model_items (GMenuModel * model, gint position, gint removed, gint added, gpointer user_data)
+base_model_items (G_GNUC_UNUSED GMenuModel * model, gint position, gint removed, gint added, gpointer user_data)
 {
 	g_return_if_fail(position == 0);
 	g_return_if_fail(removed == 0);
@@ -229,7 +229,7 @@ base_model_items (GMenuModel * model, gint position, gint removed, gint added, g
 /* Look to see if our base item gets added to the actions
    list on the service side */
 static void
-action_added (GActionGroup * group, const gchar * action_name, gpointer user_data)
+action_added (G_GNUC_UNUSED GActionGroup * group, const gchar * action_name, gpointer user_data)
 {
 	g_return_if_fail(HUD_CLIENT_IS_PARAM(user_data));
 

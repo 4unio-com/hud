@@ -1,4 +1,10 @@
 
+add_definitions(
+	-pedantic
+	-Wall
+	-Wextra
+)
+
 ###########################
 # Lib Hud Service
 ###########################

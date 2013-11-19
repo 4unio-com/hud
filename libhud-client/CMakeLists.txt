@@ -108,6 +108,12 @@ set_target_properties(hud-client PROPERTIES
   OUTPUT_NAME "hud-client"
 )
 
+set_target_properties(
+  hud-client
+  PROPERTIES 
+  COMPILE_FLAGS "-Wpedantic -Wall -Wextra"
+)
+
 target_link_libraries(hud-client
 hud-client-generated
 ${GLIB2_LIBRARIES}

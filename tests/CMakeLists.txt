@@ -8,6 +8,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${GMOCK_INCLUDE_DIRS})
 include_directories(${GTEST_INCLUDE_DIRS})
 
+add_definitions(
+	-pedantic
+	-Wall
+	-Wextra
+)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 add_definitions(-DHUD_SERVICE_BINARY="${CMAKE_BINARY_DIR}/service/hud-service")

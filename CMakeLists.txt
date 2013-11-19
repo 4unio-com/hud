@@ -131,12 +131,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_definitions(
-	-pedantic
-	-Wall
-	-Wextra
-)
-
-add_definitions(
 	-DQT_NO_SIGNALS_SLOTS_KEYWORDS=1
 )
 

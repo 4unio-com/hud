@@ -62,7 +62,7 @@ static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * 
 static void connection_status (HudClientConnection * connection, gboolean connected, HudClientQuery * query);
 static void new_query_cb (HudClientConnection * connection, const gchar * path, const gchar * results, const gchar * appstack, gpointer user_data);
 
-G_DEFINE_TYPE (HudClientQuery, hud_client_query, G_TYPE_OBJECT);
+G_DEFINE_TYPE (HudClientQuery, hud_client_query, G_TYPE_OBJECT)
 
 static guint signal_toolbar_updated = 0;
 static guint hud_client_query_signal_voice_query_loading;
@@ -202,7 +202,7 @@ hud_client_query_init (HudClientQuery *self)
 }
 
 static void
-set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
+set_property (GObject * obj, guint id, const GValue * value, G_GNUC_UNUSED GParamSpec * pspec)
 {
 	HudClientQuery * self = HUD_CLIENT_QUERY(obj);
 
@@ -223,7 +223,7 @@ set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
 }
 
 static void
-get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
+get_property (GObject * obj, guint id, GValue * value, G_GNUC_UNUSED GParamSpec * pspec)
 {
 	HudClientQuery * self = HUD_CLIENT_QUERY(obj);
 
@@ -243,19 +243,19 @@ get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
 }
 
 static void
-hud_client_query_voice_query_loading (_HudQueryComCanonicalHudQuery *object, gpointer user_data)
+hud_client_query_voice_query_loading (G_GNUC_UNUSED _HudQueryComCanonicalHudQuery *object, gpointer user_data)
 {
 	g_signal_emit(user_data, hud_client_query_signal_voice_query_loading, 0);
 }
 
 static void
-hud_client_query_voice_query_listening (_HudQueryComCanonicalHudQuery *object, gpointer user_data)
+hud_client_query_voice_query_listening (G_GNUC_UNUSED _HudQueryComCanonicalHudQuery *object, gpointer user_data)
 {
 	g_signal_emit(user_data, hud_client_query_signal_voice_query_listening, 0);
 }
 
 static void
-hud_client_query_voice_query_heard_something (_HudQueryComCanonicalHudQuery *object, gpointer user_data)
+hud_client_query_voice_query_heard_something (G_GNUC_UNUSED _HudQueryComCanonicalHudQuery *object, gpointer user_data)
 {
   g_signal_emit(user_data, hud_client_query_signal_voice_query_heard_something, 0);
 }
@@ -285,7 +285,7 @@ hud_client_query_constructed (GObject *object)
 /* Handles the connection status of the HUD service, once
    we're connected we can do all kinds of fun stuff */
 static void
-connection_status (HudClientConnection * connection, gboolean connected, HudClientQuery * cquery)
+connection_status (G_GNUC_UNUSED HudClientConnection * connection, gboolean connected, HudClientQuery * cquery)
 {
 	g_clear_object(&cquery->priv->results);
 	g_clear_object(&cquery->priv->appstack);
@@ -325,7 +325,7 @@ parse_toolbar (_HudQueryComCanonicalHudQuery * proxy, G_GNUC_UNUSED GParamSpec *
 }
 
 static void
-new_query_cb (HudClientConnection * connection, const gchar * path, const gchar * results, const gchar * appstack, gpointer user_data)
+new_query_cb (G_GNUC_UNUSED HudClientConnection * connection, const gchar * path, const gchar * results, const gchar * appstack, gpointer user_data)
 {
 	if (path == NULL || results == NULL || appstack == NULL) {
 		g_object_unref(user_data);
@@ -529,7 +529,7 @@ hud_client_query_get_query (HudClientQuery * cquery)
 }
 
 static void
-hud_client_query_voice_query_callback (GObject *source, GAsyncResult *result, gpointer user_data)
+hud_client_query_voice_query_callback (G_GNUC_UNUSED GObject *source, GAsyncResult *result, gpointer user_data)
 {
 	g_assert(HUD_CLIENT_IS_QUERY(user_data));
 	HudClientQuery *cquery = HUD_CLIENT_QUERY(user_data);
@@ -624,7 +624,7 @@ hud_client_query_toolbar_item_active (HudClientQuery * cquery, HudClientQueryToo
 {
 	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), FALSE);
 
-	int i = 0;
+	guint i = 0;
 	for (i = 0; i < cquery->priv->toolbar->len; i++) {
 		HudClientQueryToolbarItems local = g_array_index(cquery->priv->toolbar, HudClientQueryToolbarItems, i);
 

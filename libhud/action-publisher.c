@@ -94,7 +94,7 @@ G_DEFINE_TYPE (HudActionDescription, hud_action_description, G_TYPE_OBJECT)
 
 
 static gboolean
-hud_aux_is_mutable (GMenuModel *model)
+hud_aux_is_mutable (G_GNUC_UNUSED GMenuModel *model)
 {
   return TRUE;
 }
@@ -141,17 +141,17 @@ hud_aux_get_item_links (GMenuModel  *model,
 }
 
 static void
-_hud_aux_init (HudAux *aux)
+_hud_aux_init (G_GNUC_UNUSED HudAux *aux)
 {
 }
 
 static void
-hud_aux_init_action_group_iface (GActionGroupInterface *iface)
+hud_aux_init_action_group_iface (G_GNUC_UNUSED GActionGroupInterface *iface)
 {
 }
 
 static void
-hud_aux_init_remote_action_group_iface (GRemoteActionGroupInterface *iface)
+hud_aux_init_remote_action_group_iface (G_GNUC_UNUSED GRemoteActionGroupInterface *iface)
 {
 }
 
@@ -357,7 +357,7 @@ format_identifier (const gchar *action_name,
 static gint
 compare_descriptions (gconstpointer a,
                       gconstpointer b,
-                      gpointer      user_data)
+                      G_GNUC_UNUSED gpointer      user_data)
 {
   const HudActionDescription *da = a;
   const HudActionDescription *db = b;
@@ -367,7 +367,7 @@ compare_descriptions (gconstpointer a,
 
 static void
 description_changed (HudActionDescription *description,
-                     const gchar          *attribute_name,
+                     G_GNUC_UNUSED const gchar *attribute_name,
                      gpointer              user_data)
 {
   HudActionPublisher *publisher = user_data;
@@ -556,9 +556,9 @@ hud_action_publisher_add_action_group (HudActionPublisher *publisher,
  * hud_action_publisher_add_action_group() with the same parameters.
  */
 void
-hud_action_publisher_remove_action_group (HudActionPublisher *publisher,
-                                          const gchar        *prefix,
-                                          GVariant           *identifier)
+hud_action_publisher_remove_action_group (G_GNUC_UNUSED HudActionPublisher *publisher,
+                                          G_GNUC_UNUSED const gchar        *prefix,
+                                          G_GNUC_UNUSED GVariant           *identifier)
 {
   //hud_manager_remove_actions (publisher->application_id, prefix, identifier);
 }
@@ -879,5 +879,5 @@ hud_action_description_unref (HudActionDescription * description)
 {
 	g_return_if_fail(HUD_IS_ACTION_DESCRIPTION(description));
 
-	return g_object_unref(description);
+	g_object_unref(description);
 }
