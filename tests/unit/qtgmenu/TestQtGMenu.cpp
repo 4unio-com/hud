@@ -386,9 +386,15 @@ TEST_F( TestQtGMenu, QMenuStructure )
   // import QMenu
 
   std::shared_ptr< QMenu > menu = m_importer.GetQMenu();
-  EXPECT_NE( nullptr, m_importer.GetQMenu() );
+  ASSERT_NE( nullptr, menu );
 
   EXPECT_EQ( 2, menu->actions().size() );
+
+  QMenu* file_menu = menu->actions().at( 0 )->menu();
+  QMenu* edit_menu = menu->actions().at( 1 )->menu();
+
+  EXPECT_EQ( 4, file_menu->actions().size() );
+  EXPECT_EQ( 2, edit_menu->actions().size() );
 
   UnexportGMenu();
 }
