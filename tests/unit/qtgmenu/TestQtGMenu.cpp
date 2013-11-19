@@ -130,20 +130,20 @@ protected:
     //-- build edit menu
 
     GMenu* edit_submenu = g_menu_new();
-    GMenu* style_section = g_menu_new();
+    GMenu* style_submenu = g_menu_new();
 
-    g_menu_append( style_section, "Plain", "app.text_plain" );
-    g_menu_append( style_section, "Bold", "app.text_bold" );
+    g_menu_append( style_submenu, "Plain", "app.text_plain" );
+    g_menu_append( style_submenu, "Bold", "app.text_bold" );
 
-    g_menu_append_section( edit_submenu, "Style", G_MENU_MODEL( style_section ) );
-    g_object_unref( style_section );
+    g_menu_append_submenu( edit_submenu, "Style", G_MENU_MODEL( style_submenu ) );
+    g_object_unref( style_submenu );
 
     g_menu_append_submenu( menus_section, "Edit", G_MENU_MODEL( edit_submenu ) );
     g_object_unref( edit_submenu );
 
     //-- add menus section to m_menu
 
-    g_menu_append_section( m_menu, "", G_MENU_MODEL( menus_section ) );
+    g_menu_append_section( m_menu, "Menus", G_MENU_MODEL( menus_section ) );
 
     g_object_unref( menus_section );
 
@@ -390,11 +390,45 @@ TEST_F( TestQtGMenu, QMenuStructure )
 
   EXPECT_EQ( 2, menu->actions().size() );
 
+  EXPECT_EQ( "File", menu->actions().at( 0 )->text() );
+  EXPECT_EQ( "Edit", menu->actions().at( 1 )->text() );
+
+  // check file menu structure
+
   QMenu* file_menu = menu->actions().at( 0 )->menu();
-  QMenu* edit_menu = menu->actions().at( 1 )->menu();
+  ASSERT_NE( nullptr, file_menu );
 
   EXPECT_EQ( 4, file_menu->actions().size() );
-  EXPECT_EQ( 2, edit_menu->actions().size() );
+
+  EXPECT_EQ( "File", file_menu->title() );
+
+  EXPECT_EQ( "New", file_menu->actions().at( 0 )->text() );
+  EXPECT_EQ( "Open", file_menu->actions().at( 1 )->text() );
+  EXPECT_TRUE( file_menu->actions().at( 2 )->isSeparator() );
+  EXPECT_EQ( "Lock", file_menu->actions().at( 3 )->text() );
+
+  // check edit menu structure
+
+  QMenu* edit_menu = menu->actions().at( 1 )->menu();
+  ASSERT_NE( nullptr, edit_menu );
+
+  EXPECT_EQ( 1, edit_menu->actions().size() );
+
+  EXPECT_EQ( "Edit", edit_menu->title() );
+
+  EXPECT_EQ( "Style", edit_menu->actions().at( 0 )->text() );
+
+  // check style submenu structure
+
+  QMenu* style_submenu = edit_menu->actions().at( 0 )->menu();
+  ASSERT_NE( nullptr, style_submenu );
+
+  EXPECT_EQ( 2, style_submenu->actions().size() );
+
+  EXPECT_EQ( "Style", style_submenu->title() );
+
+  EXPECT_EQ( "Plain", style_submenu->actions().at( 0 )->text() );
+  EXPECT_EQ( "Bold", style_submenu->actions().at( 1 )->text() );
 
   UnexportGMenu();
 }
