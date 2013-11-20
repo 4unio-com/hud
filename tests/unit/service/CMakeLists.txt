@@ -23,7 +23,7 @@ target_link_libraries(
 	${QTDBUSMOCK_LIBRARIES}
 )
 
-add_valgrind_test(
+add_test(
 	service-unit-tests
-	service-unit-tests
+	qdbus-simple-test-runner "${CMAKE_CURRENT_BINARY_DIR}/service-unit-tests"
 )
