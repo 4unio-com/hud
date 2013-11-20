@@ -24,6 +24,8 @@ set(HUD_SERVICE_LIB_SOURCES
   Query.cpp
   QueryImpl.cpp
   Result.cpp
+  Voice.cpp
+  VoiceImpl.cpp
   Window.cpp
   WindowImpl.cpp
 )
