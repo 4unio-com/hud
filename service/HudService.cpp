@@ -45,8 +45,14 @@ HudService::~HudService() {
 }
 
 QDBusObjectPath HudService::RegisterApplication(const QString &id) {
-	qDebug() << "RegisterApplication" << id;
-	return QDBusObjectPath("/");
+	Application::Ptr application(m_applicationList->ensureApplication(id));
+
+	if(application.isNull()) {
+		sendErrorReply(QDBusError::InvalidArgs, "Invalid application ID");
+		return QDBusObjectPath();
+	}
+
+	return application->path();
 }
 
 QList<NameObject> HudService::applications() const {

@@ -72,10 +72,9 @@ bool ApplicationListImpl::isIgnoredApplication(const QString &applicationId) {
 	return false;
 }
 
-void ApplicationListImpl::ensureApplicationWithWindow(uint windowId,
-		const QString& applicationId) {
+Application::Ptr ApplicationListImpl::ensureApplication(const QString &applicationId) {
 	if (isIgnoredApplication(applicationId)) {
-		return;
+		return Application::Ptr();
 	}
 
 	Application::Ptr application(m_applications[applicationId]);
@@ -83,7 +82,17 @@ void ApplicationListImpl::ensureApplicationWithWindow(uint windowId,
 		application = m_factory.newApplication(applicationId);
 		m_applications[applicationId] = application;
 	}
-	application->addWindow(windowId);
+
+	return application;
+}
+
+void ApplicationListImpl::ensureApplicationWithWindow(uint windowId,
+		const QString& applicationId) {
+	Application::Ptr application(ensureApplication(applicationId));
+
+	if(!application.isNull()) {
+		application->addWindow(windowId);
+	}
 }
 
 void ApplicationListImpl::removeWindow(uint windowId,

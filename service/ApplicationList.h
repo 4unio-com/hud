@@ -46,6 +46,8 @@ public:
 	virtual Application::Ptr focusedApplication() const = 0;
 
 	virtual Window::Ptr focusedWindow() const = 0;
+
+	virtual Application::Ptr ensureApplication(const QString &applicationId) = 0;
 };
 
 }

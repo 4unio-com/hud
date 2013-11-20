@@ -207,4 +207,20 @@ TEST_F(TestHudService, LegacyQuery) {
 	EXPECT_TRUE(hudService.openQueries().isEmpty());
 }
 
+TEST_F(TestHudService, RegisterApplication) {
+	QDBusObjectPath path("/foo");
+
+	QSharedPointer<MockApplication> application(
+			new NiceMock<MockApplication>());
+	ON_CALL(*application, path()).WillByDefault(
+			ReturnRef(path));
+
+	EXPECT_CALL(*applicationList, ensureApplication(QString("app-id"))).WillOnce(
+			Return(application));
+
+	HudService hudService(factory, applicationList, dbus.sessionConnection());
+
+	EXPECT_EQ(path, hudService.RegisterApplication("app-id"));
+}
+
 } // namespace

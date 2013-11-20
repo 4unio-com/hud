@@ -71,6 +71,8 @@ public:
 	MOCK_CONST_METHOD0(focusedApplication, Application::Ptr());
 
 	MOCK_CONST_METHOD0(focusedWindow, Window::Ptr());
+
+	MOCK_METHOD1(ensureApplication, Application::Ptr(const QString &));
 };
 
 class MockApplication: public Application {

@@ -47,6 +47,8 @@ public:
 
 	virtual Window::Ptr focusedWindow() const;
 
+	virtual Application::Ptr ensureApplication(const QString &applicationId);
+
 public Q_SLOTS:
 	void FocusedWindowChanged(uint windowId, const QString &applicationId,
 			uint stage);
