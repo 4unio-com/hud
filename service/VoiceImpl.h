@@ -19,11 +19,14 @@
 #ifndef HUD_SERVICE_VOICEIMPL_H_
 #define HUD_SERVICE_VOICEIMPL_H_
 
+#include <libunityvoice/VoiceInterface.h>
 #include <service/Voice.h>
 #include <service/ItemStore.h>
 
 #include <QObject>
 #include <QSharedPointer>
+
+#include <memory>
 
 namespace hud
 {
@@ -35,10 +38,14 @@ class VoiceImpl : public Voice
 Q_OBJECT
 
 public:
-  explicit VoiceImpl();
+  explicit VoiceImpl( const QString &service, const QString &path,
+      const QDBusConnection &connection, QObject *parent = 0 );
   virtual ~VoiceImpl();
 
-  QString Listen( QSharedPointer< ItemStore > items ) const override;
+  QString Listen( QSharedPointer< ItemStore > items ) override;
+
+private:
+  ComCanonicalUnityVoiceInterface voice_interface;
 };
 
 } // namespace service

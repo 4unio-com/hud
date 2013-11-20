@@ -17,11 +17,12 @@
  */
 
 #include <service/VoiceImpl.h>
-#include <libunityvoice/VoiceInterface.h>
 
 using namespace hud::service;
 
-VoiceImpl::VoiceImpl()
+VoiceImpl::VoiceImpl( const QString &service, const QString &path,
+    const QDBusConnection &connection, QObject *parent )
+    : voice_interface( service, path, connection, parent )
 {
 }
 
@@ -29,7 +30,7 @@ VoiceImpl::~VoiceImpl()
 {
 }
 
-QString VoiceImpl::Listen( QSharedPointer< ItemStore > items ) const
+QString VoiceImpl::Listen( QSharedPointer< ItemStore > items )
 {
   return QString();
 }

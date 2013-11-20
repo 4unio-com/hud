@@ -37,7 +37,7 @@ public:
   explicit Voice();
   virtual ~Voice();
 
-  virtual QString Listen( QSharedPointer< ItemStore > items ) const = 0;
+  virtual QString Listen( QSharedPointer< ItemStore > items ) = 0;
 
 public:
   using Ptr = QSharedPointer< Voice >;
