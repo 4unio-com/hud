@@ -19,6 +19,7 @@
 #ifndef HUD_SERVICE_ITEMSTORE_H_
 #define HUD_SERVICE_ITEMSTORE_H_
 
+#include <service/Item.h>
 #include <service/Result.h>
 
 #include <QSharedPointer>
@@ -45,7 +46,8 @@ public:
 	void execute(unsigned long long commandId, uint timestamp);
 
 protected:
-	void indexMenu(const QMenu *menu, const QStringList &stack);
+	void indexMenu(const QMenu *menu, const QMenu *root, const QStringList &stack,
+			const QList<int> &index);
 
 	Columbus::Corpus m_corpus;
 
@@ -53,7 +55,7 @@ protected:
 
 	DocumentID m_nextId;
 
-	QMap<DocumentID, QAction *> m_actions;
+	QMap<DocumentID, Item::Ptr> m_items;
 };
 
 }

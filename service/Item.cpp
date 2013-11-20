@@ -18,10 +18,65 @@
 
 #include <service/Item.h>
 
+#include <QDebug>
+
 using namespace hud::service;
 
-Item::Item() {
+Item::Item(const QMenu *root, const QList<int> &index, int lastIndex) :
+		m_root(root), m_index(index), m_lastIndex(lastIndex) {
 }
 
 Item::~Item() {
+}
+
+const QMenu * Item::root() const {
+	return m_root;
+}
+
+QList<QAction *> Item::context() const {
+	QList<QAction *> context;
+
+	const QMenu *menu(m_root);
+
+	const QList<int> &index(m_index);
+	for (int i : index) {
+		QList<QAction*> actions(menu->actions());
+		if (i >= actions.size()) {
+			qWarning() << "Action could not be found" << m_index << m_lastIndex;
+			break;
+		}
+		QAction *action(actions.at(i));
+		context.append(action);
+		menu = action->menu();
+	}
+
+	return context;
+}
+
+QAction * Item::action() const {
+	const QMenu *menu(m_root);
+
+	const QList<int> &index(m_index);
+	for (int i : index) {
+		QList<QAction*> actions(menu->actions());
+		if (i >= actions.size()) {
+			qWarning() << "Action could not be found" << m_index << m_lastIndex;
+			return nullptr;
+		}
+		QAction *action(actions.at(i));
+		menu = action->menu();
+	}
+
+	if (menu == nullptr) {
+		qWarning() << "Menu could not be found" << m_index << m_lastIndex;
+		return nullptr;
+	}
+
+	QList<QAction*> actions(menu->actions());
+	if (m_lastIndex >= actions.size()) {
+		qWarning() << "Action could not be found" << m_index << m_lastIndex;
+		return nullptr;
+	}
+
+	return actions.at(m_lastIndex);
 }

@@ -19,14 +19,33 @@
 #ifndef HUD_SERVICE_ITEM_H_
 #define HUD_SERVICE_ITEM_H_
 
+#include <QSharedPointer>
+#include <QMenu>
+#include <QList>
+
 namespace hud {
 namespace service {
 
 class Item {
 public:
-	explicit Item();
+	typedef QSharedPointer<Item> Ptr;
 
-	virtual ~Item();
+	explicit Item(const QMenu *root, const QList<int> &index, int lastIndex);
+
+	~Item();
+
+	const QMenu * root() const;
+
+	QList<QAction *> context() const;
+
+	QAction *action() const;
+
+protected:
+	const QMenu *m_root;
+
+	QList<int> m_index;
+
+	int m_lastIndex;
 };
 
 }

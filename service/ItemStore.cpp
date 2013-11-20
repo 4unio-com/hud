@@ -16,11 +16,13 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
+#include <common/Localisation.h>
 #include <service/ItemStore.h>
 
 #include <columbus.hh>
 #include <QRegularExpression>
 #include <QDebug>
+#include <algorithm>
 
 using namespace hud::service;
 using namespace Columbus;
@@ -35,8 +37,16 @@ ItemStore::ItemStore() :
 ItemStore::~ItemStore() {
 }
 
-void ItemStore::indexMenu(const QMenu *menu, const QStringList &stack) {
+static QString convertActionText(const QAction *action) {
+	return action->text().remove(SINGLE_AMPERSAND).replace("&&", "&");
+}
+
+void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
+		const QStringList &stack, const QList<int> &index) {
+	int i(-1);
 	for (QAction *action : menu->actions()) {
+		++i;
+
 		if (!action->isEnabled()) {
 			continue;
 		}
@@ -44,15 +54,15 @@ void ItemStore::indexMenu(const QMenu *menu, const QStringList &stack) {
 			continue;
 		}
 
-		QStringList text(
-				action->text().remove(SINGLE_AMPERSAND).replace("&&", "&").split(
-						WHITESPACE));
+		QStringList text(convertActionText(action).split(WHITESPACE));
 
 		QMenu *child(action->menu());
 		if (child) {
 			QStringList childStack(stack);
 			childStack << text;
-			indexMenu(child, childStack);
+			QList<int> childIndex(index);
+			childIndex << i;
+			indexMenu(child, root, childStack, childIndex);
 		} else {
 			Result::HighlightList commandHighlights;
 			commandHighlights << Result::Highlight(2, 3);
@@ -75,7 +85,7 @@ void ItemStore::indexMenu(const QMenu *menu, const QStringList &stack) {
 			document.addText(Word("context"), wordList);
 
 			m_corpus.addDocument(document);
-			m_actions[m_nextId] = action;
+			m_items[m_nextId] = Item::Ptr(new Item(root, index, i));
 
 			++m_nextId;
 		}
@@ -87,7 +97,7 @@ void ItemStore::indexMenu(const QMenu *menu) {
 		qWarning() << "Attempt to index null menu";
 		return;
 	}
-	indexMenu(menu, QStringList());
+	indexMenu(menu, menu, QStringList(), QList<int>());
 	m_matcher.index(m_corpus);
 }
 
@@ -114,21 +124,31 @@ void ItemStore::search(const QString &query, QList<Result> &results) {
 	QStringMatcher stringMatcher(query, Qt::CaseInsensitive);
 	int queryLength(query.length());
 
-	for (size_t i(0); i < matchResults.size(); ++i) {
+	size_t maxResults = std::min(matchResults.size(), size_t(20));
+
+	for (size_t i(0); i < maxResults; ++i) {
 		DocumentID id(matchResults.getDocumentID(i));
 		double relevancy(matchResults.getRelevancy(i));
 
-		const QAction *action = m_actions[id];
+		Item::Ptr item(m_items[id]);
+		const QAction *action(item->action());
 
-		QString commandName(
-				action->text().remove(SINGLE_AMPERSAND).replace("&&", "&"));
+		QString commandName(convertActionText(action));
 
 		Result::HighlightList commandHighlights;
 		findHighlights(commandHighlights, stringMatcher, queryLength,
 				commandName);
 
-		//TODO Generate the description
 		QString description;
+		bool first(true);
+		for (const QAction *a : item->context()) {
+			if (first) {
+				first = false;
+			} else {
+				description.append(_(", "));
+			}
+			description.append(convertActionText(a));
+		}
 		Result::HighlightList descriptionHighlights;
 		findHighlights(descriptionHighlights, stringMatcher, queryLength,
 				description);
@@ -143,9 +163,17 @@ void ItemStore::search(const QString &query, QList<Result> &results) {
 }
 
 void ItemStore::execute(unsigned long long int commandId, uint timestamp) {
-	QAction *action = m_actions[commandId];
+	Item::Ptr item(m_items[commandId]);
+	if (item.isNull()) {
+		qWarning() << "Tried to execute unknown command" << commandId;
+		return;
+	}
+
+	QAction *action(item->action());
+
 	if (action == nullptr) {
 		qWarning() << "Tried to execute unknown command" << commandId;
 	}
+
 	action->activate(QAction::ActionEvent::Trigger);
 }
