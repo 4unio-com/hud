@@ -19,14 +19,9 @@
 #ifndef HUD_SERVICE_SERVICE_H_
 #define HUD_SERVICE_SERVICE_H_
 
-#include <common/DBusTypes.h>
-#include <service/ApplicationList.h>
 #include <service/Query.h>
 
-#include <QDBusContext>
-#include <QList>
-#include <QMap>
-#include <QScopedPointer>
+#include <QDBusObjectPath>
 #include <QSharedPointer>
 
 class HudAdaptor;
@@ -36,59 +31,16 @@ namespace service {
 
 class Factory;
 
-class Q_DECL_EXPORT HudService: public QObject, protected QDBusContext {
-Q_OBJECT
+class Q_DECL_EXPORT HudService: public QObject {
 
 public:
 	typedef QSharedPointer<HudService> Ptr;
 
-	explicit HudService(Factory &factory, ApplicationList::Ptr applicationList,
-			const QDBusConnection &connection, QObject *parent = 0);
+	explicit HudService(QObject *parent = 0);
 
 	virtual ~HudService();
 
-	Q_PROPERTY(QList<hud::common::NameObject> Applications READ applications)
-	QList<hud::common::NameObject> applications() const;
-
-	Q_PROPERTY(QList<QDBusObjectPath> OpenQueries READ openQueries)
-	QList<QDBusObjectPath> openQueries() const;
-
-	Query::Ptr closeQuery(const QDBusObjectPath &path);
-
-public Q_SLOTS:
-	QDBusObjectPath RegisterApplication(const QString &id);
-
-	QDBusObjectPath CreateQuery(const QString &query, QString &resultsName,
-			QString &appstackName, int &modelRevision);
-
-	/*
-	 * Legacy interface below here
-	 */
-
-	QString StartQuery(const QString &query, int entries,
-			QList<hud::common::Suggestion> &suggestions,
-			QDBusVariant &querykey);
-
-	void ExecuteQuery(const QDBusVariant &key, uint timestamp);
-
-	void CloseQuery(const QDBusVariant &querykey);
-
-protected:
-	Query::Ptr createQuery(const QString &query, const QString &service);
-
-	QScopedPointer<HudAdaptor> m_adaptor;
-
-	QDBusConnection m_connection;
-
-	Factory &m_factory;
-
-	QMap<QDBusObjectPath, Query::Ptr> m_queries;
-
-	QMap<QString, Query::Ptr> m_legacyQueries;
-
-	QSharedPointer<ApplicationList> m_applicationList;
-
-	QString messageSender();
+	virtual Query::Ptr closeQuery(const QDBusObjectPath &path) = 0;
 };
 
 }

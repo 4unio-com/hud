@@ -16,6 +16,7 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
+#include <common/DBusTypes.h>
 #include <service/Factory.h>
 #include <service/ApplicationListImpl.h>
 #include <unit/service/Mocks.h>

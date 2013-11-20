@@ -45,6 +45,11 @@ public:
 	MOCK_METHOD2(newGMenuCollector, Collector::Ptr(unsigned int, const QString &));
 };
 
+class MockHudService: public HudService {
+public:
+	MOCK_METHOD1(closeQuery, Query::Ptr(const QDBusObjectPath &));
+};
+
 class MockQuery: public Query {
 public:
 	MOCK_CONST_METHOD0(appstackModel, QString());

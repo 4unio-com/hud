@@ -20,6 +20,7 @@
 #include <service/ApplicationImpl.h>
 #include <service/ApplicationListImpl.h>
 #include <service/AppmenuRegistrarInterface.h>
+#include <service/HudServiceImpl.h>
 #include <service/QueryImpl.h>
 #include <service/WindowImpl.h>
 #include <common/DBusTypes.h>
@@ -45,7 +46,7 @@ void Factory::setSessionBus(const QDBusConnection &sessionBus) {
 HudService::Ptr Factory::singletonHudService() {
 	if (m_hudService.isNull()) {
 		m_hudService.reset(
-				new HudService(*this, singletonApplicationList(),
+				new HudServiceImpl(*this, singletonApplicationList(),
 						sessionBus()));
 	}
 	return m_hudService;

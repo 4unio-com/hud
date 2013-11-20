@@ -17,7 +17,7 @@
  */
 
 #include <service/Factory.h>
-#include <service/HudService.h>
+#include <service/HudServiceImpl.h>
 #include <unit/service/Mocks.h>
 
 #include <QDebug>
@@ -53,7 +53,7 @@ protected:
 };
 
 TEST_F(TestHudService, OpenCloseQuery) {
-	HudService hudService(factory, applicationList, dbus.sessionConnection());
+	HudServiceImpl hudService(factory, applicationList, dbus.sessionConnection());
 
 	QDBusObjectPath queryPath("/path/query0");
 	QString resultsModel("com.canonical.hud.results0");
@@ -83,7 +83,7 @@ TEST_F(TestHudService, OpenCloseQuery) {
 }
 
 TEST_F(TestHudService, CloseUnknownQuery) {
-	HudService hudService(factory, applicationList, dbus.sessionConnection());
+	HudServiceImpl hudService(factory, applicationList, dbus.sessionConnection());
 
 	QDBusObjectPath queryPath("/path/query0");
 
@@ -93,7 +93,7 @@ TEST_F(TestHudService, CloseUnknownQuery) {
 }
 
 TEST_F(TestHudService, CreateMultipleQueries) {
-	HudService hudService(factory, applicationList, dbus.sessionConnection());
+	HudServiceImpl hudService(factory, applicationList, dbus.sessionConnection());
 
 	QDBusObjectPath queryPath0("/path/query0");
 	QString resultsModel0("com.canonical.hud.results0");
@@ -152,7 +152,7 @@ TEST_F(TestHudService, LegacyQuery) {
 	ON_CALL(*applicationList, focusedApplication()).WillByDefault(
 			Return(application));
 
-	HudService hudService(factory, applicationList, dbus.sessionConnection());
+	HudServiceImpl hudService(factory, applicationList, dbus.sessionConnection());
 
 	QDBusObjectPath queryPath("/path/query0");
 	QList<Result> results;
@@ -218,7 +218,7 @@ TEST_F(TestHudService, RegisterApplication) {
 	EXPECT_CALL(*applicationList, ensureApplication(QString("app-id"))).WillOnce(
 			Return(application));
 
-	HudService hudService(factory, applicationList, dbus.sessionConnection());
+	HudServiceImpl hudService(factory, applicationList, dbus.sessionConnection());
 
 	EXPECT_EQ(path, hudService.RegisterApplication("app-id"));
 }

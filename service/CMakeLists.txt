@@ -19,6 +19,7 @@ set(HUD_SERVICE_LIB_SOURCES
   Factory.cpp
   GMenuCollector.cpp
   HudService.cpp
+  HudServiceImpl.cpp
   Item.cpp
   ItemStore.cpp
   Query.cpp
@@ -33,8 +34,8 @@ set(HUD_SERVICE_LIB_SOURCES
 qt5_add_dbus_adaptor(
   HUD_SERVICE_LIB_SOURCES
   ${HUD_SERVICE_XML}
-  service/HudService.h
-  hud::service::HudService
+  service/HudServiceImpl.h
+  hud::service::HudServiceImpl
   HudAdaptor
 )
 
