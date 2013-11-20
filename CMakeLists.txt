@@ -36,7 +36,6 @@ endif()
 set(HUD_QUERY_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.query.xml)
 set(HUD_SERVICE_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.xml)
 set(HUD_APP_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.Application.xml)
-set(UNITY_VOICE_XML /usr/share/dbus-1/interfaces/com.canonical.Unity.Voice.xml)
 
 set(WINDOW_STACK_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.Unity.WindowStack.xml")
 set(APPMENU_REGISTRAR_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.AppMenu.Registrar.xml")
@@ -99,6 +98,9 @@ include_directories(${QTDBUSTEST_INCLUDE_DIRS})
 
 pkg_check_modules(QTDBUSMOCK REQUIRED libqtdbusmock-1 REQUIRED)
 include_directories(${QTDBUSMOCK_INCLUDE_DIRS})
+
+pkg_check_modules(UNITYVOICE REQUIRED libunityvoice-1 REQUIRED)
+include_directories(${UNITYVOICE_INCLUDE_DIRS})
 
 find_package(Vala 0.12)
 

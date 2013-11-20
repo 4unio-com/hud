@@ -60,18 +60,6 @@ qt5_add_dbus_interface(
   AppmenuRegistrarInterface
 )
 
-set_source_files_properties(
-  ${UNITY_VOICE_XML}
-  PROPERTIES
-  INCLUDE "VoiceImpl.h"
-)
-
-qt5_add_dbus_interface(
-  HUD_SERVICE_LIB_SOURCES
-  ${UNITY_VOICE_XML}
-  UnityVoiceInterface
-)
-
 add_library(hud-service
   STATIC
   ${HUD_SERVICE_LIB_SOURCES}

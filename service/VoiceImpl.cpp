@@ -17,6 +17,7 @@
  */
 
 #include <service/VoiceImpl.h>
+#include <libunityvoice/VoiceInterface.h>
 
 using namespace hud::service;
 

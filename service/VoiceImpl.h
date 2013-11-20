@@ -25,9 +25,6 @@
 #include <QObject>
 #include <QSharedPointer>
 
-typedef QList<QStringList> QListStringList;
-#include <service/UnityVoiceInterface.h>
-
 namespace hud
 {
 namespace service
