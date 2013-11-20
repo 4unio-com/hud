@@ -76,14 +76,6 @@ GMenuCollector::GMenuCollector(unsigned int windowId,
 		m_unityPath = QDBusObjectPath(windowProperties.at(5));
 	}
 
-	qDebug() << "GMenu available for" << applicationId << windowId << "at"
-			<< m_busName;
-	qDebug() << "m_appmenuPath" << m_appmenuPath.path();
-	qDebug() << "m_menubarPath" << m_menubarPath.path();
-	qDebug() << "m_applicationPath" << m_applicationPath.path();
-	qDebug() << "m_windowPath" << m_windowPath.path();
-	qDebug() << "m_unityPath" << m_unityPath.path();
-
 	m_menubarImporter.reset(
 			new QtGMenuImporter(m_busName, m_menubarPath.path()));
 }

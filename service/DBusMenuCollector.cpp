@@ -65,9 +65,6 @@ void DBusMenuCollector::windowRegistered(const QString &service,
 		return;
 	}
 
-	qDebug() << "DBusMenu available for" << m_windowId << "at" << m_service
-			<< m_path.path();
-
 	m_menuImporter.reset(new DBusMenuImporter(m_service, m_path.path()));
 	m_menu = m_menuImporter->menu();
 }
@@ -136,7 +133,7 @@ CollectorToken::Ptr DBusMenuCollector::activate() {
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 
 	if (collectorToken.isNull()) {
-		qDebug() << "Opening menus";
+		qDebug() << "DBusMenuCollector::Opening menus";
 		QSet<QStringList> known;
 		while (openMenu(m_menu, QStringList(), known)) {
 		}
@@ -148,7 +145,7 @@ CollectorToken::Ptr DBusMenuCollector::activate() {
 }
 
 void DBusMenuCollector::deactivate() {
-	qDebug() << "Hiding menus";
+	qDebug() << "DBusMenuCollector::Hiding menus";
 	hideMenu(m_menu);
 }
 
