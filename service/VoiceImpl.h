@@ -23,9 +23,6 @@
 #include <service/Voice.h>
 #include <service/ItemStore.h>
 
-#include <QObject>
-#include <QSharedPointer>
-
 #include <memory>
 
 namespace hud

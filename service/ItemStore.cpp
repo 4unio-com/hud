@@ -177,3 +177,22 @@ void ItemStore::execute(unsigned long long int commandId, uint timestamp) {
 
 	action->activate(QAction::ActionEvent::Trigger);
 }
+
+QList<QStringList> ItemStore::commands() {
+	QList<QStringList> commands;
+
+	for (uint i = 0; i < m_corpus.size(); ++i) {
+		QStringList command;
+
+		const WordList& words = m_corpus.getDocument(i).getText(
+				Word("command"));
+
+		for (uint j = 0; j < words.size(); ++j) {
+			command.append(words[j].asUtf8().c_str());
+		}
+
+		commands.append(command);
+	}
+
+	return commands;
+}

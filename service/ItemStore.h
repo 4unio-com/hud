@@ -45,9 +45,11 @@ public:
 
 	void execute(unsigned long long commandId, uint timestamp);
 
+	QList<QStringList> commands();
+
 protected:
-	void indexMenu(const QMenu *menu, const QMenu *root, const QStringList &stack,
-			const QList<int> &index);
+	void indexMenu(const QMenu *menu, const QMenu *root,
+			const QStringList &stack, const QList<int> &index);
 
 	Columbus::Corpus m_corpus;
 

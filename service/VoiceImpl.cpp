@@ -32,5 +32,7 @@ VoiceImpl::~VoiceImpl()
 
 QString VoiceImpl::Listen( QSharedPointer< ItemStore > items )
 {
+  voice_interface.listen( items->commands() );
+
   return QString();
 }
