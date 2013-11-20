@@ -17,6 +17,7 @@
  */
 
 #include <libqtgmenu/QtGMenuImporter.h>
+#include <libqtgmenu/internal/QtGMenuUtils.h>
 
 #include <QMenu>
 #include <QSignalSpy>
@@ -53,7 +54,7 @@ protected:
         m_actions_appeared_spy( &m_importer, SIGNAL( ActionsAppeared() ) ),
         m_actions_disappeared_spy( &m_importer, SIGNAL( ActionsDisappeared() ) ),
 
-        m_action_activated_spy( this, SIGNAL( ActionActivated( QString ) ) )
+        m_action_activated_spy( this, SIGNAL( ActionActivated( QString, QVariant ) ) )
   {
     g_bus_own_name( G_BUS_TYPE_SESSION, c_service, G_BUS_NAME_OWNER_FLAGS_NONE, NULL, NULL, NULL,
         NULL, NULL );
@@ -110,7 +111,7 @@ protected:
     TestQtGMenu* self = reinterpret_cast< TestQtGMenu* >( user_data );
 
     const gchar* action_name = g_action_get_name( G_ACTION( simple ) );
-    emit self->ActionActivated( action_name );
+    emit self->ActionActivated( action_name, QtGMenuUtils::GVariantToQVariant( parameter ) );
   }
 
   void ExportGMenu()
@@ -257,7 +258,7 @@ protected:
   }
 
 Q_SIGNALS:
-  void ActionActivated( QString action_name );
+  void ActionActivated( QString action_name, QVariant parameter );
 
 protected:
 
@@ -528,6 +529,7 @@ TEST_F( TestQtGMenu, QMenuActionTriggers )
 
   EXPECT_FALSE( m_action_activated_spy.empty() );
   EXPECT_EQ( "new", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  EXPECT_EQ( "", m_action_activated_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_activated_spy.clear();
 
   file_menu->actions().at( 1 )->trigger();
@@ -535,6 +537,7 @@ TEST_F( TestQtGMenu, QMenuActionTriggers )
 
   EXPECT_FALSE( m_action_activated_spy.empty() );
   EXPECT_EQ( "open", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  EXPECT_EQ( "", m_action_activated_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_activated_spy.clear();
 
   file_menu->actions().at( 3 )->trigger();
@@ -542,6 +545,7 @@ TEST_F( TestQtGMenu, QMenuActionTriggers )
 
   EXPECT_FALSE( m_action_activated_spy.empty() );
   EXPECT_EQ( "lock", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  EXPECT_EQ( "", m_action_activated_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_activated_spy.clear();
 
   // trigger edit menu items
@@ -556,6 +560,7 @@ TEST_F( TestQtGMenu, QMenuActionTriggers )
 
   EXPECT_FALSE( m_action_activated_spy.empty() );
   EXPECT_EQ( "text_plain", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  EXPECT_EQ( "text_plain", m_action_activated_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_activated_spy.clear();
 
   style_submenu->actions().at( 1 )->trigger();
@@ -563,6 +568,7 @@ TEST_F( TestQtGMenu, QMenuActionTriggers )
 
   EXPECT_FALSE( m_action_activated_spy.empty() );
   EXPECT_EQ( "text_bold", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  EXPECT_EQ( "text_bold", m_action_activated_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_activated_spy.clear();
 
   UnexportGMenu();

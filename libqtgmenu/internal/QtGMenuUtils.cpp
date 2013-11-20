@@ -142,7 +142,11 @@ static QVariant makeVariantMapQVariant( GVariant* gvariant )
 
 QVariant QtGMenuUtils::GVariantToQVariant( GVariant* gvariant )
 {
-  if( g_variant_is_of_type( gvariant, G_VARIANT_TYPE_BOOLEAN ) )
+  if( !gvariant )
+  {
+    return QVariant();
+  }
+  else if( g_variant_is_of_type( gvariant, G_VARIANT_TYPE_BOOLEAN ) )
   {
     return makeBoolQVariant( gvariant );
   }
