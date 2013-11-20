@@ -55,8 +55,6 @@ public:
 
 	void removeWindow(unsigned int windowId);
 
-	void activateWindow(unsigned int windowId);
-
 	Window::Ptr window(unsigned int windowId);
 
 	bool isEmpty() const;

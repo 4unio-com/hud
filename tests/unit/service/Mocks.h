@@ -83,13 +83,18 @@ public:
 
 	MOCK_METHOD1(removeWindow, void(unsigned int));
 
-	MOCK_METHOD1(activateWindow, void(unsigned int));
-
 	MOCK_METHOD1(window, Window::Ptr(unsigned int));
 
 	MOCK_CONST_METHOD0(isEmpty, bool());
 
 	MOCK_CONST_METHOD0(path, const QDBusObjectPath &());
+};
+
+class MockWindowToken: public WindowToken {
+public:
+	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
+
+	MOCK_METHOD2(execute, void(unsigned long long, uint));
 };
 
 class MockWindow: public Window {

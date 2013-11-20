@@ -46,8 +46,6 @@ public:
 
 	virtual void removeWindow(unsigned int windowId) = 0;
 
-	virtual void activateWindow(unsigned int windowId) = 0;
-
 	virtual Window::Ptr window(unsigned int windowId) = 0;
 
 	virtual bool isEmpty() const = 0;
