@@ -19,12 +19,14 @@
 #ifndef HUD_SERVICE_VOICEIMPL_H_
 #define HUD_SERVICE_VOICEIMPL_H_
 
-//#include <UnityVoiceInterface.h>
 #include <service/Voice.h>
 #include <service/ItemStore.h>
 
 #include <QObject>
 #include <QSharedPointer>
+
+typedef QList<QStringList> QListStringList;
+#include <service/UnityVoiceInterface.h>
 
 namespace hud
 {
@@ -45,4 +47,4 @@ public:
 } // namespace service
 } // namespace hud
 
-#endif /* HUD_SERVICE_VOICEIMPL_H_ */
+#endif // HUD_SERVICE_VOICEIMPL_H_
