@@ -4,6 +4,7 @@ set(
 	TestApplication.cpp
 	TestApplicationList.cpp
 	TestHudService.cpp
+	TestItemStore.cpp
 	TestQuery.cpp
 	TestVoice.cpp
 	TestWindow.cpp
