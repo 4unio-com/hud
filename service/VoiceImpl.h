@@ -36,8 +36,13 @@ public:
 
 	QString listen(const QList<QStringList>& commands) override;
 
+private Q_SLOTS:
+	void listenFinished(QDBusPendingCallWatcher *call);
+
 private:
 	QSharedPointer<ComCanonicalUnityVoiceInterface> m_voiceInterface;
+	QEventLoop m_listen_wait;
+	QString m_query;
 };
 
 } // namespace service
