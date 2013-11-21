@@ -30,13 +30,14 @@ Q_OBJECT
 
 public:
 	explicit VoiceImpl(
-			QSharedPointer<ComCanonicalUnityVoiceInterface> voice_interface);
+			QSharedPointer<ComCanonicalUnityVoiceInterface> voiceInterface);
+
 	virtual ~VoiceImpl();
 
 	QString listen(const QList<QStringList>& commands) override;
 
 private:
-	QSharedPointer<ComCanonicalUnityVoiceInterface> m_voice_interface;
+	QSharedPointer<ComCanonicalUnityVoiceInterface> m_voiceInterface;
 };
 
 } // namespace service

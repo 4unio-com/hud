@@ -21,19 +21,13 @@
 using namespace hud::service;
 
 VoiceImpl::VoiceImpl(
-		QSharedPointer<ComCanonicalUnityVoiceInterface> voice_interface) :
-		m_voice_interface(voice_interface) {
-	if (voice_interface == nullptr) {
-		throw std::logic_error("Unable to initialize voice");
-	}
-
-	LibUnityVoice::UnityVoice::registerMetaTypes();
-
-	connect(m_voice_interface.data(), SIGNAL( HeardSomething() ), this,
+		QSharedPointer<ComCanonicalUnityVoiceInterface> voiceInterface) :
+		m_voiceInterface(voiceInterface) {
+	connect(m_voiceInterface.data(), SIGNAL( HeardSomething() ), this,
 			SIGNAL( HeardSomething() ));
-	connect(m_voice_interface.data(), SIGNAL( Listening() ), this,
+	connect(m_voiceInterface.data(), SIGNAL( Listening() ), this,
 			SIGNAL( Listening() ));
-	connect(m_voice_interface.data(), SIGNAL( Loading() ), this,
+	connect(m_voiceInterface.data(), SIGNAL( Loading() ), this,
 			SIGNAL( Loading() ));
 }
 
@@ -41,11 +35,12 @@ VoiceImpl::~VoiceImpl() {
 }
 
 QString VoiceImpl::listen(const QList<QStringList>& commands) {
-	if (commands.size() == 0) {
+	if (commands.isEmpty()) {
 		return QString();
 	}
 
-	QDBusPendingReply<QString> query(m_voice_interface->listen(commands));
+	QDBusPendingReply<QString> query(m_voiceInterface->listen(commands));
+	query.waitForFinished();
 
 	if (query.isError()) {
 		qWarning() << query.error();

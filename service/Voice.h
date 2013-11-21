@@ -32,13 +32,16 @@ Q_OBJECT
 
 public:
 	explicit Voice();
+
 	virtual ~Voice();
 
 	virtual QString listen(const QList<QStringList>& commands) = 0;
 
 Q_SIGNALS:
 	void HeardSomething();
+
 	void Listening();
+
 	void Loading();
 
 public:

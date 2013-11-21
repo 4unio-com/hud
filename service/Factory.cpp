@@ -35,6 +35,7 @@ Factory::Factory() :
 		m_sessionBus(QDBusConnection::sessionBus()), m_applicationCounter(0), m_queryCounter(
 				0) {
 	DBusTypes::registerMetaTypes();
+	LibUnityVoice::UnityVoice::registerMetaTypes();
 }
 
 Factory::~Factory() {
