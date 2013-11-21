@@ -184,8 +184,11 @@ int QueryImpl::VoiceQuery(QString &query) {
 	QList<QStringList> commandsList;
 	m_windowToken->commands(commandsList);
 
-	// List for speech, then update the query accordingly
-	UpdateQuery(m_voice->listen(commandsList));
+	// Listen for speech, and set result
+	query = m_voice->listen(commandsList);
+
+	// Update the query accordingly
+	UpdateQuery(query);
 
 	return 0;
 }
