@@ -65,15 +65,6 @@ protected:
 	QSharedPointer<ComCanonicalUnityVoiceInterface> voice_interface;
 };
 
-TEST_F( TestVoice, NullInterface ) {
-	// construct VoiceImpl with an invalid pointer
-
-	auto null_interface = QSharedPointer<ComCanonicalUnityVoiceInterface>(
-			nullptr);
-
-	EXPECT_THROW(VoiceImpl voice( null_interface ), std::logic_error);
-}
-
 TEST_F( TestVoice, Signals ) {
 	// check that signals are patched through VoiceImpl
 
