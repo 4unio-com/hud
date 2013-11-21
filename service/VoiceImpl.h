@@ -25,24 +25,26 @@
 
 #include <memory>
 
-namespace hud
-{
-namespace service
-{
+namespace hud {
+namespace service {
 
-class VoiceImpl : public Voice
-{
+class VoiceImpl: public Voice {
 Q_OBJECT
 
 public:
-  explicit VoiceImpl( const QString &service, const QString &path,
-      const QDBusConnection &connection, QObject *parent = 0 );
-  virtual ~VoiceImpl();
+	explicit VoiceImpl(
+			QSharedPointer<ComCanonicalUnityVoiceInterface> voice_interface);
+	virtual ~VoiceImpl();
 
-  QString Listen( QSharedPointer< ItemStore > items ) override;
+	QString Listen(const QList<QStringList>& commands) override;
+
+Q_SIGNALS:
+	void HeardSomething();
+	void Listening();
+	void Loading();
 
 private:
-  ComCanonicalUnityVoiceInterface voice_interface;
+	QSharedPointer<ComCanonicalUnityVoiceInterface> m_voice_interface;
 };
 
 } // namespace service

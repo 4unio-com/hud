@@ -13,6 +13,11 @@ add_executable(
 	${UNIT_TESTS_SRC}
 )
 
+qt5_use_modules(
+	service-unit-tests
+	Test
+)
+
 target_link_libraries(
 	service-unit-tests
 	test-utils

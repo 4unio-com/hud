@@ -22,25 +22,22 @@
 #include <QObject>
 #include <QSharedPointer>
 
-namespace hud
-{
-namespace service
-{
+namespace hud {
+namespace service {
 
 class ItemStore;
 
-class Voice : public QObject
-{
+class Voice: public QObject {
 Q_OBJECT
 
 public:
-  explicit Voice();
-  virtual ~Voice();
+	explicit Voice();
+	virtual ~Voice();
 
-  virtual QString Listen( QSharedPointer< ItemStore > items ) = 0;
+	virtual QString Listen(const QList<QStringList>& commands) = 0;
 
 public:
-  using Ptr = QSharedPointer< Voice >;
+	using Ptr = QSharedPointer< Voice >;
 };
 
 } // namespace service

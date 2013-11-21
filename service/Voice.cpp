@@ -20,10 +20,8 @@
 
 using namespace hud::service;
 
-Voice::Voice()
-{
+Voice::Voice() {
 }
 
-Voice::~Voice()
-{
+Voice::~Voice() {
 }

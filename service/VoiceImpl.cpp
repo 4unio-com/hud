@@ -20,19 +20,37 @@
 
 using namespace hud::service;
 
-VoiceImpl::VoiceImpl( const QString &service, const QString &path,
-    const QDBusConnection &connection, QObject *parent )
-    : voice_interface( service, path, connection, parent )
-{
+VoiceImpl::VoiceImpl(
+		QSharedPointer<ComCanonicalUnityVoiceInterface> voice_interface) :
+		m_voice_interface(voice_interface) {
+	if (voice_interface == nullptr) {
+		throw std::logic_error("Unable to initialize voice");
+	}
+
+	LibUnityVoice::UnityVoice::registerMetaTypes();
+
+	connect(m_voice_interface.data(), SIGNAL( HeardSomething() ), this,
+			SIGNAL( HeardSomething() ));
+	connect(m_voice_interface.data(), SIGNAL( Listening() ), this,
+			SIGNAL( Listening() ));
+	connect(m_voice_interface.data(), SIGNAL( Loading() ), this,
+			SIGNAL( Loading() ));
 }
 
-VoiceImpl::~VoiceImpl()
-{
+VoiceImpl::~VoiceImpl() {
 }
 
-QString VoiceImpl::Listen( QSharedPointer< ItemStore > items )
-{
-  voice_interface.listen( items->commands() );
+QString VoiceImpl::Listen(const QList<QStringList>& commands) {
+	if (commands.size() == 0) {
+		return QString();
+	}
 
-  return QString();
+	QDBusPendingReply<QString> query(m_voice_interface->listen(commands));
+
+	if (query.isError()) {
+		qWarning() << query.error();
+		return QString();
+	}
+
+	return query;
 }

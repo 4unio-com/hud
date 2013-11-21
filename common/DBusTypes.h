@@ -56,6 +56,12 @@ public:
 	static const QString BAMF_MATCHER_DBUS_PATH;
 
 	Q_DECL_EXPORT
+	static const QString UNITY_VOICE_DBUS_NAME;
+
+	Q_DECL_EXPORT
+	static const QString UNITY_VOICE_DBUS_PATH;
+
+	Q_DECL_EXPORT
 	static void registerMetaTypes();
 
 	Q_DECL_EXPORT
