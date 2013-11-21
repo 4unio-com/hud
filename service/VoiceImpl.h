@@ -21,9 +21,6 @@
 
 #include <libunityvoice/VoiceInterface.h>
 #include <service/Voice.h>
-#include <service/ItemStore.h>
-
-#include <memory>
 
 namespace hud {
 namespace service {
@@ -36,12 +33,7 @@ public:
 			QSharedPointer<ComCanonicalUnityVoiceInterface> voice_interface);
 	virtual ~VoiceImpl();
 
-	QString Listen(const QList<QStringList>& commands) override;
-
-Q_SIGNALS:
-	void HeardSomething();
-	void Listening();
-	void Loading();
+	QString listen(const QList<QStringList>& commands) override;
 
 private:
 	QSharedPointer<ComCanonicalUnityVoiceInterface> m_voice_interface;

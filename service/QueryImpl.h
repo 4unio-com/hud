@@ -23,6 +23,7 @@
 #include <common/AppstackModel.h>
 #include <service/ApplicationList.h>
 #include <service/Query.h>
+#include <service/Voice.h>
 
 #include <QDBusContext>
 #include <QDBusConnection>
@@ -43,7 +44,7 @@ Q_OBJECT
 public:
 	explicit QueryImpl(unsigned int id, const QString &query,
 			const QString &sender, HudService &service,
-			ApplicationList::Ptr applicationList,
+			ApplicationList::Ptr applicationList, Voice::Ptr voice,
 			const QDBusConnection &connection, QObject *parent = 0);
 
 	virtual ~QueryImpl();
@@ -93,6 +94,8 @@ protected:
 	HudService &m_service;
 
 	ApplicationList::Ptr m_applicationList;
+
+	Voice::Ptr m_voice;
 
 	QString m_query;
 

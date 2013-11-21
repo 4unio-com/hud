@@ -105,12 +105,12 @@ TEST_F( TestVoice, ListenNoCommands ) {
 	unityVoiceMock().AddMethod(DBusTypes::UNITY_VOICE_DBUS_NAME, "listen",
 			"aas", "s", "ret = 'new file'").waitForFinished();
 
-	EXPECT_NE("new file", voice.Listen(commands));
+	EXPECT_NE("new file", voice.listen(commands));
 
 	unityVoiceMock().AddMethod(DBusTypes::UNITY_VOICE_DBUS_NAME, "listen",
 			"aas", "s", "ret = 'open file'").waitForFinished();
 
-	EXPECT_NE("open file", voice.Listen(commands));
+	EXPECT_NE("open file", voice.listen(commands));
 }
 
 TEST_F( TestVoice, Listen ) {
@@ -119,18 +119,18 @@ TEST_F( TestVoice, Listen ) {
 	VoiceImpl voice(voice_interface);
 
 	QList<QStringList> commands;
-  commands.append({ "new", "file" });
-  commands.append({ "open", "file" });
+	commands.append( { "new", "file" });
+	commands.append( { "open", "file" });
 
 	unityVoiceMock().AddMethod(DBusTypes::UNITY_VOICE_DBUS_NAME, "listen",
 			"aas", "s", "ret = 'new file'").waitForFinished();
 
-	EXPECT_EQ("new file", voice.Listen(commands));
+	EXPECT_EQ("new file", voice.listen(commands));
 
 	unityVoiceMock().AddMethod(DBusTypes::UNITY_VOICE_DBUS_NAME, "listen",
 			"aas", "s", "ret = 'open file'").waitForFinished();
 
-	EXPECT_EQ("open file", voice.Listen(commands));
+	EXPECT_EQ("open file", voice.listen(commands));
 }
 
 } // namespace

@@ -31,12 +31,12 @@ using namespace hud::service;
 
 QueryImpl::QueryImpl(unsigned int id, const QString &query,
 		const QString &sender, HudService &service,
-		ApplicationList::Ptr applicationList, const QDBusConnection &connection,
-		QObject *parent) :
+		ApplicationList::Ptr applicationList, Voice::Ptr voice,
+		const QDBusConnection &connection, QObject *parent) :
 		Query(parent), m_adaptor(new QueryAdaptor(this)), m_connection(
 				connection), m_path(DBusTypes::queryPath(id)), m_service(
-				service), m_applicationList(applicationList), m_query(query), m_serviceWatcher(
-				sender, m_connection,
+				service), m_applicationList(applicationList), m_voice(voice), m_query(
+				query), m_serviceWatcher(sender, m_connection,
 				QDBusServiceWatcher::WatchForUnregistration) {
 
 	connect(&m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)),
@@ -51,6 +51,13 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query,
 		throw std::logic_error(
 				_("Unable to register HUD query object on DBus"));
 	}
+
+	connect(m_voice.data(), SIGNAL( HeardSomething() ), m_adaptor.data(),
+			SIGNAL( VoiceQueryHeardSomething() ));
+	connect(m_voice.data(), SIGNAL( Listening() ), m_adaptor.data(),
+			SIGNAL( VoiceQueryListening() ));
+	connect(m_voice.data(), SIGNAL( Loading() ), m_adaptor.data(),
+			SIGNAL( VoiceQueryLoading() ));
 }
 
 QueryImpl::~QueryImpl() {
@@ -164,8 +171,10 @@ void QueryImpl::refresh() {
 int QueryImpl::VoiceQuery(QString &query) {
 	qDebug() << "VoiceQuery";
 
-	query = QString("voice query");
-	UpdateQuery(query);
+	QList<QStringList> commands_list;
+	m_windowToken->commands(commands_list);
+
+	UpdateQuery(m_voice->listen(commands_list));
 	return 0;
 }
 

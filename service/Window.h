@@ -37,6 +37,8 @@ public:
 
 	virtual void execute(unsigned long long commandId, uint timestamp) = 0;
 
+	virtual void commands(QList<QStringList>& commands_list) = 0;
+
 protected:
 	explicit WindowToken();
 };

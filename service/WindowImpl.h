@@ -42,6 +42,8 @@ public:
 
 	virtual void execute(unsigned long long commandId, uint timestamp);
 
+	virtual void commands(QList<QStringList>& commands_list);
+
 protected:
 	ItemStore m_items;
 

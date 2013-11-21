@@ -40,7 +40,7 @@ VoiceImpl::VoiceImpl(
 VoiceImpl::~VoiceImpl() {
 }
 
-QString VoiceImpl::Listen(const QList<QStringList>& commands) {
+QString VoiceImpl::listen(const QList<QStringList>& commands) {
 	if (commands.size() == 0) {
 		return QString();
 	}

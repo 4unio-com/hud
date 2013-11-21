@@ -22,6 +22,7 @@
 #include <service/AppmenuRegistrarInterface.h>
 #include <service/HudServiceImpl.h>
 #include <service/QueryImpl.h>
+#include <service/VoiceImpl.h>
 #include <service/WindowImpl.h>
 #include <common/DBusTypes.h>
 
@@ -81,7 +82,7 @@ Query::Ptr Factory::newQuery(const QString &query, const QString &sender) {
 	return Query::Ptr(
 			new QueryImpl(m_queryCounter++, query, sender,
 					*singletonHudService(), singletonApplicationList(),
-					sessionBus()));
+					singletonVoice(), sessionBus()));
 }
 
 ApplicationList::Ptr Factory::singletonApplicationList() {
@@ -90,6 +91,20 @@ ApplicationList::Ptr Factory::singletonApplicationList() {
 				new ApplicationListImpl(*this, singletonWindowStack()));
 	}
 	return m_applicationList;
+}
+
+Voice::Ptr Factory::singletonVoice() {
+	if (m_voice.isNull()) {
+		QSharedPointer<ComCanonicalUnityVoiceInterface> voice_interface;
+
+		voice_interface.reset(
+				new ComCanonicalUnityVoiceInterface(
+						DBusTypes::UNITY_VOICE_DBUS_NAME,
+						DBusTypes::UNITY_VOICE_DBUS_PATH, sessionBus()));
+
+		m_voice.reset(new VoiceImpl(voice_interface));
+	}
+	return m_voice;
 }
 
 Application::Ptr Factory::newApplication(const QString &applicationId) {

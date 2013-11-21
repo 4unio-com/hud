@@ -45,7 +45,7 @@ public:
 
 	void execute(unsigned long long commandId, uint timestamp);
 
-	QList<QStringList> commands();
+	void commands(QList<QStringList> &commands_list);
 
 protected:
 	void indexMenu(const QMenu *menu, const QMenu *root,

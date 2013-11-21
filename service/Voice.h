@@ -34,7 +34,12 @@ public:
 	explicit Voice();
 	virtual ~Voice();
 
-	virtual QString Listen(const QList<QStringList>& commands) = 0;
+	virtual QString listen(const QList<QStringList>& commands) = 0;
+
+Q_SIGNALS:
+	void HeardSomething();
+	void Listening();
+	void Loading();
 
 public:
 	using Ptr = QSharedPointer< Voice >;

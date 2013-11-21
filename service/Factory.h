@@ -25,6 +25,7 @@
 #include <service/DBusMenuCollector.h>
 #include <service/GMenuCollector.h>
 #include <service/ItemStore.h>
+#include <service/Voice.h>
 #include <service/Window.h>
 #include <service/Query.h>
 
@@ -54,6 +55,8 @@ public:
 
 	virtual ApplicationList::Ptr singletonApplicationList();
 
+	virtual Voice::Ptr singletonVoice();
+
 	virtual Application::Ptr newApplication(const QString &applicationId);
 
 	virtual ItemStore::Ptr newItemStore();
@@ -78,12 +81,12 @@ protected:
 
 	ApplicationList::Ptr m_applicationList;
 
+	Voice::Ptr m_voice;
+
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
 
 	QSharedPointer<ComCanonicalAppMenuRegistrarInterface> m_appmenu;
-
-}
-;
+};
 
 }
 }
