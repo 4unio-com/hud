@@ -61,6 +61,8 @@ protected:
 		ON_CALL(*applicationList, focusedWindow()).WillByDefault(
 				Return(window));
 
+		voice.reset(new NiceMock<MockVoice>());
+
 		hudService.reset(new NiceMock<MockHudService>);
 	}
 
@@ -80,6 +82,8 @@ protected:
 	QString appIcon;
 
 	QSharedPointer<MockHudService> hudService;
+
+	QSharedPointer<MockVoice> voice;
 
 	QSharedPointer<MockApplicationList> applicationList;
 
@@ -109,7 +113,7 @@ TEST_F(TestQuery, Create) {
 			}));
 
 	QueryImpl query(0, queryString, "keep.alive", *hudService, applicationList,
-			dbus.sessionConnection());
+			voice, dbus.sessionConnection());
 
 	const QList<Result> results(query.results());
 	ASSERT_EQ(expectedResults.size(), results.size());
@@ -127,7 +131,7 @@ TEST_F(TestQuery, CloseWhenSenderDies) {
 
 	Query::Ptr query(
 			new QueryImpl(0, "query", "keep.alive", *hudService,
-					applicationList, dbus.sessionConnection()));
+					applicationList, voice, dbus.sessionConnection()));
 
 	EXPECT_CALL(*hudService, closeQuery(query->path())).WillOnce(
 			Invoke([this, query](const QDBusObjectPath &path) {

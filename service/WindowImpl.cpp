@@ -43,8 +43,8 @@ void WindowTokenImpl::search(const QString &query, QList<Result> &results) {
 void WindowTokenImpl::execute(unsigned long long commandId, uint timestamp) {
 	m_items.execute(commandId, timestamp);
 }
-void WindowTokenImpl::commands(QList<QStringList>& commands_list) {
-	m_items.commands(commands_list);
+void WindowTokenImpl::commands(QList<QStringList>& commandsList) {
+	m_items.commands(commandsList);
 }
 
 WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,

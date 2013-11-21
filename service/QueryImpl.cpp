@@ -53,11 +53,11 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query,
 	}
 
 	connect(m_voice.data(), SIGNAL( HeardSomething() ), m_adaptor.data(),
-			SIGNAL( VoiceQueryHeardSomething() ));
+	SIGNAL( VoiceQueryHeardSomething() ));
 	connect(m_voice.data(), SIGNAL( Listening() ), m_adaptor.data(),
-			SIGNAL( VoiceQueryListening() ));
+	SIGNAL( VoiceQueryListening() ));
 	connect(m_voice.data(), SIGNAL( Loading() ), m_adaptor.data(),
-			SIGNAL( VoiceQueryLoading() ));
+	SIGNAL( VoiceQueryLoading() ));
 }
 
 QueryImpl::~QueryImpl() {
@@ -146,6 +146,7 @@ void QueryImpl::refresh() {
 
 	Window::Ptr window(m_applicationList->focusedWindow());
 
+	// Hold onto a token for the active window
 	m_windowToken = window->activate();
 
 	m_results.clear();
@@ -169,12 +170,23 @@ void QueryImpl::refresh() {
 }
 
 int QueryImpl::VoiceQuery(QString &query) {
-	qDebug() << "VoiceQuery";
+	Window::Ptr window(m_applicationList->focusedWindow());
 
-	QList<QStringList> commands_list;
-	m_windowToken->commands(commands_list);
+	if (window.isNull()) {
+		qWarning() << "No focused window for voice query";
+		return 0;
+	}
 
-	UpdateQuery(m_voice->listen(commands_list));
+	// Hold onto a token for the active window
+	m_windowToken = window->activate();
+
+	// Get the list of commands from the current window token
+	QList<QStringList> commandsList;
+	m_windowToken->commands(commandsList);
+
+	// List for speech, then update the query accordingly
+	UpdateQuery(m_voice->listen(commandsList));
+
 	return 0;
 }
 

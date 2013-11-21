@@ -95,14 +95,11 @@ ApplicationList::Ptr Factory::singletonApplicationList() {
 
 Voice::Ptr Factory::singletonVoice() {
 	if (m_voice.isNull()) {
-		QSharedPointer<ComCanonicalUnityVoiceInterface> voice_interface;
-
-		voice_interface.reset(
+		QSharedPointer<ComCanonicalUnityVoiceInterface> voiceInterface(
 				new ComCanonicalUnityVoiceInterface(
 						DBusTypes::UNITY_VOICE_DBUS_NAME,
 						DBusTypes::UNITY_VOICE_DBUS_PATH, sessionBus()));
-
-		m_voice.reset(new VoiceImpl(voice_interface));
+		m_voice.reset(new VoiceImpl(voiceInterface));
 	}
 	return m_voice;
 }

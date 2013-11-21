@@ -102,6 +102,8 @@ public:
 	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
 
 	MOCK_METHOD2(execute, void(unsigned long long, uint));
+
+	MOCK_METHOD1(commands, void(QList<QStringList> &));
 };
 
 class MockWindow: public Window {
@@ -111,6 +113,11 @@ public:
 	MOCK_METHOD1(setContext, void(const QString &));
 
 	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
+};
+
+class MockVoice: public Voice {
+public:
+	MOCK_METHOD1(listen, QString(const QList<QStringList> &));
 };
 
 class MockCollector: public Collector {
