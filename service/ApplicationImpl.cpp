@@ -78,7 +78,7 @@ QList<ActionGroup> ApplicationImpl::actionGroups() const {
 	return QList<ActionGroup>();
 }
 
-QString ApplicationImpl::desktopPath() {
+const QString & ApplicationImpl::desktopPath() {
 	if (m_desktopPath.isEmpty()) {
 		QString desktopFile(QString("%1.desktop").arg(m_applicationId));
 
@@ -98,7 +98,7 @@ QString ApplicationImpl::desktopPath() {
 	return m_desktopPath;
 }
 
-QString ApplicationImpl::icon() {
+const QString & ApplicationImpl::icon() {
 	if (m_icon.isEmpty()) {
 		QString path(desktopPath());
 		if (!path.isEmpty()) {

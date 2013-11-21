@@ -40,7 +40,7 @@ public:
 
 	virtual const QString & id() const = 0;
 
-	virtual QString icon() = 0;
+	virtual const QString & icon() = 0;
 
 	virtual void addWindow(unsigned int windowId) = 0;
 

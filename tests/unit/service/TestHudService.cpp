@@ -147,7 +147,8 @@ TEST_F(TestHudService, CreateMultipleQueries) {
 TEST_F(TestHudService, LegacyQuery) {
 	QSharedPointer<MockApplication> application(
 			new NiceMock<MockApplication>());
-	ON_CALL(*application, icon()).WillByDefault(Return("app0-icon"));
+	QString icon("app0-icon");
+	ON_CALL(*application, icon()).WillByDefault(ReturnRef(icon));
 
 	ON_CALL(*applicationList, focusedApplication()).WillByDefault(
 			Return(application));

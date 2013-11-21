@@ -84,7 +84,7 @@ class MockApplication: public Application {
 public:
 	MOCK_CONST_METHOD0(id, const QString &());
 
-	MOCK_METHOD0(icon, QString());
+	MOCK_METHOD0(icon, const QString &());
 
 	MOCK_METHOD1(addWindow, void(unsigned int));
 

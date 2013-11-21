@@ -65,10 +65,10 @@ public:
 	QList<hud::common::ActionGroup> actionGroups() const;
 
 	Q_PROPERTY(QString DesktopPath READ desktopPath)
-	QString desktopPath();
+	const QString & desktopPath();
 
 	Q_PROPERTY(QString Icon READ icon)
-	QString icon();
+	const QString & icon();
 
 	Q_PROPERTY(QList<hud::common::MenuModel> MenuModels READ menuModels)
 	QList<hud::common::MenuModel> menuModels() const;
