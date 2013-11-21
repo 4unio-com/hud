@@ -21,7 +21,9 @@
 #include <unit/service/Mocks.h>
 
 #include <libqtdbustest/DBusTestRunner.h>
+#include <libqtdbustest/QProcessDBusService.h>
 #include <libqtdbusmock/DBusMock.h>
+#include <QSignalSpy>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
@@ -35,28 +37,60 @@ using namespace hud::service::test;
 
 namespace {
 
-class TestQuery: public Test {
+class TestQuery: public QObject, public Test {
+Q_OBJECT
+
 protected:
 	TestQuery() :
 			mock(dbus) {
 
-//		mock.registerCustomMock("keep.alive", "/", "keep.alive",
-//				QDBusConnection::SessionBus);
-//
-//		dbus.startServices();
+		windowToken.reset(new NiceMock<MockWindowToken>());
+
+		window.reset(new NiceMock<MockWindow>());
+		ON_CALL(*window, activate()).WillByDefault(Return(windowToken));
+
+		application.reset(new NiceMock<MockApplication>());
+		appId = "app-id";
+		appIcon = "app-icon";
+		ON_CALL(*application, id()).WillByDefault(ReturnRef(appId));
+		ON_CALL(*application, icon()).WillByDefault(ReturnRef(appIcon));
+
+		applicationList.reset(new NiceMock<MockApplicationList>());
+		ON_CALL(*applicationList, focusedApplication()).WillByDefault(
+				Return(application));
+		ON_CALL(*applicationList, focusedWindow()).WillByDefault(
+				Return(window));
+
+		hudService.reset(new NiceMock<MockHudService>);
 	}
 
 	virtual ~TestQuery() {
 	}
 
+Q_SIGNALS:
+	void queryClosed(const QDBusObjectPath &path);
+
+protected:
 	DBusTestRunner dbus;
 
 	DBusMock mock;
+
+	QString appId;
+
+	QString appIcon;
+
+	QSharedPointer<MockHudService> hudService;
+
+	QSharedPointer<MockApplicationList> applicationList;
+
+	QSharedPointer<MockApplication> application;
+
+	QSharedPointer<MockWindow> window;
+
+	QSharedPointer<MockWindowToken> windowToken;
 };
 
-TEST_F(TestQuery, Foo) {
-	NiceMock<MockHudService> hudService;
-
+TEST_F(TestQuery, Create) {
 	QList<Result> expectedResults;
 	expectedResults
 			<< Result(0, "command name",
@@ -64,33 +98,17 @@ TEST_F(TestQuery, Foo) {
 					"description field",
 					Result::HighlightList() << Result::Highlight(2, 3),
 					"shortcut field", 100, false);
+
 	QString queryString("query");
 
-	QSharedPointer<MockWindowToken> windowToken(
-			new NiceMock<MockWindowToken>());
-	EXPECT_CALL(*windowToken, search(queryString, _)).WillOnce(
-			Invoke(
-					[&expectedResults](const QString &query, QList<Result> &results) {
-						results.append(expectedResults);
-					}));
-
-	QSharedPointer<MockApplication> application(
-			new NiceMock<MockApplication>());
-	QString id("app-id");
-	QString icon("app-icon");
-	ON_CALL(*application, id()).WillByDefault(ReturnRef(id));
-	ON_CALL(*application, icon()).WillByDefault(ReturnRef(icon));
-
-	QSharedPointer<MockWindow> window(new NiceMock<MockWindow>());
 	EXPECT_CALL(*window, activate()).WillOnce(Return(windowToken));
 
-	QSharedPointer<MockApplicationList> applicationList(
-			new NiceMock<MockApplicationList>());
-	ON_CALL(*applicationList, focusedApplication()).WillByDefault(
-			Return(application));
-	ON_CALL(*applicationList, focusedWindow()).WillByDefault(Return(window));
+	EXPECT_CALL(*windowToken, search(queryString, _)).WillOnce(
+			Invoke([&expectedResults](const QString &, QList<Result> &results) {
+				results.append(expectedResults);
+			}));
 
-	QueryImpl query(0, queryString, "keep.alive", hudService, applicationList,
+	QueryImpl query(0, queryString, "keep.alive", *hudService, applicationList,
 			dbus.sessionConnection());
 
 	const QList<Result> results(query.results());
@@ -100,4 +118,38 @@ TEST_F(TestQuery, Foo) {
 	ASSERT_EQ(expectedResults.at(0).description(), results.at(0).description());
 }
 
+TEST_F(TestQuery, CloseWhenSenderDies) {
+	// a random dbus service that we're going to tell the query to watch
+	QScopedPointer<QProcessDBusService> keepAliveService(
+			new QProcessDBusService("keep.alive", QDBusConnection::SessionBus,
+			MODEL_SIMPLE, QStringList() << "keep.alive" << "/"));
+	keepAliveService->start(dbus.sessionConnection());
+
+	Query::Ptr query(
+			new QueryImpl(0, "query", "keep.alive", *hudService,
+					applicationList, dbus.sessionConnection()));
+
+	EXPECT_CALL(*hudService, closeQuery(query->path())).WillOnce(
+			Invoke([this, query](const QDBusObjectPath &path) {
+				this->queryClosed(path);
+				return query;
+			}));
+
+	QSignalSpy queryClosedSpy(this,
+	SIGNAL(queryClosed(const QDBusObjectPath &)));
+
+	// kill the service the query should be watching
+	keepAliveService.reset();
+
+	// wait for the query to request close
+	queryClosedSpy.wait();
+
+	// check that it tried to closed itself using the HudService interface
+	ASSERT_EQ(1, queryClosedSpy.size());
+	EXPECT_EQ(query->path(),
+			queryClosedSpy.at(0).at(0).value<QDBusObjectPath>());
+}
+
 } // namespace
+
+#include "TestQuery.moc"
