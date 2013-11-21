@@ -23,6 +23,8 @@ using namespace hud::service;
 VoiceImpl::VoiceImpl(
 		QSharedPointer<ComCanonicalUnityVoiceInterface> voiceInterface) :
 		m_voiceInterface(voiceInterface) {
+
+	// connect voice interface signals to local signals
 	connect(m_voiceInterface.data(), SIGNAL( HeardSomething() ), this,
 			SIGNAL( HeardSomething() ));
 	connect(m_voiceInterface.data(), SIGNAL( Listening() ), this,
@@ -35,12 +37,13 @@ VoiceImpl::~VoiceImpl() {
 }
 
 QString VoiceImpl::listen(const QList<QStringList>& commands) {
-	// return immediately if no commands where supplied
-	if (commands.isEmpty()) {
+	// return immediately if no commands were supplied
+	if (commands.isEmpty() || m_is_listening) {
 		return QString();
 	}
 
-	// call voice listen() asynchronously
+	// call voice interface listen() asynchronously
+	m_is_listening = true;
 	QDBusPendingCall listen_async = m_voiceInterface->asyncCall("listen",
 			QVariant::fromValue(commands));
 
@@ -51,6 +54,7 @@ QString VoiceImpl::listen(const QList<QStringList>& commands) {
 
 	// wait for async call to complete
 	m_listen_wait.exec();
+	m_is_listening = false;
 
 	// return query set by listenFinished
 	return m_query;
