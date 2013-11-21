@@ -35,24 +35,31 @@ VoiceImpl::~VoiceImpl() {
 }
 
 QString VoiceImpl::listen(const QList<QStringList>& commands) {
+	// return immediately if no commands where supplied
 	if (commands.isEmpty()) {
 		return QString();
 	}
 
+	// call voice listen() asynchronously
 	QDBusPendingCall listen_async = m_voiceInterface->asyncCall("listen",
 			QVariant::fromValue(commands));
+
+	// connect a call waiter to the async call
 	QDBusPendingCallWatcher watcher(listen_async, this);
 	connect(&watcher, SIGNAL(finished(QDBusPendingCallWatcher*)), this,
 			SLOT(listenFinished(QDBusPendingCallWatcher*)));
 
+	// wait for async call to complete
 	m_listen_wait.exec();
 
+	// return query set by listenFinished
 	return m_query;
 }
 
 void VoiceImpl::listenFinished(QDBusPendingCallWatcher *call) {
 	QDBusPendingReply<QString> query = *call;
 
+	// set m_query accordingly
 	if (query.isError()) {
 		qWarning() << query.error();
 		m_query = "";
@@ -60,5 +67,6 @@ void VoiceImpl::listenFinished(QDBusPendingCallWatcher *call) {
 		m_query = query;
 	}
 
+	// notify listen() that the async call is complete
 	m_listen_wait.quit();
 }
