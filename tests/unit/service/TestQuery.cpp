@@ -122,6 +122,14 @@ TEST_F(TestQuery, Create) {
 	ASSERT_EQ(expectedResults.at(0).description(), results.at(0).description());
 }
 
+TEST_F(TestQuery, ExecuteCommand) {
+	QueryImpl query(0, "query", "keep.alive", *hudService, applicationList,
+			voice, dbus.sessionConnection());
+
+	EXPECT_CALL(*windowToken, execute(123, 12345));
+	query.ExecuteCommand(QDBusVariant(123), 12345);
+}
+
 TEST_F(TestQuery, CloseWhenSenderDies) {
 	// a random dbus service that we're going to tell the query to watch
 	QScopedPointer<QProcessDBusService> keepAliveService(
