@@ -261,7 +261,6 @@ Q_SIGNALS:
   void ActionActivated( QString action_name, QVariant parameter );
 
 protected:
-
   constexpr static const char* c_service = "com.canonical.qtgmenu";
   constexpr static const char* c_path = "/com/canonical/qtgmenu";
 

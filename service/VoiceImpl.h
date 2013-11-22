@@ -42,8 +42,8 @@ private Q_SLOTS:
 private:
 	QSharedPointer<ComCanonicalUnityVoiceInterface> m_voiceInterface;
 	QString m_query;
-	QEventLoop m_listen_wait;
-	bool m_is_listening = false;
+	QEventLoop m_listenWait;
+	bool m_isListening = false;
 };
 
 } // namespace service
