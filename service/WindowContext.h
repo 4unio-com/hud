@@ -16,46 +16,33 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#ifndef HUD_SERVICE_APPLICATION_H_
-#define HUD_SERVICE_APPLICATION_H_
+#ifndef HUD_SERVICE_WINDOWCONTEXT_H_
+#define HUD_SERVICE_WINDOWCONTEXT_H_
 
-#include <service/Window.h>
-#include <service/Application.h>
-
-#include <QSharedPointer>
 #include <QDBusObjectPath>
+#include <QString>
+#include <QSharedPointer>
 
 namespace hud {
 namespace service {
 
-class Application: public QObject {
-Q_OBJECT
-
+class WindowContext {
 public:
-	static const unsigned int WINDOW_ID_ALL_WINDOWS;
+	typedef QSharedPointer<WindowContext> Ptr;
 
-	typedef QSharedPointer<Application> Ptr;
+	explicit WindowContext();
 
-	explicit Application(QObject *parent = 0);
+	virtual ~WindowContext();
 
-	virtual ~Application();
+	virtual void setContext(const QString &context) = 0;
 
-	virtual const QString & id() const = 0;
+	virtual void addAction(const QString &context, const QString &prefix,
+			const QDBusObjectPath &path) = 0;
 
-	virtual const QString & icon() = 0;
-
-	virtual void addWindow(unsigned int windowId) = 0;
-
-	virtual void removeWindow(unsigned int windowId) = 0;
-
-	virtual Window::Ptr window(unsigned int windowId) = 0;
-
-	virtual bool isEmpty() const = 0;
-
-	virtual const QDBusObjectPath & path() const = 0;
+	virtual void addModel(const QString &context,
+			const QDBusObjectPath &path) = 0;
 };
 
 }
 }
-
-#endif /* HUD_SERVICE_APPLICATION_H_ */
+#endif /* HUD_SERVICE_WINDOWCONTEXT_H_ */

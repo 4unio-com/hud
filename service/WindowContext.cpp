@@ -16,44 +16,12 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#ifndef HUD_SERVICE_WINDOW_H_
-#define HUD_SERVICE_WINDOW_H_
-
-#include <service/Result.h>
 #include <service/WindowContext.h>
 
-#include <QList>
+using namespace hud::service;
 
-namespace hud {
-namespace service {
-
-class WindowToken {
-public:
-	typedef QSharedPointer<WindowToken> Ptr;
-
-	virtual ~WindowToken();
-
-	virtual void search(const QString &query, QList<Result> &results) = 0;
-
-	virtual void execute(unsigned long long commandId, uint timestamp) = 0;
-
-	virtual void commands(QList<QStringList>& commandsList) = 0;
-
-protected:
-	explicit WindowToken();
-};
-
-class Window: public virtual WindowContext {
-public:
-	typedef QSharedPointer<Window> Ptr;
-
-	explicit Window();
-
-	virtual ~Window();
-
-	virtual WindowToken::Ptr activate() = 0;
-};
-
+WindowContext::WindowContext() {
 }
+
+WindowContext::~WindowContext() {
 }
-#endif /* HUD_SERVICE_WINDOW_H_ */

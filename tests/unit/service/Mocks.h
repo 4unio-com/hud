@@ -38,6 +38,8 @@ public:
 
 	MOCK_METHOD1(newApplication, Application::Ptr(const QString &));
 
+	MOCK_METHOD0(newContext, WindowContext::Ptr());
+
 	MOCK_METHOD2(newWindow, Window::Ptr(unsigned int, const QString &));
 
 	MOCK_METHOD2(newDBusMenuCollector, Collector::Ptr(unsigned int, const QString &));
@@ -113,6 +115,10 @@ public:
 	MOCK_METHOD1(setContext, void(const QString &));
 
 	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
+
+	MOCK_METHOD3(addAction, void(const QString &, const QString &, const QDBusObjectPath &));
+
+	MOCK_METHOD2(addModel, void(const QString &, const QDBusObjectPath &));
 };
 
 class MockVoice: public Voice {

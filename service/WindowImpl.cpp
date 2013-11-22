@@ -40,18 +40,21 @@ WindowTokenImpl::~WindowTokenImpl() {
 void WindowTokenImpl::search(const QString &query, QList<Result> &results) {
 	m_items.search(query, results);
 }
+
 void WindowTokenImpl::execute(unsigned long long commandId, uint timestamp) {
 	m_items.execute(commandId, timestamp);
 }
-void WindowTokenImpl::commands(QList<QStringList>& commandsList) {
+
+void WindowTokenImpl::commands(QList<QStringList> &commandsList) {
 	m_items.commands(commandsList);
 }
 
 WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,
-		Factory &factory) :
-		m_dbusMenuCollector(
-				factory.newDBusMenuCollector(windowId, applicationId)), m_gMenuCollector(
-				factory.newGMenuCollector(windowId, applicationId)) {
+		WindowContext::Ptr allWindowsContext, Factory &factory) :
+		WindowContextImpl(factory), m_allWindowsContext(allWindowsContext) {
+
+	m_dbusMenuCollector = factory.newDBusMenuCollector(windowId, applicationId);
+	m_gMenuCollector = factory.newGMenuCollector(windowId, applicationId);
 }
 
 WindowImpl::~WindowImpl() {
@@ -68,9 +71,3 @@ WindowToken::Ptr WindowImpl::activate() {
 
 	return windowToken;
 }
-
-void WindowImpl::setContext(const QString &context) {
-	m_context = context;
-	qDebug() << "Window updated context to" << context;
-}
-

@@ -16,15 +16,29 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <service/Application.h>
+#include <service/Factory.h>
+#include <service/WindowContextImpl.h>
+#include <QDebug>
 
 using namespace hud::service;
 
-Application::Application(QObject *parent) :
-		QObject(parent) {
+WindowContextImpl::WindowContextImpl(Factory &factory) {
 }
 
-Application::~Application() {
+WindowContextImpl::~WindowContextImpl() {
 }
 
-const unsigned int Application::WINDOW_ID_ALL_WINDOWS(0);
+void WindowContextImpl::setContext(const QString &context) {
+	m_context = context;
+	qDebug() << "WindowContextImpl::setContext" << context;
+}
+
+void WindowContextImpl::addAction(const QString &context, const QString &prefix,
+		const QDBusObjectPath &path) {
+	qDebug() << "WindowContextImpl::addAction" << context << prefix << path.path();
+}
+
+void WindowContextImpl::addModel(const QString &context,
+		const QDBusObjectPath &path) {
+	qDebug() << "WindowContextImpl::addModel" << context << path.path();
+}

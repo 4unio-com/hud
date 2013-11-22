@@ -29,6 +29,8 @@ set(HUD_SERVICE_LIB_SOURCES
   VoiceImpl.cpp
   Window.cpp
   WindowImpl.cpp
+  WindowContext.cpp
+  WindowContextImpl.cpp
 )
 
 qt5_add_dbus_adaptor(

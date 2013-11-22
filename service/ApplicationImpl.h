@@ -80,6 +80,8 @@ public Q_SLOTS:
 	void SetWindowContext(uint window, const QString &context);
 
 protected:
+	WindowContext::Ptr windowContext(unsigned int windowId);
+
 	QScopedPointer<ApplicationAdaptor> m_adaptor;
 
 	QDBusConnection m_connection;
@@ -89,6 +91,8 @@ protected:
 	QString m_applicationId;
 
 	Factory &m_factory;
+
+	WindowContext::Ptr m_allWindowsContext;
 
 	QMap<unsigned int, Window::Ptr> m_windows;
 

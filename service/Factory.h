@@ -26,8 +26,8 @@
 #include <service/GMenuCollector.h>
 #include <service/ItemStore.h>
 #include <service/Voice.h>
-#include <service/Window.h>
 #include <service/Query.h>
+#include <service/Window.h>
 
 class ComCanonicalUnityWindowStackInterface;
 class ComCanonicalAppMenuRegistrarInterface;
@@ -62,7 +62,9 @@ public:
 	virtual ItemStore::Ptr newItemStore();
 
 	virtual Window::Ptr newWindow(unsigned int windowId,
-			const QString &applicationId);
+			const QString &applicationId, WindowContext::Ptr allwindowsContext);
+
+	virtual WindowContext::Ptr newWindowContext();
 
 	virtual Collector::Ptr newDBusMenuCollector(unsigned int windowId,
 			const QString &applicationId);

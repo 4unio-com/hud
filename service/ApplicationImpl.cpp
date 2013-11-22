@@ -33,6 +33,8 @@ ApplicationImpl::ApplicationImpl(unsigned int id, const QString &applicationId,
 	if (!m_connection.registerObject(m_path.path(), this)) {
 		throw std::logic_error(_("Unable to register HUD object on DBus"));
 	}
+
+	m_allWindowsContext = m_factory.newWindowContext();
 }
 
 ApplicationImpl::~ApplicationImpl() {
@@ -49,7 +51,8 @@ void ApplicationImpl::addWindow(unsigned int windowId) {
 				<< "to application" << m_applicationId;
 		return;
 	}
-	m_windows[windowId] = m_factory.newWindow(windowId, m_applicationId);
+	m_windows[windowId] = m_factory.newWindow(windowId, m_applicationId,
+			m_allWindowsContext);
 }
 
 void ApplicationImpl::removeWindow(unsigned int windowId) {
@@ -65,17 +68,19 @@ Window::Ptr ApplicationImpl::window(unsigned int windowId) {
 	return m_windows[windowId];
 }
 
+WindowContext::Ptr ApplicationImpl::windowContext(unsigned int windowId) {
+	if (windowId == WINDOW_ID_ALL_WINDOWS) {
+		return m_allWindowsContext;
+	}
+	return m_windows[windowId];
+}
+
 bool ApplicationImpl::isEmpty() const {
 	return m_windows.isEmpty();
 }
 
 const QDBusObjectPath & ApplicationImpl::path() const {
 	return m_path;
-}
-
-QList<ActionGroup> ApplicationImpl::actionGroups() const {
-	qDebug() << "actionGroups";
-	return QList<ActionGroup>();
 }
 
 const QString & ApplicationImpl::desktopPath() {
@@ -112,29 +117,53 @@ const QString & ApplicationImpl::icon() {
 	return m_icon;
 }
 
+QList<ActionGroup> ApplicationImpl::actionGroups() const {
+	qDebug() << "actionGroups";
+	return QList<ActionGroup>();
+}
+
 QList<MenuModel> ApplicationImpl::menuModels() const {
 	qDebug() << "menuModels";
 	return QList<MenuModel>();
 }
 
+/**
+ * Window ID 0 is the "all windows" context
+ */
 void ApplicationImpl::AddSources(const QList<Action> &actions,
 		const QList<Description> &descriptions) {
-	qDebug() << "AddSources";
+
 	for (const Action &action : actions) {
-		qDebug() << "  Action:" << action.m_windowId << action.m_context
-				<< action.m_prefix << action.m_object.path();
+		WindowContext::Ptr window = windowContext(action.m_windowId);
+
+		if (window.isNull()) {
+			qWarning()
+					<< "Tried to add action source for unknown window context"
+					<< action.m_windowId;
+			continue;
+		}
+
+		window->addAction(action.m_context, action.m_prefix, action.m_object);
 	}
+
 	for (const Description &description : descriptions) {
-		qDebug() << "  Description:" << description.m_windowId
-				<< description.m_context << description.m_object.path();
+		WindowContext::Ptr window = windowContext(description.m_windowId);
+
+		if (window.isNull()) {
+			qWarning() << "Tried to add model source for unknown window context"
+					<< description.m_windowId;
+			continue;
+		}
+
+		window->addModel(description.m_context, description.m_object);
 	}
 }
 
 void ApplicationImpl::SetWindowContext(uint windowId, const QString &context) {
-	Window::Ptr window = m_windows[windowId];
+	WindowContext::Ptr window = windowContext(windowId);
 	if (window.isNull()) {
-		qWarning() << "Tried to set context on unknown window" << windowId
-				<< m_applicationId;
+		qWarning() << "Tried to set context on unknown window context"
+				<< windowId << m_applicationId;
 		return;
 	}
 	window->setContext(context);

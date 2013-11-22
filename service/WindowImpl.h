@@ -19,7 +19,7 @@
 #ifndef HUD_SERVICE_WINDOWIMPL_H_
 #define HUD_SERVICE_WINDOWIMPL_H_
 
-#include <service/Window.h>
+#include <service/WindowContextImpl.h>
 #include <service/DBusMenuCollector.h>
 #include <service/GMenuCollector.h>
 
@@ -52,21 +52,19 @@ protected:
 	CollectorToken::Ptr m_gMenuToken;
 };
 
-class WindowImpl: public Window {
+class WindowImpl: public WindowContextImpl, public Window {
 	friend WindowTokenImpl;
 
 public:
 	explicit WindowImpl(unsigned int windowId, const QString &applicationId,
-			Factory &factory);
+			WindowContext::Ptr allWindowsContext, Factory &factory);
 
 	virtual ~WindowImpl();
 
 	virtual WindowToken::Ptr activate();
 
-	virtual void setContext(const QString &context);
-
 protected:
-	QString m_context;
+	WindowContext::Ptr m_allWindowsContext;
 
 	Collector::Ptr m_dbusMenuCollector;
 

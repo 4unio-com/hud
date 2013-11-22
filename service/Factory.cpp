@@ -21,6 +21,7 @@
 #include <service/ApplicationListImpl.h>
 #include <service/AppmenuRegistrarInterface.h>
 #include <service/HudServiceImpl.h>
+#include <service/WindowImpl.h>
 #include <service/QueryImpl.h>
 #include <service/VoiceImpl.h>
 #include <service/WindowImpl.h>
@@ -116,8 +117,13 @@ ItemStore::Ptr Factory::newItemStore() {
 }
 
 Window::Ptr Factory::newWindow(unsigned int windowId,
-		const QString &applicationId) {
-	return Window::Ptr(new WindowImpl(windowId, applicationId, *this));
+		const QString &applicationId, WindowContext::Ptr allwindowsContext) {
+	return Window::Ptr(
+			new WindowImpl(windowId, applicationId, allwindowsContext, *this));
+}
+
+WindowContext::Ptr Factory::newWindowContext() {
+	return WindowContext::Ptr(new WindowContextImpl(*this));
 }
 
 Collector::Ptr Factory::newDBusMenuCollector(unsigned int windowId,

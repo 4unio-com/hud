@@ -53,8 +53,7 @@ protected:
 };
 
 TEST_F(TestWindow, TrysDBusMenuAndGMenu) {
-	shared_ptr<MockCollector> dbusMenuCollector(
-			new NiceMock<MockCollector>());
+	shared_ptr<MockCollector> dbusMenuCollector(new NiceMock<MockCollector>());
 	ON_CALL(*dbusMenuCollector, isValid()).WillByDefault(Return(false));
 
 	shared_ptr<MockCollector> gmenuCollector(new NiceMock<MockCollector>());
@@ -65,7 +64,9 @@ TEST_F(TestWindow, TrysDBusMenuAndGMenu) {
 	EXPECT_CALL(factory, newGMenuCollector(1234, QString("application-id"))).Times(
 			1).WillOnce(Return(gmenuCollector));
 
-	WindowImpl window(1234, "application-id", factory);
+	WindowContext::Ptr allWindowsContext(new WindowContextImpl(factory));
+
+	WindowImpl window(1234, "application-id", allWindowsContext, factory);
 }
 
 } // namespace
