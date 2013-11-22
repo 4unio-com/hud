@@ -35,6 +35,23 @@ namespace service {
 
 class WindowContext {
 public:
+	struct MenuDefinition {
+		explicit MenuDefinition() {
+		}
+
+		explicit MenuDefinition(const QString &name) :
+				name(name) {
+		}
+
+		QString name;
+
+		QDBusObjectPath actionPath;
+
+		QString actionPrefix;
+
+		QDBusObjectPath menuPath;
+	};
+
 	typedef QSharedPointer<WindowContext> Ptr;
 
 	explicit WindowContext();
@@ -43,13 +60,8 @@ public:
 
 	virtual void setContext(const QString &context) = 0;
 
-	virtual void addAction(const QString &context, const QString &name,
-			const QDBusObjectPath &path, const QString &prefix) = 0;
-
-	virtual void addModel(const QString &context, const QString &name,
-			const QDBusObjectPath &path) = 0;
-
-	virtual std::shared_ptr<QMenu> activeAction() const = 0;
+	virtual void addMenu(const QString &context,
+			const MenuDefinition &menuDefinition) = 0;
 
 	virtual std::shared_ptr<QMenu> activeMenu() const = 0;
 };

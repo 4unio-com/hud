@@ -35,38 +35,21 @@ void WindowContextImpl::setContext(const QString &context) {
 	m_context = context;
 	qDebug() << "WindowContextImpl::setContext" << context;
 
-	m_activeAction = m_actions[context];
 	m_activeMenu = m_menus[context];
 }
 
-void WindowContextImpl::addAction(const QString &context, const QString &name,
-		const QDBusObjectPath &path, const QString &prefix) {
-	qDebug() << "WindowContextImpl::addAction" << context << name << path.path()
-			<< prefix;
+void WindowContextImpl::addMenu(const QString &context,
+		const MenuDefinition &menuDefinition) {
+	qDebug() << "WindowContextImpl::addModel" << context << menuDefinition.name
+			<< menuDefinition.actionPath.path() << menuDefinition.actionPrefix
+			<< menuDefinition.menuPath.path();
 
 	QSharedPointer<QtGMenuImporter> importer(
-			new qtgmenu::QtGMenuImporter(name, QString(), path.path()));
-
-	m_actions[context] = importer;
-}
-
-void WindowContextImpl::addModel(const QString &context, const QString &name,
-		const QDBusObjectPath &path) {
-	qDebug() << "WindowContextImpl::addModel" << context << name << path.path();
-
-	QSharedPointer<QtGMenuImporter> importer(
-			new qtgmenu::QtGMenuImporter(name, path.path(), QString()));
+			new qtgmenu::QtGMenuImporter(menuDefinition.name,
+					menuDefinition.menuPath.path(),
+					menuDefinition.actionPath.path()));
 
 	m_menus[context] = importer;
-}
-
-std::shared_ptr<QMenu> WindowContextImpl::activeAction() const {
-	std::shared_ptr<QMenu> action;
-	if (m_activeAction) {
-		qDebug() << "We have an active action collector";
-		action = m_activeAction->GetQMenu();
-	}
-	return action;
 }
 
 std::shared_ptr<QMenu> WindowContextImpl::activeMenu() const {

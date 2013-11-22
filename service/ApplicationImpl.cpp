@@ -142,30 +142,43 @@ void ApplicationImpl::AddSources(const QList<Action> &actions,
 		const QList<Description> &descriptions) {
 	QString name(messageSender());
 
+	QMap<QPair<uint, QString>, WindowContext::MenuDefinition> definitions;
+
 	for (const Action &action : actions) {
-		WindowContext::Ptr window = windowContext(action.m_windowId);
+		WindowContext::MenuDefinition definition(name);
+		definition.actionPath = action.m_object;
+		definition.actionPrefix = action.m_prefix;
 
-		if (window.isNull()) {
-			qWarning()
-					<< "Tried to add action source for unknown window context"
-					<< action.m_windowId;
-			continue;
-		}
-
-		window->addAction(action.m_context, name, action.m_object,
-				action.m_prefix);
+		QPair<uint, QString> id(action.m_windowId, action.m_context);
+		definitions[id] = definition;
 	}
 
 	for (const Description &description : descriptions) {
-		WindowContext::Ptr window = windowContext(description.m_windowId);
+		QPair<uint, QString> id(description.m_windowId, description.m_context);
 
+		if (definitions.contains(id)) {
+			WindowContext::MenuDefinition &definition(definitions[id]);
+			definition.menuPath = description.m_object;
+		} else {
+			WindowContext::MenuDefinition definition(name);
+			definition.menuPath = description.m_object;
+			definitions[id] = definition;
+		}
+	}
+
+	for (auto it(definitions.constBegin()); it != definitions.constEnd();
+			++it) {
+		const QPair<uint, QString> &id(it.key());
+
+		WindowContext::Ptr window = windowContext(id.first);
 		if (window.isNull()) {
 			qWarning() << "Tried to add model source for unknown window context"
-					<< description.m_windowId;
+					<< id.first;
 			continue;
 		}
 
-		window->addModel(description.m_context, name, description.m_object);
+		const WindowContext::MenuDefinition &definition(it.value());
+		window->addMenu(id.second, definition);
 	}
 }
 
