@@ -20,7 +20,10 @@
 #include <service/WindowContextImpl.h>
 #include <QDebug>
 
+#include <libqtgmenu/QtGMenuImporter.h>
+
 using namespace hud::service;
+using namespace qtgmenu;
 
 WindowContextImpl::WindowContextImpl(Factory &factory) {
 }
@@ -31,14 +34,46 @@ WindowContextImpl::~WindowContextImpl() {
 void WindowContextImpl::setContext(const QString &context) {
 	m_context = context;
 	qDebug() << "WindowContextImpl::setContext" << context;
+
+	m_activeAction = m_actions[context];
+	m_activeMenu = m_menus[context];
 }
 
-void WindowContextImpl::addAction(const QString &context, const QString &prefix,
-		const QDBusObjectPath &path) {
-	qDebug() << "WindowContextImpl::addAction" << context << prefix << path.path();
+void WindowContextImpl::addAction(const QString &context, const QString &name,
+		const QDBusObjectPath &path, const QString &prefix) {
+	qDebug() << "WindowContextImpl::addAction" << context << name << path.path()
+			<< prefix;
+
+	QSharedPointer<QtGMenuImporter> importer(
+			new qtgmenu::QtGMenuImporter(name, path.path()));
+
+	m_actions[context] = importer;
 }
 
-void WindowContextImpl::addModel(const QString &context,
+void WindowContextImpl::addModel(const QString &context, const QString &name,
 		const QDBusObjectPath &path) {
-	qDebug() << "WindowContextImpl::addModel" << context << path.path();
+	qDebug() << "WindowContextImpl::addModel" << context << name << path.path();
+
+	QSharedPointer<QtGMenuImporter> importer(
+			new qtgmenu::QtGMenuImporter(name, path.path()));
+
+	m_menus[context] = importer;
+}
+
+std::shared_ptr<QMenu> WindowContextImpl::activeAction() const {
+	std::shared_ptr<QMenu> action;
+	if (m_activeAction) {
+		qDebug() << "We have an active action collector";
+		action = m_activeAction->GetQMenu();
+	}
+	return action;
+}
+
+std::shared_ptr<QMenu> WindowContextImpl::activeMenu() const {
+	std::shared_ptr<QMenu> menu;
+	if (m_activeMenu) {
+		qDebug() << "We have an active menu collector";
+		menu = m_activeMenu->GetQMenu();
+	}
+	return menu;
 }

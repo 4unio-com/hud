@@ -37,15 +37,27 @@ public:
 
 	virtual void setContext(const QString &context);
 
-	virtual void addAction(const QString &context, const QString &prefix,
+	virtual void addAction(const QString &context, const QString &name,
+			const QDBusObjectPath &path, const QString &prefix);
+
+	virtual void addModel(const QString &context, const QString &name,
 			const QDBusObjectPath &path);
 
-	virtual void addModel(const QString &context, const QDBusObjectPath &path);
+	virtual std::shared_ptr<QMenu> activeAction() const;
 
-protected:
+	virtual std::shared_ptr<QMenu> activeMenu() const;
+
+	//FIXME Public
+public:
 	QString m_context;
 
-	QMap<QString, QString> m_foo;
+	QMap<QString, QSharedPointer<qtgmenu::QtGMenuImporter> > m_actions;
+
+	QMap<QString, QSharedPointer<qtgmenu::QtGMenuImporter> > m_menus;
+
+	QSharedPointer<qtgmenu::QtGMenuImporter> m_activeAction;
+
+	QSharedPointer<qtgmenu::QtGMenuImporter> m_activeMenu;
 };
 
 }

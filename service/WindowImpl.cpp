@@ -66,6 +66,29 @@ WindowToken::Ptr WindowImpl::activate() {
 	if (windowToken.isNull()) {
 		windowToken.reset(
 				new WindowTokenImpl(m_dbusMenuCollector, m_gMenuCollector));
+
+		//FIXME Temporary debug code
+		std::shared_ptr<QMenu> actions = m_allWindowsContext->activeAction();
+
+		if (actions) {
+			qDebug() << "we have an action";
+			for (QAction *action : actions->actions()) {
+				qDebug() << action->text();
+			}
+		} else {
+			qDebug() << "we have no actions";
+		}
+
+		std::shared_ptr<QMenu> menu = m_allWindowsContext->activeMenu();
+		if (menu) {
+			qDebug() << "we have a menu";
+			for (QAction *action : menu->actions()) {
+				qDebug() << action->text();
+			}
+		} else {
+			qDebug() << "we have no menu";
+		}
+
 		m_windowToken = windowToken;
 	}
 

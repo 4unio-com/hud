@@ -63,6 +63,8 @@ public:
 
 	virtual WindowToken::Ptr activate();
 
+
+
 protected:
 	WindowContext::Ptr m_allWindowsContext;
 

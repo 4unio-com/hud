@@ -127,11 +127,20 @@ QList<MenuModel> ApplicationImpl::menuModels() const {
 	return QList<MenuModel>();
 }
 
+QString ApplicationImpl::messageSender() {
+	QString sender("local");
+	if (calledFromDBus()) {
+		sender = message().service();
+	}
+	return sender;
+}
+
 /**
  * Window ID 0 is the "all windows" context
  */
 void ApplicationImpl::AddSources(const QList<Action> &actions,
 		const QList<Description> &descriptions) {
+	QString name(messageSender());
 
 	for (const Action &action : actions) {
 		WindowContext::Ptr window = windowContext(action.m_windowId);
@@ -143,7 +152,8 @@ void ApplicationImpl::AddSources(const QList<Action> &actions,
 			continue;
 		}
 
-		window->addAction(action.m_context, action.m_prefix, action.m_object);
+		window->addAction(action.m_context, name, action.m_object,
+				action.m_prefix);
 	}
 
 	for (const Description &description : descriptions) {
@@ -155,7 +165,7 @@ void ApplicationImpl::AddSources(const QList<Action> &actions,
 			continue;
 		}
 
-		window->addModel(description.m_context, description.m_object);
+		window->addModel(description.m_context, name, description.m_object);
 	}
 }
 

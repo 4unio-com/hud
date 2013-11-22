@@ -82,6 +82,8 @@ public Q_SLOTS:
 protected:
 	WindowContext::Ptr windowContext(unsigned int windowId);
 
+	QString messageSender();
+
 	QScopedPointer<ApplicationAdaptor> m_adaptor;
 
 	QDBusConnection m_connection;

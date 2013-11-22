@@ -23,6 +23,13 @@
 #include <QString>
 #include <QSharedPointer>
 
+#include <QMenu>
+#include <memory>
+
+namespace qtgmenu {
+class QtGMenuImporter;
+}
+
 namespace hud {
 namespace service {
 
@@ -36,11 +43,15 @@ public:
 
 	virtual void setContext(const QString &context) = 0;
 
-	virtual void addAction(const QString &context, const QString &prefix,
+	virtual void addAction(const QString &context, const QString &name,
+			const QDBusObjectPath &path, const QString &prefix) = 0;
+
+	virtual void addModel(const QString &context, const QString &name,
 			const QDBusObjectPath &path) = 0;
 
-	virtual void addModel(const QString &context,
-			const QDBusObjectPath &path) = 0;
+	virtual std::shared_ptr<QMenu> activeAction() const = 0;
+
+	virtual std::shared_ptr<QMenu> activeMenu() const = 0;
 };
 
 }

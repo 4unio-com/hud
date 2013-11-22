@@ -116,9 +116,13 @@ public:
 
 	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
 
-	MOCK_METHOD3(addAction, void(const QString &, const QString &, const QDBusObjectPath &));
+	MOCK_METHOD4(addAction, void(const QString &, const QString &, const QDBusObjectPath &, const QString &));
 
-	MOCK_METHOD2(addModel, void(const QString &, const QDBusObjectPath &));
+	MOCK_METHOD3(addModel, void(const QString &, const QString &, const QDBusObjectPath &));
+
+	MOCK_CONST_METHOD0(activeAction, std::shared_ptr<QMenu>());
+
+	MOCK_CONST_METHOD0(activeMenu, std::shared_ptr<QMenu>());
 };
 
 class MockVoice: public Voice {
