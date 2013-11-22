@@ -40,7 +40,7 @@ public:
 
 	MOCK_METHOD0(newContext, WindowContext::Ptr());
 
-	MOCK_METHOD2(newWindow, Window::Ptr(unsigned int, const QString &));
+	MOCK_METHOD3(newWindow, Window::Ptr(unsigned int, const QString &, WindowContext::Ptr));
 
 	MOCK_METHOD2(newDBusMenuCollector, Collector::Ptr(unsigned int, const QString &));
 

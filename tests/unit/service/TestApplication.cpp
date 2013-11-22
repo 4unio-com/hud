@@ -76,7 +76,7 @@ TEST_F(TestApplication, AddsWindow) {
 
 	QSharedPointer<MockWindow> window(new NiceMock<MockWindow>());
 
-	EXPECT_CALL(factory, newWindow(4567, QString("application-id"))).WillOnce(
+	EXPECT_CALL(factory, newWindow(4567, QString("application-id"), _)).WillOnce(
 			Return(window));
 	application.addWindow(4567);
 	EXPECT_FALSE(application.isEmpty());
@@ -99,12 +99,12 @@ TEST_F(TestApplication, DeletesWindow) {
 	QSharedPointer<MockWindow> window0(new NiceMock<MockWindow>());
 	QSharedPointer<MockWindow> window1(new NiceMock<MockWindow>());
 
-	EXPECT_CALL(factory, newWindow(0, QString("application-id"))).WillOnce(
+	EXPECT_CALL(factory, newWindow(0, QString("application-id"), _)).WillOnce(
 			Return(window0));
 	application.addWindow(0);
 	EXPECT_FALSE(application.isEmpty());
 
-	EXPECT_CALL(factory, newWindow(1, QString("application-id"))).WillOnce(
+	EXPECT_CALL(factory, newWindow(1, QString("application-id"), _)).WillOnce(
 			Return(window1));
 	application.addWindow(1);
 	EXPECT_FALSE(application.isEmpty());
