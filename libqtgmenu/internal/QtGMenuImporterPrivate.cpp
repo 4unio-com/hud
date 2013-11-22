@@ -29,7 +29,7 @@ template< typename ... T > void unused( T&& ... )
 {
 }
 
-QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QString& path,
+QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QString& menu_path, const QString& actions_path,
     QtGMenuImporter& parent )
     : QObject( 0 ),
       m_service_watcher( service, QDBusConnection::sessionBus(),
@@ -37,7 +37,8 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QS
       m_parent( parent ),
       m_connection( g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL ) ),
       m_service( service.toStdString() ),
-      m_path( path.toStdString() )
+      m_menu_path( menu_path.toStdString() ),
+      m_actions_path( actions_path.toStdString() )
 {
   connect( &m_service_watcher, SIGNAL( serviceRegistered( const QString& ) ), this,
       SLOT( ServiceRegistered() ) );
@@ -93,11 +94,17 @@ std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
 
 void QtGMenuImporterPrivate::StartPolling()
 {
-  m_menu_poll_timer.setInterval( 100 );
-  m_menu_poll_timer.start();
+  if( !m_menu_path.empty() )
+  {
+    m_menu_poll_timer.setInterval( 100 );
+    m_menu_poll_timer.start();
+  }
 
-  m_actions_poll_timer.setInterval( 100 );
-  m_actions_poll_timer.start();
+  if( !m_actions_path.empty() )
+  {
+    m_actions_poll_timer.setInterval( 100 );
+    m_actions_poll_timer.start();
+  }
 }
 
 void QtGMenuImporterPrivate::StopPolling()
@@ -172,7 +179,7 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   auto menu_model =
       std::shared_ptr < QtGMenuModel
           > ( new QtGMenuModel(
-              G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str() ) ) ) );
+              G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_menu_path.c_str() ) ) ) );
 
   connect( menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
           int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );
@@ -226,7 +233,7 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
   auto action_group =
       std::shared_ptr < QtGActionGroup
           > ( new QtGActionGroup(
-              G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), m_path.c_str() ) ) ) );
+              G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), m_actions_path.c_str() ) ) ) );
 
   connect( action_group.get(), SIGNAL( ActionAdded( QString ) ), &m_parent,
       SIGNAL( ActionAdded( QString ) ) );

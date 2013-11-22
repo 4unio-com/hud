@@ -39,7 +39,7 @@ class QtGMenuImporterPrivate : public QObject
 Q_OBJECT
 
 public:
-  QtGMenuImporterPrivate( const QString& service, const QString& path, QtGMenuImporter& parent );
+  QtGMenuImporterPrivate( const QString& service, const QString& menu_path, const QString& actions_path, QtGMenuImporter& parent );
   ~QtGMenuImporterPrivate();
 
   GMenuModel* GetGMenuModel();
@@ -70,7 +70,8 @@ private:
 
   GDBusConnection* m_connection;
   std::string m_service;
-  std::string m_path;
+  std::string m_menu_path;
+  std::string m_actions_path;
 
   std::shared_ptr< QtGMenuModel > m_menu_model = nullptr;
   QTimer m_menu_poll_timer;

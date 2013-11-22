@@ -45,7 +45,7 @@ void WindowContextImpl::addAction(const QString &context, const QString &name,
 			<< prefix;
 
 	QSharedPointer<QtGMenuImporter> importer(
-			new qtgmenu::QtGMenuImporter(name, path.path()));
+			new qtgmenu::QtGMenuImporter(name, QString(), path.path()));
 
 	m_actions[context] = importer;
 }
@@ -55,7 +55,7 @@ void WindowContextImpl::addModel(const QString &context, const QString &name,
 	qDebug() << "WindowContextImpl::addModel" << context << name << path.path();
 
 	QSharedPointer<QtGMenuImporter> importer(
-			new qtgmenu::QtGMenuImporter(name, path.path()));
+			new qtgmenu::QtGMenuImporter(name, path.path(), QString()));
 
 	m_menus[context] = importer;
 }
