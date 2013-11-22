@@ -77,8 +77,7 @@ GMenuCollector::GMenuCollector(unsigned int windowId,
 	}
 
 	m_menubarImporter.reset(
-			new QtGMenuImporter(m_busName, m_menubarPath.path(),
-					m_menubarPath.path()));
+			new QtGMenuImporter(m_busName, m_menubarPath.path()));
 }
 
 GMenuCollector::~GMenuCollector() {
