@@ -169,15 +169,15 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   // clear the menu model for the refresh
   ClearMenuModel();
 
-  m_menu_model =
+  auto menu_model =
       std::shared_ptr < QtGMenuModel
           > ( new QtGMenuModel(
               G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_path.c_str() ) ) ) );
 
-  connect( m_menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
+  connect( menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
           int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );
 
-  gint item_count = m_menu_model->Size();
+  gint item_count = menu_model->Size();
 
   if( item_count == 0 )
   {
@@ -190,25 +190,18 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
     menu_refresh_wait.exec();
 
     // check item count again
-    if( m_menu_model )
-    {
-      item_count = m_menu_model->Size();
-    }
+    item_count = menu_model->Size();
   }
 
   bool menu_is_valid = item_count != 0;
 
   if( menu_is_valid )
   {
-    LinkMenuActions();
-
     // menu is valid, start polling for actions
     m_menu_poll_timer.stop();
-  }
-  else if( !menu_is_valid )
-  {
-    // clear the menu model
-    ClearMenuModel();
+
+    m_menu_model = menu_model;
+    LinkMenuActions();
   }
 
   if( !menu_was_valid && menu_is_valid )
@@ -230,21 +223,21 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
   // clear the action group for the refresh
   ClearActionGroup();
 
-  m_action_group =
+  auto action_group =
       std::shared_ptr < QtGActionGroup
           > ( new QtGActionGroup(
               G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), m_path.c_str() ) ) ) );
 
-  connect( m_action_group.get(), SIGNAL( ActionAdded( QString ) ), &m_parent,
+  connect( action_group.get(), SIGNAL( ActionAdded( QString ) ), &m_parent,
       SIGNAL( ActionAdded( QString ) ) );
-  connect( m_action_group.get(), SIGNAL( ActionRemoved( QString ) ), &m_parent,
+  connect( action_group.get(), SIGNAL( ActionRemoved( QString ) ), &m_parent,
       SIGNAL( ActionRemoved( QString ) ) );
-  connect( m_action_group.get(), SIGNAL( ActionEnabled( QString, bool ) ), &m_parent,
+  connect( action_group.get(), SIGNAL( ActionEnabled( QString, bool ) ), &m_parent,
       SIGNAL( ActionEnabled( QString, bool ) ) );
-  connect( m_action_group.get(), SIGNAL( ActionStateChanged( QString,
+  connect( action_group.get(), SIGNAL( ActionStateChanged( QString,
           QVariant ) ), &m_parent, SIGNAL( ActionStateChanged( QString, QVariant) ) );
 
-  int action_count = m_action_group->Size();
+  int action_count = action_group->Size();
 
   if( action_count == 0 )
   {
@@ -257,25 +250,18 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
     actions_refresh_wait.exec();
 
     // check item count again
-    if( m_action_group )
-    {
-      action_count = m_action_group->Size();
-    }
+    action_count = action_group->Size();
   }
 
   bool actions_are_valid = action_count != 0;
 
   if( actions_are_valid )
   {
-    LinkMenuActions();
-
     // actions are valid, no need to continue polling
     m_actions_poll_timer.stop();
-  }
-  else if( !actions_are_valid )
-  {
-    // clear the action group
-    ClearActionGroup();
+
+    m_action_group = action_group;
+    LinkMenuActions();
   }
 
   if( !actions_were_valid && actions_are_valid )
