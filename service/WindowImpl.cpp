@@ -60,23 +60,39 @@ WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,
 WindowImpl::~WindowImpl() {
 }
 
+static void printMenu(const QMenu *menu) {
+	for (QAction *action : menu->actions()) {
+		if (!action->isEnabled()) {
+			continue;
+		}
+		if (action->isSeparator()) {
+			continue;
+		}
+
+		QMenu *child(action->menu());
+		if (child) {
+			printMenu(child);
+		} else {
+			qDebug() << action->text();
+		}
+	}
+}
+
 WindowToken::Ptr WindowImpl::activate() {
+	//FIXME Temporary debug code
+	std::shared_ptr<QMenu> menu = m_allWindowsContext->activeMenu();
+	if (menu) {
+		qDebug() << "we have a menu";
+		printMenu(menu.get());
+	} else {
+		qDebug() << "we have no menu";
+	}
+
 	WindowToken::Ptr windowToken(m_windowToken);
 
 	if (windowToken.isNull()) {
 		windowToken.reset(
 				new WindowTokenImpl(m_dbusMenuCollector, m_gMenuCollector));
-
-		//FIXME Temporary debug code
-		std::shared_ptr<QMenu> menu = m_allWindowsContext->activeMenu();
-		if (menu) {
-			qDebug() << "we have a menu";
-			for (QAction *action : menu->actions()) {
-				qDebug() << action->text();
-			}
-		} else {
-			qDebug() << "we have no menu";
-		}
 
 		m_windowToken = windowToken;
 	}
