@@ -18,12 +18,18 @@
 
 #include <MainWindow.h>
 #include <QApplication>
+#include <QDebug>
 
 int main( int argc, char **argv )
 {
   QApplication application( argc, argv );
 
-  MainWindow mainWindow;
+  if(argc != 4) {
+	  qWarning() << "Usage:" << argv[0] << "BUS_NAME ACTION_PATH MENU_PATH";
+	  return 1;
+  }
+
+  MainWindow mainWindow(argv[1], argv[2], argv[3]);
   mainWindow.show();
 
   return application.exec();

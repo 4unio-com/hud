@@ -2,8 +2,8 @@
 
 #include <QtWidgets>
 
-MainWindow::MainWindow()
-    : m_menu_importer( "org.gnome.Gedit", "/com/canonical/unity/gtk/window/0" )
+MainWindow::MainWindow(const QString &name, const QString &actionPath, const QString &menuPath)
+    : m_menu_importer( name, menuPath, actionPath )
 {
   m_refresh_connection = connect( &m_menu_importer, SIGNAL( MenuItemsChanged() ), this,
       SLOT( RefreshMenus() ) );
