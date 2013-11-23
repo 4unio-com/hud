@@ -23,6 +23,7 @@
 #include <service/DBusMenuCollector.h>
 #include <service/GMenuCollector.h>
 
+#include <QList>
 #include <QSharedPointer>
 
 namespace hud {
@@ -33,8 +34,7 @@ class WindowImpl;
 
 class WindowTokenImpl: public WindowToken {
 public:
-	explicit WindowTokenImpl(Collector::Ptr dbusMenuCollector,
-			Collector::Ptr gMenuCollector);
+	explicit WindowTokenImpl(const QList<Collector::Ptr> &collectors);
 
 	virtual ~WindowTokenImpl();
 
@@ -47,9 +47,7 @@ public:
 protected:
 	ItemStore m_items;
 
-	CollectorToken::Ptr m_dbusMenuToken;
-
-	CollectorToken::Ptr m_gMenuToken;
+	QList<CollectorToken::Ptr> m_tokens;
 };
 
 class WindowImpl: public WindowContextImpl, public Window {
@@ -62,8 +60,6 @@ public:
 	virtual ~WindowImpl();
 
 	virtual WindowToken::Ptr activate();
-
-
 
 protected:
 	WindowContext::Ptr m_allWindowsContext;

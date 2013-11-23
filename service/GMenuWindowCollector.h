@@ -16,8 +16,8 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#ifndef HUD_SERVICE_GMENUCOLLECTOR_H_
-#define HUD_SERVICE_GMENUCOLLECTOR_H_
+#ifndef HUD_SERVICE_GMENUWINDOWCOLLECTOR_H_
+#define HUD_SERVICE_GMENUWINDOWCOLLECTOR_H_
 
 #include <service/Collector.h>
 
@@ -32,15 +32,19 @@ class QtGMenuImporter;
 namespace hud {
 namespace service {
 
-class GMenuCollector: public Collector, public std::enable_shared_from_this<
-		GMenuCollector> {
+class Factory;
+
+class GMenuWindowCollector: public Collector,
+		public std::enable_shared_from_this<GMenuWindowCollector> {
 public:
 	typedef std::shared_ptr<GMenuCollector> Ptr;
 
-	explicit GMenuCollector(const QString &name,
-			const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath);
+	explicit GMenuWindowCollector(unsigned int windowId,
+			const QString &applicationId,
+			QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack,
+			Factory &factory);
 
-	virtual ~GMenuCollector();
+	virtual ~GMenuWindowCollector();
 
 	virtual bool isValid() const;
 
@@ -51,20 +55,28 @@ public:
 protected:
 	virtual void deactivate();
 
+	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
+
 	QWeakPointer<CollectorToken> m_collectorToken;
 
-	QString m_name;
+	QString m_busName;
 
-	QDBusObjectPath m_actionPath;
+	QDBusObjectPath m_appmenuPath;
 
-	QDBusObjectPath m_menuPath;
+	QDBusObjectPath m_menubarPath;
 
-	QScopedPointer<qtgmenu::QtGMenuImporter> m_importer;
+	QDBusObjectPath m_applicationPath;
 
-	std::shared_ptr<QMenu> m_menu;
+	QDBusObjectPath m_windowPath;
+
+	QDBusObjectPath m_unityPath;
+
+	Collector::Ptr m_menubarCollector;
+
+	std::shared_ptr<QMenu> m_menubar;
 };
 
 }
 }
 
-#endif /* HUD_SERVICE_GMENUCOLLECTOR_H_ */
+#endif /* HUD_SERVICE_GMENUWINDOWCOLLECTOR_H_ */

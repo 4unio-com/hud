@@ -23,6 +23,7 @@
 #include <service/Application.h>
 #include <service/ApplicationList.h>
 #include <service/DBusMenuCollector.h>
+#include <service/GMenuWindowCollector.h>
 #include <service/GMenuCollector.h>
 #include <service/ItemStore.h>
 #include <service/Voice.h>
@@ -69,7 +70,10 @@ public:
 	virtual Collector::Ptr newDBusMenuCollector(unsigned int windowId,
 			const QString &applicationId);
 
-	virtual Collector::Ptr newGMenuCollector(unsigned int windowId,
+	virtual Collector::Ptr newGMenuCollector(const QString &name,
+			const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath);
+
+	virtual Collector::Ptr newGMenuWindowCollector(unsigned int windowId,
 			const QString &applicationId);
 
 protected:

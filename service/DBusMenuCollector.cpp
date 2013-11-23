@@ -83,7 +83,7 @@ inline uint qHash(const QStringList &key, uint seed) {
 
 static bool openMenu(QMenu *menu, const QStringList &position,
 		QSet<QStringList> &known) {
-	if( !menu ){
+	if (!menu) {
 		return false;
 	}
 
@@ -169,6 +169,6 @@ void DBusMenuCollector::WindowUnregistered(uint windowId) {
 	m_menu = nullptr;
 }
 
-const QMenu * DBusMenuCollector::menu() const {
+QMenu * DBusMenuCollector::menu() {
 	return m_menu;
 }

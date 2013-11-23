@@ -27,75 +27,32 @@
 using namespace hud::service;
 using namespace qtgmenu;
 
-static const QStringList GMENU_WINDOW_PROPERTIES( { "_GTK_UNIQUE_BUS_NAME",
-		"_GTK_APP_MENU_OBJECT_PATH", "_GTK_MENUBAR_OBJECT_PATH",
-		"_GTK_APPLICATION_OBJECT_PATH", "_GTK_WINDOW_OBJECT_PATH",
-		"_UNITY_OBJECT_PATH" });
+GMenuCollector::GMenuCollector(const QString &name,
+		const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath) :
+		m_name(name), m_actionPath(actionPath), m_menuPath(menuPath) {
 
-GMenuCollector::GMenuCollector(unsigned int windowId,
-		const QString &applicationId,
-		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack) :
-		m_windowStack(windowStack) {
-
-	QDBusPendingReply<QStringList> windowPropertiesReply(
-			windowStack->GetWindowProperties(windowId, applicationId,
-					GMENU_WINDOW_PROPERTIES));
-
-	windowPropertiesReply.waitForFinished();
-	if (windowPropertiesReply.isError()) {
-		qWarning() << windowPropertiesReply.error();
-		return;
-	}
-	QStringList windowProperties(windowPropertiesReply);
-
-	if (windowProperties.isEmpty()) {
-		return;
-	}
-
-	m_busName = windowProperties.at(0);
-
-	// We're using the existence of the bus name property to determine
-	// if this window has GMenus available at all.
-	if (m_busName.isEmpty()) {
-		return;
-	}
-
-	if (!windowProperties.at(1).isEmpty()) {
-		m_appmenuPath = QDBusObjectPath(windowProperties.at(1));
-	}
-	if (!windowProperties.at(2).isEmpty()) {
-		m_menubarPath = QDBusObjectPath(windowProperties.at(2));
-	}
-	if (!windowProperties.at(3).isEmpty()) {
-		m_applicationPath = QDBusObjectPath(windowProperties.at(3));
-	}
-	if (!windowProperties.at(4).isEmpty()) {
-		m_windowPath = QDBusObjectPath(windowProperties.at(4));
-	}
-	if (!windowProperties.at(5).isEmpty()) {
-		m_unityPath = QDBusObjectPath(windowProperties.at(5));
-	}
-
-	m_menubarImporter.reset(
-			new QtGMenuImporter(m_busName, m_menubarPath.path()));
+	m_importer.reset(
+			new QtGMenuImporter(m_name, m_menuPath.path(),
+					m_actionPath.path()));
 }
 
 GMenuCollector::~GMenuCollector() {
 }
 
 bool GMenuCollector::isValid() const {
-	return !m_menubarPath.path().isEmpty();
+	return !m_menuPath.path().isEmpty();
 }
 
 CollectorToken::Ptr GMenuCollector::activate() {
-	qDebug() << "GMenuCollector::activate";
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 
 	if (collectorToken.isNull()) {
-		qDebug() << "GMenuCollector::opening menus";
-		m_menubar = m_menubarImporter->GetQMenu();
+		qDebug() << "GMenuCollector::opening menus" << m_name
+				<< m_actionPath.path() << m_menuPath.path();
 		collectorToken.reset(new CollectorToken(shared_from_this()));
 		m_collectorToken = collectorToken;
+
+		m_menu = m_importer->GetQMenu();
 	}
 
 	return collectorToken;
@@ -105,6 +62,10 @@ void GMenuCollector::deactivate() {
 	qDebug() << "GMenuCollector::deactivate";
 }
 
-const QMenu * GMenuCollector::menu() const {
-	return m_menubar.get();
+QMenu * GMenuCollector::menu() {
+	if (m_menu) {
+		return m_menu.get();
+	} else {
+		return nullptr;
+	}
 }

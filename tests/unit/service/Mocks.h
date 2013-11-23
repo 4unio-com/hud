@@ -44,7 +44,10 @@ public:
 
 	MOCK_METHOD2(newDBusMenuCollector, Collector::Ptr(unsigned int, const QString &));
 
-	MOCK_METHOD2(newGMenuCollector, Collector::Ptr(unsigned int, const QString &));
+	MOCK_METHOD2(newGMenuWindowCollector, Collector::Ptr(unsigned int, const QString &));
+
+	MOCK_METHOD3(newGMenuCollector, Collector::Ptr(const QString &,
+					const QDBusObjectPath &, const QDBusObjectPath &));
 };
 
 class MockHudService: public HudService {
@@ -118,7 +121,7 @@ public:
 
 	MOCK_METHOD2(addMenu, void(const QString &, const MenuDefinition &));
 
-	MOCK_CONST_METHOD0(activeMenu, std::shared_ptr<QMenu>());
+	MOCK_METHOD0(activeCollector, Collector::Ptr());
 };
 
 class MockVoice: public Voice {
@@ -134,7 +137,7 @@ public:
 
 	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
 
-	MOCK_CONST_METHOD0(menu, const QMenu *());
+	MOCK_METHOD0(menu, QMenu *());
 
 protected:
 	MOCK_METHOD0(deactivate, void());

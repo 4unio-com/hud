@@ -22,15 +22,12 @@
 
 using namespace hud::service;
 
-WindowTokenImpl::WindowTokenImpl(Collector::Ptr dbusMenuCollector,
-		Collector::Ptr gMenuCollector) {
-	if (dbusMenuCollector->isValid()) {
-		m_dbusMenuToken = dbusMenuCollector->activate();
-		m_items.indexMenu(dbusMenuCollector->menu());
-	}
-	if (gMenuCollector->isValid()) {
-		m_gMenuToken = gMenuCollector->activate();
-		m_items.indexMenu(gMenuCollector->menu());
+WindowTokenImpl::WindowTokenImpl(const QList<Collector::Ptr> &collectors) {
+	for (Collector::Ptr collector : collectors) {
+		if (collector && collector->isValid()) {
+			m_tokens << collector->activate();
+			m_items.indexMenu(collector->menu());
+		}
 	}
 }
 
@@ -54,45 +51,24 @@ WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,
 		WindowContextImpl(factory), m_allWindowsContext(allWindowsContext) {
 
 	m_dbusMenuCollector = factory.newDBusMenuCollector(windowId, applicationId);
-	m_gMenuCollector = factory.newGMenuCollector(windowId, applicationId);
+	m_gMenuCollector = factory.newGMenuWindowCollector(windowId, applicationId);
 }
 
 WindowImpl::~WindowImpl() {
 }
 
-static void printMenu(const QMenu *menu) {
-	for (QAction *action : menu->actions()) {
-		if (!action->isEnabled()) {
-			continue;
-		}
-		if (action->isSeparator()) {
-			continue;
-		}
-
-		QMenu *child(action->menu());
-		if (child) {
-			printMenu(child);
-		} else {
-			qDebug() << action->text();
-		}
-	}
-}
-
 WindowToken::Ptr WindowImpl::activate() {
-	//FIXME Temporary debug code
-	std::shared_ptr<QMenu> menu = m_allWindowsContext->activeMenu();
-	if (menu) {
-		qDebug() << "we have a menu";
-		printMenu(menu.get());
-	} else {
-		qDebug() << "we have no menu";
-	}
-
 	WindowToken::Ptr windowToken(m_windowToken);
+
+	//FIXME Replace token if any of the children have new tokens
 
 	if (windowToken.isNull()) {
 		windowToken.reset(
-				new WindowTokenImpl(m_dbusMenuCollector, m_gMenuCollector));
+				new WindowTokenImpl(
+						QList<Collector::Ptr>() << m_dbusMenuCollector
+								<< m_gMenuCollector
+								<< m_allWindowsContext->activeCollector()
+								<< activeCollector()));
 
 		m_windowToken = windowToken;
 	}

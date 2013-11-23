@@ -66,7 +66,7 @@ public:
 
 	virtual CollectorToken::Ptr activate() = 0;
 
-	virtual const QMenu *menu() const = 0;
+	virtual QMenu *menu() = 0;
 
 protected:
 	virtual void deactivate() = 0;

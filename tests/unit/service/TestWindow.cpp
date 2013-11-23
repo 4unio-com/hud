@@ -61,7 +61,7 @@ TEST_F(TestWindow, TrysDBusMenuAndGMenu) {
 
 	EXPECT_CALL(factory, newDBusMenuCollector(1234, QString("application-id"))).Times(
 			1).WillOnce(Return(dbusMenuCollector));
-	EXPECT_CALL(factory, newGMenuCollector(1234, QString("application-id"))).Times(
+	EXPECT_CALL(factory, newGMenuWindowCollector(1234, QString("application-id"))).Times(
 			1).WillOnce(Return(gmenuCollector));
 
 	WindowContext::Ptr allWindowsContext(new WindowContextImpl(factory));

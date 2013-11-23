@@ -132,8 +132,14 @@ Collector::Ptr Factory::newDBusMenuCollector(unsigned int windowId,
 	return Collector::Ptr(new DBusMenuCollector(windowId, singletonAppmenu()));
 }
 
-Collector::Ptr Factory::newGMenuCollector(unsigned int windowId,
+Collector::Ptr Factory::newGMenuCollector(const QString &name,
+		const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath) {
+	return Collector::Ptr(new GMenuCollector(name, actionPath, menuPath));
+}
+
+Collector::Ptr Factory::newGMenuWindowCollector(unsigned int windowId,
 		const QString &applicationId) {
 	return Collector::Ptr(
-			new GMenuCollector(windowId, applicationId, singletonWindowStack()));
+			new GMenuWindowCollector(windowId, applicationId,
+					singletonWindowStack(), *this));
 }

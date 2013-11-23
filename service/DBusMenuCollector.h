@@ -49,7 +49,7 @@ public:
 
 	virtual CollectorToken::Ptr activate();
 
-	virtual const QMenu *menu() const;
+	virtual QMenu *menu();
 
 protected Q_SLOTS:
 	void WindowRegistered(uint windowId, const QString &service,

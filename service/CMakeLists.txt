@@ -18,6 +18,7 @@ set(HUD_SERVICE_LIB_SOURCES
   DBusMenuCollector.cpp
   Factory.cpp
   GMenuCollector.cpp
+  GMenuWindowCollector.cpp
   HudService.cpp
   HudServiceImpl.cpp
   Item.cpp

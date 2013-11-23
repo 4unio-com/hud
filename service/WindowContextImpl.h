@@ -19,8 +19,10 @@
 #ifndef HUD_SERVICE_WINDOWCONTEXTIMPL_H_
 #define HUD_SERVICE_WINDOWCONTEXTIMPL_H_
 
+#include <service/Collector.h>
 #include <service/WindowContext.h>
 
+#include <QMap>
 #include <QSharedPointer>
 
 namespace hud {
@@ -40,14 +42,16 @@ public:
 	virtual void addMenu(const QString &context,
 			const MenuDefinition &menuDefinition);
 
-	virtual std::shared_ptr<QMenu> activeMenu() const;
+	virtual Collector::Ptr activeCollector();
 
 protected:
+	Factory &m_factory;
+
 	QString m_context;
 
-	QMap<QString, QSharedPointer<qtgmenu::QtGMenuImporter> > m_menus;
+	QMap<QString, Collector::Ptr> m_collectors;
 
-	QSharedPointer<qtgmenu::QtGMenuImporter> m_activeMenu;
+	Collector::Ptr m_activeCollector;
 };
 
 }

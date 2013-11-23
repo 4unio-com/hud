@@ -19,12 +19,13 @@
 #ifndef HUD_SERVICE_WINDOWCONTEXT_H_
 #define HUD_SERVICE_WINDOWCONTEXT_H_
 
+#include <service/Collector.h>
+
 #include <QDBusObjectPath>
 #include <QString>
 #include <QSharedPointer>
 
 #include <QMenu>
-#include <memory>
 
 namespace qtgmenu {
 class QtGMenuImporter;
@@ -63,7 +64,7 @@ public:
 	virtual void addMenu(const QString &context,
 			const MenuDefinition &menuDefinition) = 0;
 
-	virtual std::shared_ptr<QMenu> activeMenu() const = 0;
+	virtual Collector::Ptr activeCollector() = 0;
 };
 
 }

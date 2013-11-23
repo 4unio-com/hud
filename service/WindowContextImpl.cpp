@@ -25,17 +25,20 @@
 using namespace hud::service;
 using namespace qtgmenu;
 
-WindowContextImpl::WindowContextImpl(Factory &factory) {
+WindowContextImpl::WindowContextImpl(Factory &factory) :
+		m_factory(factory) {
 }
 
 WindowContextImpl::~WindowContextImpl() {
 }
 
 void WindowContextImpl::setContext(const QString &context) {
-	m_context = context;
-	qDebug() << "WindowContextImpl::setContext" << context;
+	if (m_context == context) {
+		return;
+	}
 
-	m_activeMenu = m_menus[context];
+	m_context = context;
+	m_activeCollector = m_collectors[context];
 }
 
 void WindowContextImpl::addMenu(const QString &context,
@@ -44,19 +47,10 @@ void WindowContextImpl::addMenu(const QString &context,
 			<< menuDefinition.actionPath.path() << menuDefinition.actionPrefix
 			<< menuDefinition.menuPath.path();
 
-	QSharedPointer<QtGMenuImporter> importer(
-			new qtgmenu::QtGMenuImporter(menuDefinition.name,
-					menuDefinition.menuPath.path(),
-					menuDefinition.actionPath.path()));
-
-	m_menus[context] = importer;
+	m_collectors[context] = m_factory.newGMenuCollector(menuDefinition.name,
+			menuDefinition.actionPath, menuDefinition.menuPath);
 }
 
-std::shared_ptr<QMenu> WindowContextImpl::activeMenu() const {
-	std::shared_ptr<QMenu> menu;
-	if (m_activeMenu) {
-		qDebug() << "We have an active menu collector";
-		menu = m_activeMenu->GetQMenu();
-	}
-	return menu;
+Collector::Ptr WindowContextImpl::activeCollector() {
+	return m_activeCollector;
 }
