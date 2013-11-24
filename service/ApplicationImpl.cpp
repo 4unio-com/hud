@@ -177,8 +177,7 @@ void ApplicationImpl::AddSources(const QList<Action> &actions,
 			continue;
 		}
 
-		const WindowContext::MenuDefinition &definition(it.value());
-		window->addMenu(id.second, definition);
+		window->addMenu(id.second, it.value());
 	}
 }
 
