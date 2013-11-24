@@ -109,6 +109,8 @@ public:
 	MOCK_METHOD2(execute, void(unsigned long long, uint));
 
 	MOCK_METHOD1(commands, void(QList<QStringList> &));
+
+	MOCK_CONST_METHOD0(tokens, const QList<CollectorToken::Ptr> &());
 };
 
 class MockWindow: public Window {
@@ -136,8 +138,6 @@ public:
 	MOCK_METHOD0(activate, CollectorToken::Ptr());
 
 	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
-
-	MOCK_METHOD0(menu, QMenu *());
 
 protected:
 	MOCK_METHOD0(deactivate, void());

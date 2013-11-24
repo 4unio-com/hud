@@ -49,8 +49,6 @@ public:
 
 	virtual CollectorToken::Ptr activate();
 
-	virtual QMenu *menu();
-
 protected Q_SLOTS:
 	void WindowRegistered(uint windowId, const QString &service,
 			const QDBusObjectPath &menuObjectPath);
@@ -75,8 +73,6 @@ protected:
 	QString m_service;
 
 	QDBusObjectPath m_path;
-
-	QMenu *m_menu;
 };
 
 }

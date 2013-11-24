@@ -90,14 +90,9 @@ bool GMenuWindowCollector::isValid() const {
 }
 
 CollectorToken::Ptr GMenuWindowCollector::activate() {
-	qDebug() << "GMenuWindowCollector::activate";
 	return m_menubarCollector->activate();
 }
 
 void GMenuWindowCollector::deactivate() {
 	qDebug() << "GMenuWindowCollector::deactivate";
-}
-
-QMenu * GMenuWindowCollector::menu() {
-	return m_menubarCollector->menu();
 }

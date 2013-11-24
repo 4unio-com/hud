@@ -48,24 +48,17 @@ CollectorToken::Ptr GMenuCollector::activate() {
 
 	if (collectorToken.isNull()) {
 		qDebug() << "GMenuCollector::opening menus" << m_name
-				<< m_actionPath.path() << m_menuPath.path();
-		collectorToken.reset(new CollectorToken(shared_from_this()));
-		m_collectorToken = collectorToken;
-
+				<< m_actionPath.path() << m_menuPath.path() << this;
 		m_menu = m_importer->GetQMenu();
+		collectorToken.reset(
+				new CollectorToken(shared_from_this(),
+						m_menu ? m_menu.get() : nullptr));
+		m_collectorToken = collectorToken;
 	}
 
 	return collectorToken;
 }
 
 void GMenuCollector::deactivate() {
-	qDebug() << "GMenuCollector::deactivate";
-}
-
-QMenu * GMenuCollector::menu() {
-	if (m_menu) {
-		return m_menu.get();
-	} else {
-		return nullptr;
-	}
+	qDebug() << "GMenuCollector::deactivate" << this;
 }

@@ -28,12 +28,16 @@ Collector::Collector(QObject *parent) :
 Collector::~Collector() {
 }
 
-CollectorToken::CollectorToken(Collector::Ptr collector) :
-		m_collector(collector) {
+CollectorToken::CollectorToken(Collector::Ptr collector, QMenu *menu) :
+		m_collector(collector), m_menu(menu) {
 }
 
 CollectorToken::~CollectorToken() {
 	if (Collector::Ptr collector = m_collector.lock()) {
 		collector->deactivate();
 	}
+}
+
+QMenu * CollectorToken::menu() {
+	return m_menu;
 }

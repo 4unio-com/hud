@@ -39,6 +39,8 @@ public:
 
 	virtual void commands(QList<QStringList>& commandsList) = 0;
 
+	virtual const QList<CollectorToken::Ptr> & tokens() const = 0;
+
 protected:
 	explicit WindowToken();
 };

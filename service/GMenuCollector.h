@@ -46,8 +46,6 @@ public:
 
 	virtual CollectorToken::Ptr activate();
 
-	virtual QMenu *menu();
-
 protected:
 	virtual void deactivate();
 

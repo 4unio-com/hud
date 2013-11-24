@@ -34,7 +34,7 @@ class WindowImpl;
 
 class WindowTokenImpl: public WindowToken {
 public:
-	explicit WindowTokenImpl(const QList<Collector::Ptr> &collectors);
+	explicit WindowTokenImpl(const QList<CollectorToken::Ptr> &tokens);
 
 	virtual ~WindowTokenImpl();
 
@@ -43,6 +43,8 @@ public:
 	virtual void execute(unsigned long long commandId, uint timestamp);
 
 	virtual void commands(QList<QStringList>& commands_list);
+
+	virtual const QList<CollectorToken::Ptr> & tokens() const;
 
 protected:
 	ItemStore m_items;

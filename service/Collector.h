@@ -42,12 +42,16 @@ class CollectorToken {
 public:
 	typedef QSharedPointer<CollectorToken> Ptr;
 
-	virtual ~CollectorToken();
+	~CollectorToken();
+
+	QMenu *menu();
 
 protected:
-	explicit CollectorToken(std::shared_ptr<Collector> collector);
+	explicit CollectorToken(std::shared_ptr<Collector> collector, QMenu *menu);
 
 	std::weak_ptr<Collector> m_collector;
+
+	QMenu *m_menu;
 };
 
 class Collector: public QObject {
@@ -65,8 +69,6 @@ public:
 	virtual bool isValid() const = 0;
 
 	virtual CollectorToken::Ptr activate() = 0;
-
-	virtual QMenu *menu() = 0;
 
 protected:
 	virtual void deactivate() = 0;

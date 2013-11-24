@@ -30,7 +30,7 @@ using namespace hud::service;
 
 DBusMenuCollector::DBusMenuCollector(unsigned int windowId,
 		QSharedPointer<ComCanonicalAppMenuRegistrarInterface> registrar) :
-		m_windowId(windowId), m_registrar(registrar), m_menu(nullptr) {
+		m_windowId(windowId), m_registrar(registrar) {
 
 	connect(registrar.data(),
 	SIGNAL(WindowRegistered(uint, const QString &, const QDBusObjectPath &)),
@@ -61,12 +61,10 @@ void DBusMenuCollector::windowRegistered(const QString &service,
 
 	if (m_service.isEmpty()) {
 		m_menuImporter.reset();
-		m_menu = nullptr;
 		return;
 	}
 
 	m_menuImporter.reset(new DBusMenuImporter(m_service, m_path.path()));
-	m_menu = m_menuImporter->menu();
 }
 
 bool DBusMenuCollector::isValid() const {
@@ -135,9 +133,10 @@ CollectorToken::Ptr DBusMenuCollector::activate() {
 	if (collectorToken.isNull()) {
 		qDebug() << "DBusMenuCollector::Opening menus";
 		QSet<QStringList> known;
-		while (openMenu(m_menu, QStringList(), known)) {
+		while (openMenu(m_menuImporter->menu(), QStringList(), known)) {
 		}
-		collectorToken.reset(new CollectorToken(shared_from_this()));
+		collectorToken.reset(
+				new CollectorToken(shared_from_this(), m_menuImporter->menu()));
 		m_collectorToken = collectorToken;
 	}
 
@@ -146,7 +145,7 @@ CollectorToken::Ptr DBusMenuCollector::activate() {
 
 void DBusMenuCollector::deactivate() {
 	qDebug() << "DBusMenuCollector::Hiding menus";
-	hideMenu(m_menu);
+	hideMenu(m_menuImporter->menu());
 }
 
 void DBusMenuCollector::WindowRegistered(uint windowId, const QString &service,
@@ -166,9 +165,4 @@ void DBusMenuCollector::WindowUnregistered(uint windowId) {
 	}
 
 	m_menuImporter.reset();
-	m_menu = nullptr;
-}
-
-QMenu * DBusMenuCollector::menu() {
-	return m_menu;
 }

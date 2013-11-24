@@ -22,16 +22,18 @@
 
 using namespace hud::service;
 
-WindowTokenImpl::WindowTokenImpl(const QList<Collector::Ptr> &collectors) {
-	for (Collector::Ptr collector : collectors) {
-		if (collector && collector->isValid()) {
-			m_tokens << collector->activate();
-			m_items.indexMenu(collector->menu());
-		}
+WindowTokenImpl::WindowTokenImpl(const QList<CollectorToken::Ptr> &tokens) :
+		m_tokens(tokens) {
+	for (CollectorToken::Ptr token : tokens) {
+		m_items.indexMenu(token->menu());
 	}
 }
 
 WindowTokenImpl::~WindowTokenImpl() {
+}
+
+const QList<CollectorToken::Ptr> & WindowTokenImpl::tokens() const {
+	return m_tokens;
 }
 
 void WindowTokenImpl::search(const QString &query, QList<Result> &results) {
@@ -60,16 +62,35 @@ WindowImpl::~WindowImpl() {
 WindowToken::Ptr WindowImpl::activate() {
 	WindowToken::Ptr windowToken(m_windowToken);
 
-	//FIXME Replace token if any of the children have new tokens
+	QList<Collector::Ptr> collectors;
+	collectors << m_dbusMenuCollector << m_gMenuCollector
+			<< m_allWindowsContext->activeCollector() << activeCollector();
 
-	if (windowToken.isNull()) {
-		windowToken.reset(
-				new WindowTokenImpl(
-						QList<Collector::Ptr>() << m_dbusMenuCollector
-								<< m_gMenuCollector
-								<< m_allWindowsContext->activeCollector()
-								<< activeCollector()));
+	QList<CollectorToken::Ptr> tokens;
+	for (Collector::Ptr collector : collectors) {
+		if (collector && collector->isValid()) {
+			tokens << collector->activate();
+		}
+	}
 
+	bool newToken(false);
+
+	if (windowToken) {
+		// If we have an existing token
+		if (tokens != windowToken->tokens()) {
+			// If any of the sub-tokens have changed
+			qDebug() << "Sub token changed";
+			newToken = true;
+		}
+	} else {
+		// We don't have an existing token
+		qDebug() << "No existing token";
+		newToken = true;
+	}
+
+	if (newToken) {
+		qDebug() << "Making new window token";
+		windowToken.reset(new WindowTokenImpl(tokens));
 		m_windowToken = windowToken;
 	}
 
