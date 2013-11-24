@@ -106,10 +106,31 @@ void QueryImpl::ExecuteCommand(const QDBusVariant &item, uint timestamp) {
 	m_windowToken->execute(commandId, timestamp);
 }
 
+/**
+ * The inputs to this function are:
+ * - ulongint Item, which is the numerical index of the action
+ * - uint, timestamp
+ *
+ * The outputs are:
+ * - string baseAction, ???
+ * - path actionPath, where we can find the action group
+ * - path modelPath, where we can find the menu
+ * - int modelSection, ???
+ */
 QString QueryImpl::ExecuteParameterized(const QDBusVariant &item,
 		uint timestamp, QDBusObjectPath &actionPath, QDBusObjectPath &modelPath,
 		int &modelSection) {
-	qDebug() << "ExecuteParameterized";
+	if (!item.variant().canConvert<qlonglong>()) {
+		qWarning() << "Failed to execute command - invalid item key"
+				<< item.variant();
+		sendErrorReply(QDBusError::InvalidArgs,
+				"Failed to execute command - invalid item key");
+		return QString();
+	}
+
+	qulonglong commandId(item.variant().toULongLong());
+
+	qDebug() << "ExecuteParameterized" << commandId << timestamp;
 	return QString();
 }
 
