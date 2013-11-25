@@ -60,7 +60,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
       int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
       qaction_name = qaction_name.right( name_length );
 
-      m_ext_menu->setObjectName( qaction_name );
+      m_ext_menu->setProperty( "actionName", qaction_name );
     }
   }
 
@@ -139,7 +139,7 @@ std::shared_ptr< QMenu > QtGMenuModel::GetQMenu()
 void QtGMenuModel::ActionTriggered( bool checked )
 {
   QAction* action = dynamic_cast< QAction* >( QObject::sender() );
-  emit ActionTriggered( action->objectName(), checked );
+  emit ActionTriggered( action->property( "actionName" ).toString(), checked );
 }
 
 void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
@@ -328,7 +328,7 @@ QAction* QtGMenuModel::CreateAction( int index )
     int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
     qaction_name = qaction_name.right( name_length );
 
-    action->setObjectName( qaction_name );
+    action->setProperty( "actionName", qaction_name );
   }
 
   // action icon
@@ -361,14 +361,14 @@ QAction* QtGMenuModel::CreateAction( int index )
 
 QAction* QtGMenuModel::FindAction( QString name )
 {
-  if( m_ext_menu->objectName() == name )
+  if( m_ext_menu->property( "actionName" ) == name )
   {
     return m_ext_menu->menuAction();
   }
 
   for( QAction* action : m_menu->actions() )
   {
-    if( action->objectName() == name )
+    if( action->property( "actionName" ) == name )
     {
       return action;
     }
