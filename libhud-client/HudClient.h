@@ -22,8 +22,11 @@
 
 #include <libhud-client/toolbar-items.h>
 
+QT_BEGIN_NAMESPACE
 class DeeListModel;
 class QAbstractItemModel;
+class QString;
+QT_END_NAMESPACE
 
 namespace hud {
 namespace client {

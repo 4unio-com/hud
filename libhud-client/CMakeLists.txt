@@ -1,4 +1,6 @@
 
+add_compiler_export_flags()
+
 set(HUD_CLIENT_INCLUDE_DIRS
 ${CMAKE_CURRENT_SOURCE_DIR}
 ${CMAKE_CURRENT_BINARY_DIR}
