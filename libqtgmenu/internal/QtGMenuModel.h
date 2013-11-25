@@ -43,7 +43,8 @@ public:
   };
 
   QtGMenuModel( GMenuModel* model );
-  QtGMenuModel( GMenuModel* model, const QString& menu_path, const QString& actions_path );
+  QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path,
+      const QString& actions_path );
   ~QtGMenuModel();
 
   GMenuModel* Model() const;
@@ -58,6 +59,7 @@ public:
 
   constexpr static const char* c_property_actionName = "actionName";
   constexpr static const char* c_property_isParameterized = "isParameterized";
+  constexpr static const char* c_property_busName = "busName";
   constexpr static const char* c_property_menuPath = "menuPath";
   constexpr static const char* c_property_actionsPath = "actionsPath";
 
@@ -107,6 +109,7 @@ private:
   QMenu* m_menu = new QMenu();
   QMenu* m_ext_menu = new QMenu();
 
+  QString m_bus_name;
   QString m_menu_path;
   QString m_actions_path;
 };

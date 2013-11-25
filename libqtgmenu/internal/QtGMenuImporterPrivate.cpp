@@ -183,7 +183,7 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
       std::shared_ptr < QtGMenuModel
           > ( new QtGMenuModel(
               G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_menu_path.c_str() ) ),
-              m_menu_path.c_str(), m_actions_path.c_str() ) );
+              m_service.c_str(), m_menu_path.c_str(), m_actions_path.c_str() ) );
 
   connect( menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
           int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );

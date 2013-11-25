@@ -26,10 +26,11 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model )
 {
 }
 
-QtGMenuModel::QtGMenuModel( GMenuModel* model, const QString& menu_path,
+QtGMenuModel::QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path,
     const QString& actions_path )
     : QtGMenuModel( model, LinkType::Root, nullptr, 0 )
 {
+  m_bus_name = bus_name;
   m_menu_path = menu_path;
   m_actions_path = actions_path;
 }
@@ -45,6 +46,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
   {
     m_parent->InsertChild( this, index );
 
+    m_bus_name = m_parent->m_bus_name;
     m_menu_path = m_parent->m_menu_path;
     m_actions_path = m_parent->m_actions_path;
 
@@ -355,6 +357,7 @@ QAction* QtGMenuModel::CreateAction( int index )
   action->setProperty( c_property_isParameterized, false );
 
   // dbus paths
+  action->setProperty( c_property_busName, m_bus_name );
   action->setProperty( c_property_menuPath, m_menu_path );
   action->setProperty( c_property_actionsPath, m_actions_path );
 
