@@ -35,11 +35,9 @@ class DBusMenuCollector;
 class GMenuCollector;
 
 class CollectorToken {
-	friend Collector;
-	friend DBusMenuCollector;
-	friend GMenuCollector;
-
 public:
+	explicit CollectorToken(std::shared_ptr<Collector> collector, QMenu *menu);
+
 	typedef QSharedPointer<CollectorToken> Ptr;
 
 	~CollectorToken();
@@ -47,7 +45,6 @@ public:
 	QMenu *menu();
 
 protected:
-	explicit CollectorToken(std::shared_ptr<Collector> collector, QMenu *menu);
 
 	std::weak_ptr<Collector> m_collector;
 

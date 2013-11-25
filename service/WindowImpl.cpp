@@ -79,17 +79,14 @@ WindowToken::Ptr WindowImpl::activate() {
 		// If we have an existing token
 		if (tokens != windowToken->tokens()) {
 			// If any of the sub-tokens have changed
-			qDebug() << "Sub token changed";
 			newToken = true;
 		}
 	} else {
 		// We don't have an existing token
-		qDebug() << "No existing token";
 		newToken = true;
 	}
 
 	if (newToken) {
-		qDebug() << "Making new window token";
 		windowToken.reset(new WindowTokenImpl(tokens));
 		m_windowToken = windowToken;
 	}
