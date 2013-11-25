@@ -43,6 +43,7 @@ public:
   };
 
   QtGMenuModel( GMenuModel* model );
+  QtGMenuModel( GMenuModel* model, const QString& menu_path, const QString& actions_path );
   ~QtGMenuModel();
 
   GMenuModel* Model() const;
@@ -55,12 +56,18 @@ public:
 
   std::shared_ptr< QMenu > GetQMenu();
 
+  constexpr static const char* c_property_actionName = "actionName";
+  constexpr static const char* c_property_isParameterized = "isParameterized";
+  constexpr static const char* c_property_menuPath = "menuPath";
+  constexpr static const char* c_property_actionsPath = "actionsPath";
+
 Q_SIGNALS:
   void MenuItemsChanged( QtGMenuModel* model, int index, int removed, int added );
   void ActionTriggered( QString action_name, bool checked );
 
 public Q_SLOTS:
   void ActionEnabled( QString action_name, bool enabled );
+  void ActionParameterized( QString action_name, bool parameterized );
 
 private Q_SLOTS:
   void ActionTriggered( bool );
@@ -99,6 +106,9 @@ private:
 
   QMenu* m_menu = new QMenu();
   QMenu* m_ext_menu = new QMenu();
+
+  QString m_menu_path;
+  QString m_actions_path;
 };
 
 } // namespace qtgmenu

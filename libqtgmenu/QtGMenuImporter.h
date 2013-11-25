@@ -41,7 +41,8 @@ Q_OBJECT
 
 public:
   QtGMenuImporter( const QString& service, const QString& path, QObject* parent = 0 );
-  QtGMenuImporter( const QString& service, const QString& menu_path, const QString& actions_path, QObject* parent = 0 );
+  QtGMenuImporter( const QString& service, const QString& menu_path, const QString& actions_path,
+      QObject* parent = 0 );
   ~QtGMenuImporter();
 
   GMenuModel* GetGMenuModel() const;

@@ -369,6 +369,11 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   EXPECT_EQ( "new", m_action_added_spy.at( 0 ).at( 0 ).toString().toStdString() );
   m_action_added_spy.clear();
 
+  EXPECT_FALSE( m_action_enabled_spy.empty() );
+  EXPECT_EQ( "new", m_action_enabled_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  EXPECT_EQ( "true", m_action_enabled_spy.at( 0 ).at( 1 ).toString().toStdString() );
+  m_action_enabled_spy.clear();
+
   EXPECT_NE( nullptr, m_importer.GetGActionGroup() );
   EXPECT_EQ( 1, GetGActionCount() );
 

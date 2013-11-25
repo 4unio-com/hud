@@ -39,7 +39,8 @@ class QtGMenuImporterPrivate : public QObject
 Q_OBJECT
 
 public:
-  QtGMenuImporterPrivate( const QString& service, const QString& menu_path, const QString& actions_path, QtGMenuImporter& parent );
+  QtGMenuImporterPrivate( const QString& service, const QString& menu_path,
+      const QString& actions_path, QtGMenuImporter& parent );
   ~QtGMenuImporterPrivate();
 
   GMenuModel* GetGMenuModel();

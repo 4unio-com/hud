@@ -45,6 +45,7 @@ Q_SIGNALS:
   void ActionAdded( QString action_name );
   void ActionRemoved( QString action_name );
   void ActionEnabled( QString action_name, bool enabled );
+  void ActionParameterized( QString action_name, bool parameterized );
   void ActionStateChanged( QString action_name, QVariant value );
 
 private Q_SLOTS:

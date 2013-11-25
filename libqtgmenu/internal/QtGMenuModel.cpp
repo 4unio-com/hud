@@ -26,6 +26,14 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model )
 {
 }
 
+QtGMenuModel::QtGMenuModel( GMenuModel* model, const QString& menu_path,
+    const QString& actions_path )
+    : QtGMenuModel( model, LinkType::Root, nullptr, 0 )
+{
+  m_menu_path = menu_path;
+  m_actions_path = actions_path;
+}
+
 QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index )
     : m_parent( parent ),
       m_model( model ),
@@ -36,6 +44,9 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
   if( m_parent )
   {
     m_parent->InsertChild( this, index );
+
+    m_menu_path = m_parent->m_menu_path;
+    m_actions_path = m_parent->m_actions_path;
 
     GVariant* label = g_menu_model_get_item_attribute_value( m_parent->m_model, index,
         G_MENU_ATTRIBUTE_LABEL, G_VARIANT_TYPE_STRING );
@@ -60,7 +71,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
       int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
       qaction_name = qaction_name.right( name_length );
 
-      m_ext_menu->setProperty( "actionName", qaction_name );
+      m_ext_menu->setProperty( c_property_actionName, qaction_name );
     }
   }
 
@@ -139,7 +150,7 @@ std::shared_ptr< QMenu > QtGMenuModel::GetQMenu()
 void QtGMenuModel::ActionTriggered( bool checked )
 {
   QAction* action = dynamic_cast< QAction* >( QObject::sender() );
-  emit ActionTriggered( action->property( "actionName" ).toString(), checked );
+  emit ActionTriggered( action->property( c_property_actionName ).toString(), checked );
 }
 
 void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
@@ -148,6 +159,15 @@ void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
   if( action )
   {
     action->setEnabled( enabled );
+  }
+}
+
+void QtGMenuModel::ActionParameterized( QString action_name, bool parameterized )
+{
+  QAction* action = FindAction( action_name );
+  if( action )
+  {
+    action->setProperty( c_property_isParameterized, parameterized );
   }
 }
 
@@ -328,8 +348,15 @@ QAction* QtGMenuModel::CreateAction( int index )
     int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
     qaction_name = qaction_name.right( name_length );
 
-    action->setProperty( "actionName", qaction_name );
+    action->setProperty( c_property_actionName, qaction_name );
   }
+
+  // is parameterized (set false by default until signal received)
+  action->setProperty( c_property_isParameterized, false );
+
+  // dbus paths
+  action->setProperty( c_property_menuPath, m_menu_path );
+  action->setProperty( c_property_actionsPath, m_actions_path );
 
   // action icon
   GVariant* icon = g_menu_model_get_item_attribute_value( m_model, index, G_MENU_ATTRIBUTE_ICON,
@@ -361,14 +388,14 @@ QAction* QtGMenuModel::CreateAction( int index )
 
 QAction* QtGMenuModel::FindAction( QString name )
 {
-  if( m_ext_menu->property( "actionName" ) == name )
+  if( m_ext_menu->property( c_property_actionName ) == name )
   {
     return m_ext_menu->menuAction();
   }
 
   for( QAction* action : m_menu->actions() )
   {
-    if( action->property( "actionName" ) == name )
+    if( action->property( c_property_actionName ) == name )
     {
       return action;
     }

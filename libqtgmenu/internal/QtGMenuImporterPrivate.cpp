@@ -29,8 +29,8 @@ template< typename ... T > void unused( T&& ... )
 {
 }
 
-QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QString& menu_path, const QString& actions_path,
-    QtGMenuImporter& parent )
+QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QString& menu_path,
+    const QString& actions_path, QtGMenuImporter& parent )
     : QObject( 0 ),
       m_service_watcher( service, QDBusConnection::sessionBus(),
           QDBusServiceWatcher::WatchForOwnerChange ),
@@ -146,11 +146,14 @@ void QtGMenuImporterPrivate::LinkMenuActions()
     connect( m_menu_model.get(), SIGNAL( ActionTriggered( QString, bool ) ), m_action_group.get(),
         SLOT( TriggerAction( QString, bool ) ) );
 
+    connect( m_menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int, int ) ),
+        m_action_group.get(), SLOT( RefreshStates() ) );
+
     connect( m_action_group.get(), SIGNAL( ActionEnabled( QString, bool ) ), m_menu_model.get(),
         SLOT( ActionEnabled( QString, bool ) ) );
 
-    connect( m_menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int, int ) ),
-        m_action_group.get(), SLOT( RefreshStates() ) );
+    connect( m_action_group.get(), SIGNAL( ActionParameterized( QString, bool ) ),
+        m_menu_model.get(), SLOT( ActionParameterized( QString, bool ) ) );
 
     m_menu_actions_linked = true;
   }
@@ -179,7 +182,8 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   auto menu_model =
       std::shared_ptr < QtGMenuModel
           > ( new QtGMenuModel(
-              G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_menu_path.c_str() ) ) ) );
+              G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_menu_path.c_str() ) ),
+              m_menu_path.c_str(), m_actions_path.c_str() ) );
 
   connect( menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
           int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );
