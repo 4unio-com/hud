@@ -40,6 +40,8 @@ protected:
 	TestWindow() :
 			mock(dbus) {
 		factory.setSessionBus(dbus.sessionConnection());
+
+		allWindowsContext.reset(new NiceMock<MockWindowContext>());
 	}
 
 	virtual ~TestWindow() {
@@ -50,23 +52,46 @@ protected:
 	DBusMock mock;
 
 	NiceMock<MockFactory> factory;
+
+	QSharedPointer<MockWindowContext> allWindowsContext;
 };
 
 TEST_F(TestWindow, TrysDBusMenuAndGMenu) {
 	shared_ptr<MockCollector> dbusMenuCollector(new NiceMock<MockCollector>());
 	ON_CALL(*dbusMenuCollector, isValid()).WillByDefault(Return(false));
 
-	shared_ptr<MockCollector> gmenuCollector(new NiceMock<MockCollector>());
-	ON_CALL(*gmenuCollector, isValid()).WillByDefault(Return(true));
+	shared_ptr<MockCollector> gmenuWindowCollector(
+			new NiceMock<MockCollector>());
+	ON_CALL(*gmenuWindowCollector, isValid()).WillByDefault(Return(true));
 
 	EXPECT_CALL(factory, newDBusMenuCollector(1234, QString("application-id"))).Times(
 			1).WillOnce(Return(dbusMenuCollector));
 	EXPECT_CALL(factory, newGMenuWindowCollector(1234, QString("application-id"))).Times(
-			1).WillOnce(Return(gmenuCollector));
-
-	WindowContext::Ptr allWindowsContext(new WindowContextImpl(factory));
+			1).WillOnce(Return(gmenuWindowCollector));
 
 	WindowImpl window(1234, "application-id", allWindowsContext, factory);
+}
+
+TEST_F(TestWindow, Context) {
+	WindowContextImpl context(factory);
+
+	WindowContext::MenuDefinition definition("bus.name");
+	definition.actionPath = QDBusObjectPath("/action/path");
+	definition.actionPrefix = "hud";
+	definition.menuPath = QDBusObjectPath("/menu/path");
+
+	shared_ptr<MockCollector> gmenuCollector(new NiceMock<MockCollector>());
+
+	EXPECT_CALL(factory, newGMenuCollector(definition.name, definition.actionPath, definition.menuPath)).Times(
+			1).WillOnce(Return(gmenuCollector));
+
+	context.addMenu("context_1", definition);
+
+	EXPECT_FALSE(context.activeCollector());
+
+	context.setContext("context_1");
+
+	EXPECT_EQ(gmenuCollector, context.activeCollector());
 }
 
 } // namespace

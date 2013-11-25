@@ -113,6 +113,15 @@ public:
 	MOCK_CONST_METHOD0(tokens, const QList<CollectorToken::Ptr> &());
 };
 
+class MockWindowContext: public WindowContext {
+public:
+	MOCK_METHOD1(setContext, void(const QString &));
+
+	MOCK_METHOD2(addMenu, void(const QString &, const MenuDefinition &));
+
+	MOCK_METHOD0(activeCollector, Collector::Ptr());
+};
+
 class MockWindow: public Window {
 public:
 	MOCK_METHOD0(activate, WindowToken::Ptr());
