@@ -79,7 +79,10 @@ QtGMenuModel::~QtGMenuModel()
 {
   if( m_model )
   {
-    MenuItemsChangedCallback( m_model, 0, Size(), 0, this );
+    if( m_size > 0 )
+    {
+      MenuItemsChangedCallback( m_model, 0, m_size, 0, this );
+    }
     DisconnectCallback();
     g_object_unref( m_model );
   }
@@ -385,11 +388,22 @@ QAction* QtGMenuModel::FindAction( QString name )
 
 void QtGMenuModel::AppendQMenu( std::shared_ptr< QMenu > top_menu )
 {
-  if( m_link_type == LinkType::SubMenu )
+  if( m_link_type == LinkType::Root )
+  {
+    for( QAction* action : m_ext_menu->actions() )
+    {
+      if( !action->menu() )
+      {
+        top_menu->addAction( action );
+      }
+    }
+  }
+  else if( m_link_type == LinkType::SubMenu )
   {
     top_menu->addAction( m_ext_menu->menuAction() );
   }
-  else
+
+  if( m_link_type != LinkType::SubMenu )
   {
     for( auto& child : m_children )
     {

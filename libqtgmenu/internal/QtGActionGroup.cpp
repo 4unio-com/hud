@@ -103,7 +103,7 @@ void QtGActionGroup::TriggerAction( QString action_name, bool checked )
   else
   {
     ///! need to evaluate and send parameter value
-    if( g_variant_type_is_subtype_of( type, G_VARIANT_TYPE_STRING ) )
+    if( g_variant_type_equal( type, G_VARIANT_TYPE_STRING ) )
     {
       GVariant* param = g_variant_new_string( action.c_str() );
       g_action_group_activate_action( m_action_group, action.c_str(), param );
