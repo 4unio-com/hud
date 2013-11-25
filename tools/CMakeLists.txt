@@ -15,8 +15,8 @@ include_directories(${PANGO_INCLUDE_DIRS})
 add_executable(hud-cli hud-cli.c)
 
 target_link_libraries(hud-cli
-hud-service
-${PANGO_LIBRARIES}
+  hud-client
+  ${PANGO_LIBRARIES}
 )
 
 install(
@@ -31,8 +31,8 @@ install(
 add_executable(hud-cli-param hud-cli-param.c)
 
 target_link_libraries(hud-cli-param
-hud-service
-${PANGO_LIBRARIES}
+  hud-client
+  ${PANGO_LIBRARIES}
 )
 
 install(
@@ -48,7 +48,9 @@ endif()
 
 add_executable(hud-cli-appstack hud-cli-appstack.c)
 
-target_link_libraries(hud-cli-appstack hud-service)
+target_link_libraries(hud-cli-appstack
+  hud-client
+)
 
 install(
   TARGETS hud-cli-appstack
@@ -61,7 +63,9 @@ install(
 
 add_executable(hud-cli-toolbar hud-cli-toolbar.c)
 
-target_link_libraries(hud-cli-toolbar hud-service)
+target_link_libraries(hud-cli-toolbar
+  hud-client
+)
 
 install(
   TARGETS hud-cli-toolbar

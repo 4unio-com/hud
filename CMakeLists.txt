@@ -147,7 +147,7 @@ add_subdirectory(libhud-gtk)
 add_subdirectory(libqtgmenu)
 #add_subdirectory(src)
 add_subdirectory(service)
-#add_subdirectory(tools)
+add_subdirectory(tools)
 add_subdirectory(window-stack-bridge)
 
 if(${ENABLE_TESTS})
