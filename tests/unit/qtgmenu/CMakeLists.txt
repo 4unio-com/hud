@@ -29,7 +29,6 @@ target_link_libraries(
     ${QTDBUSMOCK_LIBRARIES}
 )
 
-add_valgrind_test(
-    qtgmenu-unit-tests
+add_hud_test(
     qtgmenu-unit-tests
 )

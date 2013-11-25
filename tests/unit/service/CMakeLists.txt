@@ -30,7 +30,6 @@ target_link_libraries(
 	${QTDBUSMOCK_LIBRARIES}
 )
 
-add_test(
+add_hud_test(
 	service-unit-tests
-	qdbus-simple-test-runner "${CMAKE_CURRENT_BINARY_DIR}/service-unit-tests"
 )

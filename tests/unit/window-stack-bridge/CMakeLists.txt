@@ -29,8 +29,7 @@ qt5_use_modules(
 	Test
 )
 
-add_valgrind_test(
-	window-stack-bridge-unit-tests
+add_hud_test(
 	window-stack-bridge-unit-tests
 )
 

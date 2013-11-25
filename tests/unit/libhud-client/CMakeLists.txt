@@ -27,8 +27,7 @@ qt5_use_modules(
 	Test
 )
 
-add_test(
+add_hud_test(
 	libhud-client-unit-tests
-	qdbus-simple-test-runner "${CMAKE_CURRENT_BINARY_DIR}/libhud-client-unit-tests"
 )
 

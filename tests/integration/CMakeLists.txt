@@ -24,7 +24,6 @@ qt5_use_modules(integration-tests
 	Test
 )
 
-add_test(
+add_hud_test(
 	integration-tests
-	qdbus-simple-test-runner "${CMAKE_CURRENT_BINARY_DIR}/integration-tests"
 )

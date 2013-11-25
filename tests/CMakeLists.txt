@@ -47,6 +47,19 @@ add_definitions(-DMODEL_TOOLBAR_UNKNOWN="${CMAKE_CURRENT_BINARY_DIR}/menus/test-
 add_definitions(-DMODEL_TOOLBAR_ALL="${CMAKE_CURRENT_BINARY_DIR}/menus/test-menu-input-model-toolbar-all")
 add_definitions(-DMODEL_TOOLBAR_DYNAMIC="${CMAKE_CURRENT_BINARY_DIR}/menus/test-menu-input-model-toolbar-dynamic")
 
+########################
+# Tests
+########################
+
+set(TEST_RUNNER "${CMAKE_CURRENT_SOURCE_DIR}/run-under-xvfb.sh")
+
+function(add_hud_test NAME)
+	add_test(
+		${NAME}
+		${TEST_RUNNER} qdbus-simple-test-runner "${CMAKE_CURRENT_BINARY_DIR}/${NAME}"
+	)
+endfunction()
+
 #add_subdirectory(data)
 add_subdirectory(integration)
 add_subdirectory(menus)
