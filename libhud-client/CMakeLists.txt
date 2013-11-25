@@ -77,7 +77,7 @@ connection.h
 param.h
 query.h
 toolbar-items.h
-${CMAKE_SOURCE_DIR}/src/query-columns.h
+${CMAKE_SOURCE_DIR}/common/query-columns.h
 )
 
 set(HUD_CLIENT_QT_HEADERS

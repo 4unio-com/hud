@@ -27,7 +27,7 @@
 #include "connection-private.h"
 #include "query-iface.h"
 #include "enum-types.h"
-#include "query-columns.h"
+#include "common/query-columns.h"
 #include "common/shared-values.h"
 
 struct _HudClientQueryPrivate {
