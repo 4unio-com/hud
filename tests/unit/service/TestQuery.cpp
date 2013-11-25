@@ -127,7 +127,7 @@ TEST_F(TestQuery, ExecuteCommand) {
 	QueryImpl query(0, "query", "keep.alive", *hudService, applicationList,
 			voice, dbus.sessionConnection());
 
-	EXPECT_CALL(*windowToken, execute(123, 12345));
+	EXPECT_CALL(*windowToken, execute(123));
 	query.ExecuteCommand(QDBusVariant(123), 12345);
 }
 

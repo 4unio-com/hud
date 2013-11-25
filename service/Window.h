@@ -35,7 +35,11 @@ public:
 
 	virtual void search(const QString &query, QList<Result> &results) = 0;
 
-	virtual void execute(unsigned long long commandId, uint timestamp) = 0;
+	virtual void execute(unsigned long long commandId) = 0;
+
+	virtual QString executeParameterized(unsigned long long commandId,
+			QString &baseAction, QDBusObjectPath &actionPath,
+			QDBusObjectPath &modelPath) = 0;
 
 	virtual void commands(QList<QStringList>& commandsList) = 0;
 

@@ -40,9 +40,13 @@ public:
 
 	virtual void search(const QString &query, QList<Result> &results);
 
-	virtual void execute(unsigned long long commandId, uint timestamp);
+	virtual void execute(unsigned long long commandId);
 
-	virtual void commands(QList<QStringList>& commands_list);
+	virtual QString executeParameterized(unsigned long long commandId,
+			QString &baseAction, QDBusObjectPath &actionPath,
+			QDBusObjectPath &modelPath);
+
+	virtual void commands(QList<QStringList>& commandsList);
 
 	virtual const QList<CollectorToken::Ptr> & tokens() const;
 

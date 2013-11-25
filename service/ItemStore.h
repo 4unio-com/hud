@@ -28,6 +28,10 @@
 #include <Corpus.hh>
 #include <Matcher.hh>
 
+QT_BEGIN_NAMESPACE
+class QDBusObjectPath;
+QT_END_NAMESPACE
+
 namespace hud {
 namespace service {
 
@@ -43,7 +47,11 @@ public:
 
 	void search(const QString &query, QList<Result> &results);
 
-	void execute(unsigned long long commandId, uint timestamp);
+	void execute(unsigned long long commandId);
+
+	QString executeParameterized(unsigned long long commandId,
+			QString &baseAction, QDBusObjectPath &actionPath,
+			QDBusObjectPath &modelPath);
 
 	void commands(QList<QStringList> &commandsList);
 

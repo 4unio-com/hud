@@ -22,6 +22,7 @@
 #include <columbus.hh>
 #include <QRegularExpression>
 #include <QDebug>
+#include <QDBusObjectPath>
 #include <algorithm>
 
 using namespace hud::service;
@@ -153,16 +154,18 @@ void ItemStore::search(const QString &query, QList<Result> &results) {
 		findHighlights(descriptionHighlights, stringMatcher, queryLength,
 				description);
 
+		bool isParameterized(action->property("isParameterized").toBool());
+
 		results
 				<< Result(id, commandName, commandHighlights, description,
 						descriptionHighlights, action->shortcut().toString(),
-						relevancy * 100, false);
+						relevancy * 100, isParameterized);
 
 	}
 
 }
 
-void ItemStore::execute(unsigned long long int commandId, uint timestamp) {
+void ItemStore::execute(unsigned long long int commandId) {
 	Item::Ptr item(m_items[commandId]);
 	if (item.isNull()) {
 		qWarning() << "Tried to execute unknown command" << commandId;
@@ -176,6 +179,31 @@ void ItemStore::execute(unsigned long long int commandId, uint timestamp) {
 	}
 
 	action->activate(QAction::ActionEvent::Trigger);
+}
+
+QString ItemStore::executeParameterized(unsigned long long commandId,
+		QString &baseAction, QDBusObjectPath &actionPath,
+		QDBusObjectPath &modelPath) {
+
+	Item::Ptr item(m_items[commandId]);
+	if (item.isNull()) {
+		qWarning() << "Tried to execute unknown parameterized command"
+				<< commandId;
+		return QString();
+	}
+
+	QAction *action(item->action());
+
+	if (action == nullptr) {
+		qWarning() << "Tried to execute unknown parameterized command"
+				<< commandId;
+	}
+
+	baseAction = action->property("actionName").toString();
+	actionPath = QDBusObjectPath(action->property("actionsPath").toString());
+	modelPath = QDBusObjectPath(action->property("menuPath").toString());
+
+	return action->property("busName").toString();
 }
 
 void ItemStore::commands(QList<QStringList>& commandsList) {

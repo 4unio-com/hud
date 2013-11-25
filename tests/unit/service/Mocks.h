@@ -106,7 +106,10 @@ class MockWindowToken: public WindowToken {
 public:
 	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
 
-	MOCK_METHOD2(execute, void(unsigned long long, uint));
+	MOCK_METHOD1(execute, void(unsigned long long));
+
+	MOCK_METHOD4(executeParameterized, QString(unsigned long long,
+					QString &, QDBusObjectPath &, QDBusObjectPath &));
 
 	MOCK_METHOD1(commands, void(QList<QStringList> &));
 

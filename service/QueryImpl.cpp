@@ -103,7 +103,7 @@ void QueryImpl::ExecuteCommand(const QDBusVariant &item, uint timestamp) {
 	}
 
 	qulonglong commandId(item.variant().toULongLong());
-	m_windowToken->execute(commandId, timestamp);
+	m_windowToken->execute(commandId);
 }
 
 /**
@@ -112,14 +112,15 @@ void QueryImpl::ExecuteCommand(const QDBusVariant &item, uint timestamp) {
  * - uint, timestamp
  *
  * The outputs are:
- * - string baseAction, ???
+ * - string busName, bus name to connect to
+ * - string baseAction, name of the action group
  * - path actionPath, where we can find the action group
  * - path modelPath, where we can find the menu
- * - int modelSection, ???
+ * - int modelSection, not used
  */
 QString QueryImpl::ExecuteParameterized(const QDBusVariant &item,
-		uint timestamp, QDBusObjectPath &actionPath, QDBusObjectPath &modelPath,
-		int &modelSection) {
+		uint timestamp, QString &baseAction, QDBusObjectPath &actionPath,
+		QDBusObjectPath &modelPath, int &modelSection) {
 	if (!item.variant().canConvert<qlonglong>()) {
 		qWarning() << "Failed to execute command - invalid item key"
 				<< item.variant();
@@ -129,9 +130,9 @@ QString QueryImpl::ExecuteParameterized(const QDBusVariant &item,
 	}
 
 	qulonglong commandId(item.variant().toULongLong());
-
-	qDebug() << "ExecuteParameterized" << commandId << timestamp;
-	return QString();
+	modelSection = 1;
+	return m_windowToken->executeParameterized(commandId, baseAction,
+			actionPath, modelPath);
 }
 
 void QueryImpl::ExecuteToolbar(const QString &item, uint timestamp) {

@@ -40,8 +40,15 @@ void WindowTokenImpl::search(const QString &query, QList<Result> &results) {
 	m_items.search(query, results);
 }
 
-void WindowTokenImpl::execute(unsigned long long commandId, uint timestamp) {
-	m_items.execute(commandId, timestamp);
+void WindowTokenImpl::execute(unsigned long long commandId) {
+	m_items.execute(commandId);
+}
+
+QString WindowTokenImpl::executeParameterized(unsigned long long commandId,
+		QString &baseAction, QDBusObjectPath &actionPath,
+		QDBusObjectPath &modelPath) {
+	return m_items.executeParameterized(commandId, baseAction, actionPath,
+			modelPath);
 }
 
 void WindowTokenImpl::commands(QList<QStringList> &commandsList) {
