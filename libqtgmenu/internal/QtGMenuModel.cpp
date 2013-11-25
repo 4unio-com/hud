@@ -373,7 +373,6 @@ QAction* QtGMenuModel::CreateAction( int index )
   // action shortcut
   GMenuItem* menu_item = g_menu_item_new_from_model( m_model, index );
   GVariant* shortcut = g_menu_item_get_attribute_value( menu_item, "accel", G_VARIANT_TYPE_STRING );
-  g_object_unref( menu_item );
 
   if( shortcut )
   {
@@ -381,6 +380,18 @@ QAction* QtGMenuModel::CreateAction( int index )
     g_variant_unref( shortcut );
 
     action->setShortcut( QtGMenuUtils::QStringToQKeySequence( qshortcut ) );
+  }
+
+  // action keywords
+  GVariant* keywords = g_menu_item_get_attribute_value( menu_item, "keywords", G_VARIANT_TYPE_STRING );
+  g_object_unref( menu_item );
+
+  if( keywords )
+  {
+    QVariant qkeywords = QtGMenuUtils::GVariantToQVariant( keywords ).toString();
+    g_variant_unref( keywords );
+
+    action->setProperty( c_property_keywords, qkeywords );
   }
 
   // action trigger

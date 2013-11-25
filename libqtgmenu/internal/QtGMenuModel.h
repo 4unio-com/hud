@@ -62,6 +62,7 @@ public:
   constexpr static const char* c_property_busName = "busName";
   constexpr static const char* c_property_menuPath = "menuPath";
   constexpr static const char* c_property_actionsPath = "actionsPath";
+  constexpr static const char* c_property_keywords = "keywords";
 
 Q_SIGNALS:
   void MenuItemsChanged( QtGMenuModel* model, int index, int removed, int added );
