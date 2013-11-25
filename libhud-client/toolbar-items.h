@@ -26,6 +26,8 @@
  * @HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES: Configure the application
  * @HUD_CLIENT_QUERY_TOOLBAR_UNDO: Revert the last user action
  *
+ * @short_description: Preconfigured toolbar items for the application
+ *
  * The toolbar has a set of preconfigured items in it for the
  * application.  This enum represents them.
  */

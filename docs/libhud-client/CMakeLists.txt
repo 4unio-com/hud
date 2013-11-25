@@ -10,10 +10,13 @@ if(GTKDOC_FOUND)
     SUFFIXES
       h c
     IGNOREHEADERS
+      HudClient.h
+      HudToolbarModel.h
       hud-client.h
       query-iface.h
       service-iface.h
       connection-private.h
+      toolbar-items.h
     LDFLAGS
       -L${CMAKE_CURRENT_BINARY_DIR}/../../libhud-client
       -l${_hud_client_output_name}
