@@ -75,6 +75,23 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 
       m_ext_menu->setProperty( c_property_actionName, qaction_name );
     }
+
+    // if this model has a "commitLabel" property, it is a libhud parameterized action
+    GVariant* commit_label = g_menu_model_get_item_attribute_value( m_parent->m_model, index,
+        "commitLabel", G_VARIANT_TYPE_STRING );
+
+    if( commit_label )
+    {
+      g_variant_unref( commit_label );
+
+      // is parameterized
+      m_ext_menu->setProperty( c_property_isParameterized, true );
+
+      // dbus paths
+      m_ext_menu->setProperty( c_property_busName, m_bus_name );
+      m_ext_menu->setProperty( c_property_menuPath, m_menu_path );
+      m_ext_menu->setProperty( c_property_actionsPath, m_actions_path );
+    }
   }
 
   if( m_model )
