@@ -73,7 +73,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
       int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
       qaction_name = qaction_name.right( name_length );
 
-      m_ext_menu->setProperty( c_property_actionName, qaction_name );
+      m_ext_menu->menuAction()->setProperty( c_property_actionName, qaction_name );
     }
 
     // if this model has a "commitLabel" property, it is a libhud parameterized action
@@ -85,12 +85,12 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
       g_variant_unref( commit_label );
 
       // is parameterized
-      m_ext_menu->setProperty( c_property_isParameterized, true );
+      m_ext_menu->menuAction()->setProperty( c_property_isParameterized, true );
 
       // dbus paths
-      m_ext_menu->setProperty( c_property_busName, m_bus_name );
-      m_ext_menu->setProperty( c_property_menuPath, m_menu_path );
-      m_ext_menu->setProperty( c_property_actionsPath, m_actions_path );
+      m_ext_menu->menuAction()->setProperty( c_property_busName, m_bus_name );
+      m_ext_menu->menuAction()->setProperty( c_property_menuPath, m_menu_path );
+      m_ext_menu->menuAction()->setProperty( c_property_actionsPath, m_actions_path );
     }
   }
 
@@ -419,7 +419,7 @@ QAction* QtGMenuModel::CreateAction( int index )
 
 QAction* QtGMenuModel::FindAction( QString name )
 {
-  if( m_ext_menu->property( c_property_actionName ) == name )
+  if( m_ext_menu->menuAction()->property( c_property_actionName ) == name )
   {
     return m_ext_menu->menuAction();
   }
