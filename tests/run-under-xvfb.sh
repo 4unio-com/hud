@@ -9,5 +9,6 @@ export DISPLAY
 echo "Setting up XVFB on $DISPLAY"
 fi
 
+export QT_QPA_PLATFORM="minimal"
 # Run specified arguments
 $@

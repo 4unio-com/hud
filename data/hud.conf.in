@@ -17,6 +17,9 @@ start on started dbus and ((xsession SESSION=ubuntu-touch) or (xsession SESSION=
 env HUD_SERVICE_TIMEOUT=0
 export HUD_SERVICE_TIMEOUT
 
+QT_QPA_PLATFORM="minimal"
+export QT_QPA_PLATFORM
+
 pre-start script
 	if [ -z $DBUS_SESSION_BUS_ADDRESS ]; then
 		echo "Working around missing DBUS_SESSION_BUS_ADDRESS variable"
