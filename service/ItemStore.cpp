@@ -59,6 +59,7 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 		QStringList text(convertActionText(action).split(WHITESPACE));
 
 		bool isParameterized(action->property("isParameterized").toBool());
+		qDebug() << text << isParameterized;
 
 		// We don't descend into parameterized actions
 		QMenu *child(action->menu());
