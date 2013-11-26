@@ -25,7 +25,8 @@
 using namespace hud::common;
 using namespace hud::service;
 
-static QList<QString> IGNORED_APPLICATION_IDS = { "compiz", "hud-gui" };
+static QList<QString> IGNORED_APPLICATION_IDS = { "", "compiz", "hud-gui",
+		"unknown" };
 
 ApplicationListImpl::ApplicationListImpl(Factory &factory,
 		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack) :
@@ -72,7 +73,8 @@ bool ApplicationListImpl::isIgnoredApplication(const QString &applicationId) {
 	return false;
 }
 
-Application::Ptr ApplicationListImpl::ensureApplication(const QString &applicationId) {
+Application::Ptr ApplicationListImpl::ensureApplication(
+		const QString &applicationId) {
 	if (isIgnoredApplication(applicationId)) {
 		return Application::Ptr();
 	}
@@ -90,7 +92,7 @@ void ApplicationListImpl::ensureApplicationWithWindow(uint windowId,
 		const QString& applicationId) {
 	Application::Ptr application(ensureApplication(applicationId));
 
-	if(!application.isNull()) {
+	if (!application.isNull()) {
 		application->addWindow(windowId);
 	}
 }
@@ -148,7 +150,10 @@ void ApplicationListImpl::WindowDestroyed(uint windowId,
 QList<NameObject> ApplicationListImpl::applications() const {
 	QList<NameObject> results;
 	for (auto i(m_applications.cbegin()); i != m_applications.cend(); ++i) {
-		results << NameObject(i.key(), i.value()->path());
+		Application::Ptr application(i.value());
+		if (application) {
+			results << NameObject(i.key(), application->path());
+		}
 	}
 	return results;
 }
