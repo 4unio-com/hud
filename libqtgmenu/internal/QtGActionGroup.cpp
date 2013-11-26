@@ -111,7 +111,7 @@ void QtGActionGroup::TriggerAction( QString action_name, bool checked )
   }
 }
 
-void QtGActionGroup::RefreshStates()
+void QtGActionGroup::EmitStates()
 {
   gchar** actions_list = g_action_group_list_actions( m_action_group );
 
@@ -121,11 +121,13 @@ void QtGActionGroup::RefreshStates()
 
     bool enabled = G_ACTION_GROUP_GET_IFACE( m_action_group ) ->get_action_enabled( m_action_group,
         action_name );
-    emit ActionEnabled( action_name, enabled );
+    if( !enabled )
+      emit ActionEnabled( action_name, enabled );
 
     const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,
         action_name );
-    emit ActionParameterized( action_name, type != nullptr );
+    if( type != nullptr )
+      emit ActionParameterized( action_name, type != nullptr );
   }
 
   g_strfreev( actions_list );
@@ -139,11 +141,13 @@ void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* act
 
   bool enabled = G_ACTION_GROUP_GET_IFACE( self->m_action_group ) ->get_action_enabled(
       self->m_action_group, action_name );
-  emit self->ActionEnabled( action_name, enabled );
+  if( !enabled )
+    emit self->ActionEnabled( action_name, enabled );
 
   const GVariantType* type = g_action_group_get_action_parameter_type( self->m_action_group,
       action_name );
-  emit self->ActionParameterized( action_name, type != nullptr );
+  if( type != nullptr )
+    emit self->ActionParameterized( action_name, type != nullptr );
 }
 
 void QtGActionGroup::ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
