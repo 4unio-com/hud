@@ -30,6 +30,7 @@ using namespace Columbus;
 
 static const QRegularExpression SINGLE_AMPERSAND("(?<![&])[&](?![&])");
 static const QRegularExpression WHITESPACE("\\s+");
+static const QRegularExpression WHITESPACE_OR_SEMICOLON("[;\\s+]");
 
 ItemStore::ItemStore() :
 		m_nextId(0) {
@@ -80,7 +81,16 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 			document.addText(Word("command"), command);
 
 			WordList wordList;
-			for (const QString &word : stack) {
+			QVariant keywords(action->property("keywords"));
+			QStringList context;
+			if (!keywords.isNull()) {
+				// TODO Translate this string
+				QString translated(keywords.toString());
+				context = translated.split(WHITESPACE_OR_SEMICOLON);
+			} else {
+				context = stack;
+			}
+			for (const QString &word : context) {
 				wordList.addWord(Word(word.toStdString()));
 			}
 			document.addText(Word("context"), wordList);
@@ -141,14 +151,20 @@ void ItemStore::search(const QString &query, QList<Result> &results) {
 				commandName);
 
 		QString description;
-		bool first(true);
-		for (const QAction *a : item->context()) {
-			if (first) {
-				first = false;
-			} else {
-				description.append(_(", "));
+		QVariant keywords(action->property("keywords"));
+		if (!keywords.isNull()) {
+			//TODO Translate this string
+			description = keywords.toString();
+		} else {
+			bool first(true);
+			for (const QAction *a : item->context()) {
+				if (first) {
+					first = false;
+				} else {
+					description.append(_(", "));
+				}
+				description.append(convertActionText(a));
 			}
-			description.append(convertActionText(a));
 		}
 		Result::HighlightList descriptionHighlights;
 		findHighlights(descriptionHighlights, stringMatcher, queryLength,
