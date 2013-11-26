@@ -58,8 +58,11 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 
 		QStringList text(convertActionText(action).split(WHITESPACE));
 
+		bool isParameterized(action->property("isParameterized").toBool());
+
+		// We don't descend into parameterized actions
 		QMenu *child(action->menu());
-		if (child) {
+		if (!isParameterized && child) {
 			QStringList childStack(stack);
 			childStack << text;
 			QList<int> childIndex(index);
