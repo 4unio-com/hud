@@ -47,8 +47,6 @@ CollectorToken::Ptr GMenuCollector::activate() {
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 
 	if (collectorToken.isNull()) {
-		qDebug() << "GMenuCollector::opening menus" << m_name
-				<< m_actionPath.path() << m_menuPath.path() << this;
 		m_menu = m_importer->GetQMenu();
 		collectorToken.reset(
 				new CollectorToken(shared_from_this(),
@@ -60,5 +58,4 @@ CollectorToken::Ptr GMenuCollector::activate() {
 }
 
 void GMenuCollector::deactivate() {
-	qDebug() << "GMenuCollector::deactivate" << this;
 }

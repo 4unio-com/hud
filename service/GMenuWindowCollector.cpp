@@ -94,5 +94,4 @@ CollectorToken::Ptr GMenuWindowCollector::activate() {
 }
 
 void GMenuWindowCollector::deactivate() {
-	qDebug() << "GMenuWindowCollector::deactivate";
 }

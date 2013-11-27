@@ -132,7 +132,6 @@ void ApplicationListImpl::FocusedWindowChanged(uint windowId,
 		return;
 	}
 
-	qDebug() << "FocusedWindowChanged" << windowId << applicationId;
 	m_focusedApplication = m_applications[applicationId];
 	m_focusedWindowId = windowId;
 }

@@ -118,12 +118,10 @@ const QString & ApplicationImpl::icon() {
 }
 
 QList<ActionGroup> ApplicationImpl::actionGroups() const {
-	qDebug() << "actionGroups";
 	return QList<ActionGroup>();
 }
 
 QList<MenuModel> ApplicationImpl::menuModels() const {
-	qDebug() << "menuModels";
 	return QList<MenuModel>();
 }
 

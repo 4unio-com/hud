@@ -43,9 +43,6 @@ void WindowContextImpl::setContext(const QString &context) {
 
 void WindowContextImpl::addMenu(const QString &context,
 		const MenuDefinition &menuDefinition) {
-	qDebug() << "WindowContextImpl::addModel" << context << menuDefinition.name
-			<< menuDefinition.actionPath.path() << menuDefinition.actionPrefix
-			<< menuDefinition.menuPath.path();
 
 	m_collectors[context] = m_factory.newGMenuCollector(menuDefinition.name,
 			menuDefinition.actionPath, menuDefinition.menuPath);
