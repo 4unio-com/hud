@@ -79,15 +79,12 @@ inline uint qHash(const QStringList &key, uint seed) {
 	return hash;
 }
 
-static bool openMenu(QMenu *menu, const QStringList &position,
-		QSet<QStringList> &known) {
+static void openMenu(QMenu *menu) {
 	if (!menu) {
-		return false;
+		return;
 	}
 
 	menu->aboutToShow();
-
-	bool added = false;
 
 	for (int i(0); i < menu->actions().size(); ++i) {
 		QAction *action = menu->actions().at(i);
@@ -98,21 +95,11 @@ static bool openMenu(QMenu *menu, const QStringList &position,
 			continue;
 		}
 
-		QStringList childPosition(position);
-		childPosition << action->text();
-
-		if (!known.contains(childPosition)) {
-			known.insert(childPosition);
-			added = true;
-		}
-
 		QMenu *child(action->menu());
 		if (child) {
-			added |= openMenu(child, childPosition, known);
+			openMenu(child);
 		}
 	}
-
-	return added;
 }
 
 static void hideMenu(QMenu *menu) {
@@ -131,10 +118,7 @@ CollectorToken::Ptr DBusMenuCollector::activate() {
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 
 	if (collectorToken.isNull()) {
-		qDebug() << "DBusMenuCollector::Opening menus";
-		QSet<QStringList> known;
-		while (openMenu(m_menuImporter->menu(), QStringList(), known)) {
-		}
+		openMenu(m_menuImporter->menu());
 		collectorToken.reset(
 				new CollectorToken(shared_from_this(), m_menuImporter->menu()));
 		m_collectorToken = collectorToken;
@@ -144,7 +128,6 @@ CollectorToken::Ptr DBusMenuCollector::activate() {
 }
 
 void DBusMenuCollector::deactivate() {
-	qDebug() << "DBusMenuCollector::Hiding menus";
 	hideMenu(m_menuImporter->menu());
 }
 
