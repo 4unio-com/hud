@@ -59,7 +59,6 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 		QStringList text(convertActionText(action).split(WHITESPACE));
 
 		bool isParameterized(action->property("isParameterized").toBool());
-		qDebug() << text << isParameterized;
 
 		// We don't descend into parameterized actions
 		QMenu *child(action->menu());
@@ -88,9 +87,7 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 			QVariant keywords(action->property("keywords"));
 			QStringList context;
 			if (!keywords.isNull()) {
-				// TODO Translate this string
-				QString translated(keywords.toString());
-				context = translated.split(WHITESPACE_OR_SEMICOLON);
+				context = keywords.toString().split(WHITESPACE_OR_SEMICOLON);
 			} else {
 				context = stack;
 			}
@@ -157,7 +154,6 @@ void ItemStore::search(const QString &query, QList<Result> &results) {
 		QString description;
 		QVariant keywords(action->property("keywords"));
 		if (!keywords.isNull()) {
-			//TODO Translate this string
 			description = keywords.toString();
 		} else {
 			bool first(true);
