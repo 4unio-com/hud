@@ -86,6 +86,7 @@ HudToolbarModel.h
 )
 
 set(HUD_CLIENT_SOURCES
+action-muxer.c
 connection.c
 param.c
 query.c

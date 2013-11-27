@@ -66,7 +66,7 @@ protected:
 };
 
 TEST_F(TestParam, Create) {
-	HudClientParam *param = hud_client_param_new("app.dbus.name", "base_action",
+	HudClientParam *param = hud_client_param_new("app.dbus.name", "prefix", "base_action",
 			"/action/path", "/model/path", 1);
 
 	EXPECT_TRUE(param);
@@ -77,7 +77,7 @@ TEST_F(TestParam, Create) {
 TEST_F(TestParam, GetActions) {
 	startDBusMenu("app.dbus.name", "/menu", JSON_SOURCE_ONE);
 
-	HudClientParam* param = hud_client_param_new("app.dbus.name", "base_action",
+	HudClientParam* param = hud_client_param_new("app.dbus.name", "prefix", "base_action",
 			"/action/path", "/model/path", 1);
 
 	GActionGroup *action_group = hud_client_param_get_actions(param);

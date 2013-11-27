@@ -68,7 +68,7 @@ public Q_SLOTS:
 	void ExecuteCommand(const QDBusVariant &item, uint timestamp);
 
 	QString ExecuteParameterized(const QDBusVariant &item, uint timestamp,
-			QString &baseAction, QDBusObjectPath &actionPath,
+			QString &prefix, QString &baseAction, QDBusObjectPath &actionPath,
 			QDBusObjectPath &modelPath, int &modelSection);
 
 	void ExecuteToolbar(const QString &item, uint timestamp);

@@ -32,6 +32,7 @@ static void exitQt(int sig) {
 }
 
 int main(int argc, char *argv[]) {
+	qputenv("QT_QPA_PLATFORM", "minimal");
 	QApplication application(argc, argv);
 
 	setlocale(LC_ALL, "");

@@ -18,7 +18,7 @@
  *     Ryan Lortie <desrt@desrt.ca>
  */
 
-#include "action-muxer.h"
+#include <libhud-client/action-muxer.h>
 
 #include <string.h>
 
@@ -92,7 +92,7 @@ static void     g_action_muxer_action_enabled_changed (GActionGroup *group,
                                                        gpointer      user_data);
 
 G_DEFINE_TYPE_WITH_CODE (GActionMuxer, g_action_muxer, G_TYPE_OBJECT,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_muxer_group_init));
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_muxer_group_init))
 
 
 static void

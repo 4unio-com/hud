@@ -21,6 +21,7 @@
 #endif
 
 #include "param.h"
+#include <libhud-client/action-muxer.h>
 #include <gio/gio.h>
 
 struct _HudClientParamPrivate {
@@ -34,6 +35,7 @@ struct _HudClientParamPrivate {
 
 	/* These are the ones we care about */
 	GMenuModel * model;
+	GActionGroup * base_actions;
 	GActionGroup * actions;
 
 	/* This is what we need to get those */
@@ -129,6 +131,7 @@ hud_client_param_dispose (GObject *object)
 
 	g_clear_object(&param->priv->base_model);
 	g_clear_object(&param->priv->model);
+	g_clear_object(&param->priv->base_actions);
 	g_clear_object(&param->priv->actions);
 	g_clear_object(&param->priv->session);
 
@@ -206,15 +209,32 @@ action_write_state (HudClientParam * param, const gchar * action)
 /* Look at the items changed and make sure we're getting the
    item that we expect.  Then signal. */
 static void
-base_model_items (G_GNUC_UNUSED GMenuModel * model, gint position, gint removed, gint added, gpointer user_data)
+base_model_items (G_GNUC_UNUSED GMenuModel * model, gint position, gint removed, G_GNUC_UNUSED gint added, gpointer user_data)
 {
 	g_return_if_fail(position == 0);
 	g_return_if_fail(removed == 0);
-	g_return_if_fail(added == 1);
 	g_return_if_fail(HUD_CLIENT_IS_PARAM(user_data));
 
 	HudClientParam * param = HUD_CLIENT_PARAM(user_data);
-	param->priv->model = g_menu_model_get_item_link(G_MENU_MODEL(param->priv->base_model), 0, G_MENU_LINK_SUBMENU);
+
+	int i = 0;
+	if(param->priv->base_action != NULL) {
+		for(; i < g_menu_model_get_n_items(G_MENU_MODEL(param->priv->base_model)); ++i) {
+			gchar *action = NULL;
+			g_menu_model_get_item_attribute(G_MENU_MODEL(param->priv->base_model), i, "action", "s", &action);
+			if(g_str_has_suffix(action, param->priv->base_action)) {
+				g_free(action);
+				break;
+			}
+			g_free(action);
+		}
+	}
+
+	param->priv->model = g_menu_model_get_item_link(G_MENU_MODEL(param->priv->base_model), i, G_MENU_LINK_SUBMENU);
+	if(param->priv->model == NULL) {
+		g_warning("linked sub-model could not be found");
+		return;
+	}
 
 	g_signal_emit(param, signals[MODEL_READY], 0);
 
@@ -262,6 +282,7 @@ action_added (G_GNUC_UNUSED GActionGroup * group, const gchar * action_name, gpo
 /**
  * hud_client_param_new:
  * @dbus_address: The address on dbus to find the actions
+ * @prefix: The prefix the menu is using
  * @base_action: The action to send events for the dialog on
  * @action_path: DBus path to the action object
  * @model_path: DBus path to the menu model object
@@ -273,7 +294,7 @@ action_added (G_GNUC_UNUSED GActionGroup * group, const gchar * action_name, gpo
  * Return value: (transfer full): A new #HudClientParam dialog
  */
 HudClientParam *
-hud_client_param_new (const gchar * dbus_address, const gchar * base_action, const gchar * action_path, const gchar * model_path, gint model_section)
+hud_client_param_new (const gchar * dbus_address, const gchar *prefix, const gchar * base_action, const gchar * action_path, const gchar * model_path, gint model_section)
 {
 	g_return_val_if_fail(dbus_address != NULL, NULL);
 	/* NOTE: base_action is not required -- though probably a NULL string */
@@ -289,7 +310,11 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 
 	/* Keep the value NULL if we've got an empty string */
 	if (base_action != NULL && base_action[0] != '\0') {
-		param->priv->base_action = g_strdup(base_action);
+		if (prefix != NULL && prefix[0] != '\0') {
+			param->priv->base_action = g_strdup_printf("%s.%s", prefix, base_action);
+		} else {
+			param->priv->base_action = g_strdup(base_action);
+		}
 	}
 
 	g_warn_if_fail(model_section == 1);
@@ -302,14 +327,17 @@ hud_client_param_new (const gchar * dbus_address, const gchar * base_action, con
 	}
 
 	GDBusActionGroup * dbus_ag = g_dbus_action_group_get(param->priv->session, param->priv->dbus_address, param->priv->action_path);
-	param->priv->actions = G_ACTION_GROUP(dbus_ag);
+	param->priv->base_actions = G_ACTION_GROUP(dbus_ag);
+	GActionMuxer *muxer = g_action_muxer_new();
+	g_action_muxer_insert(muxer, "hud", param->priv->base_actions);
+	param->priv->actions = G_ACTION_GROUP(muxer);
 	
 	/* Looking for a base action here */
 	if (param->priv->base_action != NULL && !g_action_group_has_action(param->priv->actions, param->priv->base_action)) {
 		param->priv->action_added = g_signal_connect(G_OBJECT(param->priv->actions), "action-added", G_CALLBACK(action_added), param);
+	} else {
+		action_write_state(param, "start");
 	}
-
-	action_write_state(param, "start");
 
 	return param;
 }

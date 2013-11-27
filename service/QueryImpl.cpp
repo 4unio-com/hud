@@ -119,8 +119,9 @@ void QueryImpl::ExecuteCommand(const QDBusVariant &item, uint timestamp) {
  * - int modelSection, not used
  */
 QString QueryImpl::ExecuteParameterized(const QDBusVariant &item,
-		uint timestamp, QString &baseAction, QDBusObjectPath &actionPath,
-		QDBusObjectPath &modelPath, int &modelSection) {
+		uint timestamp, QString &prefix, QString &baseAction,
+		QDBusObjectPath &actionPath, QDBusObjectPath &modelPath,
+		int &modelSection) {
 	if (!item.variant().canConvert<qlonglong>()) {
 		qWarning() << "Failed to execute command - invalid item key"
 				<< item.variant();
@@ -130,6 +131,7 @@ QString QueryImpl::ExecuteParameterized(const QDBusVariant &item,
 	}
 
 	qulonglong commandId(item.variant().toULongLong());
+	prefix = "hud";
 	modelSection = 1;
 	return m_windowToken->executeParameterized(commandId, baseAction,
 			actionPath, modelPath);

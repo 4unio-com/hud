@@ -17,23 +17,38 @@
  */
 
 #include <common/DBusTypes.h>
+#include <common/WindowStackInterface.h>
+#include <window-stack-bridge/PlatformApiWindowStack.h>
+
+#include <libqtdbustest/DBusTestRunner.h>
 #include <libqtdbusmock/DBusMock.h>
-#include <QApplication>
+#include <QSignalSpy>
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
-int main(int argc, char **argv) {
-	qputenv("QT_QPA_PLATFORM", "minimal");
+using namespace std;
+using namespace testing;
+using namespace hud::common;
+using namespace QtDBusTest;
+using namespace QtDBusMock;
 
-//	qputenv("LANG", "C.UTF-8");
-	unsetenv("LC_ALL");
+namespace {
 
-	setlocale(LC_ALL, "");
-	bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);
-	textdomain(GETTEXT_PACKAGE);
+class TestPlatformApiWindowStack: public Test {
+protected:
+	TestPlatformApiWindowStack() :
+			mock(dbus) {
+	}
 
-	QApplication application(argc, argv);
-	hud::common::DBusTypes::registerMetaTypes();
-	QtDBusMock::DBusMock::registerMetaTypes();
-	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
+	virtual ~TestPlatformApiWindowStack() {
+	}
+
+	DBusTestRunner dbus;
+
+	DBusMock mock;
+};
+
+TEST_F(TestPlatformApiWindowStack, ExportsDBusInterface) {
 }
+
+} // namespace

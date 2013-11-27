@@ -21,6 +21,7 @@
 
 int main( int argc, char **argv )
 {
+  qputenv("QT_QPA_PLATFORM", "minimal");
   QApplication application( argc, argv );
 
   ::testing::InitGoogleTest( &argc, argv );
