@@ -82,8 +82,10 @@ public Q_SLOTS:
 protected Q_SLOTS:
 	void serviceUnregistered(const QString &service);
 
-protected:
 	void refresh();
+
+protected:
+	void updateToken(Window::Ptr window);
 
 	QScopedPointer<QueryAdaptor> m_adaptor;
 

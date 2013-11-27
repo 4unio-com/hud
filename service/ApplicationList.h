@@ -47,7 +47,11 @@ public:
 
 	virtual Window::Ptr focusedWindow() const = 0;
 
-	virtual Application::Ptr ensureApplication(const QString &applicationId) = 0;
+	virtual Application::Ptr ensureApplication(
+			const QString &applicationId) = 0;
+
+Q_SIGNALS:
+	void focusedWindowChanged();
 };
 
 }

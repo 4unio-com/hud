@@ -106,7 +106,6 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 
 void ItemStore::indexMenu(const QMenu *menu) {
 	if (menu == nullptr) {
-		qWarning() << "Attempt to index null menu";
 		return;
 	}
 	indexMenu(menu, menu, QStringList(), QList<int>());

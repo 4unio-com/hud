@@ -27,7 +27,9 @@
 namespace hud {
 namespace service {
 
-class WindowToken {
+class WindowToken: public QObject {
+Q_OBJECT
+
 public:
 	typedef QSharedPointer<WindowToken> Ptr;
 
@@ -44,6 +46,9 @@ public:
 	virtual void commands(QList<QStringList>& commandsList) = 0;
 
 	virtual const QList<CollectorToken::Ptr> & tokens() const = 0;
+
+Q_SIGNALS:
+	void changed();
 
 protected:
 	explicit WindowToken();

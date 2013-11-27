@@ -32,8 +32,10 @@ class QtGMenuImporter;
 namespace hud {
 namespace service {
 
-class GMenuCollector: public Collector, public std::enable_shared_from_this<
+class Q_DECL_EXPORT GMenuCollector: public Collector, public std::enable_shared_from_this<
 		GMenuCollector> {
+Q_OBJECT
+
 public:
 	typedef std::shared_ptr<GMenuCollector> Ptr;
 
@@ -45,6 +47,9 @@ public:
 	virtual bool isValid() const;
 
 	virtual CollectorToken::Ptr activate();
+
+protected Q_SLOTS:
+	void menuAppeared();
 
 protected:
 	virtual void deactivate();

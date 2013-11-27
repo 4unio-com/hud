@@ -34,15 +34,19 @@ class Collector;
 class DBusMenuCollector;
 class GMenuCollector;
 
-class CollectorToken {
+class CollectorToken: public QObject {
+Q_OBJECT
 public:
 	explicit CollectorToken(std::shared_ptr<Collector> collector, QMenu *menu);
 
 	typedef QSharedPointer<CollectorToken> Ptr;
 
-	~CollectorToken();
+	virtual ~CollectorToken();
 
 	QMenu *menu();
+
+Q_SIGNALS:
+	void changed();
 
 protected:
 

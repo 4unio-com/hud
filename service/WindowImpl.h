@@ -22,9 +22,11 @@
 #include <service/WindowContextImpl.h>
 #include <service/DBusMenuCollector.h>
 #include <service/GMenuCollector.h>
+#include <service/ItemStore.h>
 
 #include <QList>
 #include <QSharedPointer>
+#include <QTimer>
 
 namespace hud {
 namespace service {
@@ -32,7 +34,9 @@ namespace service {
 class Factory;
 class WindowImpl;
 
-class WindowTokenImpl: public WindowToken {
+class Q_DECL_EXPORT WindowTokenImpl: public WindowToken {
+Q_OBJECT
+
 public:
 	explicit WindowTokenImpl(const QList<CollectorToken::Ptr> &tokens);
 
@@ -50,10 +54,15 @@ public:
 
 	virtual const QList<CollectorToken::Ptr> & tokens() const;
 
+protected Q_SLOTS:
+	void childChanged();
+
 protected:
 	ItemStore m_items;
 
 	QList<CollectorToken::Ptr> m_tokens;
+
+	QTimer m_timer;
 };
 
 class WindowImpl: public WindowContextImpl, public Window {

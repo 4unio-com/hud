@@ -34,6 +34,11 @@ GMenuCollector::GMenuCollector(const QString &name,
 	m_importer.reset(
 			new QtGMenuImporter(m_name, m_menuPath.path(),
 					m_actionPath.path()));
+
+	connect(m_importer.data(), SIGNAL(MenuAppeared()), this,
+			SLOT(menuAppeared()));
+	connect(m_importer.data(), SIGNAL(MenuItemsChanged()), this,
+			SLOT(menuAppeared()));
 }
 
 GMenuCollector::~GMenuCollector() {
@@ -46,8 +51,9 @@ bool GMenuCollector::isValid() const {
 CollectorToken::Ptr GMenuCollector::activate() {
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 
-	if (collectorToken.isNull()) {
-		m_menu = m_importer->GetQMenu();
+	std::shared_ptr<QMenu> menu(m_importer->GetQMenu());
+	if (collectorToken.isNull() || menu != m_menu) {
+		m_menu = menu;
 		collectorToken.reset(
 				new CollectorToken(shared_from_this(),
 						m_menu ? m_menu.get() : nullptr));
@@ -58,4 +64,11 @@ CollectorToken::Ptr GMenuCollector::activate() {
 }
 
 void GMenuCollector::deactivate() {
+}
+
+void GMenuCollector::menuAppeared() {
+	CollectorToken::Ptr collectorToken(m_collectorToken);
+	if (collectorToken) {
+		collectorToken->changed();
+	}
 }

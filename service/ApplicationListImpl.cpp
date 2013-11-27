@@ -120,10 +120,17 @@ void ApplicationListImpl::removeWindow(uint windowId,
 
 		// If this was the focused application
 		if (application == m_focusedApplication) {
-			m_focusedApplication.reset();
-			m_focusedWindowId = 0;
+			setFocusedWindow(Application::Ptr(), 0);
 		}
 	}
+}
+
+void ApplicationListImpl::setFocusedWindow(Application::Ptr application,
+		uint windowId) {
+	m_focusedApplication = application;
+	m_focusedWindowId = windowId;
+
+	focusedWindowChanged();
 }
 
 void ApplicationListImpl::FocusedWindowChanged(uint windowId,
@@ -132,8 +139,7 @@ void ApplicationListImpl::FocusedWindowChanged(uint windowId,
 		return;
 	}
 
-	m_focusedApplication = m_applications[applicationId];
-	m_focusedWindowId = windowId;
+	setFocusedWindow(m_applications[applicationId], windowId);
 }
 
 void ApplicationListImpl::WindowCreated(uint windowId,

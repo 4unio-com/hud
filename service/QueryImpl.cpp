@@ -42,6 +42,9 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query,
 	connect(&m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)),
 			this, SLOT(serviceUnregistered(const QString &)));
 
+	connect(m_applicationList.data(), SIGNAL(focusedWindowChanged()), this,
+			SLOT(refresh()));
+
 	m_resultsModel.reset(new ResultsModel(id));
 	m_appstackModel.reset(new AppstackModel(id));
 
@@ -94,6 +97,8 @@ void QueryImpl::CloseQuery() {
 }
 
 void QueryImpl::ExecuteCommand(const QDBusVariant &item, uint timestamp) {
+	Q_UNUSED(timestamp);
+
 	if (!item.variant().canConvert<qlonglong>()) {
 		qWarning() << "Failed to execute command - invalid item key"
 				<< item.variant();
@@ -122,6 +127,8 @@ QString QueryImpl::ExecuteParameterized(const QDBusVariant &item,
 		uint timestamp, QString &prefix, QString &baseAction,
 		QDBusObjectPath &actionPath, QDBusObjectPath &modelPath,
 		int &modelSection) {
+	Q_UNUSED(timestamp);
+
 	if (!item.variant().canConvert<qlonglong>()) {
 		qWarning() << "Failed to execute command - invalid item key"
 				<< item.variant();
@@ -161,20 +168,25 @@ int QueryImpl::UpdateQuery(const QString &query) {
 	return 0;
 }
 
-void QueryImpl::refresh() {
-	Application::Ptr application(m_applicationList->focusedApplication());
-	if (application.isNull()) {
-		qWarning() << "No focused application during query refresh";
-		return;
-	}
-
-	Window::Ptr window(m_applicationList->focusedWindow());
-
-	// Hold onto a token for the active window
+void QueryImpl::updateToken(Window::Ptr window) {
 	m_windowToken = window->activate();
+	connect(m_windowToken.data(), SIGNAL(changed()), this, SLOT(refresh()));
+}
 
+void QueryImpl::refresh() {
+	// First clear the old results
 	m_results.clear();
-	m_windowToken->search(m_query, m_results);
+
+	// Now check for an active application
+	Application::Ptr application(m_applicationList->focusedApplication());
+	if (application) {
+		Window::Ptr window(m_applicationList->focusedWindow());
+
+		// Hold onto a token for the active window
+		updateToken(window);
+
+		m_windowToken->search(m_query, m_results);
+	}
 
 	// Convert to results list to Dee model
 	m_resultsModel->beginChangeset();
@@ -187,8 +199,10 @@ void QueryImpl::refresh() {
 	m_resultsModel->endChangeset();
 
 	m_appstackModel->beginChangeset();
-	m_appstackModel->addApplication(application->id(), application->icon(),
-			AppstackModel::ITEM_TYPE_FOCUSED_APP);
+	if (application) {
+		m_appstackModel->addApplication(application->id(), application->icon(),
+				AppstackModel::ITEM_TYPE_FOCUSED_APP);
+	}
 	//TODO Apps other than the foreground one
 	m_appstackModel->endChangeset();
 }
@@ -202,7 +216,7 @@ int QueryImpl::VoiceQuery(QString &query) {
 	}
 
 	// Hold onto a token for the active window
-	m_windowToken = window->activate();
+	updateToken(window);
 
 	// Get the list of commands from the current window token
 	QList<QStringList> commandsList;

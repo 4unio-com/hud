@@ -65,6 +65,11 @@ void DBusMenuCollector::windowRegistered(const QString &service,
 	}
 
 	m_menuImporter.reset(new DBusMenuImporter(m_service, m_path.path()));
+
+	CollectorToken::Ptr collectorToken(m_collectorToken);
+	if(collectorToken) {
+		collectorToken->changed();
+	}
 }
 
 bool DBusMenuCollector::isValid() const {

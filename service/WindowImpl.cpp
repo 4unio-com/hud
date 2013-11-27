@@ -24,12 +24,20 @@ using namespace hud::service;
 
 WindowTokenImpl::WindowTokenImpl(const QList<CollectorToken::Ptr> &tokens) :
 		m_tokens(tokens) {
+	m_timer.setSingleShot(true);
+	connect(&m_timer, SIGNAL(timeout()), this, SIGNAL(changed()));
+
 	for (CollectorToken::Ptr token : tokens) {
+		connect(token.data(), SIGNAL(changed()), this, SLOT(childChanged()));
 		m_items.indexMenu(token->menu());
 	}
 }
 
 WindowTokenImpl::~WindowTokenImpl() {
+}
+
+void WindowTokenImpl::childChanged() {
+	m_timer.start();
 }
 
 const QList<CollectorToken::Ptr> & WindowTokenImpl::tokens() const {

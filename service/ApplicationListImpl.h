@@ -63,6 +63,8 @@ protected:
 
 	void removeWindow(uint windowId, const QString& applicationId);
 
+	void setFocusedWindow(Application::Ptr application, uint windowId);
+
 	static bool isIgnoredApplication(const QString &applicationId);
 
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
