@@ -25,7 +25,7 @@
 #include <QString>
 #include <QSignalSpy>
 #include <QTestEventLoop>
-#include <deelistmodel.h>
+#include <QAbstractListModel>
 #include <libqtdbustest/QProcessDBusService.h>
 #include <libqtdbustest/DBusTestRunner.h>
 #include <libqtdbusmock/DBusMock.h>
@@ -138,7 +138,7 @@ TEST_F(TestHud, OpenCloseQuery) {
 	client.setQuery("piece hook");
 	countChangedSpy.wait();
 
-	DeeListModel &results(*client.results());
+	QAbstractListModel &results(*client.results());
 	for (int i(0); i < results.rowCount(); ++i) {
 		qDebug() << results.data(results.index(i), 1);
 		qDebug() << results.data(results.index(i), 3);
@@ -170,7 +170,7 @@ TEST_F(TestHud, OpenCloseQuery2) {
 	client.setQuery("quit");
 	countChangedSpy.wait();
 
-	DeeListModel &results(*client.results());
+	QAbstractListModel &results(*client.results());
 	for (int i(0); i < results.rowCount(); ++i) {
 		qDebug() << results.data(results.index(i), 1);
 		qDebug() << results.data(results.index(i), 3);

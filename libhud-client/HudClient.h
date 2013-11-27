@@ -23,8 +23,8 @@
 #include <libhud-client/toolbar-items.h>
 
 QT_BEGIN_NAMESPACE
-class DeeListModel;
 class QAbstractItemModel;
+class QAbstractListModel;
 class QString;
 QT_END_NAMESPACE
 
@@ -42,14 +42,14 @@ public:
 
 	~HudClient();
 
-	Q_PROPERTY(DeeListModel* results READ results)
-	DeeListModel * results() const;
+	Q_PROPERTY(QAbstractListModel* results READ results)
+	QAbstractListModel * results() const;
 
-	Q_PROPERTY(DeeListModel* appstack READ appstack)
-	DeeListModel * appstack() const;
+	Q_PROPERTY(QAbstractListModel* appstack READ appstack)
+	QAbstractListModel * appstack() const;
 
 	Q_PROPERTY(QAbstractItemModel* toolBarModel READ toolBarModel)
-	QAbstractItemModel *toolBarModel() const;
+	QAbstractItemModel * toolBarModel() const;
 
 	Q_INVOKABLE
 	void executeCommand(int index);
@@ -93,12 +93,6 @@ Q_SIGNALS:
 	void modelsChanged();
 
 protected:
-	void modelReady(bool needDisconnect);
-
-	void modelReallyReady(bool needDisconnect);
-
-	void queryModelsChanged();
-
 	QScopedPointer<Priv> p;
 };
 

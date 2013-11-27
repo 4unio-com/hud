@@ -23,90 +23,6 @@
 
 using namespace hud::client;
 
-class HudClient::Priv {
-public:
-	static void loadingCB(GObject* /*src*/, gpointer dst) {
-		static_cast<HudClient*>(dst)->voiceQueryLoading();
-	}
-
-	static void listeningCB(GObject* /*src*/, gpointer dst) {
-		static_cast<HudClient*>(dst)->voiceQueryListening();
-	}
-
-	static void heardSomethingCB(GObject* /*src*/, gpointer dst) {
-		static_cast<HudClient*>(dst)->voiceQueryHeardSomething();
-	}
-
-	static void failedCB(GObject* /*src*/, const gchar * /*reason*/,
-			gpointer dst) {
-		static_cast<HudClient*>(dst)->voiceQueryFailed();
-	}
-
-	static void finishedCB(GObject* /*src*/, const gchar* query, gpointer dst) {
-		static_cast<HudClient*>(dst)->voiceQueryFinished(
-				QString::fromUtf8(query));
-	}
-
-	static void modelReadyCB(GObject* /*src*/, gpointer dst) {
-		static_cast<HudClient*>(dst)->modelReady(true);
-	}
-
-	static void modelReallyReadyCB(GObject* /*src*/, gint /*position*/,
-			gint /*removed*/, gint /*added*/, gpointer dst) {
-		static_cast<HudClient*>(dst)->modelReallyReady(true);
-	}
-
-	static void modelsChangedCB(GObject* /*src*/, gpointer dst) {
-		static_cast<HudClient*>(dst)->queryModelsChanged();
-	}
-
-	static void toolBarUpdatedCB(GObject* /*src*/, gpointer dst) {
-		static_cast<HudToolBarModel*>(dst)->updatedByBackend();
-	}
-
-	HudClientQuery *m_clientQuery;
-
-	QScopedPointer<DeeListModel> m_results;
-
-	QScopedPointer<DeeListModel> m_appstack;
-
-	QScopedPointer<QAbstractItemModel> m_toolBarModel;
-
-	int m_currentActionIndex;
-
-	HudClientParam *m_currentActionParam;
-};
-
-HudClient::HudClient() :
-		p(new Priv()) {
-	p->m_clientQuery = hud_client_query_new("");
-	p->m_results.reset(new DeeListModel());
-	p->m_appstack.reset(new DeeListModel());
-	p->m_toolBarModel.reset(new HudToolBarModel(p->m_clientQuery));
-	p->m_currentActionParam = NULL;
-	p->m_results->setModel(
-			hud_client_query_get_results_model(p->m_clientQuery));
-	p->m_appstack->setModel(
-			hud_client_query_get_appstack_model(p->m_clientQuery));
-
-	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-loading",
-			G_CALLBACK(Priv::loadingCB), this);
-	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-listening",
-			G_CALLBACK(Priv::listeningCB), this);
-	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-heard-something",
-			G_CALLBACK(Priv::heardSomethingCB), this);
-	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-finished",
-			G_CALLBACK(Priv::finishedCB), this);
-	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-failed",
-			G_CALLBACK(Priv::failedCB), this);
-	g_signal_connect(G_OBJECT(p->m_clientQuery),
-			HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED,
-			G_CALLBACK(Priv::modelsChangedCB), this);
-	g_signal_connect(G_OBJECT(p->m_clientQuery),
-			HUD_CLIENT_QUERY_SIGNAL_TOOLBAR_UPDATED,
-			G_CALLBACK(Priv::toolBarUpdatedCB), p->m_toolBarModel.data());
-}
-
 // Terrible hack to get around GLib. GLib stores function pointers as gpointer, which violates the C and C++ spec
 // because data and function pointers may have different sizes. gcc rightfully emits a warning. There is no #pragma
 // in gcc to selectively turn off the warning, however. This hack gets around the problem, by using a union (ick) to
@@ -130,6 +46,192 @@ private:
 };
 
 #define TO_GPOINTER(cb) (ToGPointer(reinterpret_cast<void(*)()>((cb))))
+
+class HudClient::Priv {
+public:
+	Priv(HudClient &client) :
+			m_client(client), m_clientQuery(nullptr), m_currentActionIndex(0), m_currentActionParam(
+					nullptr) {
+	}
+
+	static void loadingCB(GObject* /*src*/, gpointer dst) {
+		static_cast<HudClient*>(dst)->voiceQueryLoading();
+	}
+
+	static void listeningCB(GObject* /*src*/, gpointer dst) {
+		static_cast<HudClient*>(dst)->voiceQueryListening();
+	}
+
+	static void heardSomethingCB(GObject* /*src*/, gpointer dst) {
+		static_cast<HudClient*>(dst)->voiceQueryHeardSomething();
+	}
+
+	static void failedCB(GObject* /*src*/, const gchar * /*reason*/,
+			gpointer dst) {
+		static_cast<HudClient*>(dst)->voiceQueryFailed();
+	}
+
+	static void finishedCB(GObject* /*src*/, const gchar* query, gpointer dst) {
+		static_cast<HudClient*>(dst)->voiceQueryFinished(
+				QString::fromUtf8(query));
+	}
+
+	static void modelReadyCB(GObject* /*src*/, gpointer dst) {
+		static_cast<Priv*>(dst)->modelReady(true);
+	}
+
+	static void modelReallyReadyCB(GObject* /*src*/, gint /*position*/,
+			gint /*removed*/, gint /*added*/, gpointer dst) {
+		static_cast<Priv*>(dst)->modelReallyReady(true);
+	}
+
+	static void modelsChangedCB(GObject* /*src*/, gpointer dst) {
+		static_cast<Priv*>(dst)->queryModelsChanged();
+	}
+
+	static void toolBarUpdatedCB(GObject* /*src*/, gpointer dst) {
+		static_cast<HudToolBarModel*>(dst)->updatedByBackend();
+	}
+
+	void modelReady(bool needDisconnect) {
+		if (needDisconnect) {
+			g_signal_handlers_disconnect_by_func(m_currentActionParam,
+					TO_GPOINTER(Priv::modelReadyCB), this);
+		}
+		GMenuModel *menuModel = hud_client_param_get_model(
+				m_currentActionParam);
+		if (g_menu_model_get_n_items(menuModel) == 0) {
+			g_signal_connect(menuModel, "items-changed",
+					G_CALLBACK(Priv::modelReallyReadyCB), this);
+		} else {
+			modelReallyReady(false);
+		}
+	}
+
+	static QVariant QVariantFromGVariant(GVariant *value) {
+		// Only handle the cases we care for now
+		switch (g_variant_classify(value)) {
+		case G_VARIANT_CLASS_BOOLEAN:
+			return QVariant((bool) g_variant_get_boolean(value));
+		case G_VARIANT_CLASS_DOUBLE:
+			return QVariant(g_variant_get_double(value));
+		case G_VARIANT_CLASS_STRING:
+			return QVariant(
+					QString::fromUtf8(g_variant_get_string(value, NULL)));
+		default:
+			return QVariant();
+		}
+	}
+
+	static void addAttribute(QVariantMap &properties, GMenuModel *menuModel,
+			int item, const char *attribute) {
+		GVariant *v = g_menu_model_get_item_attribute_value(menuModel, item,
+				attribute, NULL);
+
+		if (v == NULL)
+			return;
+
+		properties.insert(attribute, QVariantFromGVariant(v));
+		g_variant_unref(v);
+	}
+
+	void modelReallyReady(bool needDisconnect) {
+		GMenuModel *menuModel = hud_client_param_get_model(
+				m_currentActionParam);
+		if (needDisconnect) {
+			g_signal_handlers_disconnect_by_func(menuModel,
+					TO_GPOINTER(Priv::modelReallyReadyCB), this);
+		}
+
+		QVariantList items;
+		for (int i = 0; i < g_menu_model_get_n_items(menuModel); i++) {
+			GVariant *v = g_menu_model_get_item_attribute_value(menuModel, i,
+					"parameter-type", G_VARIANT_TYPE_STRING);
+
+			if (v == NULL)
+				continue;
+
+			const QString type = QString::fromUtf8(
+					g_variant_get_string(v, NULL));
+			if (type == "slider") {
+				const char *sliderAttributes[] = { "label", "min", "max",
+						"step", "value", "live", "action" };
+				QVariantMap properties;
+				properties.insert("parameter-type", "slider");
+				for (uint j = 0;
+						j
+								< sizeof(sliderAttributes)
+										/ sizeof(sliderAttributes[0]); ++j) {
+					addAttribute(properties, menuModel, i, sliderAttributes[j]);
+				}
+				items << properties;
+			}
+			g_variant_unref(v);
+		}
+
+		DeeModel *model = hud_client_query_get_results_model(m_clientQuery);
+		DeeModelIter *iter = dee_model_get_iter_at_row(model,
+				m_currentActionIndex);
+		GVariant *actionTextVariant = dee_model_get_value(model, iter, 1);
+		const QString actionText = QString::fromUtf8(
+				g_variant_get_string(actionTextVariant, NULL));
+		g_variant_unref(actionTextVariant);
+		Q_EMIT m_client.showParametrizedAction(actionText, QVariant::fromValue(items));
+	}
+
+	void queryModelsChanged() {
+		m_results->setModel(
+				hud_client_query_get_results_model(m_clientQuery));
+		m_appstack->setModel(
+				hud_client_query_get_appstack_model(m_clientQuery));
+
+		Q_EMIT m_client.modelsChanged();
+	}
+
+	HudClient &m_client;
+
+	HudClientQuery *m_clientQuery;
+
+	QScopedPointer<DeeListModel> m_results;
+
+	QScopedPointer<DeeListModel> m_appstack;
+
+	QScopedPointer<QAbstractItemModel> m_toolBarModel;
+
+	int m_currentActionIndex;
+
+	HudClientParam *m_currentActionParam;
+};
+
+HudClient::HudClient() :
+		p(new Priv(*this)) {
+	p->m_clientQuery = hud_client_query_new("");
+	p->m_results.reset(new DeeListModel());
+	p->m_appstack.reset(new DeeListModel());
+	p->m_toolBarModel.reset(new HudToolBarModel(p->m_clientQuery));
+	p->m_currentActionParam = NULL;
+	p->m_results->setModel(
+			hud_client_query_get_results_model(p->m_clientQuery));
+	p->m_appstack->setModel(
+			hud_client_query_get_appstack_model(p->m_clientQuery));
+
+	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-loading",
+			G_CALLBACK(Priv::loadingCB), this);
+	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-listening",
+			G_CALLBACK(Priv::listeningCB), this);
+	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-heard-something",
+			G_CALLBACK(Priv::heardSomethingCB), this);
+	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-finished",
+			G_CALLBACK(Priv::finishedCB), this);
+	g_signal_connect(G_OBJECT(p->m_clientQuery), "voice-query-failed",
+			G_CALLBACK(Priv::failedCB), this);
+	g_signal_connect(G_OBJECT(p->m_clientQuery),
+			HUD_CLIENT_QUERY_SIGNAL_MODELS_CHANGED,
+			G_CALLBACK(Priv::modelsChangedCB), p.data());
+	g_signal_connect(G_OBJECT(p->m_clientQuery),
+			HUD_CLIENT_QUERY_SIGNAL_TOOLBAR_UPDATED,
+			G_CALLBACK(Priv::toolBarUpdatedCB), p->m_toolBarModel.data());
+}
 
 HudClient::~HudClient() {
 	g_signal_handlers_disconnect_by_func(G_OBJECT(p->m_clientQuery),
@@ -210,11 +312,11 @@ void HudClient::executeToolBarAction(HudClientQueryToolbarItems action) {
 	Q_EMIT commandExecuted();
 }
 
-DeeListModel * HudClient::results() const {
+QAbstractListModel * HudClient::results() const {
 	return p->m_results.data();
 }
 
-DeeListModel * HudClient::appstack() const {
+QAbstractListModel * HudClient::appstack() const {
 	return p->m_appstack.data();
 }
 
@@ -238,9 +340,9 @@ void HudClient::executeCommand(int index) {
 			if (menuModel == NULL) {
 				g_signal_connect(p->m_currentActionParam,
 						HUD_CLIENT_PARAM_SIGNAL_MODEL_READY,
-						G_CALLBACK(Priv::modelReadyCB), this);
+						G_CALLBACK(Priv::modelReadyCB), p.data());
 			} else {
-				modelReady(false);
+				p->modelReady(false);
 			}
 		} else {
 			qWarning()
@@ -254,95 +356,5 @@ void HudClient::executeCommand(int index) {
 	}
 	g_variant_unref(command_key);
 	g_variant_unref(is_parametrized);
-}
-
-void HudClient::modelReady(bool needDisconnect) {
-	if (needDisconnect) {
-		g_signal_handlers_disconnect_by_func(p->m_currentActionParam,
-				TO_GPOINTER(Priv::modelReadyCB), this);
-	}
-	GMenuModel *menuModel = hud_client_param_get_model(p->m_currentActionParam);
-	if (g_menu_model_get_n_items(menuModel) == 0) {
-		g_signal_connect(menuModel, "items-changed",
-				G_CALLBACK(Priv::modelReallyReadyCB), this);
-	} else {
-		modelReallyReady(false);
-	}
-}
-
-static QVariant QVariantFromGVariant(GVariant *value) {
-	// Only handle the cases we care for now
-	switch (g_variant_classify(value)) {
-	case G_VARIANT_CLASS_BOOLEAN:
-		return QVariant((bool) g_variant_get_boolean(value));
-	case G_VARIANT_CLASS_DOUBLE:
-		return QVariant(g_variant_get_double(value));
-	case G_VARIANT_CLASS_STRING:
-		return QVariant(QString::fromUtf8(g_variant_get_string(value, NULL)));
-	default:
-		return QVariant();
-	}
-}
-
-static void addAttribute(QVariantMap &properties, GMenuModel *menuModel,
-		int item, const char *attribute) {
-	GVariant *v = g_menu_model_get_item_attribute_value(menuModel, item,
-			attribute, NULL);
-
-	if (v == NULL)
-		return;
-
-	properties.insert(attribute, QVariantFromGVariant(v));
-	g_variant_unref(v);
-}
-
-void HudClient::modelReallyReady(bool needDisconnect) {
-	GMenuModel *menuModel = hud_client_param_get_model(p->m_currentActionParam);
-	if (needDisconnect) {
-		g_signal_handlers_disconnect_by_func(menuModel,
-				TO_GPOINTER(Priv::modelReallyReadyCB), this);
-	}
-
-	QVariantList items;
-	for (int i = 0; i < g_menu_model_get_n_items(menuModel); i++) {
-		GVariant *v = g_menu_model_get_item_attribute_value(menuModel, i,
-				"parameter-type", G_VARIANT_TYPE_STRING);
-
-		if (v == NULL)
-			continue;
-
-		const QString type = QString::fromUtf8(g_variant_get_string(v, NULL));
-		if (type == "slider") {
-			const char *sliderAttributes[] = { "label", "min", "max", "step",
-					"value", "live", "action" };
-			QVariantMap properties;
-			properties.insert("parameter-type", "slider");
-			for (uint j = 0;
-					j < sizeof(sliderAttributes) / sizeof(sliderAttributes[0]);
-					++j) {
-				addAttribute(properties, menuModel, i, sliderAttributes[j]);
-			}
-			items << properties;
-		}
-		g_variant_unref(v);
-	}
-
-	DeeModel *model = hud_client_query_get_results_model(p->m_clientQuery);
-	DeeModelIter *iter = dee_model_get_iter_at_row(model,
-			p->m_currentActionIndex);
-	GVariant *actionTextVariant = dee_model_get_value(model, iter, 1);
-	const QString actionText = QString::fromUtf8(
-			g_variant_get_string(actionTextVariant, NULL));
-	g_variant_unref(actionTextVariant);
-	Q_EMIT showParametrizedAction(actionText, QVariant::fromValue(items));
-}
-
-void HudClient::queryModelsChanged() {
-	p->m_results->setModel(
-			hud_client_query_get_results_model(p->m_clientQuery));
-	p->m_appstack->setModel(
-			hud_client_query_get_appstack_model(p->m_clientQuery));
-
-	Q_EMIT modelsChanged();
 }
 

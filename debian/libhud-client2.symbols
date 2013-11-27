@@ -1,5 +1,4 @@
 libhud-client.so.2 libhud-client2 #MINVER#
- (c++)"hud::client::HudClient::modelReady(bool)@Base" 13.10.1
  (c++)"hud::client::HudClient::qt_metacall(QMetaObject::Call, int, void**)@Base" 13.10.1
  (c++)"hud::client::HudClient::qt_metacast(char const*)@Base" 13.10.1
  (c++)"hud::client::HudClient::modelsChanged()@Base" 13.10.1
@@ -7,11 +6,9 @@ libhud-client.so.2 libhud-client2 #MINVER#
  (c++)"hud::client::HudClient::setAppstackApp(QString const&)@Base" 13.10.1
  (c++)"hud::client::HudClient::commandExecuted()@Base" 13.10.1
  (c++)"hud::client::HudClient::startVoiceQuery()@Base" 13.10.1
- (c++)"hud::client::HudClient::modelReallyReady(bool)@Base" 13.10.1
  (c++)"hud::client::HudClient::staticMetaObject@Base" 13.10.1
  (c++)"hud::client::HudClient::voiceQueryFailed()@Base" 13.10.1
  (c++)"hud::client::HudClient::voiceQueryLoading()@Base" 13.10.1
- (c++)"hud::client::HudClient::queryModelsChanged()@Base" 13.10.1
  (c++)"hud::client::HudClient::voiceQueryFinished(QString const&)@Base" 13.10.1
  (c++)"hud::client::HudClient::voiceQueryListening()@Base" 13.10.1
  (c++)"hud::client::HudClient::executeToolBarAction(HudClientQueryToolbarItems)@Base" 13.10.1
