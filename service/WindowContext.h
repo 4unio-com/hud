@@ -34,7 +34,9 @@ class QtGMenuImporter;
 namespace hud {
 namespace service {
 
-class WindowContext {
+class WindowContext: public QObject {
+Q_OBJECT
+
 public:
 	struct MenuDefinition {
 		explicit MenuDefinition() {
@@ -65,6 +67,9 @@ public:
 			const MenuDefinition &menuDefinition) = 0;
 
 	virtual Collector::Ptr activeCollector() = 0;
+
+Q_SIGNALS:
+	void contextChanged();
 };
 
 }

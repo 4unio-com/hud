@@ -104,6 +104,10 @@ WindowToken::Ptr WindowImpl::activate() {
 	if (newToken) {
 		windowToken.reset(new WindowTokenImpl(tokens));
 		m_windowToken = windowToken;
+		connect(this, SIGNAL(contextChanged()), windowToken.data(),
+				SLOT(childChanged()));
+		connect(m_allWindowsContext.data(), SIGNAL(contextChanged()),
+				windowToken.data(), SLOT(childChanged()));
 	}
 
 	return windowToken;

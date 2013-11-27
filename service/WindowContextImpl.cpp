@@ -39,6 +39,8 @@ void WindowContextImpl::setContext(const QString &context) {
 
 	m_context = context;
 	m_activeCollector = m_collectors[context];
+
+	contextChanged();
 }
 
 void WindowContextImpl::addMenu(const QString &context,

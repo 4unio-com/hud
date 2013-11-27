@@ -37,6 +37,8 @@ class WindowImpl;
 class Q_DECL_EXPORT WindowTokenImpl: public WindowToken {
 Q_OBJECT
 
+	friend WindowImpl;
+
 public:
 	explicit WindowTokenImpl(const QList<CollectorToken::Ptr> &tokens);
 
