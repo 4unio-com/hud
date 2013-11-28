@@ -188,6 +188,10 @@ TEST_F(TestHud, SearchDBusMenuOneResult) {
 	QAbstractListModel &results(*client.results());
 	ASSERT_EQ(1, results.rowCount());
 	EXPECT_EQ(ResultPair("Quiter", ""), result(results, 0));
+
+	QSignalSpy executedSpy(&client, SIGNAL(commandExecuted()));
+	client.executeCommand(0);
+	executedSpy.wait();
 }
 
 TEST_F(TestHud, SearchGMenuOneResult) {
