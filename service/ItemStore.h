@@ -59,6 +59,10 @@ protected:
 	void indexMenu(const QMenu *menu, const QMenu *root,
 			const QStringList &stack, const QList<int> &index);
 
+	void addResult(DocumentID id, const QStringMatcher &stringMatcher,
+			const int queryLength, const double relevancy,
+			QList<Result> &results);
+
 	Columbus::Corpus m_corpus;
 
 	Columbus::Matcher m_matcher;

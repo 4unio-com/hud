@@ -125,58 +125,78 @@ static void findHighlights(Result::HighlightList &highlights,
 }
 
 void ItemStore::search(const QString &query, QList<Result> &results) {
-	WordList queryList;
-	for (const QString &word : query.split(WHITESPACE)) {
-		queryList.addWord(word.toStdString());
-	}
-
-	MatchResults matchResults(m_matcher.match(queryList));
-
 	QStringMatcher stringMatcher(query, Qt::CaseInsensitive);
-	int queryLength(query.length());
 
-	size_t maxResults = std::min(matchResults.size(), size_t(20));
+	if (query.isEmpty()) {
+		int maxResults = std::min(m_items.size(), 20);
 
-	for (size_t i(0); i < maxResults; ++i) {
-		DocumentID id(matchResults.getDocumentID(i));
-		double relevancy(matchResults.getRelevancy(i));
+		// TODO Sort by usage
+		int count = 0;
+		for (auto it(m_items.constBegin());
+				count < maxResults && it != m_items.constEnd(); ++it) {
+			addResult(it.key(), stringMatcher, 0, 0, results);
 
-		Item::Ptr item(m_items[id]);
-		const QAction *action(item->action());
-
-		QString commandName(convertActionText(action));
-
-		Result::HighlightList commandHighlights;
-		findHighlights(commandHighlights, stringMatcher, queryLength,
-				commandName);
-
-		QString description;
-		QVariant keywords(action->property("keywords"));
-		if (!keywords.isNull()) {
-			description = keywords.toString();
-		} else {
-			bool first(true);
-			for (const QAction *a : item->context()) {
-				if (first) {
-					first = false;
-				} else {
-					description.append(_(", "));
-				}
-				description.append(convertActionText(a));
-			}
+			++count;
 		}
-		Result::HighlightList descriptionHighlights;
-		findHighlights(descriptionHighlights, stringMatcher, queryLength,
-				description);
 
-		bool isParameterized(action->property("isParameterized").toBool());
+	} else {
+		WordList queryList;
+		for (const QString &word : query.split(WHITESPACE)) {
+			queryList.addWord(word.toStdString());
+		}
 
-		results
-				<< Result(id, commandName, commandHighlights, description,
-						descriptionHighlights, action->shortcut().toString(),
-						relevancy * 100, isParameterized);
+		MatchResults matchResults(m_matcher.match(queryList));
 
+		int queryLength(query.length());
+
+		size_t maxResults = std::min(matchResults.size(), size_t(20));
+
+		for (size_t i(0); i < maxResults; ++i) {
+			DocumentID id(matchResults.getDocumentID(i));
+			double relevancy(matchResults.getRelevancy(i));
+			addResult(id, stringMatcher, queryLength, relevancy, results);
+		}
 	}
+
+}
+
+void ItemStore::addResult(DocumentID id, const QStringMatcher &stringMatcher,
+		const int queryLength, const double relevancy, QList<Result> &results) {
+
+	Item::Ptr item(m_items[id]);
+	const QAction *action(item->action());
+
+	QString commandName(convertActionText(action));
+
+	Result::HighlightList commandHighlights;
+	findHighlights(commandHighlights, stringMatcher, queryLength, commandName);
+
+	QString description;
+	QVariant keywords(action->property("keywords"));
+	if (!keywords.isNull()) {
+		description = keywords.toString().replace(";", _(", "));
+	} else {
+		bool first(true);
+		for (const QAction *a : item->context()) {
+			if (first) {
+				first = false;
+			} else {
+				description.append(_(", "));
+			}
+			description.append(convertActionText(a));
+		}
+	}
+
+	Result::HighlightList descriptionHighlights;
+	findHighlights(descriptionHighlights, stringMatcher, queryLength,
+			description);
+
+	bool isParameterized(action->property("isParameterized").toBool());
+
+	results
+			<< Result(id, commandName, commandHighlights, description,
+					descriptionHighlights, action->shortcut().toString(),
+					relevancy * 100, isParameterized);
 
 }
 
