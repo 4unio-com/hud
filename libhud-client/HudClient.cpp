@@ -172,10 +172,8 @@ public:
 		DeeModel *model = hud_client_query_get_results_model(m_clientQuery);
 		DeeModelIter *iter = dee_model_get_iter_at_row(model,
 				m_currentActionIndex);
-		GVariant *actionTextVariant = dee_model_get_value(model, iter, 1);
-		const QString actionText = QString::fromUtf8(
-				g_variant_get_string(actionTextVariant, NULL));
-		g_variant_unref(actionTextVariant);
+		QString actionText = QString::fromUtf8(
+				hud_client_query_results_get_command_name(m_clientQuery, iter));
 		Q_EMIT m_client.showParametrizedAction(actionText, QVariant::fromValue(items));
 	}
 
@@ -329,9 +327,8 @@ void HudClient::executeCommand(int index) {
 	DeeModel *model = hud_client_query_get_results_model(p->m_clientQuery);
 	DeeModelIter *iter = dee_model_get_iter_at_row(model, index);
 
-	GVariant *command_key = dee_model_get_value(model, iter, 0);
-	GVariant *is_parametrized = dee_model_get_value(model, iter, 7);
-	if (g_variant_get_boolean(is_parametrized)) {
+	GVariant *command_key = hud_client_query_results_get_command_id(p->m_clientQuery, iter);
+	if (hud_client_query_results_is_parameterized(p->m_clientQuery, iter)) {
 		p->m_currentActionParam = hud_client_query_execute_param_command(
 				p->m_clientQuery, command_key, /* timestamp */0);
 		if (p->m_currentActionParam != NULL) {
@@ -355,6 +352,5 @@ void HudClient::executeCommand(int index) {
 		Q_EMIT commandExecuted();
 	}
 	g_variant_unref(command_key);
-	g_variant_unref(is_parametrized);
 }
 
