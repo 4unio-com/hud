@@ -45,6 +45,9 @@ protected:
 		ON_CALL(*allWindowsContext, activeCollector()).WillByDefault(
 				Return(Collector::Ptr()));
 
+		allWindowsCollector.reset(new NiceMock<MockCollector>());
+		ON_CALL(*allWindowsCollector, isValid()).WillByDefault(Return(true));
+
 		dbusMenuCollector.reset(new NiceMock<MockCollector>());
 		ON_CALL(*dbusMenuCollector, isValid()).WillByDefault(Return(true));
 
@@ -94,6 +97,8 @@ TEST_F(TestWindow, ActivateOnlyWithDBusMenu) {
 	Window::Ptr window(createWindow());
 
 	ON_CALL(*gmenuWindowCollector, isValid()).WillByDefault(Return(false));
+	ON_CALL(*allWindowsCollector, isValid()).WillByDefault(Return(false));
+	ON_CALL(*windowCollector, isValid()).WillByDefault(Return(false));
 
 	QMenu dbusMenuCollectorMenu;
 	CollectorToken::Ptr dbusMenuCollectorToken(
@@ -110,6 +115,8 @@ TEST_F(TestWindow, ActivateOnlyWithGMenu) {
 	Window::Ptr window(createWindow());
 
 	ON_CALL(*dbusMenuCollector, isValid()).WillByDefault(Return(false));
+	ON_CALL(*allWindowsCollector, isValid()).WillByDefault(Return(false));
+	ON_CALL(*windowCollector, isValid()).WillByDefault(Return(false));
 
 	QMenu gmenuWindowCollectorMenu;
 	CollectorToken::Ptr gmenuWindowCollectorToken(
@@ -127,7 +134,8 @@ TEST_F(TestWindow, ActivateOnlyWithValidAllWindowsContext) {
 	Window::Ptr window(createWindow());
 
 	ON_CALL(*dbusMenuCollector, isValid()).WillByDefault(Return(false));
-	ON_CALL(*dbusMenuCollector, isValid()).WillByDefault(Return(false));
+	ON_CALL(*gmenuWindowCollector, isValid()).WillByDefault(Return(false));
+	ON_CALL(*windowCollector, isValid()).WillByDefault(Return(false));
 
 	QMenu allWindowsCollectorMenu;
 	CollectorToken::Ptr allWindowsCollectorToken(
@@ -148,6 +156,7 @@ TEST_F(TestWindow, ActivateOnlyWithValidWindowContext) {
 
 	ON_CALL(*dbusMenuCollector, isValid()).WillByDefault(Return(false));
 	ON_CALL(*gmenuWindowCollector, isValid()).WillByDefault(Return(false));
+	ON_CALL(*allWindowsCollector, isValid()).WillByDefault(Return(false));
 
 	WindowContext::MenuDefinition definition("bus.name");
 	definition.actionPath = QDBusObjectPath("/action/path");
@@ -173,6 +182,8 @@ TEST_F(TestWindow, ActivateOnlyWithValidWindowContext) {
 
 TEST_F(TestWindow, ActivateWithMultipleCollectorsThenChange) {
 	Window::Ptr window(createWindow());
+
+	ON_CALL(*windowCollector, isValid()).WillByDefault(Return(false));
 
 	QMenu gmenuWindowCollectorMenu;
 	CollectorToken::Ptr gmenuWindowCollectorToken(
@@ -201,12 +212,19 @@ TEST_F(TestWindow, ActivateWithMultipleCollectorsThenChange) {
 					<< gmenuWindowCollectorToken << allWindowsCollectorToken,
 			token->tokens());
 
+	// The gmenu window collector is going to give a different token now
 	QMenu gmenuWindowCollectorMenuChanged;
 	CollectorToken::Ptr gmenuWindowCollectorTokenChanged(
 			new CollectorToken(gmenuWindowCollector,
 					&gmenuWindowCollectorMenuChanged));
 	EXPECT_CALL(*gmenuWindowCollector, activate()).Times(1).WillOnce(
 			Return(gmenuWindowCollectorTokenChanged));
+
+	// Re-prime the other collectors
+	EXPECT_CALL(*dbusMenuCollector, activate()).Times(1).WillOnce(
+			Return(dbusMenuCollectorToken));
+	EXPECT_CALL(*allWindowsCollector, activate()).Times(1).WillOnce(
+			Return(allWindowsCollectorToken));
 
 	WindowToken::Ptr tokenChanged(window->activate());
 	EXPECT_NE(token, tokenChanged);
