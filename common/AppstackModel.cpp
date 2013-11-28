@@ -1,35 +1,28 @@
 /*
- * AppstackModel.cpp
+ * Copyright (C) 2013 Canonical, Ltd.
  *
- *  Created on: 1 Nov 2013
- *      Author: pete
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of version 3 of the GNU Lesser General Public License as published
+ * by the Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Author: Pete Woods <pete.woods@canonical.com>
  */
 
+#include <common/query-columns.h>
 #include <common/AppstackModel.h>
 
 #include <QString>
 #include <glib.h>
 
 using namespace hud::common;
-
-typedef enum {
-	HUD_QUERY_APPSTACK_APPLICATION_ID = 0,
-	HUD_QUERY_APPSTACK_ICON_NAME,
-	HUD_QUERY_APPSTACK_ITEM_TYPE,
-	/* Last */
-	HUD_QUERY_APPSTACK_COUNT
-} HudQueryAppstackColumns;
-
-#define HUD_QUERY_APPSTACK_APPLICATION_ID_TYPE "s"
-#define HUD_QUERY_APPSTACK_ICON_NAME_TYPE "s"
-#define HUD_QUERY_APPSTACK_ITEM_TYPE_TYPE "i"
-
-/* Schema that is used in the DeeModel representing
- the appstack */
-static const gchar * appstack_model_schema[HUD_QUERY_APPSTACK_COUNT] = {
-HUD_QUERY_APPSTACK_APPLICATION_ID_TYPE,
-HUD_QUERY_APPSTACK_ICON_NAME_TYPE,
-HUD_QUERY_APPSTACK_ITEM_TYPE_TYPE, };
 
 const QString APPSTACK_FORMAT_STRING("com.canonical.hud.query%1.appstack");
 
