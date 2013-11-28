@@ -43,6 +43,10 @@ protected:
 			mock(dbus) {
 		factory.setSessionBus(dbus.sessionConnection());
 
+		ON_CALL(factory, newWindowContext()).WillByDefault(
+				Return(allWindowsContext));
+
+		allWindowsContext.reset(new NiceMock<MockWindowContext>());
 	}
 
 	virtual ~TestApplication() {
@@ -53,6 +57,8 @@ protected:
 	DBusMock mock;
 
 	NiceMock<MockFactory> factory;
+
+	QSharedPointer<MockWindowContext> allWindowsContext;
 };
 
 TEST_F(TestApplication, DBusInterfaceIsExported) {

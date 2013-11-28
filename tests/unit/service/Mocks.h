@@ -38,7 +38,7 @@ public:
 
 	MOCK_METHOD1(newApplication, Application::Ptr(const QString &));
 
-	MOCK_METHOD0(newContext, WindowContext::Ptr());
+	MOCK_METHOD0(newWindowContext, WindowContext::Ptr());
 
 	MOCK_METHOD3(newWindow, Window::Ptr(unsigned int, const QString &, WindowContext::Ptr));
 
