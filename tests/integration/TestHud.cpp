@@ -43,6 +43,8 @@ namespace {
 
 class TestHud: public Test {
 protected:
+	typedef QPair<QString, QString> ResultPair;
+
 	TestHud() :
 			mock(dbus) {
 
@@ -100,8 +102,22 @@ protected:
 		menuService->start(dbus.sessionConnection());
 	}
 
+	void startGMenu(const QString &name, const QString &path,
+			const QString &model) {
+		menuService.reset(
+				new QProcessDBusService(name, QDBusConnection::SessionBus,
+						model, QStringList() << name << path));
+		menuService->start(dbus.sessionConnection());
+	}
+
 	QDBusConnection connection() {
 		return dbus.sessionConnection();
+	}
+
+	static ResultPair result(const QAbstractListModel &results, uint i) {
+		QModelIndex index = results.index(i);
+		return ResultPair(results.data(index, 1).toString(),
+				results.data(index, 3).toString());
 	}
 
 	DBusTestRunner dbus;
@@ -113,7 +129,7 @@ protected:
 	QSharedPointer<QProcessDBusService> menuService;
 };
 
-TEST_F(TestHud, OpenCloseQuery) {
+TEST_F(TestHud, SearchDBusMenuContext) {
 	startDBusMenu("menu.name", "/menu", JSON_SOURCE);
 
 	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
@@ -122,7 +138,7 @@ TEST_F(TestHud, OpenCloseQuery) {
 	// There are no GMenus in this test
 	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
 			"GetWindowProperties", "usas", "as", "ret = []\n"
-					"for arg in args:\n"
+					"for arg in args[2]:\n"
 					"  ret.append('')").waitForFinished();
 
 	appmenuRegstrarMock().AddMethod(DBusTypes::APPMENU_REGISTRAR_DBUS_NAME,
@@ -139,13 +155,12 @@ TEST_F(TestHud, OpenCloseQuery) {
 	countChangedSpy.wait();
 
 	QAbstractListModel &results(*client.results());
-	for (int i(0); i < results.rowCount(); ++i) {
-		qDebug() << results.data(results.index(i), 1);
-		qDebug() << results.data(results.index(i), 3);
-	}
+	ASSERT_EQ(2, results.rowCount());
+	EXPECT_EQ(ResultPair("swift sad", "piece hook"), result(results, 0));
+	EXPECT_EQ(ResultPair("stray slash", "piece hook"), result(results, 1));
 }
 
-TEST_F(TestHud, OpenCloseQuery2) {
+TEST_F(TestHud, SearchDBusMenuOneResult) {
 	startDBusMenu("menu.name", "/menu", JSON_SHORTCUTS);
 
 	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
@@ -154,7 +169,7 @@ TEST_F(TestHud, OpenCloseQuery2) {
 	// There are no GMenus in this test
 	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
 			"GetWindowProperties", "usas", "as", "ret = []\n"
-					"for arg in args:\n"
+					"for arg in args[2]:\n"
 					"  ret.append('')").waitForFinished();
 
 	appmenuRegstrarMock().AddMethod(DBusTypes::APPMENU_REGISTRAR_DBUS_NAME,
@@ -171,10 +186,47 @@ TEST_F(TestHud, OpenCloseQuery2) {
 	countChangedSpy.wait();
 
 	QAbstractListModel &results(*client.results());
-	for (int i(0); i < results.rowCount(); ++i) {
-		qDebug() << results.data(results.index(i), 1);
-		qDebug() << results.data(results.index(i), 3);
-	}
+	ASSERT_EQ(1, results.rowCount());
+	EXPECT_EQ(ResultPair("Quiter", ""), result(results, 0));
+}
+
+TEST_F(TestHud, SearchGMenuOneResult) {
+	startGMenu("menu.name", "/menu", MODEL_SHORTCUTS);
+
+	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
+			"GetWindowStack", "", "a(usbu)", "ret = [(0, 'app0', True, 0)]").waitForFinished();
+
+	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
+			"GetWindowProperties", "usas", "as", "ret = []\n"
+					"if args[0] == 0:\n"
+					"  ret.append('menu.name')\n"
+					"  ret.append('')\n"
+					"  ret.append('/menu')\n"
+					"  ret.append('')\n"
+					"  ret.append('')\n"
+					"  ret.append('')\n"
+					"else:\n"
+					"  for arg in args[2]:\n"
+					"    ret.append('')").waitForFinished();
+
+	// There are no DBusMenus in this test
+	appmenuRegstrarMock().AddMethod(DBusTypes::APPMENU_REGISTRAR_DBUS_NAME,
+			"GetMenuForWindow", "u", "so", "ret = ('', '/')").waitForFinished();
+
+	startHud();
+
+	HudClient client;
+	QSignalSpy modelsChangedSpy(&client, SIGNAL(modelsChanged()));
+	modelsChangedSpy.wait();
+
+	QSignalSpy countChangedSpy(client.results(), SIGNAL(countChanged()));
+	client.setQuery("closr");
+	countChangedSpy.wait();
+	countChangedSpy.wait();
+
+	QAbstractListModel &results(*client.results());
+	ASSERT_EQ(1, results.rowCount());
+	EXPECT_EQ(ResultPair("Close", ""), result(results, 0));
 }
 
 } // namespace
