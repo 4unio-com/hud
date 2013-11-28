@@ -46,6 +46,12 @@ public:
 				name(name) {
 		}
 
+		bool operator==(const MenuDefinition &other) const {
+			return name == other.name && actionPath == other.actionPath
+					&& actionPrefix == other.actionPrefix
+					&& menuPath == other.menuPath;
+		}
+
 		QString name;
 
 		QDBusObjectPath actionPath;

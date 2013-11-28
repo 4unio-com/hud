@@ -43,13 +43,34 @@ protected:
 			mock(dbus) {
 		factory.setSessionBus(dbus.sessionConnection());
 
-		ON_CALL(factory, newWindowContext()).WillByDefault(
-				Return(allWindowsContext));
-
 		allWindowsContext.reset(new NiceMock<MockWindowContext>());
+
+		EXPECT_CALL(factory, newWindowContext()).WillOnce(
+				Return(allWindowsContext));
 	}
 
 	virtual ~TestApplication() {
+	}
+
+	static void addAction(QList<hud::common::Action> &actions,
+			unsigned int windowId, const QString &context,
+			const QString &prefix, const QDBusObjectPath &object) {
+		hud::common::Action action;
+		action.m_windowId = windowId;
+		action.m_context = context;
+		action.m_prefix = prefix;
+		action.m_object = object;
+		actions << action;
+	}
+
+	static void addMenu(QList<hud::common::Description> &descriptions,
+			unsigned int windowId, const QString &context,
+			const QDBusObjectPath &object) {
+		hud::common::Description description;
+		description.m_windowId = windowId;
+		description.m_context = context;
+		description.m_object = object;
+		descriptions << description;
 	}
 
 	DBusTestRunner dbus;
@@ -120,6 +141,80 @@ TEST_F(TestApplication, DeletesWindow) {
 
 	application.removeWindow(1);
 	EXPECT_TRUE(application.isEmpty());
+}
+
+TEST_F(TestApplication, AddSourcesToAllWindowsContext) {
+	ApplicationImpl application(1234, "application-id", factory,
+			dbus.sessionConnection());
+
+	QList<hud::common::Action> actions;
+	addAction(actions, 0, "context1", "prefix", QDBusObjectPath("/actions1"));
+	addAction(actions, 0, "context2", "prefix", QDBusObjectPath("/actions1"));
+
+	QList<Description> descriptions;
+	addMenu(descriptions, 0, "context1", QDBusObjectPath("/menu1"));
+	addMenu(descriptions, 0, "context2", QDBusObjectPath("/menu2"));
+
+	WindowContext::MenuDefinition menuDefinition1("local");
+	menuDefinition1.actionPath = QDBusObjectPath("/actions1");
+	menuDefinition1.actionPrefix = "prefix";
+	menuDefinition1.menuPath = QDBusObjectPath("/menu1");
+
+	WindowContext::MenuDefinition menuDefinition2("local");
+	menuDefinition2.actionPath = QDBusObjectPath("/actions1");
+	menuDefinition2.actionPrefix = "prefix";
+	menuDefinition2.menuPath = QDBusObjectPath("/menu2");
+
+	EXPECT_CALL(*allWindowsContext,
+			addMenu(QString("context1"), menuDefinition1));
+	EXPECT_CALL(*allWindowsContext,
+			addMenu(QString("context2"), menuDefinition2));
+
+	application.AddSources(actions, descriptions);
+}
+
+TEST_F(TestApplication, AddSourcesToAllWindowsContextAndWindow) {
+	ApplicationImpl application(1234, "application-id", factory,
+			dbus.sessionConnection());
+
+	QSharedPointer<MockWindow> window1(new NiceMock<MockWindow>());
+
+	EXPECT_CALL(factory, newWindow(1, QString("application-id"), _)).WillOnce(
+			Return(window1));
+	application.addWindow(1);
+
+	QList<hud::common::Action> actions;
+	addAction(actions, 0, "context1", "prefix", QDBusObjectPath("/actions1"));
+	addAction(actions, 0, "context2", "prefix", QDBusObjectPath("/actions1"));
+	addAction(actions, 1, "context1", "prefix", QDBusObjectPath("/actions2"));
+
+	QList<Description> descriptions;
+	addMenu(descriptions, 0, "context1", QDBusObjectPath("/menu1"));
+	addMenu(descriptions, 0, "context2", QDBusObjectPath("/menu2"));
+	addMenu(descriptions, 1, "context1", QDBusObjectPath("/menu3"));
+
+	WindowContext::MenuDefinition menuDefinition1("local");
+	menuDefinition1.actionPath = QDBusObjectPath("/actions1");
+	menuDefinition1.actionPrefix = "prefix";
+	menuDefinition1.menuPath = QDBusObjectPath("/menu1");
+
+	WindowContext::MenuDefinition menuDefinition2("local");
+	menuDefinition2.actionPath = QDBusObjectPath("/actions1");
+	menuDefinition2.actionPrefix = "prefix";
+	menuDefinition2.menuPath = QDBusObjectPath("/menu2");
+
+	WindowContext::MenuDefinition menuDefinition3("local");
+	menuDefinition3.actionPath = QDBusObjectPath("/actions2");
+	menuDefinition3.actionPrefix = "prefix";
+	menuDefinition3.menuPath = QDBusObjectPath("/menu3");
+
+	EXPECT_CALL(*allWindowsContext,
+			addMenu(QString("context1"), menuDefinition1));
+	EXPECT_CALL(*allWindowsContext,
+			addMenu(QString("context2"), menuDefinition2));
+	EXPECT_CALL(*window1, addMenu(QString("context1"), menuDefinition3));
+
+	application.AddSources(actions, descriptions);
 }
 
 } // namespace
