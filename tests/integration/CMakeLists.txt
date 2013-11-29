@@ -14,6 +14,7 @@ target_link_libraries(
 	test-utils
 	hud-common
 	hud-client
+	qtgmenu
 	${GTEST_LIBRARIES}
 	${GMOCK_LIBRARIES}
 	${QTDBUSTEST_LIBRARIES}

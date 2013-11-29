@@ -1,30 +1,35 @@
 /*
-Copyright 2012 Canonical Ltd.
+ Copyright 2012 Canonical Ltd.
 
-Authors:
-    Ted Gould <ted@canonical.com>
+ Authors:
+ Ted Gould <ted@canonical.com>
 
-This program is free software: you can redistribute it and/or modify it 
-under the terms of the GNU General Public License version 3, as published 
-by the Free Software Foundation.
+ This program is free software: you can redistribute it and/or modify it
+ under the terms of the GNU General Public License version 3, as published
+ by the Free Software Foundation.
 
-This program is distributed in the hope that it will be useful, but 
-WITHOUT ANY WARRANTY; without even the implied warranties of 
-MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
-PURPOSE.  See the GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranties of
+ MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+ PURPOSE.  See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along 
-with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU General Public License along
+ with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include <glib-object.h>
 #include <gio/gio.h>
 
-int
-main (int argv, char ** argc)
-{
+static void action_callback(G_GNUC_UNUSED GSimpleAction *simple,
+		G_GNUC_UNUSED GVariant *parameter, G_GNUC_UNUSED gpointer user_data) {
+	g_warning("close action activated");
+}
+
+int main(int argv, char ** argc) {
 	if (argv != 3) {
-		g_print("'%s <DBus name> <Object Path>' is how you should use this program.\n", argc[0]);
+		g_print(
+				"'%s <DBus name> <Object Path>' is how you should use this program.\n",
+				argc[0]);
 		return 1;
 	}
 
@@ -36,32 +41,47 @@ main (int argv, char ** argc)
 	GMenuItem * mi = NULL;
 
 	mi = g_menu_item_new("Save", "save");
-	g_menu_item_set_attribute_value(mi, "accel", g_variant_new_string("<Control>S"));
+	g_menu_item_set_attribute_value(mi, "accel",
+			g_variant_new_string("<Control>S"));
 	g_menu_append_item(menu, mi);
 
 	mi = g_menu_item_new("Quiter", "quiter");
-	g_menu_item_set_attribute_value(mi, "accel", g_variant_new_string("<Primary><Alt>Q"));
+	g_menu_item_set_attribute_value(mi, "accel",
+			g_variant_new_string("<Primary><Alt>Q"));
 	g_menu_append_item(menu, mi);
 
 	mi = g_menu_item_new("Close", "close");
-	g_menu_item_set_attribute_value(mi, "accel", g_variant_new_string("<Super>W"));
+	g_menu_item_set_attribute_value(mi, "accel",
+			g_variant_new_string("<Super>W"));
 	g_menu_append_item(menu, mi);
 
 	mi = g_menu_item_new("Nothing", "nothing");
 	g_menu_append_item(menu, mi);
 
+	GSimpleAction *save = g_simple_action_new("save", NULL);
+	GSimpleAction *quiter = g_simple_action_new("quiter",
+	NULL);
+	GSimpleAction *close = g_simple_action_new("close", NULL);
+	GSimpleAction *nothing = g_simple_action_new("nothing",
+	NULL);
+
 	GSimpleActionGroup * ag = g_simple_action_group_new();
-	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("save", G_VARIANT_TYPE_BOOLEAN)));
-	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("quiter", G_VARIANT_TYPE_BOOLEAN)));
-	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("close", G_VARIANT_TYPE_BOOLEAN)));
-	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(g_simple_action_new("nothing", G_VARIANT_TYPE_BOOLEAN)));
+	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(save));
+	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(quiter));
+	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(close));
+	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(nothing));
+
+	g_signal_connect(close, "activate", G_CALLBACK(action_callback), NULL);
 
 	GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 
-	g_dbus_connection_export_action_group(session, argc[2], G_ACTION_GROUP(ag), NULL);
-	g_dbus_connection_export_menu_model(session, argc[2], G_MENU_MODEL(menu), NULL);
+	g_dbus_connection_export_action_group(session, argc[2], G_ACTION_GROUP(ag),
+			NULL);
+	g_dbus_connection_export_menu_model(session, argc[2], G_MENU_MODEL(menu),
+			NULL);
 
-	g_bus_own_name(G_BUS_TYPE_SESSION, argc[1], 0, NULL, NULL, NULL, NULL, NULL);
+	g_bus_own_name(G_BUS_TYPE_SESSION, argc[1], 0, NULL, NULL, NULL, NULL,
+			NULL);
 
 	GMainLoop * mainloop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(mainloop);
