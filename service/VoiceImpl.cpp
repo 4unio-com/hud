@@ -22,7 +22,7 @@ using namespace hud::service;
 
 VoiceImpl::VoiceImpl(
 		QSharedPointer<ComCanonicalUnityVoiceInterface> voiceInterface) :
-		m_voiceInterface(voiceInterface) {
+		m_voiceInterface(voiceInterface), m_isListening(false) {
 
 	// connect voice interface signals to local signals
 	connect(m_voiceInterface.data(), SIGNAL( HeardSomething() ), this,
