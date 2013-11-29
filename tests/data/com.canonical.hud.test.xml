@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node name="/">
+	<interface name="com.canonical.hud.test">
+		<signal name="ActionInvoked">
+			<arg type="s" name="name" direction="out" />
+		</signal>
+	</interface>
+</node>
