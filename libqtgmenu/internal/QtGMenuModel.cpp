@@ -50,25 +50,23 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
     m_menu_path = m_parent->m_menu_path;
     m_actions_path = m_parent->m_actions_path;
 
-    GVariant* label = g_menu_model_get_item_attribute_value( m_parent->m_model, index,
-        G_MENU_ATTRIBUTE_LABEL, G_VARIANT_TYPE_STRING );
-
-    if( label )
+    gchar* label = NULL;
+    if( g_menu_model_get_item_attribute( m_parent->m_model, index,
+            G_MENU_ATTRIBUTE_LABEL, "s", &label ) )
     {
-      QString qlabel = QtGMenuUtils::GVariantToQVariant( label ).toString();
+      QString qlabel = QString::fromUtf8( label );
       qlabel.replace( '_', '&' );
-      g_variant_unref( label );
+      g_free( label );
 
       m_ext_menu->setTitle( qlabel );
     }
 
-    GVariant* action_name = g_menu_model_get_item_attribute_value( m_parent->m_model, index,
-        G_MENU_ATTRIBUTE_ACTION, G_VARIANT_TYPE_STRING );
-
-    if( action_name )
+    gchar* action_name = NULL;
+    if( g_menu_model_get_item_attribute( m_parent->m_model, index,
+            G_MENU_ATTRIBUTE_ACTION, "s", &action_name ) )
     {
-      QString qaction_name = QtGMenuUtils::GVariantToQVariant( action_name ).toString();
-      g_variant_unref( action_name );
+      QString qaction_name = QString::fromUtf8( action_name );
+      g_free( action_name );
 
       int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
       qaction_name = qaction_name.right( name_length );
@@ -77,12 +75,11 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
     }
 
     // if this model has a "commitLabel" property, it is a libhud parameterized action
-    GVariant* commit_label = g_menu_model_get_item_attribute_value( m_parent->m_model, index,
-        "commitLabel", G_VARIANT_TYPE_STRING );
-
-    if( commit_label )
+    gchar* commit_label = NULL;
+    if( g_menu_model_get_item_attribute( m_parent->m_model, index,
+            "commitLabel", "s", &commit_label ) )
     {
-      g_variant_unref( commit_label );
+      g_free( commit_label );
 
       // is parameterized
       m_ext_menu->menuAction()->setProperty( c_property_isParameterized, true );
@@ -346,23 +343,23 @@ QAction* QtGMenuModel::CreateAction( int index )
   // action label
   QAction* action = new QAction( this );
 
-  GVariant* label = g_menu_model_get_item_attribute_value( m_model, index, G_MENU_ATTRIBUTE_LABEL,
-      G_VARIANT_TYPE_STRING );
+  gchar* label = NULL;
+  g_menu_model_get_item_attribute( m_model, index, G_MENU_ATTRIBUTE_LABEL,
+      "s", &label );
 
-  QString qlabel = QtGMenuUtils::GVariantToQVariant( label ).toString();
+  QString qlabel = QString::fromUtf8( label );
   qlabel.replace( '_', '&' );
-  g_variant_unref( label );
+  g_free( label );
 
   action->setText( qlabel );
 
   // action name
-  GVariant* action_name = g_menu_model_get_item_attribute_value( m_model, index,
-      G_MENU_ATTRIBUTE_ACTION, G_VARIANT_TYPE_STRING );
-
-  if( action_name )
+  gchar* action_name = NULL;
+  if( g_menu_model_get_item_attribute( m_model, index,
+	      G_MENU_ATTRIBUTE_ACTION, "s", &action_name ) )
   {
-    QString qaction_name = QtGMenuUtils::GVariantToQVariant( action_name ).toString();
-    g_variant_unref( action_name );
+    QString qaction_name = QString::fromUtf8( action_name );
+    g_free( action_name );
 
     int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
     qaction_name = qaction_name.right( name_length );
@@ -389,24 +386,26 @@ QAction* QtGMenuModel::CreateAction( int index )
 
   // action shortcut
   GMenuItem* menu_item = g_menu_item_new_from_model( m_model, index );
-  GVariant* shortcut = g_menu_item_get_attribute_value( menu_item, "accel", G_VARIANT_TYPE_STRING );
+  gchar* shortcut = NULL;
+  g_menu_item_get_attribute( menu_item, "accel", "s", &shortcut );
 
   if( shortcut )
   {
-    QString qshortcut = QtGMenuUtils::GVariantToQVariant( shortcut ).toString();
-    g_variant_unref( shortcut );
+    QString qshortcut = QString::fromUtf8( shortcut );
+    g_free( shortcut );
 
     action->setShortcut( QtGMenuUtils::QStringToQKeySequence( qshortcut ) );
   }
 
   // action keywords
-  GVariant* keywords = g_menu_item_get_attribute_value( menu_item, "keywords", G_VARIANT_TYPE_STRING );
+  gchar* keywords = NULL;
+  g_menu_item_get_attribute( menu_item, "keywords", "s", keywords );
   g_object_unref( menu_item );
 
   if( keywords )
   {
-    QVariant qkeywords = QtGMenuUtils::GVariantToQVariant( keywords ).toString();
-    g_variant_unref( keywords );
+    QVariant qkeywords = QString::fromUtf8( keywords );
+    g_free( keywords );
 
     action->setProperty( c_property_keywords, qkeywords );
   }
