@@ -1,4 +1,18 @@
 
+add_gdbus_codegen(
+OUTFILES HUD_TEST_INTERFACE_SOURCES
+NAME test-iface 
+PREFIX com.canonical.hud.test.
+NAMESPACE HudTest
+SERVICE_XML ${HUD_TEST_XML}
+)
+
+add_library(
+  hud-test-interface STATIC
+  ${HUD_TEST_INTERFACE_SOURCES}
+)
+
+
 #######################
 # Dbus JSON Loader
 #######################
@@ -39,6 +53,7 @@ add_executable(test-menu-input-model-shortcuts test-menu-input-model-shortcuts.c
 target_link_libraries(test-menu-input-model-shortcuts
   ${GOBJECT2_LIBRARIES}
   ${GIO2_LIBRARIES}
+  hud-test-interface
 )
 
 ####################################

@@ -1,7 +1,19 @@
 
+add_definitions(
+	-pedantic
+	-Wall
+	-Wextra
+)
+
 set(
 	INTEGRATION_TESTS_SRC
 	TestHud.cpp
+)
+
+qt5_add_dbus_interface(
+	INTEGRATION_TESTS_SRC
+	${HUD_TEST_XML}
+	HudTestInterface
 )
 
 add_executable(
@@ -14,7 +26,6 @@ target_link_libraries(
 	test-utils
 	hud-common
 	hud-client
-	qtgmenu
 	${GTEST_LIBRARIES}
 	${GMOCK_LIBRARIES}
 	${QTDBUSTEST_LIBRARIES}

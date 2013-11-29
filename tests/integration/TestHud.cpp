@@ -19,6 +19,7 @@
 #include <libhud-client/HudClient.h>
 #include <common/DBusTypes.h>
 #include <common/WindowStackInterface.h>
+#include <tests/integration/HudTestInterface.h>
 
 #include <QAction>
 #include <QDebug>
@@ -28,7 +29,6 @@
 #include <QSignalSpy>
 #include <QTestEventLoop>
 #include <QAbstractListModel>
-#include <libqtgmenu/QtGMenuImporter.h>
 #include <libqtdbustest/QProcessDBusService.h>
 #include <libqtdbustest/DBusTestRunner.h>
 #include <libqtdbusmock/DBusMock.h>
@@ -41,7 +41,6 @@ using namespace std;
 using namespace testing;
 using namespace QtDBusTest;
 using namespace QtDBusMock;
-using namespace qtgmenu;
 
 namespace {
 
@@ -235,7 +234,8 @@ TEST_F(TestHud, SearchGMenuOneResult) {
 
 TEST_F(TestHud, ExecuteGMenuAction) {
 	startGMenu("menu.name", "/menu", MODEL_SHORTCUTS);
-	QtGMenuImporter importer("menu.name", "/menu");
+	ComCanonicalHudTestInterface gmenuTestInterface("menu.name", "/menu",
+			dbus.sessionConnection());
 
 	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
 			"GetWindowStack", "", "a(usbu)", "ret = [(0, 'app0', True, 0)]").waitForFinished();
@@ -272,26 +272,16 @@ TEST_F(TestHud, ExecuteGMenuAction) {
 	ASSERT_EQ(1, results.rowCount());
 	EXPECT_EQ(ResultPair("Close", ""), result(results, 0));
 
-	std::shared_ptr<QMenu> menu(importer.GetQMenu());
-	QAction *closeAction = nullptr;
-	for (QAction *action : menu->actions()) {
-		if (action->text() == "Close") {
-			closeAction = action;
-			break;
-		}
-	}
-
-	ASSERT_TRUE(closeAction);
-
-	QSignalSpy actionSpy(closeAction, SIGNAL(triggered(bool)));
+	QSignalSpy actionInvokedSpy(&gmenuTestInterface,
+			SIGNAL(ActionInvoked(const QString &)));
 
 	QSignalSpy executedSpy(&client, SIGNAL(commandExecuted()));
 	client.executeCommand(0);
 	EXPECT_FALSE(executedSpy.isEmpty());
 
-	//FIXME I'd like to make this assertion
-	// actionSpy.wait();
-	// EXPECT_FALSE(actionSpy.isEmpty());
+	actionInvokedSpy.wait();
+	EXPECT_FALSE(actionInvokedSpy.isEmpty());
+	EXPECT_EQ(QVariantList() << QVariant("close"), actionInvokedSpy.at(0));
 }
 
 } // namespace

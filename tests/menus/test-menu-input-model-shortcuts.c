@@ -19,10 +19,15 @@
 
 #include <glib-object.h>
 #include <gio/gio.h>
+#include <test-iface.h>
 
-static void action_callback(G_GNUC_UNUSED GSimpleAction *simple,
+static void action_callback(GSimpleAction *simple,
 		G_GNUC_UNUSED GVariant *parameter, G_GNUC_UNUSED gpointer user_data) {
-	g_warning("close action activated");
+	gchar *name = NULL;
+	g_object_get(simple, "name", &name, NULL);
+	hud_test_com_canonical_hud_test_emit_action_invoked(
+			HUD_TEST_COM_CANONICAL_HUD_TEST(user_data), name);
+	g_free(name);
 }
 
 int main(int argv, char ** argc) {
@@ -71,7 +76,19 @@ int main(int argv, char ** argc) {
 	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(close));
 	g_action_map_add_action(G_ACTION_MAP(ag), G_ACTION(nothing));
 
-	g_signal_connect(close, "activate", G_CALLBACK(action_callback), NULL);
+	HudTestComCanonicalHudTest *test_interface =
+			hud_test_com_canonical_hud_test_skeleton_new();
+	GError *error = NULL;
+	if (!g_dbus_interface_skeleton_export(
+			G_DBUS_INTERFACE_SKELETON (test_interface),
+			g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL), argc[2], &error)) {
+		g_error("Failed to export test interface");
+	}
+
+	g_signal_connect(save, "activate", G_CALLBACK(action_callback), test_interface);
+	g_signal_connect(quiter, "activate", G_CALLBACK(action_callback), test_interface);
+	g_signal_connect(close, "activate", G_CALLBACK(action_callback), test_interface);
+	g_signal_connect(nothing, "activate", G_CALLBACK(action_callback), test_interface);
 
 	GDBusConnection * session = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 

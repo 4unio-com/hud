@@ -1,4 +1,10 @@
 
+add_definitions(
+	-pedantic
+	-Wall
+	-Wextra
+)
+
 set(
 	TEST_UTILS_SRC
 	MockHudService.cpp

@@ -1,4 +1,10 @@
 
+add_definitions(
+	-pedantic
+	-Wall
+	-Wextra
+)
+
 add_subdirectory(libhud)
 add_subdirectory(libhud-client)
 add_subdirectory(qtgmenu)
