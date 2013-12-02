@@ -10,12 +10,6 @@ set(
 	TestHud.cpp
 )
 
-qt5_add_dbus_interface(
-	INTEGRATION_TESTS_SRC
-	${HUD_TEST_XML}
-	HudTestInterface
-)
-
 add_executable(
 	integration-tests
 	${INTEGRATION_TESTS_SRC}

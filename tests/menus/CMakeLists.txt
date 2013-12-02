@@ -1,17 +1,42 @@
 
 add_gdbus_codegen(
-OUTFILES HUD_TEST_INTERFACE_SOURCES
-NAME test-iface 
-PREFIX com.canonical.hud.test.
-NAMESPACE HudTest
-SERVICE_XML ${HUD_TEST_XML}
+	OUTFILES HUD_TEST_INTERFACE_SOURCES
+	NAME test-iface 
+	PREFIX com.canonical.hud.test.
+	NAMESPACE HudTest
+	SERVICE_XML ${HUD_TEST_XML}
 )
 
 add_library(
-  hud-test-interface STATIC
-  ${HUD_TEST_INTERFACE_SOURCES}
+	hud-test-interface STATIC
+	${HUD_TEST_INTERFACE_SOURCES}
 )
 
+#######################
+# Fake Touch App
+#######################
+
+set(TEST_LIBHUD_APPLICATION_SOURCES
+	test-libhud-application.cpp
+	FakeTouchApplication.cpp
+)
+
+qt5_add_dbus_adaptor(
+	TEST_LIBHUD_APPLICATION_SOURCES
+	${HUD_TEST_XML}
+	FakeTouchApplication.h
+	FakeTouchApplication
+	TestAdaptor
+)
+
+add_executable(test-libhud-application
+	${TEST_LIBHUD_APPLICATION_SOURCES}
+)
+
+target_link_libraries(test-libhud-application
+	test-utils
+	hud
+)
 
 #######################
 # Dbus JSON Loader

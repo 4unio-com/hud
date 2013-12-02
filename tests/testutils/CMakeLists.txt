@@ -12,6 +12,12 @@ set(
 	main.cpp
 )
 
+qt5_add_dbus_interface(
+	TEST_UTILS_SRC
+	${HUD_TEST_XML}
+	HudTestInterface
+)
+
 add_library(
 	test-utils
 	SHARED

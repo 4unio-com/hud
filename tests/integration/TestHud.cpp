@@ -19,7 +19,7 @@
 #include <libhud-client/HudClient.h>
 #include <common/DBusTypes.h>
 #include <common/WindowStackInterface.h>
-#include <tests/integration/HudTestInterface.h>
+#include <tests/testutils/HudTestInterface.h>
 
 #include <QAction>
 #include <QDebug>
@@ -110,6 +110,14 @@ protected:
 		menuService.reset(
 				new QProcessDBusService(name, QDBusConnection::SessionBus,
 						model, QStringList() << name << path));
+		menuService->start(dbus.sessionConnection());
+	}
+
+	void startLibHud(const QString &applicationId, const QString &name,
+			const QString &path, const QString &model) {
+		menuService.reset(
+				new QProcessDBusService(name, QDBusConnection::SessionBus,
+						model, QStringList() << applicationId << name << path));
 		menuService->start(dbus.sessionConnection());
 	}
 
@@ -232,6 +240,38 @@ TEST_F(TestHud, SearchGMenuOneResult) {
 	EXPECT_EQ(ResultPair("Close", ""), result(results, 0));
 }
 
+TEST_F(TestHud, SearchLibHudOneResult) {
+	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
+			"GetWindowStack", "", "a(usbu)", "ret = [(0, 'app0', True, 0)]").waitForFinished();
+
+	// No GMenu
+	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
+			"GetWindowProperties", "usas", "as", "ret = []\n"
+					"for arg in args[2]:\n"
+					"  ret.append('')").waitForFinished();
+
+	// There are no DBusMenus in this test
+	appmenuRegstrarMock().AddMethod(DBusTypes::APPMENU_REGISTRAR_DBUS_NAME,
+			"GetMenuForWindow", "u", "so", "ret = ('', '/')").waitForFinished();
+
+	startHud();
+
+	startLibHud("app0", "test.app", "/test", MODEL_LIBHUD);
+
+	HudClient client;
+	QSignalSpy modelsChangedSpy(&client, SIGNAL(modelsChanged()));
+	modelsChangedSpy.wait();
+
+	QSignalSpy countChangedSpy(client.results(), SIGNAL(countChanged()));
+	client.setQuery("quitter");
+	countChangedSpy.wait();
+	countChangedSpy.wait();
+
+	QAbstractListModel &results(*client.results());
+	ASSERT_EQ(1, results.rowCount());
+	EXPECT_EQ(ResultPair("quiter", ""), result(results, 0));
+}
+
 TEST_F(TestHud, ExecuteGMenuAction) {
 	startGMenu("menu.name", "/menu", MODEL_SHORTCUTS);
 	ComCanonicalHudTestInterface gmenuTestInterface("menu.name", "/menu",
@@ -273,7 +313,7 @@ TEST_F(TestHud, ExecuteGMenuAction) {
 	EXPECT_EQ(ResultPair("Close", ""), result(results, 0));
 
 	QSignalSpy actionInvokedSpy(&gmenuTestInterface,
-			SIGNAL(ActionInvoked(const QString &)));
+	SIGNAL(ActionInvoked(const QString &)));
 
 	QSignalSpy executedSpy(&client, SIGNAL(commandExecuted()));
 	client.executeCommand(0);

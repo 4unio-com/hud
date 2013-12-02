@@ -43,6 +43,8 @@ add_definitions(-DMODEL_TOOLBAR_UNKNOWN="${CMAKE_CURRENT_BINARY_DIR}/menus/test-
 add_definitions(-DMODEL_TOOLBAR_ALL="${CMAKE_CURRENT_BINARY_DIR}/menus/test-menu-input-model-toolbar-all")
 add_definitions(-DMODEL_TOOLBAR_DYNAMIC="${CMAKE_CURRENT_BINARY_DIR}/menus/test-menu-input-model-toolbar-dynamic")
 
+add_definitions(-DMODEL_LIBHUD="${CMAKE_CURRENT_BINARY_DIR}/menus/test-libhud-application")
+
 ########################
 # Tests
 ########################
