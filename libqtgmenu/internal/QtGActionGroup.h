@@ -34,7 +34,7 @@ Q_OBJECT
 
 public:
   QtGActionGroup( GActionGroup* action_group );
-  ~QtGActionGroup();
+  virtual ~QtGActionGroup();
 
   GActionGroup* ActionGroup() const;
   int Size();

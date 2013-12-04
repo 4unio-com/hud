@@ -41,7 +41,7 @@ Q_OBJECT
 public:
   QtGMenuImporterPrivate( const QString& service, const QString& menu_path,
       const QString& actions_path, QtGMenuImporter& parent );
-  ~QtGMenuImporterPrivate();
+  virtual ~QtGMenuImporterPrivate();
 
   GMenuModel* GetGMenuModel();
   GActionGroup* GetGActionGroup();

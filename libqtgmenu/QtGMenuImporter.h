@@ -43,7 +43,7 @@ public:
   QtGMenuImporter( const QString& service, const QString& path, QObject* parent = 0 );
   QtGMenuImporter( const QString& service, const QString& menu_path, const QString& actions_path,
       QObject* parent = 0 );
-  ~QtGMenuImporter();
+  virtual ~QtGMenuImporter();
 
   GMenuModel* GetGMenuModel() const;
   GActionGroup* GetGActionGroup() const;

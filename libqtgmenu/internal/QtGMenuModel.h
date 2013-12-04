@@ -45,7 +45,7 @@ public:
   QtGMenuModel( GMenuModel* model );
   QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path,
       const QString& actions_path );
-  ~QtGMenuModel();
+  virtual ~QtGMenuModel();
 
   GMenuModel* Model() const;
   LinkType Type() const;

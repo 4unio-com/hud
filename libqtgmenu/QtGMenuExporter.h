@@ -38,7 +38,7 @@ Q_OBJECT
 public:
   QtGMenuExporter( const QString& dbusObjectPath, QMenu* menu, const QDBusConnection& connection =
       QDBusConnection::sessionBus() );
-  ~QtGMenuExporter();
+  virtual ~QtGMenuExporter();
 
 private Q_SLOTS:
 
