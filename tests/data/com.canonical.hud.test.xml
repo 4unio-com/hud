@@ -4,5 +4,9 @@
 		<signal name="ActionInvoked">
 			<arg type="s" name="name" direction="out" />
 		</signal>
+		<signal name="ParameterizedActionInvoked">
+			<arg type="s" name="name" direction="out" />
+			<arg type="v" name="parameter" direction="out" />
+		</signal>
 	</interface>
 </node>

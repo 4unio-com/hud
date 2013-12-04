@@ -36,7 +36,7 @@ public:
 
 	~FakeTouchApplication();
 
-	static void action_callback(GSimpleAction *simple, GVariant *parameter,
+	static void actionCallback(GSimpleAction *simple, GVariant *parameter,
 			gpointer user_data);
 
 protected:

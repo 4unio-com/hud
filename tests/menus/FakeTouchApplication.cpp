@@ -53,7 +53,20 @@ FakeTouchApplication::FakeTouchApplication(const QString &applicationId,
 	m_actionGroup = g_simple_action_group_new();
 	for (const QString &name : actionNames) {
 		GSimpleAction *action = g_simple_action_new(qPrintable(name), NULL);
-		g_signal_connect(action, "activate", G_CALLBACK(action_callback), this);
+		g_signal_connect(action, "activate", G_CALLBACK(actionCallback), this);
+		g_action_map_add_action(G_ACTION_MAP(m_actionGroup), G_ACTION(action));
+	}
+
+	GSimpleAction *action = g_simple_action_new("fruit", G_VARIANT_TYPE_STRING);
+	g_signal_connect(action, "activate", G_CALLBACK(actionCallback), this);
+	g_action_map_add_action(G_ACTION_MAP(m_actionGroup), G_ACTION(action));
+
+	QStringList parameterizedActionNames;
+	parameterizedActionNames << "apple" << "banana" << "cranberry";
+	for (const QString &name : parameterizedActionNames) {
+		GSimpleAction *action = g_simple_action_new(qPrintable(name),
+		G_VARIANT_TYPE_DOUBLE);
+		g_signal_connect(action, "activate", G_CALLBACK(actionCallback), this);
 		g_action_map_add_action(G_ACTION_MAP(m_actionGroup), G_ACTION(action));
 	}
 
@@ -68,7 +81,7 @@ FakeTouchApplication::FakeTouchApplication(const QString &applicationId,
 
 	for (const QString &name : actionNames) {
 		HudActionDescription *desc = hud_action_description_new(
-				qPrintable(QString("hud.%1").arg(name)), NULL);
+		qPrintable(QString("hud.%1").arg(name)), NULL);
 		hud_action_description_set_attribute_value(desc,
 		G_MENU_ATTRIBUTE_LABEL, g_variant_new_string(qPrintable(name)));
 		hud_action_description_set_attribute_value(desc, "description",
@@ -77,6 +90,32 @@ FakeTouchApplication::FakeTouchApplication(const QString &applicationId,
 //		hud_action_description_set_attribute_value(desc, "keywords",
 //				g_variant_new_string(qPrintable(action->keywords())));
 		hud_action_publisher_add_description(m_actionPublisher, desc);
+	}
+
+	{
+
+		HudActionDescription *desc = hud_action_description_new("hud.fruit",
+		NULL);
+		hud_action_description_set_attribute_value(desc,
+		G_MENU_ATTRIBUTE_LABEL, g_variant_new_string("fruit"));
+		hud_action_description_set_attribute_value(desc, "commitLabel",
+				g_variant_new_string("choose fruit"));
+
+		GMenu *menu = g_menu_new();
+		for (const QString &name : parameterizedActionNames) {
+			GMenuItem* mi = g_menu_item_new(qPrintable(name),
+			qPrintable(QString("hud.%1").arg(name)));
+			g_menu_item_set_attribute_value(mi, "parameter-type",
+					g_variant_new_string("slider"));
+			g_menu_append_item(menu, mi);
+			g_object_unref(mi);
+		}
+		hud_action_description_set_parameterized(desc,
+		G_MENU_MODEL(menu));
+
+		hud_action_publisher_add_description(m_actionPublisher, desc);
+
+		g_object_unref(menu);
 	}
 
 	if (m_sessionBus) {
@@ -104,12 +143,25 @@ FakeTouchApplication::~FakeTouchApplication() {
 	g_object_unref(m_sessionBus);
 }
 
-void FakeTouchApplication::action_callback(GSimpleAction *simple,
-G_GNUC_UNUSED GVariant *parameter, G_GNUC_UNUSED gpointer user_data) {
+void FakeTouchApplication::actionCallback(GSimpleAction *simple,
+		GVariant *parameter, G_GNUC_UNUSED gpointer user_data) {
 	FakeTouchApplication * self = static_cast<FakeTouchApplication *>(user_data);
+
 	gchar *name = NULL;
 	g_object_get(simple, "name", &name, NULL);
-	self->m_adaptor->ActionInvoked(name);
+	if (parameter) {
+		if (g_variant_is_of_type(parameter, G_VARIANT_TYPE_DOUBLE)) {
+			self->m_adaptor->ParameterizedActionInvoked(name,
+					QDBusVariant(g_variant_get_double(parameter)));
+		} else if (g_variant_is_of_type(parameter, G_VARIANT_TYPE_STRING)) {
+			self->m_adaptor->ParameterizedActionInvoked(name,
+					QDBusVariant(g_variant_get_type_string(parameter)));
+		} else {
+			qWarning() << "unknown param type"
+					<< g_variant_get_type_string(parameter);
+		}
+	} else {
+		self->m_adaptor->ActionInvoked(name);
+	}
 	g_free(name);
 }
-

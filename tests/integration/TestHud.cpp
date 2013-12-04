@@ -70,6 +70,13 @@ protected:
 	virtual ~TestHud() {
 	}
 
+	static void EXPECT_RESULT(const QList<QVariantList> &results, int index,
+			const QString &name, const QVariant &value) {
+		const QVariantList &result(results.at(index));
+		EXPECT_EQ(name, result.at(0).toString());
+		EXPECT_EQ(value, result.at(1).value<QDBusVariant>().variant());
+	}
+
 	OrgFreedesktopDBusMockInterface & bamfMatcherMock() {
 		return mock.mockInterface(DBusTypes::BAMF_DBUS_NAME,
 				DBusTypes::BAMF_MATCHER_DBUS_PATH, "org.ayatana.bamf.control",
@@ -322,6 +329,68 @@ TEST_F(TestHud, ExecuteGMenuAction) {
 	actionInvokedSpy.wait();
 	EXPECT_FALSE(actionInvokedSpy.isEmpty());
 	EXPECT_EQ(QVariantList() << QVariant("close"), actionInvokedSpy.at(0));
+}
+
+TEST_F(TestHud, ExecuteParameterized) {
+	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
+			"GetWindowStack", "", "a(usbu)", "ret = [(0, 'app0', True, 0)]").waitForFinished();
+
+	// No GMenu
+	windowStackMock().AddMethod(DBusTypes::WINDOW_STACK_DBUS_NAME,
+			"GetWindowProperties", "usas", "as", "ret = []\n"
+					"for arg in args[2]:\n"
+					"  ret.append('')").waitForFinished();
+
+	// There are no DBusMenus in this test
+	appmenuRegstrarMock().AddMethod(DBusTypes::APPMENU_REGISTRAR_DBUS_NAME,
+			"GetMenuForWindow", "u", "so", "ret = ('', '/')").waitForFinished();
+
+	startHud();
+
+	startLibHud("app0", "test.app", "/test", MODEL_LIBHUD);
+	ComCanonicalHudTestInterface gmenuTestInterface("test.app", "/test",
+				dbus.sessionConnection());
+	QSignalSpy actionInvokedSpy(&gmenuTestInterface,
+		SIGNAL(ParameterizedActionInvoked(const QString &, const QDBusVariant &)));
+
+	HudClient client;
+	QSignalSpy modelsChangedSpy(&client, SIGNAL(modelsChanged()));
+	modelsChangedSpy.wait();
+
+	QSignalSpy countChangedSpy(client.results(), SIGNAL(countChanged()));
+	client.setQuery("fruiy");
+	countChangedSpy.wait();
+	countChangedSpy.wait();
+
+	QAbstractListModel &results(*client.results());
+	ASSERT_EQ(1, results.rowCount());
+	ASSERT_EQ(ResultPair("fruit", ""), result(results, 0));
+
+	QSignalSpy executedSpy(&client,
+			SIGNAL(showParametrizedAction(const QString &, const QVariant &)));
+	client.executeCommand(0);
+
+	executedSpy.wait();
+	ASSERT_FALSE(executedSpy.isEmpty());
+	QVariantMap parameters;
+	parameters["hud.apple"] = 1.0;
+	parameters["hud.banana"] = 2.0;
+	parameters["hud.cranberry"] = 3.0;
+	client.executeParametrizedAction(parameters);
+
+	for(uint count(0); count < 5; ++count) {
+		actionInvokedSpy.wait();
+		if(actionInvokedSpy.size() == 5) {
+			break;
+		}
+	}
+
+	ASSERT_EQ(5, actionInvokedSpy.size());
+	EXPECT_RESULT(actionInvokedSpy, 0, "apple", QVariant(1.0));
+	EXPECT_RESULT(actionInvokedSpy, 1, "banana", QVariant(2.0));
+	EXPECT_RESULT(actionInvokedSpy, 2, "cranberry", QVariant(3.0));
+	EXPECT_RESULT(actionInvokedSpy, 3, "fruit", QVariant("s"));
+	EXPECT_RESULT(actionInvokedSpy, 4, "fruit", QVariant("s"));
 }
 
 } // namespace
