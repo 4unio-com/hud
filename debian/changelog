@@ -1,3 +1,18 @@
+hud (13.10.1+14.04.20131204-0ubuntu1) trusty; urgency=low
+
+  [ Pete Woods ]
+  * In the window stack always return a property list of the correct
+    length.
+  * Initialize the current_source pointer. (LP: #1253676)
+
+  [ Ted Gould ]
+  * Improve handling of unfound windows. (LP: #1247898)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 348
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 04 Dec 2013 13:51:14 +0000
+
 hud (13.10.1+14.04.20131029.1-0ubuntu1) trusty; urgency=low
 
   [ Pete Woods ]
