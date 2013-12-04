@@ -896,6 +896,7 @@ hud_query_init_real (HudQuery *query, GDBusConnection *connection, const gchar *
 {
   GError *error = NULL;
 
+  query->current_source = NULL;
   query->refresh_id = 0;
   query->voice_idle = 0;
 

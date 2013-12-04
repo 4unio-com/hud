@@ -35,6 +35,7 @@ struct _HudApplicationListPrivate {
 	HudApplicationSource * last_focused_main_stage_source;
 
 	DBusWindowStack * window_stack;
+	guint bus_watch_id;
 	gulong matcher_app_sig;
 	gulong matcher_view_open_sig;
 	gulong matcher_view_close_sig;
@@ -141,8 +142,27 @@ hud_application_list_constructed (GObject * object)
 }
 
 static void
+window_stack_vanished(G_GNUC_UNUSED GDBusConnection *connection,
+		const gchar *name, gpointer user_data) {
+	HudApplicationList *self = HUD_APPLICATION_LIST(user_data);
+
+	g_debug("window stack vanished %s", name);
+
+	g_hash_table_remove_all(self->priv->applications);
+
+	self->priv->used_source = NULL;
+	self->priv->last_focused_main_stage_source = NULL;
+
+	hud_source_changed(HUD_SOURCE(self));
+}
+
+static void
 matching_setup (HudApplicationList * self)
 {
+	self->priv->bus_watch_id = g_bus_watch_name(G_BUS_TYPE_SESSION,
+			"com.canonical.Unity.WindowStack", G_BUS_NAME_WATCHER_FLAGS_NONE,
+			NULL, window_stack_vanished, self, NULL);
+
 	GError *error = NULL;
 	self->priv->window_stack = dbus_window_stack_proxy_new_for_bus_sync(
 			G_BUS_TYPE_SESSION, G_DBUS_PROXY_FLAGS_NONE,
@@ -226,6 +246,10 @@ hud_application_list_dispose (GObject *object)
 {
 	HudApplicationList * self = HUD_APPLICATION_LIST(object);
 	g_debug("Application List Dispose Start");
+
+	if(self->priv->bus_watch_id > 0) {
+		g_bus_unwatch_name(self->priv->bus_watch_id);
+	}
 
 	if (self->priv->used_source != NULL) {
 		hud_source_unuse(self->priv->used_source);
