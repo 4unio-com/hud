@@ -29,10 +29,6 @@ Item::Item(const QMenu *root, const QList<int> &index, int lastIndex) :
 Item::~Item() {
 }
 
-const QMenu * Item::root() const {
-	return m_root;
-}
-
 QList<QAction *> Item::context() const {
 	QList<QAction *> context;
 

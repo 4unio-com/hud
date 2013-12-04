@@ -34,8 +34,6 @@ public:
 
 	~Item();
 
-	const QMenu * root() const;
-
 	QList<QAction *> context() const;
 
 	QAction *action() const;
