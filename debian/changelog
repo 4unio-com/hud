@@ -1,3 +1,13 @@
+hud (13.10.1+14.04.20131205-0ubuntu1) trusty; urgency=low
+
+  [ Pete Woods ]
+  * Fix keywords test on ARM. (LP: #1257861)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 350
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 05 Dec 2013 09:35:45 +0000
+
 hud (13.10.1+14.04.20131204-0ubuntu1) trusty; urgency=low
 
   [ Pete Woods ]
