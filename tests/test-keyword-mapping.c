@@ -53,7 +53,11 @@ static void
 set_language (const gchar* language)
 {
   /* Change language.  */
-  g_setenv ("LANGUAGE", language, 1);
+  if (language == NULL) {
+    g_unsetenv ("LANGUAGE");
+  } else {
+    g_setenv ("LANGUAGE", language, 1);
+  }
 
   /* Make change known.  */
   {
