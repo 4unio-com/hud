@@ -29,8 +29,12 @@ static QList<QString> IGNORED_APPLICATION_IDS = { "", "compiz", "hud-gui",
 		"unknown" };
 
 ApplicationListImpl::ApplicationListImpl(Factory &factory,
-		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack) :
-		m_windowStack(windowStack), m_factory(factory), m_focusedWindowId(0) {
+		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack,
+		QSharedPointer<QDBusServiceWatcher> windowStackWatcher) :
+		m_windowStack(windowStack), m_windowStackWatcher(windowStackWatcher), m_factory(
+				factory), m_focusedWindowId(0) {
+
+
 
 	QDBusPendingReply<QList<WindowInfo>> windowsReply(
 			m_windowStack->GetWindowStack());
@@ -63,6 +67,14 @@ ApplicationListImpl::ApplicationListImpl(Factory &factory,
 }
 
 ApplicationListImpl::~ApplicationListImpl() {
+}
+
+void ApplicationListImpl::serviceUnregistered(const QString &service) {
+	Q_UNUSED(service);
+
+	m_focusedApplication.reset();
+	m_applications.clear();
+	m_focusedWindowId = 0;
 }
 
 bool ApplicationListImpl::isIgnoredApplication(const QString &applicationId) {

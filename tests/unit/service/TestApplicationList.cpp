@@ -57,6 +57,11 @@ protected:
 						DBusTypes::WINDOW_STACK_DBUS_PATH,
 						dbus.sessionConnection()));
 
+		windowStackWatcher.reset(
+				new QDBusServiceWatcher(DBusTypes::WINDOW_STACK_DBUS_NAME,
+						dbus.sessionConnection(),
+						QDBusServiceWatcher::WatchForUnregistration));
+
 	}
 
 	virtual ~TestApplicationList() {
@@ -76,6 +81,8 @@ protected:
 	NiceMock<MockFactory> factory;
 
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack;
+
+	QSharedPointer<QDBusServiceWatcher> windowStackWatcher;
 };
 
 TEST_F(TestApplicationList, CreatesSingleApplicationOnStartup) {
@@ -91,7 +98,8 @@ TEST_F(TestApplicationList, CreatesSingleApplicationOnStartup) {
 	EXPECT_CALL(factory, newApplication(QString("app0"))).WillOnce(
 			Return(application));
 
-	ApplicationListImpl applicationList(factory, windowStack);
+	ApplicationListImpl applicationList(factory, windowStack,
+				windowStackWatcher);
 
 	ASSERT_EQ(1, applicationList.applications().size());
 	EXPECT_EQ(NameObject("app0", path), applicationList.applications().at(0));
@@ -112,7 +120,8 @@ TEST_F(TestApplicationList, CreatesSingleApplicationWithMultipleWindowsOnStartup
 	EXPECT_CALL(factory, newApplication(QString("app0"))).WillOnce(
 			Return(application));
 
-	ApplicationListImpl applicationList(factory, windowStack);
+	ApplicationListImpl applicationList(factory, windowStack,
+				windowStackWatcher);
 
 	ASSERT_EQ(1, applicationList.applications().size());
 	EXPECT_EQ(NameObject("app0", path), applicationList.applications().at(0));
@@ -140,7 +149,8 @@ TEST_F(TestApplicationList, CreatesMultipleApplicationOnStartup) {
 	EXPECT_CALL(factory, newApplication(QString("app1"))).WillOnce(
 			Return(application1));
 
-	ApplicationListImpl applicationList(factory, windowStack);
+	ApplicationListImpl applicationList(factory, windowStack,
+				windowStackWatcher);
 
 	QList<NameObject> applications = applicationList.applications();
 	ASSERT_EQ(2, applications.size());
@@ -164,7 +174,8 @@ TEST_F(TestApplicationList, RemovesApplicationWhenAllWindowsClosed) {
 
 	EXPECT_CALL(*application, addWindow(0));
 	EXPECT_CALL(*application, addWindow(1));
-	ApplicationListImpl applicationList(factory, windowStack);
+	ApplicationListImpl applicationList(factory, windowStack,
+				windowStackWatcher);
 
 	ASSERT_EQ(1, applicationList.applications().size());
 	EXPECT_EQ(NameObject("app0", path), applicationList.applications().at(0));
@@ -196,7 +207,8 @@ TEST_F(TestApplicationList, StartsEmptyThenAddsAndRemovesApplications) {
 	ON_CALL(*application1, path()).WillByDefault(ReturnRef(path1));
 	ON_CALL(*application1, isEmpty()).WillByDefault(Return(false));
 
-	ApplicationListImpl applicationList(factory, windowStack);
+	ApplicationListImpl applicationList(factory, windowStack,
+				windowStackWatcher);
 	ASSERT_TRUE(applicationList.applications().isEmpty());
 
 	EXPECT_CALL(factory, newApplication(QString("app0"))).WillOnce(

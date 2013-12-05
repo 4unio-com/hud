@@ -28,6 +28,7 @@
 #include <common/DBusTypes.h>
 
 #include <QDBusConnection>
+#include <QDBusServiceWatcher>
 
 using namespace hud::common;
 using namespace hud::service;
@@ -63,7 +64,12 @@ QSharedPointer<ComCanonicalUnityWindowStackInterface> Factory::singletonWindowSt
 						DBusTypes::WINDOW_STACK_DBUS_PATH, sessionBus()));
 	}
 	return m_windowStack;
+}
 
+QSharedPointer<QDBusServiceWatcher> Factory::windowStackWatcher() {
+	return QSharedPointer<QDBusServiceWatcher>(
+			new QDBusServiceWatcher(DBusTypes::WINDOW_STACK_DBUS_NAME,
+					sessionBus(), QDBusServiceWatcher::WatchForUnregistration));
 }
 
 QSharedPointer<ComCanonicalAppMenuRegistrarInterface> Factory::singletonAppmenu() {
@@ -90,7 +96,8 @@ Query::Ptr Factory::newQuery(const QString &query, const QString &sender) {
 ApplicationList::Ptr Factory::singletonApplicationList() {
 	if (m_applicationList.isNull()) {
 		m_applicationList.reset(
-				new ApplicationListImpl(*this, singletonWindowStack()));
+				new ApplicationListImpl(*this, singletonWindowStack(),
+						windowStackWatcher()));
 	}
 	return m_applicationList;
 }

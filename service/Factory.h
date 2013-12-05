@@ -33,6 +33,10 @@
 class ComCanonicalUnityWindowStackInterface;
 class ComCanonicalAppMenuRegistrarInterface;
 
+QT_BEGIN_NAMESPACE
+class QDBusServiceWatcher;
+QT_END_NAMESPACE
+
 namespace hud {
 namespace service {
 
@@ -49,6 +53,8 @@ public:
 	virtual QDBusConnection sessionBus();
 
 	virtual QSharedPointer<ComCanonicalUnityWindowStackInterface> singletonWindowStack();
+
+	virtual QSharedPointer<QDBusServiceWatcher> windowStackWatcher();
 
 	virtual QSharedPointer<ComCanonicalAppMenuRegistrarInterface> singletonAppmenu();
 

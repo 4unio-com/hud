@@ -37,7 +37,8 @@ Q_OBJECT
 
 public:
 	explicit ApplicationListImpl(Factory &factory,
-			QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack);
+			QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack,
+			QSharedPointer<QDBusServiceWatcher> windowStackWatcher);
 
 	virtual ~ApplicationListImpl();
 
@@ -57,6 +58,9 @@ public Q_SLOTS:
 
 	void WindowDestroyed(uint windowId, const QString &applicationId);
 
+protected Q_SLOTS:
+	void serviceUnregistered(const QString &service);
+
 protected:
 	void ensureApplicationWithWindow(uint windowId,
 			const QString& applicationId);
@@ -68,6 +72,8 @@ protected:
 	static bool isIgnoredApplication(const QString &applicationId);
 
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
+
+	QSharedPointer<QDBusServiceWatcher> m_windowStackWatcher;
 
 	Factory &m_factory;
 
