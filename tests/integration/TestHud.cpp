@@ -138,6 +138,16 @@ protected:
 				results.data(index, 3).toString());
 	}
 
+	void EXPECT_TOOLBAR(const QAbstractListModel &toolbarModel, int i,
+			const QString &icon, HudClientQueryToolbarItems item,
+			bool enabled) {
+		QModelIndex index = toolbarModel.index(i);
+		EXPECT_EQ(icon,
+				toolbarModel.data(index, Qt::DecorationRole).toString());
+		EXPECT_EQ(item, toolbarModel.data(index, Qt::UserRole).toInt());
+		EXPECT_EQ(enabled, toolbarModel.data(index, Qt::UserRole + 1).toBool());
+	}
+
 	DBusTestRunner dbus;
 
 	DBusMock mock;
@@ -264,12 +274,15 @@ TEST_F(TestHud, SearchLibHudOneResult) {
 	startHud();
 
 	startLibHud("app0", "test.app", "/test", MODEL_LIBHUD);
+	ComCanonicalHudTestInterface libhudTestInterface("test.app", "/test",
+			dbus.sessionConnection());
 
 	HudClient client;
 	QSignalSpy modelsChangedSpy(&client, SIGNAL(modelsChanged()));
 	modelsChangedSpy.wait();
 
 	QSignalSpy countChangedSpy(client.results(), SIGNAL(countChanged()));
+
 	client.setQuery("quitter");
 	countChangedSpy.wait();
 	countChangedSpy.wait();
@@ -277,6 +290,24 @@ TEST_F(TestHud, SearchLibHudOneResult) {
 	QAbstractListModel &results(*client.results());
 	ASSERT_EQ(1, results.rowCount());
 	EXPECT_EQ(ResultPair("quiter", ""), result(results, 0));
+
+	const QAbstractListModel &toolbarModel(*client.toolBarModel());
+	ASSERT_EQ(4, toolbarModel.rowCount());
+
+	EXPECT_TOOLBAR(toolbarModel, 0, "graphics/undo.png",
+			HUD_CLIENT_QUERY_TOOLBAR_UNDO, true);
+	EXPECT_TOOLBAR(toolbarModel, 1, "graphics/help.png",
+			HUD_CLIENT_QUERY_TOOLBAR_HELP, true);
+	EXPECT_TOOLBAR(toolbarModel, 2, "graphics/view-fullscreen.png",
+			HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN, false);
+	EXPECT_TOOLBAR(toolbarModel, 3, "graphics/settings.png",
+			HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES, false);
+
+	QSignalSpy actionInvokedSpy(&libhudTestInterface,
+				SIGNAL(ActionInvoked(const QString &)));
+	client.executeToolBarAction(HUD_CLIENT_QUERY_TOOLBAR_UNDO);
+	actionInvokedSpy.wait();
+	EXPECT_EQ(QVariantList() << QVariant("undoer"), actionInvokedSpy.at(0));
 }
 
 TEST_F(TestHud, ExecuteGMenuAction) {
@@ -320,7 +351,7 @@ TEST_F(TestHud, ExecuteGMenuAction) {
 	EXPECT_EQ(ResultPair("Close", ""), result(results, 0));
 
 	QSignalSpy actionInvokedSpy(&gmenuTestInterface,
-	SIGNAL(ActionInvoked(const QString &)));
+			SIGNAL(ActionInvoked(const QString &)));
 
 	QSignalSpy executedSpy(&client, SIGNAL(commandExecuted()));
 	client.executeCommand(0);
@@ -349,9 +380,10 @@ TEST_F(TestHud, ExecuteParameterized) {
 
 	startLibHud("app0", "test.app", "/test", MODEL_LIBHUD);
 	ComCanonicalHudTestInterface gmenuTestInterface("test.app", "/test",
-				dbus.sessionConnection());
+			dbus.sessionConnection());
 	QSignalSpy actionInvokedSpy(&gmenuTestInterface,
-		SIGNAL(ParameterizedActionInvoked(const QString &, const QDBusVariant &)));
+			SIGNAL(
+					ParameterizedActionInvoked(const QString &, const QDBusVariant &)));
 
 	HudClient client;
 	QSignalSpy modelsChangedSpy(&client, SIGNAL(modelsChanged()));
@@ -378,9 +410,9 @@ TEST_F(TestHud, ExecuteParameterized) {
 	parameters["hud.cranberry"] = 3.0;
 	client.executeParametrizedAction(parameters);
 
-	for(uint count(0); count < 5; ++count) {
+	for (uint count(0); count < 5; ++count) {
 		actionInvokedSpy.wait();
-		if(actionInvokedSpy.size() == 5) {
+		if (actionInvokedSpy.size() == 5) {
 			break;
 		}
 	}

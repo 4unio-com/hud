@@ -55,12 +55,12 @@ QueryImpl::QueryImpl(unsigned int id, const QString &query,
 				_("Unable to register HUD query object on DBus"));
 	}
 
-	connect(m_voice.data(), SIGNAL( HeardSomething() ), m_adaptor.data(),
-	SIGNAL( VoiceQueryHeardSomething() ));
-	connect(m_voice.data(), SIGNAL( Listening() ), m_adaptor.data(),
-	SIGNAL( VoiceQueryListening() ));
-	connect(m_voice.data(), SIGNAL( Loading() ), m_adaptor.data(),
-	SIGNAL( VoiceQueryLoading() ));
+	connect(m_voice.data(), SIGNAL(HeardSomething()), m_adaptor.data(),
+			SIGNAL(VoiceQueryHeardSomething()));
+	connect(m_voice.data(), SIGNAL(Listening()), m_adaptor.data(),
+			SIGNAL(VoiceQueryListening()));
+	connect(m_voice.data(), SIGNAL(Loading()), m_adaptor.data(),
+			SIGNAL(VoiceQueryLoading()));
 }
 
 QueryImpl::~QueryImpl() {
@@ -88,8 +88,29 @@ QString QueryImpl::resultsModel() const {
 }
 
 QStringList QueryImpl::toolbarItems() const {
-	//TODO Implement toolbarItems
-	return QStringList();
+	if (!m_windowToken) {
+		return QStringList();
+	}
+	return m_windowToken->toolbarItems();
+}
+
+void QueryImpl::ExecuteToolbar(const QString &item, uint timestamp) {
+	if (!m_windowToken) {
+		return;
+	}
+	return m_windowToken->executeToolbar(item);
+}
+
+void QueryImpl::notifyPropertyChanged(const QString& interface,
+		const QString& propertyName) {
+	QDBusMessage signal = QDBusMessage::createSignal(m_path.path(),
+			"org.freedesktop.DBus.Properties", "PropertiesChanged");
+	signal << interface;
+	QVariantMap changedProps;
+	changedProps.insert(propertyName, property(qPrintable(propertyName)));
+	signal << changedProps;
+	signal << QStringList();
+	m_connection.send(signal);
 }
 
 void QueryImpl::CloseQuery() {
@@ -144,10 +165,6 @@ QString QueryImpl::ExecuteParameterized(const QDBusVariant &item,
 			actionPath, modelPath);
 }
 
-void QueryImpl::ExecuteToolbar(const QString &item, uint timestamp) {
-	qDebug() << "ExecuteToolbar" << item << timestamp;
-}
-
 /**
  * This means that the user has clicked on an application
  * in the HUD user interface.
@@ -186,6 +203,8 @@ void QueryImpl::refresh() {
 		updateToken(window);
 
 		m_windowToken->search(m_query, m_results);
+
+		notifyPropertyChanged("com.canonical.hud.query", "ToolbarItems");
 	}
 
 	// Convert to results list to Dee model
@@ -219,8 +238,7 @@ int QueryImpl::VoiceQuery(QString &query) {
 	updateToken(window);
 
 	// Get the list of commands from the current window token
-	QList<QStringList> commandsList;
-	m_windowToken->commands(commandsList);
+	QList<QStringList> commandsList(m_windowToken->commands());
 
 	// Listen for speech, and set result
 	query = m_voice->listen(commandsList);

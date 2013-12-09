@@ -53,7 +53,11 @@ public:
 			QString &baseAction, QDBusObjectPath &actionPath,
 			QDBusObjectPath &modelPath);
 
-	void commands(QList<QStringList> &commandsList);
+	void executeToolbar(const QString &item);
+
+	QList<QStringList> commands() const;
+
+	QStringList toolbarItems() const;
 
 protected:
 	void indexMenu(const QMenu *menu, const QMenu *root,
@@ -63,6 +67,8 @@ protected:
 			const int queryLength, const double relevancy,
 			QList<Result> &results);
 
+	void executeItem(Item::Ptr item);
+
 	Columbus::Corpus m_corpus;
 
 	Columbus::Matcher m_matcher;
@@ -70,6 +76,8 @@ protected:
 	DocumentID m_nextId;
 
 	QMap<DocumentID, Item::Ptr> m_items;
+
+	QMap<QString, Item::Ptr> m_toolbarItems;
 };
 
 }

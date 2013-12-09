@@ -194,7 +194,7 @@ public:
 
 	QScopedPointer<DeeListModel> m_appstack;
 
-	QScopedPointer<QAbstractItemModel> m_toolBarModel;
+	QScopedPointer<QAbstractListModel> m_toolBarModel;
 
 	int m_currentActionIndex;
 
@@ -318,7 +318,7 @@ QAbstractListModel * HudClient::appstack() const {
 	return p->m_appstack.data();
 }
 
-QAbstractItemModel * HudClient::toolBarModel() const {
+QAbstractListModel * HudClient::toolBarModel() const {
 	return p->m_toolBarModel.data();
 }
 

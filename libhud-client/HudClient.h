@@ -48,8 +48,8 @@ public:
 	Q_PROPERTY(QAbstractListModel* appstack READ appstack)
 	QAbstractListModel * appstack() const;
 
-	Q_PROPERTY(QAbstractItemModel* toolBarModel READ toolBarModel)
-	QAbstractItemModel * toolBarModel() const;
+	Q_PROPERTY(QAbstractListModel* toolBarModel READ toolBarModel)
+	QAbstractListModel * toolBarModel() const;
 
 	Q_INVOKABLE
 	void executeCommand(int index);

@@ -97,7 +97,13 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 			document.addText(Word("context"), wordList);
 
 			m_corpus.addDocument(document);
-			m_items[m_nextId] = Item::Ptr(new Item(root, index, i));
+			Item::Ptr item(new Item(root, index, i));
+			m_items[m_nextId] = item;
+
+			QVariant toolbarItem(action->property("hud-toolbar-item"));
+			if (!toolbarItem.isNull()) {
+				m_toolbarItems[toolbarItem.toString()] = item;
+			}
 
 			++m_nextId;
 		}
@@ -200,20 +206,24 @@ void ItemStore::addResult(DocumentID id, const QStringMatcher &stringMatcher,
 
 }
 
-void ItemStore::execute(unsigned long long int commandId) {
-	Item::Ptr item(m_items[commandId]);
+void ItemStore::executeItem(Item::Ptr item) {
 	if (item.isNull()) {
-		qWarning() << "Tried to execute unknown command" << commandId;
+		qWarning() << "Tried to execute unknown command";
 		return;
 	}
 
 	QAction *action(item->action());
 
 	if (action == nullptr) {
-		qWarning() << "Tried to execute unknown command" << commandId;
+		qWarning() << "Tried to execute unknown command";
 	}
 
 	action->activate(QAction::ActionEvent::Trigger);
+}
+
+void ItemStore::execute(unsigned long long int commandId) {
+	Item::Ptr item(m_items[commandId]);
+	executeItem(item);
 }
 
 QString ItemStore::executeParameterized(unsigned long long commandId,
@@ -232,6 +242,7 @@ QString ItemStore::executeParameterized(unsigned long long commandId,
 	if (action == nullptr) {
 		qWarning() << "Tried to execute unknown parameterized command"
 				<< commandId;
+		return QString();
 	}
 
 	baseAction = action->property("actionName").toString();
@@ -241,8 +252,12 @@ QString ItemStore::executeParameterized(unsigned long long commandId,
 	return action->property("busName").toString();
 }
 
-void ItemStore::commands(QList<QStringList>& commandsList) {
-	commandsList.clear();
+void ItemStore::executeToolbar(const QString &name) {
+	executeItem(m_toolbarItems[name]);
+}
+
+QList<QStringList> ItemStore::commands() const {
+	QList<QStringList> commandsList;
 
 	for (uint i = 0; i < m_corpus.size(); ++i) {
 		QStringList command;
@@ -256,4 +271,10 @@ void ItemStore::commands(QList<QStringList>& commandsList) {
 
 		commandsList.append(command);
 	}
+
+	return commandsList;
+}
+
+QStringList ItemStore::toolbarItems() const {
+	return m_toolbarItems.keys();
 }

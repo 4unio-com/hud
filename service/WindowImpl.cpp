@@ -59,8 +59,16 @@ QString WindowTokenImpl::executeParameterized(unsigned long long commandId,
 			modelPath);
 }
 
-void WindowTokenImpl::commands(QList<QStringList> &commandsList) {
-	m_items.commands(commandsList);
+void WindowTokenImpl::executeToolbar(const QString &item) {
+	m_items.executeToolbar(item);
+}
+
+QList<QStringList> WindowTokenImpl::commands() const {
+	return m_items.commands();
+}
+
+QStringList WindowTokenImpl::toolbarItems() const {
+	return m_items.toolbarItems();
 }
 
 WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,

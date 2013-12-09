@@ -43,7 +43,11 @@ public:
 			QString &baseAction, QDBusObjectPath &actionPath,
 			QDBusObjectPath &modelPath) = 0;
 
-	virtual void commands(QList<QStringList>& commandsList) = 0;
+	virtual void executeToolbar(const QString &item) = 0;
+
+	virtual QList<QStringList> commands() const = 0;
+
+	virtual QStringList toolbarItems() const = 0;
 
 	virtual const QList<CollectorToken::Ptr> & tokens() const = 0;
 

@@ -387,9 +387,8 @@ QAction* QtGMenuModel::CreateAction( int index )
   // action shortcut
   GMenuItem* menu_item = g_menu_item_new_from_model( m_model, index );
   gchar* shortcut = NULL;
-  g_menu_item_get_attribute( menu_item, "accel", "s", &shortcut );
 
-  if( shortcut )
+  if( g_menu_item_get_attribute( menu_item, "accel", "s", &shortcut ) )
   {
     QString qshortcut = QString::fromUtf8( shortcut );
     g_free( shortcut );
@@ -397,18 +396,27 @@ QAction* QtGMenuModel::CreateAction( int index )
     action->setShortcut( QtGMenuUtils::QStringToQKeySequence( qshortcut ) );
   }
 
+  // action shortcut
+  gchar* toolbar_item = NULL;
+  if( g_menu_item_get_attribute( menu_item, "hud-toolbar-item", "s", &toolbar_item ) )
+  {
+    QString qtoolbar_item = QString::fromUtf8( toolbar_item );
+    g_free( toolbar_item );
+
+    action->setProperty( "hud-toolbar-item", qtoolbar_item );
+  }
+
   // action keywords
   gchar* keywords = NULL;
-  g_menu_item_get_attribute( menu_item, "keywords", "s", keywords );
-  g_object_unref( menu_item );
-
-  if( keywords )
+  if( g_menu_item_get_attribute( menu_item, "keywords", "s", keywords ) )
   {
     QVariant qkeywords = QString::fromUtf8( keywords );
     g_free( keywords );
 
     action->setProperty( c_property_keywords, qkeywords );
   }
+
+  g_object_unref( menu_item );
 
   // action trigger
   connect( action, SIGNAL( triggered( bool ) ), this, SLOT( ActionTriggered( bool ) ) );

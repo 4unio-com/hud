@@ -48,7 +48,16 @@ FakeTouchApplication::FakeTouchApplication(const QString &applicationId,
 	m_hudManager = hud_manager_new(qPrintable(applicationId));
 
 	QStringList actionNames;
-	actionNames << "save" << "quiter" << "close" << "nothing";
+	actionNames << "save" << "quiter" << "close" << "nothing" << "undoer" << "helper";
+
+	// hud_action_description_set_attribute_value(desc, "hud-toolbar-item", g_variant_new_string("fullscreen"));
+	// hud_action_description_set_attribute_value(desc, "hud-toolbar-item", g_variant_new_string("help"));
+	// hud_action_description_set_attribute_value(desc, "hud-toolbar-item", g_variant_new_string("quit"));
+	// hud_action_description_set_attribute_value(desc, "hud-toolbar-item", g_variant_new_string("settings"));
+	// hud_action_description_set_attribute_value(desc, "hud-toolbar-item", g_variant_new_string("undo"));
+	QMap<QString, QString> toolbarNames;
+	toolbarNames["undoer"] = "undo";
+	toolbarNames["helper"] = "help";
 
 	m_actionGroup = g_simple_action_group_new();
 	for (const QString &name : actionNames) {
@@ -81,14 +90,18 @@ FakeTouchApplication::FakeTouchApplication(const QString &applicationId,
 
 	for (const QString &name : actionNames) {
 		HudActionDescription *desc = hud_action_description_new(
-		qPrintable(QString("hud.%1").arg(name)), NULL);
+				qPrintable(QString("hud.%1").arg(name)), NULL);
 		hud_action_description_set_attribute_value(desc,
 		G_MENU_ATTRIBUTE_LABEL, g_variant_new_string(qPrintable(name)));
 		hud_action_description_set_attribute_value(desc, "description",
 				g_variant_new_string(
-				qPrintable(QString("%1 description").arg(name))));
+						qPrintable(QString("%1 description").arg(name))));
 //		hud_action_description_set_attribute_value(desc, "keywords",
 //				g_variant_new_string(qPrintable(action->keywords())));
+		if (toolbarNames.contains(name)) {
+			hud_action_description_set_attribute_value(desc, "hud-toolbar-item",
+					g_variant_new_string(qPrintable(toolbarNames[name])));
+		}
 		hud_action_publisher_add_description(m_actionPublisher, desc);
 	}
 
@@ -104,14 +117,13 @@ FakeTouchApplication::FakeTouchApplication(const QString &applicationId,
 		GMenu *menu = g_menu_new();
 		for (const QString &name : parameterizedActionNames) {
 			GMenuItem* mi = g_menu_item_new(qPrintable(name),
-			qPrintable(QString("hud.%1").arg(name)));
+					qPrintable(QString("hud.%1").arg(name)));
 			g_menu_item_set_attribute_value(mi, "parameter-type",
 					g_variant_new_string("slider"));
 			g_menu_append_item(menu, mi);
 			g_object_unref(mi);
 		}
-		hud_action_description_set_parameterized(desc,
-		G_MENU_MODEL(menu));
+		hud_action_description_set_parameterized(desc, G_MENU_MODEL(menu));
 
 		hud_action_publisher_add_description(m_actionPublisher, desc);
 

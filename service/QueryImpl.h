@@ -87,6 +87,9 @@ protected Q_SLOTS:
 protected:
 	void updateToken(Window::Ptr window);
 
+	void notifyPropertyChanged(const QString& interface,
+			const QString& propertyName);
+
 	QScopedPointer<QueryAdaptor> m_adaptor;
 
 	QDBusConnection m_connection;
