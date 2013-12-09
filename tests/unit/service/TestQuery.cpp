@@ -45,6 +45,12 @@ protected:
 			mock(dbus) {
 
 		windowToken.reset(new NiceMock<MockWindowToken>());
+		ON_CALL(*windowToken, toolbarItems()).WillByDefault(
+				Return(QStringList()));
+		ON_CALL(*windowToken, commands()).WillByDefault(
+				Return(
+						QList<QStringList>()
+								<< (QStringList() << "command1" << "command2")));
 
 		window.reset(new NiceMock<MockWindow>());
 		ON_CALL(*window, activate()).WillByDefault(Return(windowToken));
@@ -62,7 +68,6 @@ protected:
 				Return(window));
 
 		voice.reset(new NiceMock<MockVoice>());
-		ON_CALL(*voice, listen(_)).WillByDefault(Return("voice query"));
 
 		hudService.reset(new NiceMock<MockHudService>);
 	}
@@ -135,7 +140,7 @@ TEST_F(TestQuery, CloseWhenSenderDies) {
 	// a random dbus service that we're going to tell the query to watch
 	QScopedPointer<QProcessDBusService> keepAliveService(
 			new QProcessDBusService("keep.alive", QDBusConnection::SessionBus,
-					MODEL_SIMPLE, QStringList() << "keep.alive" << "/"));
+			MODEL_SIMPLE, QStringList() << "keep.alive" << "/"));
 	keepAliveService->start(dbus.sessionConnection());
 
 	Query::Ptr query(
@@ -166,6 +171,10 @@ TEST_F(TestQuery, CloseWhenSenderDies) {
 TEST_F(TestQuery, VoiceQuery) {
 	QueryImpl query(0, "query", "keep.alive", *hudService, applicationList,
 			voice, dbus.sessionConnection());
+
+	EXPECT_CALL(*voice, listen(QList<QStringList>()
+					<< (QStringList() << "command1" << "command2"))).WillOnce(
+			Return("voice query"));
 
 	// call VoiceQuery while MockWindow appears focused
 	QString voiceQuery;
