@@ -11,17 +11,17 @@ set(
 )
 
 add_executable(
-	service-unit-tests
+	test-service-unit-tests
 	${UNIT_TESTS_SRC}
 )
 
 qt5_use_modules(
-	service-unit-tests
+	test-service-unit-tests
 	Test
 )
 
 target_link_libraries(
-	service-unit-tests
+	test-service-unit-tests
 	test-utils
 	hud-service
 	${GTEST_LIBRARIES}
@@ -31,5 +31,5 @@ target_link_libraries(
 )
 
 add_hud_test(
-	service-unit-tests
+	test-service-unit-tests
 )

@@ -10,12 +10,12 @@ if(${ENABLE_PLATFORM_API})
 endif()
 
 add_executable(
-	window-stack-bridge-unit-tests
+	test-window-stack-bridge-unit-tests
 	${UNIT_TESTS_SRC}
 )
 
 target_link_libraries(
-	window-stack-bridge-unit-tests
+	test-window-stack-bridge-unit-tests
 	test-utils
 	window-stack-bridge
 	${GTEST_LIBRARIES}
@@ -25,12 +25,12 @@ target_link_libraries(
 )
 
 qt5_use_modules(
-	window-stack-bridge-unit-tests
+	test-window-stack-bridge-unit-tests
 	Test
 )
 
 add_hud_test(
-	window-stack-bridge-unit-tests
+	test-window-stack-bridge-unit-tests
 )
 
 endif()

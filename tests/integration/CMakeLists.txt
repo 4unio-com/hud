@@ -11,12 +11,12 @@ set(
 )
 
 add_executable(
-	integration-tests
+	test-integration-tests
 	${INTEGRATION_TESTS_SRC}
 )
 
 target_link_libraries(
-	integration-tests
+	test-integration-tests
 	test-utils
 	hud-common
 	hud-client
@@ -26,10 +26,10 @@ target_link_libraries(
 	${QTDBUSMOCK_LIBRARIES}
 )
 
-qt5_use_modules(integration-tests
+qt5_use_modules(test-integration-tests
 	Test
 )
 
 add_hud_test(
-	integration-tests
+	test-integration-tests
 )

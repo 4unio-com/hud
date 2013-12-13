@@ -4,12 +4,12 @@ set(
 )
 
 add_executable(
-    qtgmenu-unit-tests
+    test-qtgmenu-unit-tests
     ${UNIT_TESTS_SRC}
 )
 
 qt5_use_modules(
-    qtgmenu-unit-tests
+    test-qtgmenu-unit-tests
     Test
 )
 
@@ -19,7 +19,7 @@ add_library(
 )
 
 target_link_libraries(
-    qtgmenu-unit-tests
+    test-qtgmenu-unit-tests
     qtgmenu-test-main
     qtgmenu
     ${GIO2_LIBRARIES}
@@ -30,5 +30,5 @@ target_link_libraries(
 )
 
 add_hud_test(
-    qtgmenu-unit-tests
+    test-qtgmenu-unit-tests
 )

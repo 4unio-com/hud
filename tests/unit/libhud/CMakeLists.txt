@@ -7,12 +7,12 @@ set(
 )
 
 add_executable(
-	libhud-unit-tests
+	test-libhud-unit-tests
 	${UNIT_TESTS_SRC}
 )
 
 target_link_libraries(
-	libhud-unit-tests
+	test-libhud-unit-tests
 	test-utils
 	hud
 	${GTEST_LIBRARIES}
@@ -22,11 +22,11 @@ target_link_libraries(
 )
 
 qt5_use_modules(
-	libhud-unit-tests
+	test-libhud-unit-tests
 	Test
 )
 
 add_hud_test(
-	libhud-unit-tests
+	test-libhud-unit-tests
 )
 

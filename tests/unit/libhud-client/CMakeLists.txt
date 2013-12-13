@@ -8,12 +8,12 @@ set(
 )
 
 add_executable(
-	libhud-client-unit-tests
+	test-libhud-client-unit-tests
 	${UNIT_TESTS_SRC}
 )
 
 target_link_libraries(
-	libhud-client-unit-tests
+	test-libhud-client-unit-tests
 	test-utils
 	hud-client
 	${GTEST_LIBRARIES}
@@ -23,11 +23,11 @@ target_link_libraries(
 )
 
 qt5_use_modules(
-	libhud-client-unit-tests
+	test-libhud-client-unit-tests
 	Test
 )
 
 add_hud_test(
-	libhud-client-unit-tests
+	test-libhud-client-unit-tests
 )
 
