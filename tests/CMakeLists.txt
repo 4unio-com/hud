@@ -56,6 +56,11 @@ function(add_hud_test NAME)
 		${NAME}
 		${TEST_RUNNER} qdbus-simple-test-runner "${CMAKE_CURRENT_BINARY_DIR}/${NAME}"
 	)
+	
+	set_tests_properties(
+		${NAME}
+		PROPERTIES ENVIRONMENT "GTEST_OUTPUT=xml:${CMAKE_CURRENT_BINARY_DIR}/"
+	)
 endfunction()
 
 #add_subdirectory(data)
