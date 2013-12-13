@@ -139,6 +139,7 @@ void QueryImpl::ExecuteCommand(const QDBusVariant &item, uint timestamp) {
  *
  * The outputs are:
  * - string busName, bus name to connect to
+ * - string prefix, the prefix the gmenu is using
  * - string baseAction, name of the action group
  * - path actionPath, where we can find the action group
  * - path modelPath, where we can find the menu
