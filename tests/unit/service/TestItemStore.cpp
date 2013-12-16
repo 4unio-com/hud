@@ -18,7 +18,6 @@
 
 #include <service/ItemStore.h>
 
-#include <iostream>
 #include <string>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -31,9 +30,6 @@ namespace {
 
 class TestItemStore: public Test {
 protected:
-	virtual ~TestItemStore() {
-	}
-
 	/* Test a set of strings */
 	string search(const QString &query) {
 		QList<Result> results;
@@ -48,7 +44,6 @@ protected:
 		return result.toStdString();
 	}
 
-protected:
 	ItemStore store;
 };
 
