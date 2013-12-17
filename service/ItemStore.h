@@ -32,10 +32,14 @@ QT_BEGIN_NAMESPACE
 class QDBusObjectPath;
 QT_END_NAMESPACE
 
+class QGSettings;
+
 namespace hud {
 namespace service {
 
-class ItemStore {
+class ItemStore: public QObject {
+Q_OBJECT
+
 public:
 	typedef QSharedPointer<ItemStore> Ptr;
 
@@ -59,6 +63,9 @@ public:
 
 	QStringList toolbarItems() const;
 
+protected Q_SLOTS:
+	void settingChanged(const QString &key);
+
 protected:
 	void indexMenu(const QMenu *menu, const QMenu *root,
 			const QStringList &stack, const QList<int> &index);
@@ -74,6 +81,8 @@ protected:
 	Columbus::Matcher m_matcher;
 
 	DocumentID m_nextId;
+
+	QScopedPointer<QGSettings> m_settings;
 
 	QMap<DocumentID, Item::Ptr> m_items;
 

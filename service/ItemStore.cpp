@@ -18,6 +18,7 @@
 
 #include <common/Localisation.h>
 #include <service/ItemStore.h>
+#include <QGSettings/qgsettings.h>
 
 #include <columbus.hh>
 #include <QRegularExpression>
@@ -36,10 +37,33 @@ ItemStore::ItemStore() :
 		m_nextId(0) {
 	ErrorValues &errorValues(m_matcher.getErrorValues());
 	errorValues.addStandardErrors();
-	errorValues.setEndDeletionError(20);
+
+	if (qEnvironmentVariableIsSet("HUD_IGNORE_SEARCH_SETTINGS")) {
+		errorValues.setInsertionError(100);
+		errorValues.setDeletionError(100);
+		errorValues.setEndDeletionError(1);
+		errorValues.setTransposeError(15);
+	} else {
+		m_settings.reset(
+				new QGSettings("com.canonical.indicator.appmenu.hud.search",
+						"/com/canonical/indicator/appmenu/hud/search/"));
+		connect(m_settings.data(), SIGNAL(changed(const QString &)), this,
+				SLOT(settingChanged(const QString &)));
+		settingChanged(QString());
+	}
 }
 
 ItemStore::~ItemStore() {
+}
+
+void ItemStore::settingChanged(const QString &key) {
+	Q_UNUSED(key);
+
+	ErrorValues &errorValues(m_matcher.getErrorValues());
+	errorValues.setInsertionError(m_settings->get("addPenalty").toUInt() * 10);
+	errorValues.setDeletionError(m_settings->get("dropPenalty").toUInt() * 10);
+	errorValues.setEndDeletionError(m_settings->get("endDropPenalty").toUInt());
+	errorValues.setTransposeError(m_settings->get("swapPenalty").toUInt());
 }
 
 static QString convertActionText(const QAction *action) {

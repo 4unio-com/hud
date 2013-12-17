@@ -77,6 +77,7 @@ target_link_libraries(hud-service
   ${DEE_LIBRARIES}
   ${COLUMBUS_LIBRARIES}
   ${UNITYVOICE_LIBRARIES}
+  ${GSETTINGS_QT_LIBRARIES}
 )
 
 qt5_use_modules(

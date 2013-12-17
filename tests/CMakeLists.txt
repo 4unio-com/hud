@@ -63,7 +63,6 @@ function(add_hud_test NAME)
 	)
 endfunction()
 
-#add_subdirectory(data)
 add_subdirectory(integration)
 add_subdirectory(menus)
 add_subdirectory(testapps)

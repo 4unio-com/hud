@@ -87,6 +87,9 @@ include_directories(${Qt5DBus_INCLUDE_DIRS})
 pkg_check_modules(DEE_QT REQUIRED libdee-qt5)
 include_directories(${DEE_QT_INCLUDE_DIRS})
 
+pkg_check_modules(GSETTINGS_QT REQUIRED gsettings-qt REQUIRED)
+include_directories(${GSETTINGS_QT_INCLUDE_DIRS})
+
 pkg_check_modules(DBUSMENU REQUIRED dbusmenu-qt5)
 include_directories(${DBUSMENU_INCLUDE_DIRS})
 

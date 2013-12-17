@@ -23,6 +23,7 @@
 
 int main(int argc, char **argv) {
 	qputenv("QT_QPA_PLATFORM", "minimal");
+	qputenv("HUD_IGNORE_SEARCH_SETTINGS", "1");
 
 //	qputenv("LANG", "C.UTF-8");
 	unsetenv("LC_ALL");
