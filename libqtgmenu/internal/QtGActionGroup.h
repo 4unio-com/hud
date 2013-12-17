@@ -33,7 +33,7 @@ class QtGActionGroup : public QObject
 Q_OBJECT
 
 public:
-  QtGActionGroup( GActionGroup* action_group );
+  explicit QtGActionGroup( GActionGroup* action_group );
   virtual ~QtGActionGroup();
 
   GActionGroup* ActionGroup() const;

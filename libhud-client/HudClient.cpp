@@ -34,7 +34,7 @@ public:
 		u_.cb = cb;
 	}
 
-	operator gpointer() {
+	operator gpointer() const{
 		return u_.p;
 	}
 
@@ -49,7 +49,7 @@ private:
 
 class HudClient::Priv {
 public:
-	Priv(HudClient &client) :
+	explicit Priv(HudClient &client) :
 			m_client(client), m_clientQuery(nullptr), m_currentActionIndex(0), m_currentActionParam(
 					nullptr) {
 	}

@@ -42,7 +42,7 @@ Q_OBJECT
 public:
 	typedef QSharedPointer<HudService> Ptr;
 
-	explicit HudServiceImpl(Factory &factory, ApplicationList::Ptr applicationList,
+	HudServiceImpl(Factory &factory, ApplicationList::Ptr applicationList,
 			const QDBusConnection &connection, QObject *parent = 0);
 
 	virtual ~HudServiceImpl();
@@ -53,7 +53,7 @@ public:
 	Q_PROPERTY(QList<QDBusObjectPath> OpenQueries READ openQueries)
 	QList<QDBusObjectPath> openQueries() const;
 
-	Query::Ptr closeQuery(const QDBusObjectPath &path);
+	Query::Ptr closeQuery(const QDBusObjectPath &path) override;
 
 public Q_SLOTS:
 	QDBusObjectPath RegisterApplication(const QString &id);

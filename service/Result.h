@@ -33,7 +33,7 @@ public:
 
 	explicit Result();
 
-	explicit Result(qulonglong id, const QString &commandName,
+	Result(qulonglong id, const QString &commandName,
 			const HighlightList &commandHighlights, const QString &description,
 			const HighlightList &descriptionHighlights, const QString &shortcut,
 			int distance, bool parameterized);

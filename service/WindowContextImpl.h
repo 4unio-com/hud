@@ -37,12 +37,12 @@ public:
 
 	virtual ~WindowContextImpl();
 
-	virtual void setContext(const QString &context);
+	void setContext(const QString &context) override;
 
-	virtual void addMenu(const QString &context,
-			const MenuDefinition &menuDefinition);
+	void addMenu(const QString &context, const MenuDefinition &menuDefinition)
+			override;
 
-	virtual Collector::Ptr activeCollector();
+	Collector::Ptr activeCollector() override;
 
 protected:
 	Factory &m_factory;

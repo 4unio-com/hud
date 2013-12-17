@@ -32,27 +32,27 @@ class QtGMenuImporter;
 namespace hud {
 namespace service {
 
-class Q_DECL_EXPORT GMenuCollector: public Collector, public std::enable_shared_from_this<
-		GMenuCollector> {
+class Q_DECL_EXPORT GMenuCollector: public Collector,
+		public std::enable_shared_from_this<GMenuCollector> {
 Q_OBJECT
 
 public:
 	typedef std::shared_ptr<GMenuCollector> Ptr;
 
-	explicit GMenuCollector(const QString &name,
-			const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath);
+	GMenuCollector(const QString &name, const QDBusObjectPath &actionPath,
+			const QDBusObjectPath &menuPath);
 
 	virtual ~GMenuCollector();
 
-	virtual bool isValid() const;
+	virtual bool isValid() const override;
 
-	virtual CollectorToken::Ptr activate();
+	virtual CollectorToken::Ptr activate() override;
 
 protected Q_SLOTS:
 	void menuAppeared();
 
 protected:
-	virtual void deactivate();
+	void deactivate();
 
 	QWeakPointer<CollectorToken> m_collectorToken;
 

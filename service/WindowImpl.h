@@ -44,21 +44,21 @@ public:
 
 	virtual ~WindowTokenImpl();
 
-	virtual void search(const QString &query, QList<Result> &results);
+	void search(const QString &query, QList<Result> &results) override;
 
-	virtual void execute(unsigned long long commandId);
+	void execute(unsigned long long commandId) override;
 
-	virtual QString executeParameterized(unsigned long long commandId,
+	QString executeParameterized(unsigned long long commandId,
 			QString &baseAction, QDBusObjectPath &actionPath,
-			QDBusObjectPath &modelPath);
+			QDBusObjectPath &modelPath) override;
 
-	virtual void executeToolbar(const QString &item);
+	void executeToolbar(const QString &item) override;
 
-	virtual QList<QStringList> commands() const;
+	QList<QStringList> commands() const override;
 
-	virtual QStringList toolbarItems() const;
+	QStringList toolbarItems() const override;
 
-	virtual const QList<CollectorToken::Ptr> & tokens() const;
+	const QList<CollectorToken::Ptr> & tokens() const override;
 
 protected Q_SLOTS:
 	void childChanged();
@@ -75,7 +75,7 @@ class WindowImpl: public WindowContextImpl, public Window {
 	friend WindowTokenImpl;
 
 public:
-	explicit WindowImpl(unsigned int windowId, const QString &applicationId,
+	WindowImpl(unsigned int windowId, const QString &applicationId,
 			WindowContext::Ptr allWindowsContext, Factory &factory);
 
 	virtual ~WindowImpl();

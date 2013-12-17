@@ -30,9 +30,9 @@ class Item {
 public:
 	typedef QSharedPointer<Item> Ptr;
 
-	explicit Item(const QMenu *root, const QList<int> &index, int lastIndex);
+	Item(const QMenu *root, const QList<int> &index, int lastIndex);
 
-	~Item();
+	virtual ~Item();
 
 	QList<QAction *> context() const;
 

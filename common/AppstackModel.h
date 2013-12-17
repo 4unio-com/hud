@@ -32,10 +32,10 @@ public:
 		ITEM_TYPE_FOCUSED_APP,
 		ITEM_TYPE_SIDESTAGE_APP,
 		ITEM_TYPE_BACKGROUND_APP,
-		ITEM_TYPE_INDICATOR,
+		ITEM_TYPE_INDICATOR
 	} ItemType;
 
-	AppstackModel(unsigned int id);
+	explicit AppstackModel(unsigned int id);
 
 	virtual ~AppstackModel();
 

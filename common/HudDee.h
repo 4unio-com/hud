@@ -31,7 +31,7 @@ namespace common {
 
 class HudDee {
 public:
-	HudDee(const std::string &resultsName);
+	explicit HudDee(const std::string &resultsName);
 
 	virtual ~HudDee();
 

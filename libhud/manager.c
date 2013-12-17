@@ -57,7 +57,7 @@ struct _HudManagerPrivate {
 enum {
 	PROP_0 = 0,
 	PROP_APP_ID,
-	PROP_APPLICATION,
+	PROP_APPLICATION
 };
 
 static void hud_manager_class_init (HudManagerClass *klass);

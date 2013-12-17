@@ -28,7 +28,7 @@ namespace common {
 class WindowInfo {
 public:
 	enum Stage {
-		MAIN, SIDE, WINDOWED,
+		MAIN, SIDE, WINDOWED
 	};
 
 	unsigned int window_id;
@@ -41,7 +41,7 @@ public:
 	explicit WindowInfo(unsigned int window_id, const QString &app_id,
 			bool focused, Stage stage = MAIN);
 
-	~WindowInfo();
+	virtual ~WindowInfo();
 
 	bool operator==(const WindowInfo &other) const;
 

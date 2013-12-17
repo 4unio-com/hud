@@ -147,6 +147,7 @@ void ApplicationListImpl::setFocusedWindow(Application::Ptr application,
 
 void ApplicationListImpl::FocusedWindowChanged(uint windowId,
 		const QString &applicationId, uint stage) {
+	Q_UNUSED(stage);
 	if (isIgnoredApplication(applicationId)) {
 		return;
 	}

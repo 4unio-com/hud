@@ -95,6 +95,7 @@ QStringList QueryImpl::toolbarItems() const {
 }
 
 void QueryImpl::ExecuteToolbar(const QString &item, uint timestamp) {
+	Q_UNUSED(timestamp);
 	if (!m_windowToken) {
 		return;
 	}

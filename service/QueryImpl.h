@@ -42,25 +42,25 @@ class HudService;
 class Q_DECL_EXPORT QueryImpl: public Query, protected QDBusContext {
 Q_OBJECT
 public:
-	explicit QueryImpl(unsigned int id, const QString &query,
-			const QString &sender, HudService &service,
-			ApplicationList::Ptr applicationList, Voice::Ptr voice,
-			const QDBusConnection &connection, QObject *parent = 0);
+	QueryImpl(unsigned int id, const QString &query, const QString &sender,
+			HudService &service, ApplicationList::Ptr applicationList,
+			Voice::Ptr voice, const QDBusConnection &connection,
+			QObject *parent = 0);
 
 	virtual ~QueryImpl();
 
-	const QDBusObjectPath & path() const;
+	const QDBusObjectPath & path() const override;
 
-	const QList<Result> & results() const;
+	const QList<Result> & results() const override;
 
-	QString appstackModel() const;
+	QString appstackModel() const override;
 
-	QString currentQuery() const;
+	QString currentQuery() const override;
 
-	QString resultsModel() const;
+	QString resultsModel() const override;
 
 	Q_PROPERTY(QStringList ToolbarItems READ toolbarItems)
-	QStringList toolbarItems() const;
+	QStringList toolbarItems() const override;
 
 public Q_SLOTS:
 	void CloseQuery();

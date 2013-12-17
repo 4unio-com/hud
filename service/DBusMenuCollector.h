@@ -40,14 +40,14 @@ Q_OBJECT
 public:
 	typedef std::shared_ptr<DBusMenuCollector> Ptr;
 
-	explicit DBusMenuCollector(unsigned int windowId,
+	DBusMenuCollector(unsigned int windowId,
 			QSharedPointer<ComCanonicalAppMenuRegistrarInterface> appmenu);
 
 	virtual ~DBusMenuCollector();
 
-	virtual bool isValid() const;
+	virtual bool isValid() const override;
 
-	virtual CollectorToken::Ptr activate();
+	virtual CollectorToken::Ptr activate() override;
 
 protected Q_SLOTS:
 	void WindowRegistered(uint windowId, const QString &service,

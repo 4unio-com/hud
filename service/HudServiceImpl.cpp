@@ -23,9 +23,7 @@
 #include <common/DBusTypes.h>
 
 using namespace hud::common;
-
-namespace hud {
-namespace service {
+using namespace hud::service;
 
 HudServiceImpl::HudServiceImpl(Factory &factory, ApplicationList::Ptr applicationList,
 		const QDBusConnection &connection, QObject *parent) :
@@ -159,7 +157,4 @@ void HudServiceImpl::CloseQuery(const QDBusVariant &querykey) {
 	if (!query.isNull()) {
 		query->UpdateQuery(QString());
 	}
-}
-
-}
 }

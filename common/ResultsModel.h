@@ -30,7 +30,7 @@ namespace common {
 
 class ResultsModel: public HudDee {
 public:
-	ResultsModel(unsigned int id);
+	explicit ResultsModel(unsigned int id);
 
 	virtual ~ResultsModel();
 

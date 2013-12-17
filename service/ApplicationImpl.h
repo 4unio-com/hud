@@ -43,23 +43,23 @@ class Q_DECL_EXPORT ApplicationImpl: public Application, protected QDBusContext 
 Q_OBJECT
 
 public:
-	explicit ApplicationImpl(unsigned int id, const QString &applicationId,
+	ApplicationImpl(unsigned int id, const QString &applicationId,
 			Factory &factory, const QDBusConnection &connection,
 			QObject *parent = 0);
 
 	virtual ~ApplicationImpl();
 
-	const QString & id() const;
+	const QString & id() const override;
 
-	void addWindow(unsigned int windowId);
+	void addWindow(unsigned int windowId) override;
 
-	void removeWindow(unsigned int windowId);
+	void removeWindow(unsigned int windowId) override;
 
-	Window::Ptr window(unsigned int windowId);
+	Window::Ptr window(unsigned int windowId) override;
 
-	bool isEmpty() const;
+	bool isEmpty() const override;
 
-	const QDBusObjectPath & path() const;
+	const QDBusObjectPath & path() const override;
 
 	Q_PROPERTY(QList<hud::common::ActionGroup> ActionGroups READ actionGroups)
 	QList<hud::common::ActionGroup> actionGroups() const;
@@ -68,7 +68,7 @@ public:
 	const QString & desktopPath();
 
 	Q_PROPERTY(QString Icon READ icon)
-	const QString & icon();
+	const QString & icon() override;
 
 	Q_PROPERTY(QList<hud::common::MenuModel> MenuModels READ menuModels)
 	QList<hud::common::MenuModel> menuModels() const;

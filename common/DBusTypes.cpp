@@ -27,8 +27,7 @@
 
 #include <QList>
 
-namespace hud {
-namespace common {
+using namespace hud::common;
 
 const QString DBusTypes::HUD_SERVICE_DBUS_NAME("com.canonical.hud");
 const QString DBusTypes::HUD_SERVICE_DBUS_PATH("/com/canonical/hud");
@@ -65,7 +64,4 @@ QString DBusTypes::queryPath(unsigned int id) {
 
 QString DBusTypes::applicationPath(unsigned int id) {
 	return QString("/com/canonical/hud/application/%1").arg(id);
-}
-
-}
 }

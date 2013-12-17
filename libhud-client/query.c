@@ -46,7 +46,7 @@ struct _HudClientQueryPrivate {
 enum {
 	PROP_0 = 0,
 	PROP_CONNECTION,
-	PROP_QUERY,
+	PROP_QUERY
 };
 
 #define PROP_CONNECTION_S  "connection"
@@ -294,7 +294,7 @@ parse_toolbar (_HudQueryComCanonicalHudQuery * proxy, G_GNUC_UNUSED GParamSpec *
 	int i;
 	for (i = 0; items != NULL && items[i] != NULL; i++) {
 		HudClientQueryToolbarItems item = hud_client_query_toolbar_items_get_value_from_nick(items[i]);
-		if (item == -1) continue;
+		if (item == HUD_CLIENT_QUERY_TOOLBAR_INVALID) continue;
 		g_array_append_val(query->priv->toolbar, item);
 	}
 

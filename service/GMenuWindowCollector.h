@@ -39,16 +39,15 @@ class GMenuWindowCollector: public Collector,
 public:
 	typedef std::shared_ptr<GMenuCollector> Ptr;
 
-	explicit GMenuWindowCollector(unsigned int windowId,
-			const QString &applicationId,
+	GMenuWindowCollector(unsigned int windowId, const QString &applicationId,
 			QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack,
 			Factory &factory);
 
 	virtual ~GMenuWindowCollector();
 
-	virtual bool isValid() const;
+	virtual bool isValid() const override;
 
-	virtual CollectorToken::Ptr activate();
+	virtual CollectorToken::Ptr activate() override;
 
 protected:
 	virtual void deactivate();

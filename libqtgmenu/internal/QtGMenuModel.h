@@ -42,7 +42,7 @@ public:
     Root, Section, SubMenu
   };
 
-  QtGMenuModel( GMenuModel* model );
+  explicit QtGMenuModel( GMenuModel* model );
   QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path,
       const QString& actions_path );
   virtual ~QtGMenuModel();

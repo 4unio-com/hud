@@ -37,7 +37,7 @@ class GMenuCollector;
 class CollectorToken: public QObject {
 Q_OBJECT
 public:
-	explicit CollectorToken(std::shared_ptr<Collector> collector, QMenu *menu);
+	CollectorToken(std::shared_ptr<Collector> collector, QMenu *menu);
 
 	typedef QSharedPointer<CollectorToken> Ptr;
 

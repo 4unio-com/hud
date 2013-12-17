@@ -36,19 +36,19 @@ class ApplicationListImpl: public ApplicationList {
 Q_OBJECT
 
 public:
-	explicit ApplicationListImpl(Factory &factory,
+	ApplicationListImpl(Factory &factory,
 			QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack,
 			QSharedPointer<QDBusServiceWatcher> windowStackWatcher);
 
 	virtual ~ApplicationListImpl();
 
-	virtual QList<hud::common::NameObject> applications() const;
+	QList<hud::common::NameObject> applications() const override;
 
-	virtual Application::Ptr focusedApplication() const;
+	Application::Ptr focusedApplication() const override;
 
-	virtual Window::Ptr focusedWindow() const;
+	Window::Ptr focusedWindow() const override;
 
-	virtual Application::Ptr ensureApplication(const QString &applicationId);
+	Application::Ptr ensureApplication(const QString &applicationId) override;
 
 public Q_SLOTS:
 	void FocusedWindowChanged(uint windowId, const QString &applicationId,

@@ -41,7 +41,7 @@ struct _HudClientConnectionPrivate {
 enum {
 	PROP_0 = 0,
 	PROP_ADDRESS,
-	PROP_PATH,
+	PROP_PATH
 };
 
 #define PROP_ADDRESS_S  "address"

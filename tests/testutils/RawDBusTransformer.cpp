@@ -50,7 +50,6 @@ QVariant RawDBusTransformer::transform(const QDBusArgument & value) {
 		}
 		value.endStructure();
 		return list;
-		break;
 	}
 	default:
 		break;
