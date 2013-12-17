@@ -117,6 +117,11 @@ TEST_F(TestItemStore, UnfinishedWord) {
 
 	//FIXME Need help from Jussi
 //	EXPECT_EQ("Open Terminal", search("open ter"));
+//	EXPECT_EQ("Open Terminal", search("open term"));
+//	EXPECT_EQ("Open Terminal", search("open termi"));
+	EXPECT_EQ("Open Terminal", search("open termin"));
+	EXPECT_EQ("Open Terminal", search("open termina"));
+	EXPECT_EQ("Open Terminal", search("open terminal"));
 }
 
 /* Not finished word yet */
