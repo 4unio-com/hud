@@ -102,9 +102,8 @@ TEST_F(TestItemStore, DistancePrintIssues) {
 
 	store.indexMenu(&root);
 
-	// FIXME Need help from Jussi
-//	EXPECT_EQ("Print...", search("Pr"));
-//	EXPECT_EQ("Print...", search("Print"));
+	EXPECT_EQ("Print...", search("Pr"));
+	EXPECT_EQ("Print...", search("Print"));
 	EXPECT_EQ("Print...", search("Print..."));
 }
 
@@ -115,10 +114,9 @@ TEST_F(TestItemStore, UnfinishedWord) {
 	root.addAction("Open Tab");
 	store.indexMenu(&root);
 
-	//FIXME Need help from Jussi
-//	EXPECT_EQ("Open Terminal", search("open ter"));
-//	EXPECT_EQ("Open Terminal", search("open term"));
-//	EXPECT_EQ("Open Terminal", search("open termi"));
+	EXPECT_EQ("Open Terminal", search("open ter"));
+	EXPECT_EQ("Open Terminal", search("open term"));
+	EXPECT_EQ("Open Terminal", search("open termi"));
 	EXPECT_EQ("Open Terminal", search("open termin"));
 	EXPECT_EQ("Open Terminal", search("open termina"));
 	EXPECT_EQ("Open Terminal", search("open terminal"));
@@ -130,8 +128,7 @@ TEST_F(TestItemStore, UnfinishedWord2) {
 	root.addAction("Change Topic");
 	store.indexMenu(&root);
 
-	//FIXME Need help from Jussi
-//	EXPECT_EQ("Change Topic", search("cha"));
+	EXPECT_EQ("Change Topic", search("cha"));
 }
 
 /* A variety of strings that should have predictable results */
@@ -183,11 +180,10 @@ TEST_F(TestItemStore, DistanceFrenchPref) {
 	store.indexMenu(&root);
 
 	EXPECT_EQ("préférences", search("préférences"));
-	//FIXME Need help from Jussi
-//	EXPECT_EQ("préférences", search("pré"));
-//	EXPECT_EQ("préférences", search("préf"));
-//	EXPECT_EQ("préférences", search("préfé"));
-//	EXPECT_EQ("préférences", search("pref"));
+	EXPECT_EQ("préférences", search("pré"));
+	EXPECT_EQ("préférences", search("préf"));
+	EXPECT_EQ("préférences", search("préfé"));
+	EXPECT_EQ("préférences", search("pref"));
 }
 
 /* Check to make sure the returned hits are not dups and the
@@ -203,7 +199,7 @@ TEST_F(TestItemStore, DistanceDups) {
 
 	store.indexMenu(&root);
 
-//	EXPECT_EQ("Inflated", search("ted inf"));
+	EXPECT_EQ("Inflated", search("ted inf"));
 }
 
 /* Check to make sure 'Save' matches better than 'Save As...' for "save" */

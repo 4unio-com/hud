@@ -34,6 +34,9 @@ static const QRegularExpression WHITESPACE_OR_SEMICOLON("[;\\s+]");
 
 ItemStore::ItemStore() :
 		m_nextId(0) {
+	ErrorValues &errorValues(m_matcher.getErrorValues());
+	errorValues.addStandardErrors();
+	errorValues.setEndDeletionError(20);
 }
 
 ItemStore::~ItemStore() {
