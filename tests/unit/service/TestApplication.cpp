@@ -83,12 +83,13 @@ protected:
 };
 
 TEST_F(TestApplication, DBusInterfaceIsExported) {
-	ApplicationImpl application(1234, "application-id", factory,
+	ApplicationImpl application("application-id", factory,
 			dbus.sessionConnection());
 
 	ComCanonicalHudApplicationInterface applicationInterface(
 			dbus.sessionConnection().baseService(),
-			DBusTypes::applicationPath(1234), dbus.sessionConnection());
+			DBusTypes::applicationPath("application-id"),
+			dbus.sessionConnection());
 
 	ASSERT_TRUE(applicationInterface.isValid());
 
@@ -97,7 +98,7 @@ TEST_F(TestApplication, DBusInterfaceIsExported) {
 }
 
 TEST_F(TestApplication, AddsWindow) {
-	ApplicationImpl application(1234, "application-id", factory,
+	ApplicationImpl application("application-id", factory,
 			dbus.sessionConnection());
 	EXPECT_TRUE(application.isEmpty());
 
@@ -110,7 +111,7 @@ TEST_F(TestApplication, AddsWindow) {
 }
 
 TEST_F(TestApplication, HandlesDeleteUnknownWindow) {
-	ApplicationImpl application(1234, "application-id", factory,
+	ApplicationImpl application("application-id", factory,
 			dbus.sessionConnection());
 	EXPECT_TRUE(application.isEmpty());
 
@@ -120,7 +121,7 @@ TEST_F(TestApplication, HandlesDeleteUnknownWindow) {
 }
 
 TEST_F(TestApplication, DeletesWindow) {
-	ApplicationImpl application(1234, "application-id", factory,
+	ApplicationImpl application("application-id", factory,
 			dbus.sessionConnection());
 
 	QSharedPointer<MockWindow> window0(new NiceMock<MockWindow>());
@@ -144,7 +145,7 @@ TEST_F(TestApplication, DeletesWindow) {
 }
 
 TEST_F(TestApplication, AddSourcesToAllWindowsContext) {
-	ApplicationImpl application(1234, "application-id", factory,
+	ApplicationImpl application("application-id", factory,
 			dbus.sessionConnection());
 
 	QList<hud::common::Action> actions;
@@ -174,7 +175,7 @@ TEST_F(TestApplication, AddSourcesToAllWindowsContext) {
 }
 
 TEST_F(TestApplication, AddSourcesToAllWindowsContextAndWindow) {
-	ApplicationImpl application(1234, "application-id", factory,
+	ApplicationImpl application("application-id", factory,
 			dbus.sessionConnection());
 
 	QSharedPointer<MockWindow> window1(new NiceMock<MockWindow>());

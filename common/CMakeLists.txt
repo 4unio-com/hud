@@ -56,5 +56,7 @@ target_link_libraries(
 	hud-common
 	${GLIB2_LIBRARIES}
 	${DEE_LIBRARIES}
+	${NIH_LIBRARIES}
+	${NIH_DBUS_LIBRARIES}
 )
 

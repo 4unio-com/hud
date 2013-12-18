@@ -85,8 +85,6 @@ public:
 protected:
 	QDBusConnection m_sessionBus;
 
-	unsigned int m_applicationCounter;
-
 	unsigned int m_queryCounter;
 
 	HudService::Ptr m_hudService;

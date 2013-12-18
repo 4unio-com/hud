@@ -25,10 +25,10 @@
 using namespace hud::common;
 using namespace hud::service;
 
-ApplicationImpl::ApplicationImpl(unsigned int id, const QString &applicationId,
-		Factory &factory, const QDBusConnection &connection, QObject *parent) :
+ApplicationImpl::ApplicationImpl(const QString &applicationId, Factory &factory,
+		const QDBusConnection &connection, QObject *parent) :
 		Application(parent), m_adaptor(new ApplicationAdaptor(this)), m_connection(
-				connection), m_path(DBusTypes::applicationPath(id)), m_applicationId(
+				connection), m_path(DBusTypes::applicationPath(applicationId)), m_applicationId(
 				applicationId), m_factory(factory) {
 	if (!m_connection.registerObject(m_path.path(), this)) {
 		throw std::logic_error(_("Unable to register HUD object on DBus"));
