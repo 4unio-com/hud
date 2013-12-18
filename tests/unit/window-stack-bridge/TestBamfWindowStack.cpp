@@ -200,6 +200,33 @@ TEST_F(TestBamfWindowStack, HandlesEmptyWindowStack) {
 	EXPECT_TRUE(windowInfos.empty());
 }
 
+TEST_F(TestBamfWindowStack, OverDBus) {
+	createApplication(0);
+	createWindow(0, 0);
+	createWindow(1, 0);
+	createMatcherMethods(2, 0);
+
+	BamfWindowStack windowStack(dbus.sessionConnection());
+
+	ComCanonicalUnityWindowStackInterface windowStackInterface(
+			DBusTypes::WINDOW_STACK_DBUS_NAME,
+			DBusTypes::WINDOW_STACK_DBUS_PATH, dbus.sessionConnection());
+
+	QDBusPendingReply<WindowInfoList> reply(
+			windowStackInterface.GetWindowStack());
+	QDBusPendingCallWatcher watcher(reply);
+	QSignalSpy spy(&watcher, SIGNAL(finished(QDBusPendingCallWatcher *)));
+	spy.wait();
+	EXPECT_FALSE(spy.isEmpty());
+
+	QList<WindowInfo> windowInfos(reply);
+	ASSERT_EQ(2, windowInfos.size());
+	EXPECT_EQ(WindowInfo(0, "appid-0", true, WindowInfo::MAIN),
+			windowInfos.at(0));
+	EXPECT_EQ(WindowInfo(1, "appid-0", false, WindowInfo::MAIN),
+			windowInfos.at(1));
+}
+
 TEST_F(TestBamfWindowStack, HandlesTwoWindows) {
 	createApplication(0);
 	createWindow(0, 0);

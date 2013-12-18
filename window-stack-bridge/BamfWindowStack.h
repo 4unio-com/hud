@@ -65,7 +65,7 @@ public:
 public Q_SLOTS:
 	QString GetAppIdFromPid(uint pid) override;
 
-	QList<hud::common::WindowInfo> GetWindowStack() override;
+	hud::common::WindowInfoList GetWindowStack() override;
 
 	QStringList GetWindowProperties(uint windowId, const QString &appId,
 			const QStringList &names) override;
