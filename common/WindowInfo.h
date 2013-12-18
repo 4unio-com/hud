@@ -48,6 +48,8 @@ public:
 	static void registerMetaTypes();
 };
 
+typedef QList<WindowInfo> WindowInfoList;
+
 }
 }
 

@@ -57,7 +57,7 @@ bool WindowInfo::operator==(const WindowInfo &other) const {
 
 void WindowInfo::registerMetaTypes() {
 	qRegisterMetaType<WindowInfo>();
-	qRegisterMetaType<QList<WindowInfo>>();
+	qRegisterMetaType<WindowInfoList>();
 	qDBusRegisterMetaType<WindowInfo>();
-	qDBusRegisterMetaType<QList<WindowInfo>>();
+	qDBusRegisterMetaType<WindowInfoList>();
 }
