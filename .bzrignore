@@ -4,3 +4,5 @@
 /.pydevproject
 /build
 
+./CMakeLists.txt.user
+./tools/hudkeywords/hudkeywords.egg-info

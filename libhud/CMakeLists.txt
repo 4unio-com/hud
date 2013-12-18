@@ -1,4 +1,6 @@
 
+add_compiler_export_flags()
+
 set(HUD_INCLUDE_DIRS
 ${CMAKE_CURRENT_SOURCE_DIR}
 ${CMAKE_CURRENT_BINARY_DIR}
@@ -15,10 +17,6 @@ include_directories(${HUD_INCLUDE_DIRS})
 include_directories(${HUD_SRC_DIR})
 
 add_definitions( -DHUD_COMPILATION=1 )
-
-if(${FULL_WARNINGS})
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-endif()
 
 ###########################
 # Version Information
@@ -97,6 +95,12 @@ set_target_properties(hud PROPERTIES
   VERSION ${API_VERSION}.0.0
   SOVERSION ${ABI_VERSION}
   OUTPUT_NAME "hud"
+)
+
+set_target_properties(
+  hud
+  PROPERTIES 
+  COMPILE_FLAGS "-Wpedantic -Wall -Wextra"
 )
 
 target_link_libraries(hud

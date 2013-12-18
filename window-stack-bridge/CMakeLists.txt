@@ -59,6 +59,12 @@ qt5_use_modules(
 	DBus
 )
 
+target_link_libraries(
+	window-stack-bridge
+	hud-common
+	${PLATFORM_API_LIBRARIES}
+)
+
 add_executable(
 	window-stack-bridge-bin
 	main.cpp
@@ -78,7 +84,6 @@ qt5_use_modules(
 target_link_libraries(
 	window-stack-bridge-bin
 	window-stack-bridge
-	${PLATFORM_API_LIBRARIES}
 )
 
 install(

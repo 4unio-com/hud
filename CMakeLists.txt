@@ -8,10 +8,7 @@ set(GETTEXT_PACKAGE ${CMAKE_PROJECT_NAME})
 
 option(ENABLE_DOCUMENTATION "Enable documentation." OFF)
 option(ENABLE_TESTS "Enable tests." ON)
-option(ENABLE_VOICE_TESTS "Enable voice tests" ON)
 option(ENABLE_SCALABILITY_TESTS "Additional scalability tests that are potentially very slow to run." OFF)
-option(FULL_WARNINGS "Full compiler warnings." ON)
-option(DEBUG_MESSAGES "Print debug messages." OFF)
 option(LOCAL_INSTALL "Support local installation." OFF)
 option(ENABLE_BAMF "Enable building for BAMF." ON)
 option(ENABLE_PLATFORM_API "Enable building for platform API." OFF)
@@ -36,19 +33,12 @@ if (EXISTS "/etc/debian_version")
   set(CMAKE_INSTALL_FULL_LIBEXECDIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}")
 endif()
 
-if(${FULL_WARNINGS})
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-endif()
-
-if(${DEBUG_MESSAGES})
-  add_definitions(-DDEBUG_MESSAGES)
-endif()
-
 set(HUD_QUERY_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.query.xml)
 set(HUD_SERVICE_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.xml)
 set(HUD_APP_XML ${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.hud.Application.xml)
 
 set(WINDOW_STACK_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.Unity.WindowStack.xml")
+set(APPMENU_REGISTRAR_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/com.canonical.AppMenu.Registrar.xml")
 
 set(BAMF_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/org.ayatana.bamf.xml")
 set(BAMF_VIEW_XML "${CMAKE_CURRENT_SOURCE_DIR}/data/org.ayatana.bamf.view.xml")
@@ -60,9 +50,6 @@ add_definitions( -DDATADIR="${CMAKE_INSTALL_FULL_DATADIR}" )
 add_definitions( -DGNOMELOCALEDIR="${CMAKE_INSTALL_FULL_DATADIR}/locale" )
 add_definitions( -DGETTEXT_PACKAGE="${GETTEXT_PACKAGE}" )
 add_definitions( -DLIBEXECDIR="${CMAKE_INSTALL_FULL_LIBEXECDIR}" )
-add_definitions( -DHMM_PATH="/usr/share/sphinx-voxforge-en/hmm/voxforge_en_sphinx.cd_cont_3000/" )
-add_definitions( -DDICT_PATH="/usr/share/sphinx-voxforge-en/lm/voxforge_en_sphinx.cd_cont_3000/voxforge_en_sphinx.dic" )
-add_definitions( -DJULIUS_DICT_PATH="/usr/share/julius-voxforge/acoustic/" )
 
 pkg_check_modules(GLIB2 REQUIRED glib-2.0)
 include_directories(${GLIB2_INCLUDE_DIRS})
@@ -79,32 +66,44 @@ include_directories(${GIO_UNIX2_INCLUDE_DIRS})
 pkg_check_modules(DEE REQUIRED dee-1.0)
 include_directories(${DEE_INCLUDE_DIRS})
 
-pkg_check_modules(SQLITE3 REQUIRED sqlite3)
-include_directories(${SQLITE3_INCLUDE_DIRS})
-
 pkg_check_modules(DBUSMENU_GLIB REQUIRED dbusmenu-glib-0.4)
 include_directories(${DBUSMENU_GLIB_INCLUDE_DIRS})
-
-pkg_check_modules(POCKETSPHINX REQUIRED pocketsphinx)
-include_directories(${POCKETSPHINX_INCLUDE_DIRS})
 
 pkg_search_module(GTK3 REQUIRED gtk+-3.0)
 include_directories(${GTK3_INCLUDE_DIRS})
 
-pkg_check_modules(NIH REQUIRED libnih)
-include_directories(${NIH_INCLUDE_DIRS})
-
-pkg_check_modules(NIH_DBUS REQUIRED libnih-dbus)
-include_directories(${NIH_DBUS_INCLUDE_DIRS})
-
-pkg_check_modules(DBUS REQUIRED dbus-1)
-include_directories(${DBUS_INCLUDE_DIRS})
+pkg_check_modules(COLUMBUS REQUIRED libcolumbus)
+include_directories(${COLUMBUS_INCLUDE_DIRS})
 
 find_package(Qt5Core REQUIRED)
 include_directories(${Qt5Core_INCLUDE_DIRS})
 
+find_package(Qt5Widgets REQUIRED)
+include_directories(${Qt5Widgets_INCLUDE_DIRS})
+
 find_package(Qt5DBus REQUIRED)
 include_directories(${Qt5DBus_INCLUDE_DIRS})
+
+pkg_check_modules(DEE_QT REQUIRED libdee-qt5)
+include_directories(${DEE_QT_INCLUDE_DIRS})
+
+pkg_check_modules(GSETTINGS_QT REQUIRED gsettings-qt REQUIRED)
+include_directories(${GSETTINGS_QT_INCLUDE_DIRS})
+
+pkg_check_modules(DBUSMENU REQUIRED dbusmenu-qt5)
+include_directories(${DBUSMENU_INCLUDE_DIRS})
+
+find_package(Qt5Test REQUIRED)
+include_directories(${Qt5Test_INCLUDE_DIRS})
+
+pkg_check_modules(QTDBUSTEST REQUIRED libqtdbustest-1 REQUIRED)
+include_directories(${QTDBUSTEST_INCLUDE_DIRS})
+
+pkg_check_modules(QTDBUSMOCK REQUIRED libqtdbusmock-1 REQUIRED)
+include_directories(${QTDBUSMOCK_INCLUDE_DIRS})
+
+pkg_check_modules(UNITYVOICE REQUIRED libunityvoice-1 REQUIRED)
+include_directories(${UNITYVOICE_INCLUDE_DIRS})
 
 find_package(Vala 0.12)
 
@@ -115,8 +114,6 @@ if(${HAVE_SIGNAL_H})
   set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} "signal.h")
   check_function_exists(kill HAVE_KILL)
 endif()
-
-pkg_search_module(PANGO REQUIRED pango)
 
 if(${LOCAL_INSTALL})
   set(DBUSSERVICEDIR "${CMAKE_INSTALL_DATADIR}/dbus-1/services/")
@@ -138,28 +135,34 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+add_definitions(
+	-DQT_NO_SIGNALS_SLOTS_KEYWORDS=1
+)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -fPIC")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-permissive")
+
+include(GenerateExportHeader)
 
 add_subdirectory(data)
+add_subdirectory(common)
 add_subdirectory(libhud-client)
 add_subdirectory(libhud)
 add_subdirectory(libhud-gtk)
-add_subdirectory(src)
+add_subdirectory(libqtgmenu)
+add_subdirectory(service)
 add_subdirectory(tools)
 add_subdirectory(window-stack-bridge)
 
 if(${ENABLE_TESTS})
-  enable_testing()
-  
-  pkg_check_modules(DBUSTEST REQUIRED dbustest-1)
-  include_directories(${DBUSTEST_INCLUDE_DIRS})
-  
-  pkg_check_modules(DBUSMENU_JSONLOADER REQUIRED dbusmenu-jsonloader-0.4)
-  include_directories(${DBUSMENU_JSONLOADER_INCLUDE_DIRS})
-  
-  add_subdirectory(tests)
+	enable_testing()
+	ADD_CUSTOM_TARGET(
+		check
+		${CMAKE_CTEST_COMMAND} --force-new-ctest-process --output-on-failure
+	)
 endif()
+
+add_subdirectory(tests)
 
 add_subdirectory(tools-vala)
 if(${ENABLE_DOCUMENTATION})

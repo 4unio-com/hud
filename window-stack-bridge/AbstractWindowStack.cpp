@@ -18,58 +18,35 @@
 
 #include <AbstractWindowStack.h>
 #include <WindowStackAdaptor.h>
-#include <Localisation.h>
+#include <common/DBusTypes.h>
+#include <common/Localisation.h>
+#include <common/WindowInfo.h>
 
 #include <stdexcept>
 #include <QDBusMetaType>
 #include <QDebug>
 
-const QString AbstractWindowStack::DBUS_NAME("com.canonical.Unity.WindowStack");
-const QString AbstractWindowStack::DBUS_PATH(
-		"/com/canonical/Unity/WindowStack");
-
-QDBusArgument & operator<<(QDBusArgument &a, const WindowInfo &wi) {
-	a.beginStructure();
-	a << wi.window_id << wi.app_id << wi.focused << wi.stage;
-	a.endStructure();
-	return a;
-}
-
-const QDBusArgument & operator>>(const QDBusArgument &a, WindowInfo &wi) {
-	a.beginStructure();
-	uint stage;
-	a >> wi.window_id >> wi.app_id >> wi.focused >> stage;
-	a.endStructure();
-	wi.stage = static_cast<WindowInfo::Stage>(stage);
-	return a;
-}
+using namespace hud::common;
 
 AbstractWindowStack::AbstractWindowStack(const QDBusConnection &connection,
 		QObject *parent) :
 		QObject(parent), m_adaptor(new WindowStackAdaptor(this)), m_connection(
 				connection) {
-	registerMetaTypes();
+	WindowInfo::registerMetaTypes();
 }
 
 void AbstractWindowStack::registerOnBus() {
-	if (!m_connection.registerObject(DBUS_PATH, this)) {
+	if (!m_connection.registerObject(DBusTypes::WINDOW_STACK_DBUS_PATH, this)) {
 		throw std::logic_error(
 				_("Unable to register window stack object on DBus"));
 	}
-	if (!m_connection.registerService(DBUS_NAME)) {
+	if (!m_connection.registerService(DBusTypes::WINDOW_STACK_DBUS_NAME)) {
 		throw std::logic_error(
 				_("Unable to register window stack service on DBus"));
 	}
 }
 
 AbstractWindowStack::~AbstractWindowStack() {
-	m_connection.unregisterObject(DBUS_PATH);
-}
-
-void AbstractWindowStack::registerMetaTypes() {
-	qRegisterMetaType<WindowInfo>();
-	qRegisterMetaType<QList<WindowInfo>>();
-	qDBusRegisterMetaType<WindowInfo>();
-	qDBusRegisterMetaType<QList<WindowInfo>>();
+	m_connection.unregisterObject(DBusTypes::WINDOW_STACK_DBUS_PATH);
 }
 

@@ -27,8 +27,8 @@
 #include "connection-private.h"
 #include "query-iface.h"
 #include "enum-types.h"
-#include "query-columns.h"
-#include "shared-values.h"
+#include "common/query-columns.h"
+#include "common/shared-values.h"
 
 struct _HudClientQueryPrivate {
 	_HudQueryComCanonicalHudQuery * proxy;
@@ -46,7 +46,7 @@ struct _HudClientQueryPrivate {
 enum {
 	PROP_0 = 0,
 	PROP_CONNECTION,
-	PROP_QUERY,
+	PROP_QUERY
 };
 
 #define PROP_CONNECTION_S  "connection"
@@ -62,7 +62,7 @@ static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * 
 static void connection_status (HudClientConnection * connection, gboolean connected, HudClientQuery * query);
 static void new_query_cb (HudClientConnection * connection, const gchar * path, const gchar * results, const gchar * appstack, gpointer user_data);
 
-G_DEFINE_TYPE (HudClientQuery, hud_client_query, G_TYPE_OBJECT);
+G_DEFINE_TYPE (HudClientQuery, hud_client_query, G_TYPE_OBJECT)
 
 static guint signal_toolbar_updated = 0;
 static guint hud_client_query_signal_voice_query_loading;
@@ -71,27 +71,6 @@ static guint hud_client_query_signal_voice_query_listening;
 static guint hud_client_query_signal_voice_query_heard_something;
 static guint hud_client_query_signal_voice_query_finished;
 static guint hud_client_query_signal_models_changed = 0;
-
-/* Schema that is used in the DeeModel representing
-   the results */
-static const gchar * results_model_schema[HUD_QUERY_RESULTS_COUNT] = {
-	HUD_QUERY_RESULTS_COMMAND_ID_TYPE,
-	HUD_QUERY_RESULTS_COMMAND_NAME_TYPE,
-	HUD_QUERY_RESULTS_COMMAND_HIGHLIGHTS_TYPE,
-	HUD_QUERY_RESULTS_DESCRIPTION_TYPE,
-	HUD_QUERY_RESULTS_DESCRIPTION_HIGHLIGHTS_TYPE,
-	HUD_QUERY_RESULTS_SHORTCUT_TYPE,
-	HUD_QUERY_RESULTS_DISTANCE_TYPE,
-	HUD_QUERY_RESULTS_PARAMETERIZED_TYPE,
-};
-
-/* Schema that is used in the DeeModel representing
-   the appstack */
-static const gchar * appstack_model_schema[HUD_QUERY_APPSTACK_COUNT] = {
-	HUD_QUERY_APPSTACK_APPLICATION_ID_TYPE,
-	HUD_QUERY_APPSTACK_ICON_NAME_TYPE,
-	HUD_QUERY_APPSTACK_ITEM_TYPE_TYPE,
-};
 
 static void
 hud_client_query_class_init (HudClientQueryClass *klass)
@@ -202,7 +181,7 @@ hud_client_query_init (HudClientQuery *self)
 }
 
 static void
-set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
+set_property (GObject * obj, guint id, const GValue * value, G_GNUC_UNUSED GParamSpec * pspec)
 {
 	HudClientQuery * self = HUD_CLIENT_QUERY(obj);
 
@@ -223,7 +202,7 @@ set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
 }
 
 static void
-get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
+get_property (GObject * obj, guint id, GValue * value, G_GNUC_UNUSED GParamSpec * pspec)
 {
 	HudClientQuery * self = HUD_CLIENT_QUERY(obj);
 
@@ -243,19 +222,19 @@ get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
 }
 
 static void
-hud_client_query_voice_query_loading (_HudQueryComCanonicalHudQuery *object, gpointer user_data)
+hud_client_query_voice_query_loading (G_GNUC_UNUSED _HudQueryComCanonicalHudQuery *object, gpointer user_data)
 {
 	g_signal_emit(user_data, hud_client_query_signal_voice_query_loading, 0);
 }
 
 static void
-hud_client_query_voice_query_listening (_HudQueryComCanonicalHudQuery *object, gpointer user_data)
+hud_client_query_voice_query_listening (G_GNUC_UNUSED _HudQueryComCanonicalHudQuery *object, gpointer user_data)
 {
 	g_signal_emit(user_data, hud_client_query_signal_voice_query_listening, 0);
 }
 
 static void
-hud_client_query_voice_query_heard_something (_HudQueryComCanonicalHudQuery *object, gpointer user_data)
+hud_client_query_voice_query_heard_something (G_GNUC_UNUSED _HudQueryComCanonicalHudQuery *object, gpointer user_data)
 {
   g_signal_emit(user_data, hud_client_query_signal_voice_query_heard_something, 0);
 }
@@ -285,7 +264,7 @@ hud_client_query_constructed (GObject *object)
 /* Handles the connection status of the HUD service, once
    we're connected we can do all kinds of fun stuff */
 static void
-connection_status (HudClientConnection * connection, gboolean connected, HudClientQuery * cquery)
+connection_status (G_GNUC_UNUSED HudClientConnection * connection, gboolean connected, HudClientQuery * cquery)
 {
 	g_clear_object(&cquery->priv->results);
 	g_clear_object(&cquery->priv->appstack);
@@ -315,7 +294,7 @@ parse_toolbar (_HudQueryComCanonicalHudQuery * proxy, G_GNUC_UNUSED GParamSpec *
 	int i;
 	for (i = 0; items != NULL && items[i] != NULL; i++) {
 		HudClientQueryToolbarItems item = hud_client_query_toolbar_items_get_value_from_nick(items[i]);
-		if (item == -1) continue;
+		if (item == HUD_CLIENT_QUERY_TOOLBAR_INVALID) continue;
 		g_array_append_val(query->priv->toolbar, item);
 	}
 
@@ -325,7 +304,7 @@ parse_toolbar (_HudQueryComCanonicalHudQuery * proxy, G_GNUC_UNUSED GParamSpec *
 }
 
 static void
-new_query_cb (HudClientConnection * connection, const gchar * path, const gchar * results, const gchar * appstack, gpointer user_data)
+new_query_cb (G_GNUC_UNUSED HudClientConnection * connection, const gchar * path, const gchar * results, const gchar * appstack, gpointer user_data)
 {
 	if (path == NULL || results == NULL || appstack == NULL) {
 		g_object_unref(user_data);
@@ -529,7 +508,7 @@ hud_client_query_get_query (HudClientQuery * cquery)
 }
 
 static void
-hud_client_query_voice_query_callback (GObject *source, GAsyncResult *result, gpointer user_data)
+hud_client_query_voice_query_callback (G_GNUC_UNUSED GObject *source, GAsyncResult *result, gpointer user_data)
 {
 	g_assert(HUD_CLIENT_IS_QUERY(user_data));
 	HudClientQuery *cquery = HUD_CLIENT_QUERY(user_data);
@@ -624,7 +603,7 @@ hud_client_query_toolbar_item_active (HudClientQuery * cquery, HudClientQueryToo
 {
 	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), FALSE);
 
-	int i = 0;
+	guint i = 0;
 	for (i = 0; i < cquery->priv->toolbar->len; i++) {
 		HudClientQueryToolbarItems local = g_array_index(cquery->priv->toolbar, HudClientQueryToolbarItems, i);
 
@@ -720,14 +699,15 @@ hud_client_query_execute_param_command (HudClientQuery * cquery, GVariant * comm
 	g_return_val_if_fail(HUD_CLIENT_IS_QUERY(cquery), NULL);
 	g_return_val_if_fail(command_key != NULL, NULL);
 
-	gchar * sender = g_dbus_proxy_get_name_owner(G_DBUS_PROXY(cquery->priv->proxy));
+	gchar * sender = NULL;
+	gchar * prefix = NULL;
 	gchar * base_action = NULL;
 	gchar * action_path = NULL;
 	gchar * model_path = NULL;
 	gint section = 0;
 	GError * error = NULL;
 
-	_hud_query_com_canonical_hud_query_call_execute_parameterized_sync(cquery->priv->proxy, command_key, timestamp, &base_action, &action_path, &model_path, &section, NULL, &error);
+	_hud_query_com_canonical_hud_query_call_execute_parameterized_sync(cquery->priv->proxy, command_key, timestamp, &sender, &prefix, &base_action, &action_path, &model_path, &section, NULL, &error);
 
 	if (error != NULL) {
 		g_warning("Unable to execute paramereterized action: %s", error->message);
@@ -735,8 +715,9 @@ hud_client_query_execute_param_command (HudClientQuery * cquery, GVariant * comm
 		return NULL;
 	}
 
-	HudClientParam * param = hud_client_param_new(sender, base_action, action_path, model_path, section);
+	HudClientParam * param = hud_client_param_new(sender, prefix, base_action, action_path, model_path, section);
 
+	g_free(prefix);
 	g_free(sender);
 	g_free(base_action);
 	g_free(action_path);

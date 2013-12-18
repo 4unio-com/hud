@@ -1,4 +1,6 @@
 
+add_compiler_export_flags()
+
 set(HUD_CLIENT_INCLUDE_DIRS
 ${CMAKE_CURRENT_SOURCE_DIR}
 ${CMAKE_CURRENT_BINARY_DIR}
@@ -15,10 +17,6 @@ include_directories(${HUD_CLIENT_INCLUDE_DIRS})
 include_directories(${HUD_SRC_DIR})
 
 add_definitions( -DHUD_CLIENT_COMPILATION=1 )
-
-if(${FULL_WARNINGS})
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-endif()
 
 ###########################
 # Version Information
@@ -78,14 +76,24 @@ set(HUD_CLIENT_HEADERS
 connection.h
 param.h
 query.h
-${CMAKE_SOURCE_DIR}/src/query-columns.h
+toolbar-items.h
+${CMAKE_SOURCE_DIR}/common/query-columns.h
+)
+
+set(HUD_CLIENT_QT_HEADERS
+HudClient.h
+HudToolbarModel.h
 )
 
 set(HUD_CLIENT_SOURCES
+action-muxer.c
 connection.c
 param.c
 query.c
+HudClient.cpp
+HudToolbarModel.cpp
 )
+
 
 add_glib_enumtypes_t(HUD_CLIENT_SOURCES
 enum-types
@@ -103,11 +111,22 @@ set_target_properties(hud-client PROPERTIES
   OUTPUT_NAME "hud-client"
 )
 
+set_target_properties(
+  hud-client
+  PROPERTIES 
+  COMPILE_FLAGS "-Wpedantic -Wall -Wextra"
+)
+
 target_link_libraries(hud-client
 hud-client-generated
 ${GLIB2_LIBRARIES}
 ${GOBJECT2_LIBRARIES}
+${DEE_QT_LIBRARIES}
 -Wl,--no-undefined
+)
+
+qt5_use_modules(hud-client
+  Core
 )
 
 ###########################
@@ -186,7 +205,7 @@ install(
 )
 
 install(
-  FILES ${HUD_CLIENT_HEADERS}
+  FILES ${HUD_CLIENT_HEADERS} ${HUD_CLIENT_QT_HEADERS}
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libhud-client-${API_VERSION}/libhud-client"
 )
 

@@ -16,12 +16,14 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <PlatformApiWindowStack.h>
-#include <Localisation.h>
+#include <window-stack-bridge/PlatformApiWindowStack.h>
+#include <common/Localisation.h>
 
 #include <QDebug>
 #include <stdexcept>
 #include <ubuntu/application/ui/stage.h>
+
+using namespace hud::common;
 
 PlatformApiWindowStack::PlatformApiWindowStack(
 		const QDBusConnection &connection, QObject *parent) :

@@ -16,7 +16,7 @@
  * Author: Pete Woods <pete.woods@canonical.com>
  */
 
-#include <Localisation.h>
+#include <common/Localisation.h>
 #include <WindowStack.h>
 
 #include <QDBusConnection>

@@ -23,7 +23,7 @@
 #include "connection.h"
 #include "service-iface.h"
 
-#include "shared-values.h"
+#include "common/shared-values.h"
 
 struct _HudClientConnectionPrivate {
 	_HudServiceComCanonicalHud * proxy;
@@ -41,7 +41,7 @@ struct _HudClientConnectionPrivate {
 enum {
 	PROP_0 = 0,
 	PROP_ADDRESS,
-	PROP_PATH,
+	PROP_PATH
 };
 
 #define PROP_ADDRESS_S  "address"
@@ -56,7 +56,7 @@ static void set_property (GObject * obj, guint id, const GValue * value, GParamS
 static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec);
 static void name_owner_changed (GObject * object, GParamSpec * pspec, gpointer user_data);
 
-G_DEFINE_TYPE (HudClientConnection, hud_client_connection, G_TYPE_OBJECT);
+G_DEFINE_TYPE (HudClientConnection, hud_client_connection, G_TYPE_OBJECT)
 
 static guint signal_connection_status = 0;
 
@@ -121,7 +121,7 @@ hud_client_connection_init (HudClientConnection *self)
 }
 
 static void
-set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
+set_property (GObject * obj, guint id, const GValue * value, G_GNUC_UNUSED GParamSpec * pspec)
 {
 	HudClientConnection * self = HUD_CLIENT_CONNECTION(obj);
 
@@ -143,7 +143,7 @@ set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
 }
 
 static void
-get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
+get_property (GObject * obj, guint id, GValue * value, G_GNUC_UNUSED GParamSpec * pspec)
 {
 	HudClientConnection * self = HUD_CLIENT_CONNECTION(obj);
 
@@ -301,7 +301,7 @@ hud_client_connection_get_ref (void)
  * Return value: (transfer full): A new #HudClientConnection
  */
 HudClientConnection *
-hud_client_connection_new (gchar * dbus_address, gchar * dbus_path)
+hud_client_connection_new (const gchar * dbus_address, const gchar * dbus_path)
 {
 	return HUD_CLIENT_CONNECTION(g_object_new(HUD_CLIENT_TYPE_CONNECTION,
 			PROP_ADDRESS_S, dbus_address,
@@ -372,7 +372,7 @@ hud_client_connection_new_query (HudClientConnection * connection, const gchar *
 	data->cb = cb;
 	data->user_data = user_data;
 
-	return _hud_service_com_canonical_hud_call_create_query(connection->priv->proxy,
+	_hud_service_com_canonical_hud_call_create_query(connection->priv->proxy,
 		query,
 		connection->priv->cancellable,
 		new_query_complete,

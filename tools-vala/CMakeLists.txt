@@ -7,6 +7,8 @@ set(SYMBOLS_PATH "${CMAKE_CURRENT_BINARY_DIR}/hud-gtk.def")
 
 set(HUD_GTK_DATADIR "${CMAKE_INSTALL_FULL_DATADIR}/hud-gtk")
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations")
+
 ###########################
 # HUD Gtk Vala Generation
 ###########################

@@ -29,6 +29,7 @@
 #include <dee.h>
 #include <libhud-client/connection.h>
 #include <libhud-client/param.h>
+#include <libhud-client/toolbar-items.h>
 
 G_BEGIN_DECLS
 
@@ -77,23 +78,6 @@ struct _HudClientQuery {
 	GObject parent;
 	HudClientQueryPrivate * priv;
 };
-
-/**
- * HudClientQueryToolbarItems:
- * @HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN: Make the application fullscreen
- * @HUD_CLIENT_QUERY_TOOLBAR_HELP: Help the user use the application
- * @HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES: Configure the application
- * @HUD_CLIENT_QUERY_TOOLBAR_UNDO: Revert the last user action
- *
- * The toolbar has a set of preconfigured items in it for the
- * application.  This enum represents them.
- */
-typedef enum { /*< prefix=HUD_CLIENT_QUERY_TOOLBAR >*/
-	HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN,
-	HUD_CLIENT_QUERY_TOOLBAR_HELP,
-	HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES,
-	HUD_CLIENT_QUERY_TOOLBAR_UNDO,
-} HudClientQueryToolbarItems;
 
 GType              hud_client_query_get_type              (void);
 

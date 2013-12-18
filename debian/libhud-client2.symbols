@@ -1,4 +1,35 @@
 libhud-client.so.2 libhud-client2 #MINVER#
+ (c++)"hud::client::HudClient::qt_metacall(QMetaObject::Call, int, void**)@Base" 13.10.1
+ (c++)"hud::client::HudClient::qt_metacast(char const*)@Base" 13.10.1
+ (c++)"hud::client::HudClient::modelsChanged()@Base" 13.10.1
+ (c++)"hud::client::HudClient::executeCommand(int)@Base" 13.10.1
+ (c++)"hud::client::HudClient::setAppstackApp(QString const&)@Base" 13.10.1
+ (c++)"hud::client::HudClient::commandExecuted()@Base" 13.10.1
+ (c++)"hud::client::HudClient::startVoiceQuery()@Base" 13.10.1
+ (c++)"hud::client::HudClient::staticMetaObject@Base" 13.10.1
+ (c++)"hud::client::HudClient::voiceQueryFailed()@Base" 13.10.1
+ (c++)"hud::client::HudClient::voiceQueryLoading()@Base" 13.10.1
+ (c++)"hud::client::HudClient::voiceQueryFinished(QString const&)@Base" 13.10.1
+ (c++)"hud::client::HudClient::voiceQueryListening()@Base" 13.10.1
+ (c++)"hud::client::HudClient::executeToolBarAction(HudClientQueryToolbarItems)@Base" 13.10.1
+ (c++)"hud::client::HudClient::showParametrizedAction(QString const&, QVariant const&)@Base" 13.10.1
+ (c++)"hud::client::HudClient::cancelParametrizedAction()@Base" 13.10.1
+ (c++)"hud::client::HudClient::updateParametrizedAction(QVariant const&)@Base" 13.10.1
+ (c++)"hud::client::HudClient::voiceQueryHeardSomething()@Base" 13.10.1
+ (c++)"hud::client::HudClient::executeParametrizedAction(QVariant const&)@Base" 13.10.1
+ (c++)"hud::client::HudClient::setQuery(QString const&)@Base" 13.10.1
+ (c++)"hud::client::HudClient::HudClient()@Base" 13.10.1
+ (c++)"hud::client::HudClient::HudClient()@Base" 13.10.1
+ (c++)"hud::client::HudClient::~HudClient()@Base" 13.10.1
+ (c++)"hud::client::HudClient::~HudClient()@Base" 13.10.1
+ (c++)"hud::client::HudClient::~HudClient()@Base" 13.10.1
+ (c++)"hud::client::HudClient::metaObject() const@Base" 13.10.1
+ (c++)"hud::client::HudClient::toolBarModel() const@Base" 13.10.1
+ (c++)"hud::client::HudClient::results() const@Base" 13.10.1
+ (c++)"hud::client::HudClient::appstack() const@Base" 13.10.1
+ (c++)"typeinfo for hud::client::HudClient@Base" 13.10.1
+ (c++)"typeinfo name for hud::client::HudClient@Base" 13.10.1
+ (c++)"vtable for hud::client::HudClient@Base" 13.10.1
  hud_client_connection_connected@Base 13.04.0-0ubuntu1~ppa7
  hud_client_connection_get_address@Base 13.04.0
  hud_client_connection_get_ref@Base 13.04.0

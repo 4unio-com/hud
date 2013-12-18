@@ -19,9 +19,9 @@
 #ifndef BAMFWINDOWSTACK_H_
 #define BAMFWINDOWSTACK_H_
 
-#include <AbstractWindowStack.h>
-#include <BamfInterface.h>
-#include <BamfViewInterface.h>
+#include <window-stack-bridge/AbstractWindowStack.h>
+#include <window-stack-bridge/BamfInterface.h>
+#include <window-stack-bridge/BamfViewInterface.h>
 
 #include <QMap>
 #include <QSharedPointer>
@@ -30,7 +30,7 @@ class Q_DECL_EXPORT BamfWindow {
 public:
 	explicit BamfWindow(const QString &path, const QDBusConnection &connection);
 
-	~BamfWindow();
+	virtual ~BamfWindow();
 
 	unsigned int windowId();
 
@@ -58,18 +58,17 @@ Q_OBJECT
 public:
 	typedef QSharedPointer<BamfWindow> WindowPtr;
 
-	explicit BamfWindowStack(const QDBusConnection &connection,
-			QObject *parent = 0);
+	BamfWindowStack(const QDBusConnection &connection, QObject *parent = 0);
 
 	virtual ~BamfWindowStack();
 
 public Q_SLOTS:
-	virtual QString GetAppIdFromPid(uint pid);
+	QString GetAppIdFromPid(uint pid) override;
 
-	virtual QList<WindowInfo> GetWindowStack();
+	QList<hud::common::WindowInfo> GetWindowStack() override;
 
-	virtual QStringList GetWindowProperties(uint windowId, const QString &appId,
-			const QStringList &names);
+	QStringList GetWindowProperties(uint windowId, const QString &appId,
+			const QStringList &names) override;
 
 protected Q_SLOTS:
 	void ActiveWindowChanged(const QString &oldWindow,

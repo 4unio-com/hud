@@ -57,7 +57,7 @@ struct _HudManagerPrivate {
 enum {
 	PROP_0 = 0,
 	PROP_APP_ID,
-	PROP_APPLICATION,
+	PROP_APPLICATION
 };
 
 static void hud_manager_class_init (HudManagerClass *klass);
@@ -69,7 +69,7 @@ static void set_property (GObject * obj, guint id, const GValue * value, GParamS
 static void get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec);
 static void bus_get_cb (GObject * obj, GAsyncResult * res, gpointer user_data);
 
-G_DEFINE_TYPE (HudManager, hud_manager, G_TYPE_OBJECT);
+G_DEFINE_TYPE (HudManager, hud_manager, G_TYPE_OBJECT)
 
 /* Initialize Class */
 static void
@@ -215,7 +215,7 @@ hud_manager_finalize (GObject *object)
 
 /* Standard setting of props */
 static void
-set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
+set_property (GObject * obj, guint id, const GValue * value, G_GNUC_UNUSED GParamSpec * pspec)
 {
 	HudManager * manager = HUD_MANAGER(obj);
 
@@ -248,7 +248,7 @@ set_property (GObject * obj, guint id, const GValue * value, GParamSpec * pspec)
 
 /* Standard getting of props */
 static void
-get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
+get_property (GObject * obj, guint id, GValue * value, G_GNUC_UNUSED GParamSpec * pspec)
 {
 	HudManager * manager = HUD_MANAGER(obj);
 
@@ -269,7 +269,7 @@ get_property (GObject * obj, guint id, GValue * value, GParamSpec * pspec)
 
 /* Callback from adding sources */
 static void
-add_sources_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
+add_sources_cb (GObject * obj, GAsyncResult * res, G_GNUC_UNUSED gpointer user_data)
 {
 	GError * error = NULL;
 	_hud_app_iface_com_canonical_hud_application_call_add_sources_finish((_HudAppIfaceComCanonicalHudApplication *)obj, res, &error);
@@ -286,7 +286,7 @@ add_sources_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 }
 
 static gboolean
-activate_todo_context (gpointer key,
+activate_todo_context (G_GNUC_UNUSED gpointer key,
 		       gpointer value,
                        gpointer user_data)
 {
@@ -353,7 +353,7 @@ process_todo_queues (HudManager * manager)
 
 /* Application proxy callback */
 static void
-application_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
+application_proxy_cb (G_GNUC_UNUSED GObject * obj, GAsyncResult * res, gpointer user_data)
 {
 	GError * error = NULL;
 	_HudAppIfaceComCanonicalHudApplication * proxy = _hud_app_iface_com_canonical_hud_application_proxy_new_finish(res, &error);
@@ -407,7 +407,7 @@ register_app_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 }
 
 static gboolean
-insert_active_context_to_todo (gpointer key,
+insert_active_context_to_todo (G_GNUC_UNUSED gpointer key,
 			       gpointer value,
 			       gpointer user_data)
 {
@@ -421,7 +421,7 @@ insert_active_context_to_todo (gpointer key,
 
 /* Watch the name change to make sure we're robust to it */
 static void
-notify_name_owner (GObject * gobject, GParamSpec * pspec, gpointer user_data)
+notify_name_owner (GObject * gobject, G_GNUC_UNUSED GParamSpec * pspec, gpointer user_data)
 {
 	HudManager * manager = HUD_MANAGER(user_data);
 	gchar * name_owner = g_dbus_proxy_get_name_owner(G_DBUS_PROXY(gobject));
@@ -468,7 +468,7 @@ notify_name_owner (GObject * gobject, GParamSpec * pspec, gpointer user_data)
 
 /* Callback from getting the HUD service proxy */
 static void
-service_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
+service_proxy_cb (G_GNUC_UNUSED GObject * obj, GAsyncResult * res, gpointer user_data)
 {
 	GError * error = NULL;
 	_HudServiceIfaceComCanonicalHud * proxy = _hud_service_iface_com_canonical_hud_proxy_new_finish(res, &error);
@@ -490,7 +490,7 @@ service_proxy_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
 
 /* Callback from getting the session bus */
 static void
-bus_get_cb (GObject * obj, GAsyncResult * res, gpointer user_data)
+bus_get_cb (G_GNUC_UNUSED GObject * obj, GAsyncResult * res, gpointer user_data)
 {
 	GError * error = NULL;
 	GDBusConnection * con = g_bus_get_finish(res, &error);
@@ -655,7 +655,7 @@ hud_manager_add_actions (HudManager * manager, HudActionPublisher * pub)
  * with weak pointer style destroy.
  */
 void
-hud_manager_remove_actions (HudManager * manager, HudActionPublisher * pub)
+hud_manager_remove_actions (HudManager * manager, G_GNUC_UNUSED HudActionPublisher * pub)
 {
 	g_return_if_fail(HUD_IS_MANAGER(manager));
 
@@ -669,7 +669,7 @@ hud_manager_remove_actions (HudManager * manager, HudActionPublisher * pub)
 /* Callback from setting the window context.  Not much we can do, just
    reporting errors */
 static void
-set_window_context_cb (GObject * obj, GAsyncResult *res, gpointer user_data)
+set_window_context_cb (G_GNUC_UNUSED GObject * obj, GAsyncResult *res, G_GNUC_UNUSED gpointer user_data)
 {
 	GError * error = NULL;
 
