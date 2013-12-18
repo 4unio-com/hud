@@ -28,7 +28,7 @@
     </method>
     <method name="GetWindowStack">
       <arg type="a(usbu)" direction="out"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QList&lt;hud::common::WindowInfo&gt;"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="hud::common::WindowInfoList"/>
 	  <!-- a(window_id, app_id, focused, stage) -->
 	  <!-- Order of the array will be in "stacking order" with the first
 	    item being the entry on the top of the stack.  Stages will be interleaved
