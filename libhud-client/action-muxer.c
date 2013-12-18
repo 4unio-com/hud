@@ -208,10 +208,12 @@ g_action_muxer_disconnect_group (GActionMuxer *muxer,
     g_action_muxer_action_removed (subgroup, *action, muxer);
   g_strfreev (actions);
 
-  g_signal_handlers_disconnect_by_func (subgroup, g_action_muxer_action_added, muxer);
-  g_signal_handlers_disconnect_by_func (subgroup, g_action_muxer_action_removed, muxer);
-  g_signal_handlers_disconnect_by_func (subgroup, g_action_muxer_action_enabled_changed, muxer);
-  g_signal_handlers_disconnect_by_func (subgroup, g_action_muxer_action_state_changed, muxer);
+#pragma GCC diagnostic ignored "-Wpedantic"
+  g_signal_handlers_disconnect_by_func (subgroup, (gpointer) g_action_muxer_action_added, muxer);
+  g_signal_handlers_disconnect_by_func (subgroup, (gpointer) g_action_muxer_action_removed, muxer);
+  g_signal_handlers_disconnect_by_func (subgroup, (gpointer) g_action_muxer_action_enabled_changed, muxer);
+  g_signal_handlers_disconnect_by_func (subgroup, (gpointer) g_action_muxer_action_state_changed, muxer);
+#pragma GCC diagnostic pop
 }
 
 static gchar **
@@ -249,6 +251,7 @@ g_action_muxer_list_actions (GActionGroup *group)
         }
       g_strfreev (actions);
     }
+
 
   return (gchar **) g_array_free (all_actions, FALSE);
 }

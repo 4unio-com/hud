@@ -386,7 +386,9 @@ disconnect_handler (gpointer data,
   HudActionPublisher *publisher = user_data;
   HudActionDescription *description = data;
 
+#pragma GCC diagnostic ignored "-Wpedantic"
   g_signal_handlers_disconnect_by_func (description, description_changed, publisher);
+#pragma GCC diagnostic pop
 }
 
 /**
