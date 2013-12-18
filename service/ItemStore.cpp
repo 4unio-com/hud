@@ -243,6 +243,7 @@ void ItemStore::executeItem(Item::Ptr item) {
 
 	if (action == nullptr) {
 		qWarning() << "Tried to execute unknown command";
+		return;
 	}
 
 	action->activate(QAction::ActionEvent::Trigger);
