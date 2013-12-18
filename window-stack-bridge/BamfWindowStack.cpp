@@ -173,8 +173,8 @@ QString BamfWindowStack::GetAppIdFromPid(uint pid) {
 	return QString();
 }
 
-QList<WindowInfo> BamfWindowStack::GetWindowStack() {
-	QList<WindowInfo> results;
+WindowInfoList BamfWindowStack::GetWindowStack() {
+	WindowInfoList results;
 
 	QDBusPendingReply<QStringList> stackReply(
 			m_matcher.WindowStackForMonitor(-1));
