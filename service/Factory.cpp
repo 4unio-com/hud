@@ -34,8 +34,7 @@ using namespace hud::common;
 using namespace hud::service;
 
 Factory::Factory() :
-		m_sessionBus(QDBusConnection::sessionBus()), m_applicationCounter(0), m_queryCounter(
-				0) {
+		m_sessionBus(QDBusConnection::sessionBus()), m_queryCounter(0) {
 	DBusTypes::registerMetaTypes();
 	LibUnityVoice::UnityVoice::registerMetaTypes();
 }
@@ -115,8 +114,7 @@ Voice::Ptr Factory::singletonVoice() {
 
 Application::Ptr Factory::newApplication(const QString &applicationId) {
 	return Application::Ptr(
-			new ApplicationImpl(m_applicationCounter++, applicationId, *this,
-					sessionBus()));
+			new ApplicationImpl(applicationId, *this, sessionBus()));
 }
 
 ItemStore::Ptr Factory::newItemStore() {

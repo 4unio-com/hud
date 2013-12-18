@@ -68,7 +68,7 @@ public:
 	static QString queryPath(unsigned int id);
 
 	Q_DECL_EXPORT
-	static QString applicationPath(unsigned int id);
+	static QString applicationPath(const QString &applicationId);
 };
 
 }

@@ -43,9 +43,8 @@ class Q_DECL_EXPORT ApplicationImpl: public Application, protected QDBusContext 
 Q_OBJECT
 
 public:
-	ApplicationImpl(unsigned int id, const QString &applicationId,
-			Factory &factory, const QDBusConnection &connection,
-			QObject *parent = 0);
+	ApplicationImpl(const QString &applicationId, Factory &factory,
+			const QDBusConnection &connection, QObject *parent = 0);
 
 	virtual ~ApplicationImpl();
 

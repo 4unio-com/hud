@@ -66,6 +66,12 @@ include_directories(${GIO_UNIX2_INCLUDE_DIRS})
 pkg_check_modules(DEE REQUIRED dee-1.0)
 include_directories(${DEE_INCLUDE_DIRS})
 
+pkg_check_modules(NIH REQUIRED libnih)
+include_directories(${NIH_INCLUDE_DIRS})
+
+pkg_check_modules(NIH_DBUS REQUIRED libnih-dbus)
+include_directories(${NIH_DBUS_INCLUDE_DIRS})
+
 pkg_check_modules(DBUSMENU_GLIB REQUIRED dbusmenu-glib-0.4)
 include_directories(${DBUSMENU_GLIB_INCLUDE_DIRS})
 

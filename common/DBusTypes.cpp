@@ -26,6 +26,8 @@
 #include <common/WindowInfo.h>
 
 #include <QList>
+#include <nih/alloc.h>
+#include <nih-dbus/dbus_util.h>
 
 using namespace hud::common;
 
@@ -62,6 +64,10 @@ QString DBusTypes::queryPath(unsigned int id) {
 	return QString("/com/canonical/hud/query/%1").arg(id);
 }
 
-QString DBusTypes::applicationPath(unsigned int id) {
-	return QString("/com/canonical/hud/application/%1").arg(id);
+QString DBusTypes::applicationPath(const QString &applicationId) {
+	char *app_id_path = nih_dbus_path(NULL, "/com/canonical/hud/applications",
+			qPrintable(applicationId), NULL);
+	QString path(QString::fromUtf8(app_id_path));
+	nih_free(app_id_path);
+	return path;
 }
