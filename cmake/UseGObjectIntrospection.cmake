@@ -52,6 +52,7 @@ macro(gir_add_introspections introspections_girs)
     add_custom_command(
       COMMAND ${INTROSPECTION_SCANNER}
               ${INTROSPECTION_SCANNER_ARGS}
+              --quiet
               --namespace=${_gir_namespace}
               --nsversion=${_gir_version}
               ${_gir_libtool}
