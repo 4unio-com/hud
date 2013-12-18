@@ -41,5 +41,3 @@ QtGMenuExporter::QtGMenuExporter( const QString& dbusObjectPath, QMenu* menu,
 QtGMenuExporter::~QtGMenuExporter()
 {
 }
-
-#include "QtGMenuExporter.moc"

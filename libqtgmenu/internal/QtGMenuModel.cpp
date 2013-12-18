@@ -515,5 +515,3 @@ void QtGMenuModel::UpdateExtQMenu()
     }
   }
 }
-
-#include <QtGMenuModel.moc>

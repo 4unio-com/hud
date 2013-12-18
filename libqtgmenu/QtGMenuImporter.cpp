@@ -58,5 +58,3 @@ void QtGMenuImporter::ForceRefresh()
 {
   d->StartPolling();
 }
-
-#include <QtGMenuImporter.moc>

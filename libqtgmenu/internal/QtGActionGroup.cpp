@@ -219,5 +219,3 @@ void QtGActionGroup::DisconnectCallbacks()
   m_action_enabled_handler = 0;
   m_action_state_changed_handler = 0;
 }
-
-#include <QtGActionGroup.moc>

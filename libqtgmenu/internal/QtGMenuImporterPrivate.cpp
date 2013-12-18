@@ -286,5 +286,3 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
 
   return actions_are_valid;
 }
-
-#include <QtGMenuImporterPrivate.moc>
