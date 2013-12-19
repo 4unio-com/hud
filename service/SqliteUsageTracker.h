@@ -22,11 +22,16 @@
 #include <service/UsageTracker.h>
 
 #include <QMap>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QTimer>
 
 namespace hud {
 namespace service {
 
 class SqliteUsageTracker: public UsageTracker {
+Q_OBJECT
+
 public:
 	SqliteUsageTracker();
 
@@ -37,10 +42,24 @@ public:
 	unsigned int usage(const QString &applicationId, const QString &entry) const
 			override;
 
+protected Q_SLOTS:
+	void loadFromDatabase();
+
 protected:
 	typedef QPair<QString, QString> UsagePair;
 
+
 	QMap<UsagePair, unsigned int> m_usage;
+
+	QTimer m_timer;
+
+	QSqlDatabase m_db;
+
+	QSqlQuery m_insert;
+
+	QSqlQuery m_query;
+
+	QSqlQuery m_delete;
 };
 
 }

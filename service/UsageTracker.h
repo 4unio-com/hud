@@ -19,6 +19,7 @@
 #ifndef HUD_SERVICE_USAGETRACKER_H_
 #define HUD_SERVICE_USAGETRACKER_H_
 
+#include <QObject>
 #include <QSharedPointer>
 
 QT_BEGIN_NAMESPACE
@@ -28,7 +29,7 @@ QT_END_NAMESPACE
 namespace hud {
 namespace service {
 
-class UsageTracker {
+class UsageTracker: public QObject {
 public:
 	typedef QSharedPointer<UsageTracker> Ptr;
 

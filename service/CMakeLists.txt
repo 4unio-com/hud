@@ -87,6 +87,7 @@ qt5_use_modules(
 	Core
 	DBus
 	Widgets
+	Sql
 )
 
 ###########################
