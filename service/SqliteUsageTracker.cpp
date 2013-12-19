@@ -107,7 +107,6 @@ void SqliteUsageTracker::loadFromDatabase() {
 void SqliteUsageTracker::markUsage(const QString &applicationId,
 		const QString &entry) {
 	UsagePair pair(applicationId, entry);
-	m_usage.find(pair);
 
 	if (m_usage.contains(pair)) {
 		// increment if we have an existing entry

@@ -48,7 +48,6 @@ protected Q_SLOTS:
 protected:
 	typedef QPair<QString, QString> UsagePair;
 
-
 	QMap<UsagePair, unsigned int> m_usage;
 
 	QTimer m_timer;
