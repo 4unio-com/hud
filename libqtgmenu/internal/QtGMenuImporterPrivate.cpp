@@ -197,7 +197,7 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
     QTimer timeout;
 
     menu_refresh_wait.connect( &m_parent, SIGNAL( MenuItemsChanged() ), SLOT( quit() ) );
-    timeout.singleShot( 100, &menu_refresh_wait, SLOT( quit() ) );
+    timeout.singleShot( 500, &menu_refresh_wait, SLOT( quit() ) );
     menu_refresh_wait.exec();
 
     // check item count again
@@ -257,7 +257,7 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
     QTimer timeout;
 
     actions_refresh_wait.connect( &m_parent, SIGNAL( ActionAdded( QString ) ), SLOT( quit() ) );
-    timeout.singleShot( 100, &actions_refresh_wait, SLOT( quit() ) );
+    timeout.singleShot( 500, &actions_refresh_wait, SLOT( quit() ) );
     actions_refresh_wait.exec();
 
     // check item count again
