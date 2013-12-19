@@ -21,6 +21,7 @@
 
 #include <service/Item.h>
 #include <service/Result.h>
+#include <service/UsageTracker.h>
 
 #include <QSharedPointer>
 #include <QMenu>
@@ -43,7 +44,7 @@ Q_OBJECT
 public:
 	typedef QSharedPointer<ItemStore> Ptr;
 
-	explicit ItemStore();
+	explicit ItemStore(const QString &applicationId, UsageTracker::Ptr usageTracker);
 
 	virtual ~ItemStore();
 
@@ -79,6 +80,10 @@ protected:
 	Columbus::Corpus m_corpus;
 
 	Columbus::Matcher m_matcher;
+
+	QString m_applicationId;
+
+	UsageTracker::Ptr m_usageTracker;
 
 	DocumentID m_nextId;
 

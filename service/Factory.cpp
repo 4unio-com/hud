@@ -23,6 +23,7 @@
 #include <service/HudServiceImpl.h>
 #include <service/WindowImpl.h>
 #include <service/QueryImpl.h>
+#include <service/SqliteUsageTracker.h>
 #include <service/VoiceImpl.h>
 #include <service/WindowImpl.h>
 #include <common/DBusTypes.h>
@@ -101,6 +102,13 @@ ApplicationList::Ptr Factory::singletonApplicationList() {
 	return m_applicationList;
 }
 
+UsageTracker::Ptr Factory::singletonUsageTracker() {
+	if (m_usageTracker.isNull()) {
+		m_usageTracker.reset(new SqliteUsageTracker());
+	}
+	return m_usageTracker;
+}
+
 Voice::Ptr Factory::singletonVoice() {
 	if (m_voice.isNull()) {
 		QSharedPointer<ComCanonicalUnityVoiceInterface> voiceInterface(
@@ -117,14 +125,19 @@ Application::Ptr Factory::newApplication(const QString &applicationId) {
 			new ApplicationImpl(applicationId, *this, sessionBus()));
 }
 
-ItemStore::Ptr Factory::newItemStore() {
-	return ItemStore::Ptr(new ItemStore());
+ItemStore::Ptr Factory::newItemStore(const QString &applicationId) {
+	return ItemStore::Ptr(new ItemStore(applicationId, singletonUsageTracker()));
 }
 
 Window::Ptr Factory::newWindow(unsigned int windowId,
 		const QString &applicationId, WindowContext::Ptr allwindowsContext) {
 	return Window::Ptr(
 			new WindowImpl(windowId, applicationId, allwindowsContext, *this));
+}
+
+WindowToken::Ptr Factory::newWindowToken(const QString &applicationId,
+		QList<CollectorToken::Ptr> tokens) {
+	return WindowToken::Ptr(new WindowTokenImpl(tokens, newItemStore(applicationId)));
 }
 
 WindowContext::Ptr Factory::newWindowContext() {
