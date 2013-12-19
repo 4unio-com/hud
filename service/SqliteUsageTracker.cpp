@@ -18,7 +18,6 @@
 
 #include <service/SqliteUsageTracker.h>
 
-#include <QDebug>
 #include <QDir>
 #include <QVariant>
 #include <QGSettings/qgsettings.h>
@@ -37,14 +36,20 @@ SqliteUsageTracker::SqliteUsageTracker() {
 			"/com/canonical/indicator/appmenu/hud/");
 	bool storeHistory(settings.get("store-usage-data").toBool());
 
-	m_db = QSqlDatabase::addDatabase("QSQLITE");
-	if (storeHistory) {
+	if (QSqlDatabase::contains("usage-tracker")) {
+		m_db = QSqlDatabase::database("usage-tracker");
+	} else {
+		m_db = QSqlDatabase::addDatabase("QSQLITE", "usage-tracker");
+	}
+
+	if (storeHistory && qEnvironmentVariableIsEmpty("HUD_NO_USAGE_DATA")) {
 		QDir cacheDirectory;
 		if (qEnvironmentVariableIsSet("HUD_CACHE_DIR")) {
 			cacheDirectory.setPath(qgetenv("HUD_CACHE_DIR"));
 		} else {
 			cacheDirectory = QDir::home().filePath(".cache");
 		}
+		cacheDirectory.mkpath("indicator-appmenu");
 		QDir appmenuIndicatorDirectory(
 				cacheDirectory.filePath("indicator-appmenu"));
 		m_db.setDatabaseName(
@@ -56,17 +61,9 @@ SqliteUsageTracker::SqliteUsageTracker() {
 	m_db.open();
 
 	// it's important to construct these against the newly open database
-	m_insert = QSqlQuery(m_db);
-	m_query = QSqlQuery(m_db);
-	m_delete = QSqlQuery(m_db);
-
-	// Prepare our SQL statements
-	m_insert.prepare(
-			"insert into usage (application, entry, timestamp) values (?, ?, date('now', 'utc'))");
-	m_query.prepare(
-			"select application, entry, count(*) from usage where timestamp > date('now', 'utc', '-30 days') group by application, entry");
-	m_delete.prepare(
-			"delete from usage where timestamp < date('now', 'utc', '-30 days')");
+	m_insert.reset(new QSqlQuery(m_db));
+	m_query.reset(new QSqlQuery(m_db));
+	m_delete.reset(new QSqlQuery(m_db));
 
 	// Create the database schema if it doesn't exist
 	QSqlQuery create(m_db);
@@ -76,6 +73,14 @@ SqliteUsageTracker::SqliteUsageTracker() {
 	create.prepare(
 			"create index if not exists application_index on usage (application, entry)");
 	create.exec();
+
+	// Prepare our SQL statements
+	m_insert->prepare(
+			"insert into usage (application, entry, timestamp) values (?, ?, date('now', 'utc'))");
+	m_query->prepare(
+			"select application, entry, count(*) from usage where timestamp > date('now', 'utc', '-30 days') group by application, entry");
+	m_delete->prepare(
+			"delete from usage where timestamp < date('now', 'utc', '-30 days')");
 
 	loadFromDatabase();
 }
@@ -89,13 +94,13 @@ void SqliteUsageTracker::loadFromDatabase() {
 	m_usage.clear();
 
 	// Delete entries older than 30 days
-	m_delete.exec();
+	m_delete->exec();
 
-	m_query.exec();
-	while (m_query.next()) {
-		UsagePair pair(m_query.value(0).toString(),
-				m_query.value(1).toString());
-		m_usage[pair] = m_query.value(2).toInt();
+	m_query->exec();
+	while (m_query->next()) {
+		UsagePair pair(m_query->value(0).toString(),
+				m_query->value(1).toString());
+		m_usage[pair] = m_query->value(2).toInt();
 	}
 }
 
@@ -113,9 +118,9 @@ void SqliteUsageTracker::markUsage(const QString &applicationId,
 	}
 
 	// write out the data to sqlite
-	m_insert.bindValue(0, applicationId);
-	m_insert.bindValue(1, entry);
-	m_insert.exec();
+	m_insert->bindValue(0, applicationId);
+	m_insert->bindValue(1, entry);
+	m_insert->exec();
 }
 
 unsigned int SqliteUsageTracker::usage(const QString &applicationId,

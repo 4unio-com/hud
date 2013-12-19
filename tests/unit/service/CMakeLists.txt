@@ -6,6 +6,7 @@ set(
 	TestHudService.cpp
 	TestItemStore.cpp
 	TestQuery.cpp
+	TestUsageTracker.cpp
 	TestVoice.cpp
 	TestWindow.cpp
 )

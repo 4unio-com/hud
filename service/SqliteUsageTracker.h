@@ -55,11 +55,11 @@ protected:
 
 	QSqlDatabase m_db;
 
-	QSqlQuery m_insert;
+	QScopedPointer<QSqlQuery> m_insert;
 
-	QSqlQuery m_query;
+	QScopedPointer<QSqlQuery> m_query;
 
-	QSqlQuery m_delete;
+	QScopedPointer<QSqlQuery> m_delete;
 };
 
 }

@@ -226,4 +226,53 @@ TEST_F(TestItemStore, DistanceExtraTerms) {
 	EXPECT_EQ("Save", search("save"));
 }
 
+TEST_F(TestItemStore, BlankSearchFrequentlyUsedItems) {
+	QMenu root;
+
+	QMenu file("File");
+	file.addAction("One");
+	file.addAction("Two");
+	file.addAction("Three");
+	file.addAction("Four");
+	root.addMenu(&file);
+
+	store->indexMenu(&root);
+
+	ON_CALL(*usageTracker,
+			usage(QString("app-id"), QString("File||One"))).WillByDefault(
+			Return(2));
+	ON_CALL(*usageTracker,
+			usage(QString("app-id"), QString("File||Two"))).WillByDefault(
+			Return(0));
+	ON_CALL(*usageTracker,
+			usage(QString("app-id"), QString("File||Three"))).WillByDefault(
+			Return(4));
+	ON_CALL(*usageTracker,
+			usage(QString("app-id"), QString("File||Four"))).WillByDefault(
+			Return(3));
+
+	QList<Result> results;
+	store->search("", results);
+	ASSERT_EQ(4, results.size());
+	EXPECT_EQ(QString("Three"), results.at(0).commandName());
+	EXPECT_EQ(QString("Four"), results.at(1).commandName());
+	EXPECT_EQ(QString("One"), results.at(2).commandName());
+	EXPECT_EQ(QString("Two"), results.at(3).commandName());
+}
+
+TEST_F(TestItemStore, ExecuteMarksHistory) {
+	QMenu root;
+
+	QMenu file("File");
+	file.addAction("Save As...");
+	file.addAction("Save");
+	root.addMenu(&file);
+
+	store->indexMenu(&root);
+
+	EXPECT_CALL(*usageTracker,
+			markUsage(QString("app-id"), QString("File||Save As...")));
+	store->execute(0);
+}
+
 } // namespace
