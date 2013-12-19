@@ -344,14 +344,13 @@ QAction* QtGMenuModel::CreateAction( int index )
   QAction* action = new QAction( this );
 
   gchar* label = NULL;
-  g_menu_model_get_item_attribute( m_model, index, G_MENU_ATTRIBUTE_LABEL,
-      "s", &label );
+  if( g_menu_model_get_item_attribute( m_model, index, G_MENU_ATTRIBUTE_LABEL, "s", &label ) ) {
+    QString qlabel = QString::fromUtf8( label );
+    qlabel.replace( '_', '&' );
+    g_free( label );
 
-  QString qlabel = QString::fromUtf8( label );
-  qlabel.replace( '_', '&' );
-  g_free( label );
-
-  action->setText( qlabel );
+    action->setText( qlabel );
+  }
 
   // action name
   gchar* action_name = NULL;
@@ -385,10 +384,8 @@ QAction* QtGMenuModel::CreateAction( int index )
   }
 
   // action shortcut
-  GMenuItem* menu_item = g_menu_item_new_from_model( m_model, index );
   gchar* shortcut = NULL;
-
-  if( g_menu_item_get_attribute( menu_item, "accel", "s", &shortcut ) )
+  if( g_menu_model_get_item_attribute( m_model, index, "accel", "s", &shortcut ) )
   {
     QString qshortcut = QString::fromUtf8( shortcut );
     g_free( shortcut );
@@ -398,7 +395,7 @@ QAction* QtGMenuModel::CreateAction( int index )
 
   // action shortcut
   gchar* toolbar_item = NULL;
-  if( g_menu_item_get_attribute( menu_item, "hud-toolbar-item", "s", &toolbar_item ) )
+  if( g_menu_model_get_item_attribute( m_model, index, "hud-toolbar-item", "s", &toolbar_item ) )
   {
     QString qtoolbar_item = QString::fromUtf8( toolbar_item );
     g_free( toolbar_item );
@@ -408,15 +405,13 @@ QAction* QtGMenuModel::CreateAction( int index )
 
   // action keywords
   gchar* keywords = NULL;
-  if( g_menu_item_get_attribute( menu_item, "keywords", "s", keywords ) )
+  if( g_menu_model_get_item_attribute( m_model, index, "keywords", "s", &keywords ) )
   {
     QVariant qkeywords = QString::fromUtf8( keywords );
     g_free( keywords );
 
     action->setProperty( c_property_keywords, qkeywords );
   }
-
-  g_object_unref( menu_item );
 
   // action trigger
   connect( action, SIGNAL( triggered( bool ) ), this, SLOT( ActionTriggered( bool ) ) );
