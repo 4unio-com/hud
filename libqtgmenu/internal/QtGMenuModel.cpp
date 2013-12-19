@@ -395,17 +395,17 @@ QAction* QtGMenuModel::CreateAction( int index )
 
   // action shortcut
   gchar* toolbar_item = NULL;
-  if( g_menu_model_get_item_attribute( m_model, index, "hud-toolbar-item", "s", &toolbar_item ) )
+  if( g_menu_model_get_item_attribute( m_model, index, c_property_hud_toolbar_item, "s", &toolbar_item ) )
   {
     QString qtoolbar_item = QString::fromUtf8( toolbar_item );
     g_free( toolbar_item );
 
-    action->setProperty( "hud-toolbar-item", qtoolbar_item );
+    action->setProperty( c_property_hud_toolbar_item, qtoolbar_item );
   }
 
   // action keywords
   gchar* keywords = NULL;
-  if( g_menu_model_get_item_attribute( m_model, index, "keywords", "s", &keywords ) )
+  if( g_menu_model_get_item_attribute( m_model, index, c_property_keywords, "s", &keywords ) )
   {
     QVariant qkeywords = QString::fromUtf8( keywords );
     g_free( keywords );
