@@ -96,13 +96,13 @@ void QtGMenuImporterPrivate::StartPolling()
 {
   if( !m_menu_path.empty() )
   {
-    m_menu_poll_timer.setInterval( 100 );
+    m_menu_poll_timer.setInterval( 1000 );
     m_menu_poll_timer.start();
   }
 
   if( !m_actions_path.empty() )
   {
-    m_actions_poll_timer.setInterval( 100 );
+    m_actions_poll_timer.setInterval( 1000 );
     m_actions_poll_timer.start();
   }
 }
