@@ -32,9 +32,14 @@ SqliteUsageTracker::SqliteUsageTracker() {
 	m_timer.start();
 
 	// Should we store user history
-	QGSettings settings("com.canonical.indicator.appmenu.hud",
-			"/com/canonical/indicator/appmenu/hud/");
-	bool storeHistory(settings.get("store-usage-data").toBool());
+	bool storeHistory(false);
+	if (qEnvironmentVariableIsEmpty("HUD_STORE_USAGE_DATA")) {
+		QGSettings settings("com.canonical.indicator.appmenu.hud",
+				"/com/canonical/indicator/appmenu/hud/");
+		settings.get("store-usage-data").toBool();
+	} else {
+		storeHistory = qgetenv("HUD_STORE_USAGE_DATA") == "TRUE";
+	}
 
 	if (QSqlDatabase::contains("usage-tracker")) {
 		m_db = QSqlDatabase::database("usage-tracker");
@@ -42,7 +47,7 @@ SqliteUsageTracker::SqliteUsageTracker() {
 		m_db = QSqlDatabase::addDatabase("QSQLITE", "usage-tracker");
 	}
 
-	if (storeHistory && qEnvironmentVariableIsEmpty("HUD_NO_USAGE_DATA")) {
+	if (storeHistory) {
 		QDir cacheDirectory;
 		if (qEnvironmentVariableIsSet("HUD_CACHE_DIR")) {
 			cacheDirectory.setPath(qgetenv("HUD_CACHE_DIR"));

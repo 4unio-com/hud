@@ -56,7 +56,7 @@ TEST_F(TestUsageTracker, BasicBehaviour) {
 TEST_F(TestUsageTracker, SavesThingsBetweenRuns) {
 	QTemporaryDir temporaryDir;
 	ASSERT_TRUE(temporaryDir.isValid());
-	qputenv("HUD_NO_USAGE_DATA", "");
+	qputenv("HUD_STORE_USAGE_DATA", "TRUE");
 	qputenv("HUD_CACHE_DIR", temporaryDir.path().toUtf8());
 
 	{
@@ -91,7 +91,7 @@ TEST_F(TestUsageTracker, SavesThingsBetweenRuns) {
 		EXPECT_EQ(2, usageTracker.usage("app-id-2", "entry2"));
 	}
 
-	qputenv("HUD_NO_USAGE_DATA", "1");
+	qputenv("HUD_NO_USAGE_DATA", "FALSE");
 }
 
 } // namespace

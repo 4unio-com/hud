@@ -24,7 +24,7 @@
 int main(int argc, char **argv) {
 	qputenv("QT_QPA_PLATFORM", "minimal");
 	qputenv("HUD_IGNORE_SEARCH_SETTINGS", "1");
-	qputenv("HUD_NO_USAGE_DATA", "1");
+	qputenv("HUD_STORE_USAGE_DATA", "FALSE");
 
 //	qputenv("LANG", "C.UTF-8");
 	unsetenv("LC_ALL");
