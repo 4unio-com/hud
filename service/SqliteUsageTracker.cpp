@@ -36,7 +36,7 @@ SqliteUsageTracker::SqliteUsageTracker() {
 	if (qEnvironmentVariableIsEmpty("HUD_STORE_USAGE_DATA")) {
 		QGSettings settings("com.canonical.indicator.appmenu.hud",
 				"/com/canonical/indicator/appmenu/hud/");
-		settings.get("storeUsageData").toBool();
+		storeHistory = settings.get("storeUsageData").toBool();
 	} else {
 		storeHistory = qgetenv("HUD_STORE_USAGE_DATA") == "TRUE";
 	}
@@ -50,7 +50,7 @@ SqliteUsageTracker::SqliteUsageTracker() {
 	if (storeHistory) {
 		QDir cacheDirectory;
 		if (qEnvironmentVariableIsSet("HUD_CACHE_DIR")) {
-			cacheDirectory.setPath(qgetenv("HUD_CACHE_DIR"));
+			cacheDirectory = qgetenv("HUD_CACHE_DIR");
 		} else {
 			cacheDirectory = QDir::home().filePath(".cache");
 		}
