@@ -98,12 +98,6 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 			childIndex << i;
 			indexMenu(child, root, childStack, childIndex);
 		} else {
-			Result::HighlightList commandHighlights;
-			commandHighlights << Result::Highlight(2, 3);
-
-			Result::HighlightList descriptionHighlights;
-			descriptionHighlights << Result::Highlight(3, 5);
-
 			Document document(m_nextId);
 
 			WordList command;
