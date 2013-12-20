@@ -229,11 +229,11 @@ TEST_F(TestItemStore, DistanceExtraTerms) {
 TEST_F(TestItemStore, BlankSearchFrequentlyUsedItems) {
 	QMenu root;
 
-	QMenu file("File");
-	file.addAction("One");
-	file.addAction("Two");
-	file.addAction("Three");
-	file.addAction("Four");
+	QMenu file("&File");
+	file.addAction("&One");
+	file.addAction("&Two");
+	file.addAction("T&hree");
+	file.addAction("Fou&r");
 	root.addMenu(&file);
 
 	store->indexMenu(&root);

@@ -168,10 +168,10 @@ static QString convertToEntry(Item::Ptr item, const QAction *action) {
 		} else {
 			result.append("||");
 		}
-		result.append(context->text());
+		result.append(convertActionText(context));
 	}
 	result.append("||");
-	result.append(action->text());
+	result.append(convertActionText(action));
 	return result;
 }
 
