@@ -24,10 +24,15 @@
 
 using namespace hud::service;
 
+/*
+ * One day in milliseconds
+ */
+static const int ONE_DAY = 86400000;
+
 SqliteUsageTracker::SqliteUsageTracker() {
 	// once each day, clear out the old database entries
 	m_timer.setTimerType(Qt::VeryCoarseTimer);
-	m_timer.setInterval(86400000);
+	m_timer.setInterval(ONE_DAY);
 	connect(&m_timer, SIGNAL(timeout()), this, SLOT(loadFromDatabase()));
 	m_timer.start();
 
