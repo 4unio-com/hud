@@ -196,16 +196,9 @@ void QueryImpl::refresh() {
 	// First clear the old results
 	m_results.clear();
 
-	// Now check for an active application
-	Application::Ptr application(m_applicationList->focusedApplication());
-	if (application) {
-		Window::Ptr window(m_applicationList->focusedWindow());
-
-		if (window.isNull()) {
-			qWarning() << "No focused window";
-			return;
-		}
-
+	// Now check for an active window
+	Window::Ptr window(m_applicationList->focusedWindow());
+	if (window) {
 		// Hold onto a token for the active window
 		updateToken(window);
 
@@ -224,6 +217,8 @@ void QueryImpl::refresh() {
 	}
 	m_resultsModel->endChangeset();
 
+	// Now check for an active application
+	Application::Ptr application(m_applicationList->focusedApplication());
 	m_appstackModel->beginChangeset();
 	if (application) {
 		m_appstackModel->addApplication(application->id(), application->icon(),
