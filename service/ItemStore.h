@@ -44,7 +44,7 @@ Q_OBJECT
 public:
 	typedef QSharedPointer<ItemStore> Ptr;
 
-	explicit ItemStore(const QString &applicationId, UsageTracker::Ptr usageTracker);
+	ItemStore(const QString &applicationId, UsageTracker::Ptr usageTracker);
 
 	virtual ~ItemStore();
 

@@ -40,7 +40,7 @@ Q_OBJECT
 	friend WindowImpl;
 
 public:
-	explicit WindowTokenImpl(const QList<CollectorToken::Ptr> &tokens, ItemStore::Ptr itemStore);
+	WindowTokenImpl(const QList<CollectorToken::Ptr> &tokens, ItemStore::Ptr itemStore);
 
 	virtual ~WindowTokenImpl();
 
