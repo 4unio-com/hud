@@ -4,7 +4,7 @@ add_subdirectory(hudkeywords)
 include_directories(${HUD_CLIENT_INCLUDE_DIRS})
 include_directories(${HUD_SERVICE_INCLUDE_DIRS})
 
-if(${PANGO_FOUND})
+pkg_check_modules(PANGO REQUIRED pango)
 
 include_directories(${PANGO_INCLUDE_DIRS})
 
@@ -39,8 +39,6 @@ install(
   TARGETS hud-cli-param
   RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
-
-endif()
 
 ###########################
 # Hud CLI Appstack
