@@ -201,6 +201,11 @@ void QueryImpl::refresh() {
 	if (application) {
 		Window::Ptr window(m_applicationList->focusedWindow());
 
+		if (window.isNull()) {
+			qWarning() << "No focused window";
+			return;
+		}
+
 		// Hold onto a token for the active window
 		updateToken(window);
 
