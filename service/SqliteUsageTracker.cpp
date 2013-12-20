@@ -36,7 +36,7 @@ SqliteUsageTracker::SqliteUsageTracker() {
 	if (qEnvironmentVariableIsEmpty("HUD_STORE_USAGE_DATA")) {
 		QGSettings settings("com.canonical.indicator.appmenu.hud",
 				"/com/canonical/indicator/appmenu/hud/");
-		settings.get("store-usage-data").toBool();
+		settings.get("storeUsageData").toBool();
 	} else {
 		storeHistory = qgetenv("HUD_STORE_USAGE_DATA") == "TRUE";
 	}
