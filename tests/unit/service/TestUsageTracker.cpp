@@ -91,7 +91,7 @@ TEST_F(TestUsageTracker, SavesThingsBetweenRuns) {
 		EXPECT_EQ(2, usageTracker.usage("app-id-2", "entry2"));
 	}
 
-	qputenv("HUD_NO_USAGE_DATA", "FALSE");
+	qputenv("HUD_STORE_USAGE_DATA", "FALSE");
 }
 
 } // namespace
