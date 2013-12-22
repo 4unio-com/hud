@@ -155,16 +155,10 @@ static void findHighlights(Result::HighlightList &highlights,
 
 static QString convertToEntry(Item::Ptr item, const QAction *action) {
 	QString result;
-	bool first(true);
 	for (const QAction *context : item->context()) {
-		if (first) {
-			first = false;
-		} else {
-			result.append("||");
-		}
 		result.append(convertActionText(context));
+		result.append("||");
 	}
-	result.append("||");
 	result.append(convertActionText(action));
 	return result;
 }
