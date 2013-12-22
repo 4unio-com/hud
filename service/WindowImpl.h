@@ -40,7 +40,7 @@ Q_OBJECT
 	friend WindowImpl;
 
 public:
-	explicit WindowTokenImpl(const QList<CollectorToken::Ptr> &tokens);
+	WindowTokenImpl(const QList<CollectorToken::Ptr> &tokens, ItemStore::Ptr itemStore);
 
 	virtual ~WindowTokenImpl();
 
@@ -64,7 +64,7 @@ protected Q_SLOTS:
 	void childChanged();
 
 protected:
-	ItemStore m_items;
+	ItemStore::Ptr m_items;
 
 	QList<CollectorToken::Ptr> m_tokens;
 
@@ -83,6 +83,8 @@ public:
 	virtual WindowToken::Ptr activate();
 
 protected:
+	QString m_applicationId;
+
 	WindowContext::Ptr m_allWindowsContext;
 
 	Collector::Ptr m_dbusMenuCollector;

@@ -26,6 +26,7 @@
 #include <service/GMenuWindowCollector.h>
 #include <service/GMenuCollector.h>
 #include <service/ItemStore.h>
+#include <service/UsageTracker.h>
 #include <service/Voice.h>
 #include <service/Query.h>
 #include <service/Window.h>
@@ -62,16 +63,21 @@ public:
 
 	virtual ApplicationList::Ptr singletonApplicationList();
 
+	virtual UsageTracker::Ptr singletonUsageTracker();
+
 	virtual Voice::Ptr singletonVoice();
 
 	virtual Application::Ptr newApplication(const QString &applicationId);
 
-	virtual ItemStore::Ptr newItemStore();
+	virtual ItemStore::Ptr newItemStore(const QString &applicationId);
 
 	virtual Window::Ptr newWindow(unsigned int windowId,
 			const QString &applicationId, WindowContext::Ptr allwindowsContext);
 
 	virtual WindowContext::Ptr newWindowContext();
+
+	virtual WindowToken::Ptr newWindowToken(const QString &applicationId,
+			QList<CollectorToken::Ptr> tokens);
 
 	virtual Collector::Ptr newDBusMenuCollector(unsigned int windowId,
 			const QString &applicationId);
@@ -90,6 +96,8 @@ protected:
 	HudService::Ptr m_hudService;
 
 	ApplicationList::Ptr m_applicationList;
+
+	UsageTracker::Ptr m_usageTracker;
 
 	Voice::Ptr m_voice;
 

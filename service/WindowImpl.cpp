@@ -22,14 +22,15 @@
 
 using namespace hud::service;
 
-WindowTokenImpl::WindowTokenImpl(const QList<CollectorToken::Ptr> &tokens) :
-		m_tokens(tokens) {
+WindowTokenImpl::WindowTokenImpl(const QList<CollectorToken::Ptr> &tokens,
+		ItemStore::Ptr itemStore) :
+		m_items(itemStore), m_tokens(tokens) {
 	m_timer.setSingleShot(true);
 	connect(&m_timer, SIGNAL(timeout()), this, SIGNAL(changed()));
 
 	for (CollectorToken::Ptr token : tokens) {
 		connect(token.data(), SIGNAL(changed()), this, SLOT(childChanged()));
-		m_items.indexMenu(token->menu());
+		m_items->indexMenu(token->menu());
 	}
 }
 
@@ -45,35 +46,36 @@ const QList<CollectorToken::Ptr> & WindowTokenImpl::tokens() const {
 }
 
 void WindowTokenImpl::search(const QString &query, QList<Result> &results) {
-	m_items.search(query, results);
+	m_items->search(query, results);
 }
 
 void WindowTokenImpl::execute(unsigned long long commandId) {
-	m_items.execute(commandId);
+	m_items->execute(commandId);
 }
 
 QString WindowTokenImpl::executeParameterized(unsigned long long commandId,
 		QString &baseAction, QDBusObjectPath &actionPath,
 		QDBusObjectPath &modelPath) {
-	return m_items.executeParameterized(commandId, baseAction, actionPath,
+	return m_items->executeParameterized(commandId, baseAction, actionPath,
 			modelPath);
 }
 
 void WindowTokenImpl::executeToolbar(const QString &item) {
-	m_items.executeToolbar(item);
+	m_items->executeToolbar(item);
 }
 
 QList<QStringList> WindowTokenImpl::commands() const {
-	return m_items.commands();
+	return m_items->commands();
 }
 
 QStringList WindowTokenImpl::toolbarItems() const {
-	return m_items.toolbarItems();
+	return m_items->toolbarItems();
 }
 
 WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,
 		WindowContext::Ptr allWindowsContext, Factory &factory) :
-		WindowContextImpl(factory), m_allWindowsContext(allWindowsContext) {
+		WindowContextImpl(factory), m_applicationId(applicationId), m_allWindowsContext(
+				allWindowsContext) {
 
 	m_dbusMenuCollector = factory.newDBusMenuCollector(windowId, applicationId);
 	m_gMenuCollector = factory.newGMenuWindowCollector(windowId, applicationId);
@@ -110,7 +112,7 @@ WindowToken::Ptr WindowImpl::activate() {
 	}
 
 	if (newToken) {
-		windowToken.reset(new WindowTokenImpl(tokens));
+		windowToken = m_factory.newWindowToken(m_applicationId, tokens);
 		m_windowToken = windowToken;
 		connect(this, SIGNAL(contextChanged()), windowToken.data(),
 				SLOT(childChanged()));
