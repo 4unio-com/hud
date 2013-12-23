@@ -238,9 +238,9 @@ protected:
     EXPECT_FALSE( m_actions_appeared_spy.empty() );
     m_actions_appeared_spy.clear();
 
-    m_items_changed_spy.wait();
-    m_items_changed_spy.wait();
-    m_items_changed_spy.wait();
+    m_items_changed_spy.wait(); // file menu
+    m_items_changed_spy.wait(); // edit menu
+    m_items_changed_spy.wait(); // edit/style menu
   }
 
   void UnexportGMenu()
