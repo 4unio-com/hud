@@ -21,6 +21,7 @@
 
 #include <QMenu>
 #include <QSignalSpy>
+#include <QTimer>
 
 #include <gtest/gtest.h>
 
@@ -106,6 +107,21 @@ protected:
     return action_count;
   }
 
+  void RefreshImporter()
+  {
+    // process any outstanding events (e.g. export / unexport)
+    QCoreApplication::processEvents();
+
+    // refresh the importer
+    m_importer.Refresh();
+
+    // wait for "items-changed" and "action-added" signals to settle
+    QEventLoop refresh_wait;
+    QTimer timeout;
+    timeout.singleShot( 100, &refresh_wait, SLOT( quit() ) );
+    refresh_wait.exec();
+  }
+
   static void ActivateAction( GSimpleAction* simple, GVariant* parameter, gpointer user_data )
   {
     TestQtGMenu* self = reinterpret_cast< TestQtGMenu* >( user_data );
@@ -169,7 +185,9 @@ protected:
 
     m_menu_export_id = g_dbus_connection_export_menu_model( m_connection, c_path,
         G_MENU_MODEL( m_menu ), NULL );
-    m_menu_appeared_spy.wait();
+
+    RefreshImporter();
+
     EXPECT_FALSE( m_menu_appeared_spy.empty() );
     m_menu_appeared_spy.clear();
 
@@ -217,7 +235,9 @@ protected:
 
     m_actions_export_id = g_dbus_connection_export_action_group( m_connection, c_path,
         G_ACTION_GROUP( m_actions ), NULL );
-    m_actions_appeared_spy.wait();
+
+    RefreshImporter();
+
     EXPECT_FALSE( m_actions_appeared_spy.empty() );
     m_actions_appeared_spy.clear();
   }
@@ -234,9 +254,8 @@ protected:
 
     g_dbus_connection_unexport_menu_model( m_connection, m_menu_export_id );
 
-    m_importer.ForceRefresh();
+    RefreshImporter();
 
-    m_menu_disappeared_spy.wait();
     EXPECT_FALSE( m_menu_disappeared_spy.empty() );
     m_menu_disappeared_spy.clear();
 
@@ -247,9 +266,8 @@ protected:
 
     g_dbus_connection_unexport_action_group( m_connection, m_actions_export_id );
 
-    m_importer.ForceRefresh();
+    RefreshImporter();
 
-    m_actions_disappeared_spy.wait();
     EXPECT_FALSE( m_actions_disappeared_spy.empty() );
     m_actions_disappeared_spy.clear();
 
@@ -302,7 +320,8 @@ TEST_F( TestQtGMenu, ExportImportGMenu )
   m_menu_export_id = g_dbus_connection_export_menu_model( m_connection, c_path,
       G_MENU_MODEL( m_menu ), NULL );
 
-  m_menu_appeared_spy.wait();
+  RefreshImporter();
+
   EXPECT_FALSE( m_menu_appeared_spy.empty() );
   m_menu_appeared_spy.clear();
 
@@ -336,9 +355,8 @@ TEST_F( TestQtGMenu, ExportImportGMenu )
 
   g_dbus_connection_unexport_menu_model( m_connection, m_menu_export_id );
 
-  m_importer.ForceRefresh();
+  RefreshImporter();
 
-  m_menu_disappeared_spy.wait();
   EXPECT_FALSE( m_menu_disappeared_spy.empty() );
   m_menu_disappeared_spy.clear();
 
@@ -360,7 +378,8 @@ TEST_F( TestQtGMenu, ExportImportGActions )
 
   m_actions_export_id = g_dbus_connection_export_action_group( m_connection, c_path,
       G_ACTION_GROUP( m_actions ), NULL );
-  m_actions_appeared_spy.wait();
+
+  RefreshImporter();
 
   EXPECT_FALSE( m_actions_appeared_spy.empty() );
   m_actions_appeared_spy.clear();
@@ -443,9 +462,8 @@ TEST_F( TestQtGMenu, ExportImportGActions )
 
   g_dbus_connection_unexport_action_group( m_connection, m_actions_export_id );
 
-  m_importer.ForceRefresh();
+  RefreshImporter();
 
-  m_actions_disappeared_spy.wait();
   EXPECT_FALSE( m_actions_disappeared_spy.empty() );
   m_actions_disappeared_spy.clear();
 

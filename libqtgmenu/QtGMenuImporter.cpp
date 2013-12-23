@@ -54,7 +54,7 @@ std::shared_ptr< QMenu > QtGMenuImporter::GetQMenu() const
   return d->GetQMenu();
 }
 
-void QtGMenuImporter::ForceRefresh()
+void QtGMenuImporter::Refresh()
 {
-  d->StartPolling();
+  d->Refresh();
 }

@@ -46,16 +46,11 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QS
   connect( &m_service_watcher, SIGNAL( serviceUnregistered( const QString& ) ), this,
       SLOT( ServiceUnregistered() ) );
 
-  connect( &m_menu_poll_timer, SIGNAL( timeout() ), this, SLOT( RefreshGMenuModel() ) );
-  connect( &m_actions_poll_timer, SIGNAL( timeout() ), this, SLOT( RefreshGActionGroup() ) );
-
-  StartPolling();
+  Refresh();
 }
 
 QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
 {
-  StopPolling();
-
   ClearMenuModel();
   ClearActionGroup();
 
@@ -64,7 +59,7 @@ QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
 
 GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
 {
-  if( m_menu_poll_timer.isActive() || m_menu_model == nullptr )
+  if( m_menu_model == nullptr )
   {
     return nullptr;
   }
@@ -74,7 +69,7 @@ GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
 
 GActionGroup* QtGMenuImporterPrivate::GetGActionGroup()
 {
-  if( m_actions_poll_timer.isActive() || m_action_group == nullptr )
+  if( m_action_group == nullptr )
   {
     return nullptr;
   }
@@ -84,7 +79,7 @@ GActionGroup* QtGMenuImporterPrivate::GetGActionGroup()
 
 std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
 {
-  if( m_menu_poll_timer.isActive() || m_menu_model == nullptr )
+  if( m_menu_model == nullptr )
   {
     return nullptr;
   }
@@ -92,25 +87,21 @@ std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
   return m_menu_model->GetQMenu();
 }
 
-void QtGMenuImporterPrivate::StartPolling()
+void QtGMenuImporterPrivate::Refresh()
 {
+  QTimer timeout;
+
   if( !m_menu_path.empty() )
   {
-    m_menu_poll_timer.setInterval( 1000 );
-    m_menu_poll_timer.start();
+    // put RefreshGMenuModel into the next available slot on the event queue
+    timeout.singleShot( 0, this, SLOT( RefreshGMenuModel() ) );
   }
 
   if( !m_actions_path.empty() )
   {
-    m_actions_poll_timer.setInterval( 1000 );
-    m_actions_poll_timer.start();
+    // put RefreshGActionGroup into the next available slot on the event queue
+    timeout.singleShot( 0, this, SLOT( RefreshGActionGroup() ) );
   }
-}
-
-void QtGMenuImporterPrivate::StopPolling()
-{
-  m_menu_poll_timer.stop();
-  m_actions_poll_timer.stop();
 }
 
 void QtGMenuImporterPrivate::ClearMenuModel()
@@ -161,13 +152,11 @@ void QtGMenuImporterPrivate::LinkMenuActions()
 
 void QtGMenuImporterPrivate::ServiceRegistered()
 {
-  StartPolling();
+  Refresh();
 }
 
 void QtGMenuImporterPrivate::ServiceUnregistered()
 {
-  StopPolling();
-
   ClearMenuModel();
   ClearActionGroup();
 }
@@ -180,8 +169,7 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
   ClearMenuModel();
 
   auto menu_model =
-      std::shared_ptr < QtGMenuModel
-          > ( new QtGMenuModel(
+      std::shared_ptr < QtGMenuModel > ( new QtGMenuModel(
               G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_menu_path.c_str() ) ),
               m_service.c_str(), m_menu_path.c_str(), m_actions_path.c_str() ) );
 
@@ -208,9 +196,6 @@ bool QtGMenuImporterPrivate::RefreshGMenuModel()
 
   if( menu_is_valid )
   {
-    // menu is valid, start polling for actions
-    m_menu_poll_timer.stop();
-
     m_menu_model = menu_model;
     LinkMenuActions();
   }
@@ -235,8 +220,7 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
   ClearActionGroup();
 
   auto action_group =
-      std::shared_ptr < QtGActionGroup
-          > ( new QtGActionGroup(
+      std::shared_ptr < QtGActionGroup > ( new QtGActionGroup(
               G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), m_actions_path.c_str() ) ) ) );
 
   connect( action_group.get(), SIGNAL( ActionAdded( QString ) ), &m_parent,
@@ -268,9 +252,6 @@ bool QtGMenuImporterPrivate::RefreshGActionGroup()
 
   if( actions_are_valid )
   {
-    // actions are valid, no need to continue polling
-    m_actions_poll_timer.stop();
-
     m_action_group = action_group;
     LinkMenuActions();
   }

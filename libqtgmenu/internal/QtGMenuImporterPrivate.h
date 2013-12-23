@@ -48,8 +48,7 @@ public:
 
   std::shared_ptr< QMenu > GetQMenu();
 
-  void StartPolling();
-  void StopPolling();
+  void Refresh();
 
 private:
   void ClearMenuModel();
@@ -75,10 +74,7 @@ private:
   std::string m_actions_path;
 
   std::shared_ptr< QtGMenuModel > m_menu_model = nullptr;
-  QTimer m_menu_poll_timer;
-
   std::shared_ptr< QtGActionGroup > m_action_group = nullptr;
-  QTimer m_actions_poll_timer;
 
   bool m_menu_actions_linked = false;
 };

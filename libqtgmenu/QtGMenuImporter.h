@@ -50,7 +50,7 @@ public:
 
   std::shared_ptr< QMenu > GetQMenu() const;
 
-  void ForceRefresh();
+  void Refresh();
 
 Q_SIGNALS:
   void MenuItemsChanged();
