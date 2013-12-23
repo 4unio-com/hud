@@ -115,11 +115,8 @@ protected:
     // refresh the importer
     m_importer.Refresh();
 
-    // wait for "items-changed" and "action-added" signals to settle
-    QEventLoop refresh_wait;
-    QTimer timeout;
-    timeout.singleShot( 100, &refresh_wait, SLOT( quit() ) );
-    refresh_wait.exec();
+    // allow menu appeared / disappeared signals to fire
+    QCoreApplication::processEvents();
   }
 
   static void ActivateAction( GSimpleAction* simple, GVariant* parameter, gpointer user_data )
@@ -240,6 +237,10 @@ protected:
 
     EXPECT_FALSE( m_actions_appeared_spy.empty() );
     m_actions_appeared_spy.clear();
+
+    m_items_changed_spy.wait();
+    m_items_changed_spy.wait();
+    m_items_changed_spy.wait();
   }
 
   void UnexportGMenu()
