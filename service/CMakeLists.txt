@@ -26,6 +26,8 @@ set(HUD_SERVICE_LIB_SOURCES
   Query.cpp
   QueryImpl.cpp
   Result.cpp
+  SqliteUsageTracker.cpp
+  UsageTracker.cpp
   Voice.cpp
   VoiceImpl.cpp
   Window.cpp
@@ -85,6 +87,7 @@ qt5_use_modules(
 	Core
 	DBus
 	Widgets
+	Sql
 )
 
 ###########################

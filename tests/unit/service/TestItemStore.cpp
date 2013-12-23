@@ -17,6 +17,7 @@
  */
 
 #include <service/ItemStore.h>
+#include <tests/unit/service/Mocks.h>
 
 #include <string>
 #include <gtest/gtest.h>
@@ -25,15 +26,22 @@
 using namespace std;
 using namespace testing;
 using namespace hud::service;
+using namespace hud::service::test;
 
 namespace {
 
 class TestItemStore: public Test {
 protected:
+	TestItemStore() {
+		usageTracker.reset(new NiceMock<MockUsageTracker>());
+
+		store.reset(new ItemStore("app-id", usageTracker));
+	}
+
 	/* Test a set of strings */
 	string search(const QString &query) {
 		QList<Result> results;
-		store.search(query, results);
+		store->search(query, results);
 
 		QString result;
 
@@ -44,7 +52,9 @@ protected:
 		return result.toStdString();
 	}
 
-	ItemStore store;
+	ItemStore::Ptr store;
+
+	QSharedPointer<MockUsageTracker> usageTracker;
 };
 
 /* Ensure the base calculation works */
@@ -58,7 +68,7 @@ TEST_F(TestItemStore, DistanceSubfunction) {
 	file.addAction("Print Preview");
 	root.addMenu(&file);
 
-	store.indexMenu(&root);
+	store->indexMenu(&root);
 
 	EXPECT_EQ("Print Preview", search("Print Pre"));
 }
@@ -74,7 +84,7 @@ TEST_F(TestItemStore, DistanceMisspelll) {
 	file.addAction("Print Preview");
 	root.addMenu(&file);
 
-	store.indexMenu(&root);
+	store->indexMenu(&root);
 
 	EXPECT_EQ("Print Preview", search("Prnt Pr"));
 	EXPECT_EQ("Print Preview", search("Print Preiw"));
@@ -100,7 +110,7 @@ TEST_F(TestItemStore, DistancePrintIssues) {
 	help.addAction("Empty");
 	root.addMenu(&help);
 
-	store.indexMenu(&root);
+	store->indexMenu(&root);
 
 	EXPECT_EQ("Print...", search("Pr"));
 	EXPECT_EQ("Print...", search("Print"));
@@ -112,7 +122,7 @@ TEST_F(TestItemStore, UnfinishedWord) {
 	QMenu root;
 	root.addAction("Open Terminal");
 	root.addAction("Open Tab");
-	store.indexMenu(&root);
+	store->indexMenu(&root);
 
 	EXPECT_EQ("Open Terminal", search("open ter"));
 	EXPECT_EQ("Open Terminal", search("open term"));
@@ -126,7 +136,7 @@ TEST_F(TestItemStore, UnfinishedWord) {
 TEST_F(TestItemStore, UnfinishedWord2) {
 	QMenu root;
 	root.addAction("Change Topic");
-	store.indexMenu(&root);
+	store->indexMenu(&root);
 
 	EXPECT_EQ("Change Topic", search("cha"));
 }
@@ -153,7 +163,7 @@ TEST_F(TestItemStore, DistanceVariety) {
 	network.addMenu(&vpn);
 	root.addMenu(&network);
 
-	store.indexMenu(&root);
+	store->indexMenu(&root);
 
 	EXPECT_EQ("House Cleaning", search("House"));
 	EXPECT_EQ("House Cleaning", search("House C"));
@@ -177,7 +187,7 @@ TEST_F(TestItemStore, DistanceFrenchPref) {
 	edit.addAction("préférences");
 	root.addMenu(&edit);
 
-	store.indexMenu(&root);
+	store->indexMenu(&root);
 
 	EXPECT_EQ("préférences", search("préférences"));
 	EXPECT_EQ("préférences", search("pré"));
@@ -197,7 +207,7 @@ TEST_F(TestItemStore, DistanceDups) {
 	root.addAction("Situated");
 	root.addAction("Infatuated");
 
-	store.indexMenu(&root);
+	store->indexMenu(&root);
 
 	EXPECT_EQ("Inflated", search("ted inf"));
 }
@@ -211,9 +221,58 @@ TEST_F(TestItemStore, DistanceExtraTerms) {
 	file.addAction("Save");
 	root.addMenu(&file);
 
-	store.indexMenu(&root);
+	store->indexMenu(&root);
 
 	EXPECT_EQ("Save", search("save"));
+}
+
+TEST_F(TestItemStore, BlankSearchFrequentlyUsedItems) {
+	QMenu root;
+
+	QMenu file("&File");
+	file.addAction("&One");
+	file.addAction("&Two");
+	file.addAction("T&hree");
+	file.addAction("Fou&r");
+	root.addMenu(&file);
+
+	store->indexMenu(&root);
+
+	ON_CALL(*usageTracker,
+			usage(QString("app-id"), QString("File||One"))).WillByDefault(
+			Return(2));
+	ON_CALL(*usageTracker,
+			usage(QString("app-id"), QString("File||Two"))).WillByDefault(
+			Return(0));
+	ON_CALL(*usageTracker,
+			usage(QString("app-id"), QString("File||Three"))).WillByDefault(
+			Return(4));
+	ON_CALL(*usageTracker,
+			usage(QString("app-id"), QString("File||Four"))).WillByDefault(
+			Return(3));
+
+	QList<Result> results;
+	store->search("", results);
+	ASSERT_EQ(4, results.size());
+	EXPECT_EQ(QString("Three"), results.at(0).commandName());
+	EXPECT_EQ(QString("Four"), results.at(1).commandName());
+	EXPECT_EQ(QString("One"), results.at(2).commandName());
+	EXPECT_EQ(QString("Two"), results.at(3).commandName());
+}
+
+TEST_F(TestItemStore, ExecuteMarksHistory) {
+	QMenu root;
+
+	QMenu file("File");
+	file.addAction("Save As...");
+	file.addAction("Save");
+	root.addMenu(&file);
+
+	store->indexMenu(&root);
+
+	EXPECT_CALL(*usageTracker,
+			markUsage(QString("app-id"), QString("File||Save As...")));
+	store->execute(0);
 }
 
 } // namespace

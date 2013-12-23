@@ -33,8 +33,10 @@ static const QRegularExpression SINGLE_AMPERSAND("(?<![&])[&](?![&])");
 static const QRegularExpression WHITESPACE("\\s+");
 static const QRegularExpression WHITESPACE_OR_SEMICOLON("[;\\s+]");
 
-ItemStore::ItemStore() :
-		m_nextId(0) {
+ItemStore::ItemStore(const QString &applicationId,
+		UsageTracker::Ptr usageTracker) :
+		m_applicationId(applicationId), m_usageTracker(usageTracker), m_nextId(
+				0) {
 	ErrorValues &errorValues(m_matcher.getErrorValues());
 	errorValues.addStandardErrors();
 
@@ -96,12 +98,6 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 			childIndex << i;
 			indexMenu(child, root, childStack, childIndex);
 		} else {
-			Result::HighlightList commandHighlights;
-			commandHighlights << Result::Highlight(2, 3);
-
-			Result::HighlightList descriptionHighlights;
-			descriptionHighlights << Result::Highlight(3, 5);
-
 			Document document(m_nextId);
 
 			WordList command;
@@ -157,18 +153,34 @@ static void findHighlights(Result::HighlightList &highlights,
 	}
 }
 
+static QString convertToEntry(Item::Ptr item, const QAction *action) {
+	QString result;
+	for (const QAction *context : item->context()) {
+		result.append(convertActionText(context));
+		result.append("||");
+	}
+	result.append(convertActionText(action));
+	return result;
+}
+
 void ItemStore::search(const QString &query, QList<Result> &results) {
 	QStringMatcher stringMatcher(query, Qt::CaseInsensitive);
 
 	if (query.isEmpty()) {
+		QMap<unsigned int, DocumentID> tempResults;
+
+		for (auto it(m_items.constBegin()); it != m_items.constEnd(); ++it) {
+			tempResults.insertMulti(m_usageTracker->usage(m_applicationId,
+					convertToEntry(it.value(), it.value()->action())), it.key());
+		}
+
 		int maxResults = std::min(m_items.size(), 20);
-
-		// TODO Sort by usage
 		int count = 0;
-		for (auto it(m_items.constBegin());
-				count < maxResults && it != m_items.constEnd(); ++it) {
-			addResult(it.key(), stringMatcher, 0, 0, results);
-
+		QMapIterator<unsigned int, DocumentID> it(tempResults);
+		it.toBack();
+		while (count < maxResults && it.hasPrevious()) {
+			it.previous();
+			addResult(it.value(), stringMatcher, 0, 0, results);
 			++count;
 		}
 
@@ -247,6 +259,7 @@ void ItemStore::executeItem(Item::Ptr item) {
 	}
 
 	action->activate(QAction::ActionEvent::Trigger);
+	m_usageTracker->markUsage(m_applicationId, convertToEntry(item, action));
 }
 
 void ItemStore::execute(unsigned long long int commandId) {
@@ -277,6 +290,7 @@ QString ItemStore::executeParameterized(unsigned long long commandId,
 	actionPath = QDBusObjectPath(action->property("actionsPath").toString());
 	modelPath = QDBusObjectPath(action->property("menuPath").toString());
 
+	m_usageTracker->markUsage(m_applicationId, convertToEntry(item, action));
 	return action->property("busName").toString();
 }
 

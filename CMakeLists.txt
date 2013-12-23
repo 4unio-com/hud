@@ -90,6 +90,9 @@ include_directories(${Qt5Widgets_INCLUDE_DIRS})
 find_package(Qt5DBus REQUIRED)
 include_directories(${Qt5DBus_INCLUDE_DIRS})
 
+find_package(Qt5Sql REQUIRED)
+include_directories(${Qt5Sql_INCLUDE_DIRS})
+
 pkg_check_modules(DEE_QT REQUIRED libdee-qt5)
 include_directories(${DEE_QT_INCLUDE_DIRS})
 

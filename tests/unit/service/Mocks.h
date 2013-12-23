@@ -42,6 +42,8 @@ public:
 
 	MOCK_METHOD3(newWindow, Window::Ptr(unsigned int, const QString &, WindowContext::Ptr));
 
+	MOCK_METHOD0(singletonUsageTracker, UsageTracker::Ptr());
+
 	MOCK_METHOD2(newDBusMenuCollector, Collector::Ptr(unsigned int, const QString &));
 
 	MOCK_METHOD2(newGMenuWindowCollector, Collector::Ptr(unsigned int, const QString &));
@@ -140,6 +142,15 @@ public:
 	MOCK_METHOD2(addMenu, void(const QString &, const MenuDefinition &));
 
 	MOCK_METHOD0(activeCollector, Collector::Ptr());
+};
+
+class MockUsageTracker: public UsageTracker {
+public:
+	MOCK_METHOD2(markUsage, void(const QString &,
+					const QString &));
+
+	MOCK_CONST_METHOD2(usage, unsigned int(const QString &,
+					const QString &));
 };
 
 class MockVoice: public Voice {

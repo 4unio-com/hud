@@ -41,6 +41,10 @@ protected:
 			mock(dbus) {
 		factory.setSessionBus(dbus.sessionConnection());
 
+		usageTracker.reset(new NiceMock<MockUsageTracker>());
+		ON_CALL(factory, singletonUsageTracker()).WillByDefault(
+				Return(usageTracker));
+
 		allWindowsContext.reset(new NiceMock<MockWindowContext>());
 		ON_CALL(*allWindowsContext, activeCollector()).WillByDefault(
 				Return(Collector::Ptr()));
@@ -77,6 +81,8 @@ protected:
 	DBusMock mock;
 
 	NiceMock<MockFactory> factory;
+
+	QSharedPointer<MockUsageTracker> usageTracker;
 
 	QSharedPointer<MockWindowContext> allWindowsContext;
 
