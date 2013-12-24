@@ -60,8 +60,8 @@ private Q_SLOTS:
   void ServiceRegistered();
   void ServiceUnregistered();
 
-  bool RefreshGMenuModel();
-  bool RefreshGActionGroup();
+  void RefreshGMenuModel();
+  void RefreshGActionGroup();
 
 private:
   QDBusServiceWatcher m_service_watcher;

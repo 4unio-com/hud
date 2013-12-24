@@ -49,7 +49,7 @@ public:
 	virtual CollectorToken::Ptr activate() override;
 
 protected Q_SLOTS:
-	void menuAppeared();
+	void menuItemsChanged();
 
 protected:
 	void deactivate();

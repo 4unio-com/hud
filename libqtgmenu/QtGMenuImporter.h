@@ -54,15 +54,11 @@ public:
 
 Q_SIGNALS:
   void MenuItemsChanged();
-  void MenuAppeared();
-  void MenuDisappeared();
 
   void ActionAdded( QString action_name );
   void ActionRemoved( QString action_name );
   void ActionEnabled( QString action_name, bool enabled );
   void ActionStateChanged( QString action_name, QVariant value );
-  void ActionsAppeared();
-  void ActionsDisappeared();
 
 private:
   Q_DISABLE_COPY (QtGMenuImporter)

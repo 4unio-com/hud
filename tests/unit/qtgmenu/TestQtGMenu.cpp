@@ -21,7 +21,6 @@
 
 #include <QMenu>
 #include <QSignalSpy>
-#include <QTimer>
 
 #include <gtest/gtest.h>
 
@@ -44,20 +43,16 @@ protected:
       : m_importer( c_service, c_path ),
 
         m_items_changed_spy( &m_importer, SIGNAL( MenuItemsChanged() ) ),
-        m_menu_appeared_spy( &m_importer, SIGNAL( MenuAppeared() ) ),
-        m_menu_disappeared_spy( &m_importer, SIGNAL( MenuDisappeared() ) ),
 
         m_action_added_spy( &m_importer, SIGNAL( ActionAdded( QString ) ) ),
         m_action_removed_spy( &m_importer, SIGNAL( ActionRemoved( QString ) ) ),
         m_action_enabled_spy( &m_importer, SIGNAL( ActionEnabled( QString, bool ) ) ),
         m_action_state_changed_spy( &m_importer,
             SIGNAL( ActionStateChanged( QString, QVariant ) ) ),
-        m_actions_appeared_spy( &m_importer, SIGNAL( ActionsAppeared() ) ),
-        m_actions_disappeared_spy( &m_importer, SIGNAL( ActionsDisappeared() ) ),
 
         m_action_activated_spy( this, SIGNAL( ActionActivated( QString, QVariant ) ) )
   {
-    g_bus_own_name( G_BUS_TYPE_SESSION, c_service, G_BUS_NAME_OWNER_FLAGS_NONE, NULL, NULL, NULL,
+    m_owner_id = g_bus_own_name( G_BUS_TYPE_SESSION, c_service, G_BUS_NAME_OWNER_FLAGS_NONE, NULL, NULL, NULL,
         NULL, NULL );
 
     m_connection = g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL );
@@ -70,6 +65,8 @@ protected:
     g_object_unref( m_actions );
     g_object_unref( m_menu );
     g_object_unref( m_connection );
+
+    g_bus_unown_name( m_owner_id );
   }
 
   int GetGMenuSize()
@@ -107,18 +104,6 @@ protected:
     return action_count;
   }
 
-  void RefreshImporter()
-  {
-    // process any outstanding events (e.g. export / unexport)
-    QCoreApplication::processEvents();
-
-    // refresh the importer
-    m_importer.Refresh();
-
-    // allow menu appeared / disappeared signals to fire
-    QCoreApplication::processEvents();
-  }
-
   static void ActivateAction( GSimpleAction* simple, GVariant* parameter, gpointer user_data )
   {
     TestQtGMenu* self = reinterpret_cast< TestQtGMenu* >( user_data );
@@ -129,9 +114,19 @@ protected:
 
   void ExportGMenu()
   {
+    // export menu
+
+    m_menu_export_id = g_dbus_connection_export_menu_model( m_connection, c_path,
+        G_MENU_MODEL( m_menu ), NULL );
+
     // build m_menu
 
     GMenu* menus_section = g_menu_new();
+
+    g_menu_append_section( m_menu, "Menus", G_MENU_MODEL( menus_section ) );
+    m_items_changed_spy.wait();
+    EXPECT_FALSE( m_items_changed_spy.empty() );
+    m_items_changed_spy.clear();
 
     //-- build file menu
 
@@ -156,6 +151,10 @@ protected:
     g_object_unref( mod_section );
 
     g_menu_append_submenu( menus_section, "File", G_MENU_MODEL( file_submenu ) );
+    m_items_changed_spy.wait();
+    EXPECT_FALSE( m_items_changed_spy.empty() );
+    m_items_changed_spy.clear();
+
     g_object_unref( file_submenu );
 
     //-- build edit menu
@@ -166,29 +165,24 @@ protected:
     g_menu_append( style_submenu, "Plain", "app.text_plain" );
     g_menu_append( style_submenu, "Bold", "app.text_bold" );
 
-    g_menu_append_submenu( edit_submenu, "Style", G_MENU_MODEL( style_submenu ) );
-    g_object_unref( style_submenu );
-
     g_menu_append_submenu( menus_section, "Edit", G_MENU_MODEL( edit_submenu ) );
+    m_items_changed_spy.wait();
+    EXPECT_FALSE( m_items_changed_spy.empty() );
+    m_items_changed_spy.clear();
+
+    g_menu_append_submenu( edit_submenu, "Style", G_MENU_MODEL( style_submenu ) );
+    m_items_changed_spy.wait();
+    EXPECT_FALSE( m_items_changed_spy.empty() );
+    m_items_changed_spy.clear();
+
+    g_object_unref( style_submenu );
     g_object_unref( edit_submenu );
-
-    //-- add menus section to m_menu
-
-    g_menu_append_section( m_menu, "Menus", G_MENU_MODEL( menus_section ) );
-
     g_object_unref( menus_section );
 
-    // export menu
+    // export actions
 
-    m_menu_export_id = g_dbus_connection_export_menu_model( m_connection, c_path,
-        G_MENU_MODEL( m_menu ), NULL );
-
-    RefreshImporter();
-
-    EXPECT_FALSE( m_menu_appeared_spy.empty() );
-    m_menu_appeared_spy.clear();
-
-    // define actions
+    m_actions_export_id = g_dbus_connection_export_action_group( m_connection, c_path,
+        G_ACTION_GROUP( m_actions ), NULL );
 
     //-- stateless
 
@@ -197,12 +191,18 @@ protected:
         std::make_pair( action,
             g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
+    m_action_added_spy.wait();
+    EXPECT_FALSE( m_action_added_spy.empty() );
+    m_action_added_spy.clear();
 
     action = g_simple_action_new( "open", nullptr );
     m_exported_actions.push_back(
         std::make_pair( action,
             g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
+    m_action_added_spy.wait();
+    EXPECT_FALSE( m_action_added_spy.empty() );
+    m_action_added_spy.clear();
 
     //-- boolean state
 
@@ -211,6 +211,9 @@ protected:
         std::make_pair( action,
             g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
+    m_action_added_spy.wait();
+    EXPECT_FALSE( m_action_added_spy.empty() );
+    m_action_added_spy.clear();
 
     //-- string param + state
 
@@ -220,6 +223,9 @@ protected:
         std::make_pair( action,
             g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
+    m_action_added_spy.wait();
+    EXPECT_FALSE( m_action_added_spy.empty() );
+    m_action_added_spy.clear();
 
     action = g_simple_action_new_stateful( "text_bold", G_VARIANT_TYPE_STRING,
         g_variant_new_string( "app.text_plain" ) );
@@ -227,20 +233,9 @@ protected:
         std::make_pair( action,
             g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
-
-    // export actions
-
-    m_actions_export_id = g_dbus_connection_export_action_group( m_connection, c_path,
-        G_ACTION_GROUP( m_actions ), NULL );
-
-    RefreshImporter();
-
-    EXPECT_FALSE( m_actions_appeared_spy.empty() );
-    m_actions_appeared_spy.clear();
-
-    m_items_changed_spy.wait(); // file menu
-    m_items_changed_spy.wait(); // edit menu
-    m_items_changed_spy.wait(); // edit/style menu
+    m_action_added_spy.wait();
+    EXPECT_FALSE( m_action_added_spy.empty() );
+    m_action_added_spy.clear();
   }
 
   void UnexportGMenu()
@@ -255,24 +250,16 @@ protected:
 
     g_dbus_connection_unexport_menu_model( m_connection, m_menu_export_id );
 
-    RefreshImporter();
+    m_importer.Refresh();
 
-    EXPECT_FALSE( m_menu_disappeared_spy.empty() );
-    m_menu_disappeared_spy.clear();
-
-    EXPECT_EQ( nullptr, m_importer.GetQMenu() );
     EXPECT_EQ( 0, GetGMenuSize() );
 
     // unexport actions
 
     g_dbus_connection_unexport_action_group( m_connection, m_actions_export_id );
 
-    RefreshImporter();
+    m_importer.Refresh();
 
-    EXPECT_FALSE( m_actions_disappeared_spy.empty() );
-    m_actions_disappeared_spy.clear();
-
-    EXPECT_EQ( nullptr, m_importer.GetGActionGroup() );
     EXPECT_EQ( 0, GetGActionCount() );
   }
 
@@ -283,6 +270,7 @@ protected:
   constexpr static const char* c_service = "com.canonical.qtgmenu";
   constexpr static const char* c_path = "/com/canonical/qtgmenu";
 
+  guint m_owner_id = 0;
   guint m_menu_export_id = 0;
   guint m_actions_export_id = 0;
 
@@ -293,15 +281,11 @@ protected:
   QtGMenuImporter m_importer;
 
   QSignalSpy m_items_changed_spy;
-  QSignalSpy m_menu_appeared_spy;
-  QSignalSpy m_menu_disappeared_spy;
 
   QSignalSpy m_action_added_spy;
   QSignalSpy m_action_removed_spy;
   QSignalSpy m_action_enabled_spy;
   QSignalSpy m_action_state_changed_spy;
-  QSignalSpy m_actions_appeared_spy;
-  QSignalSpy m_actions_disappeared_spy;
 
   QSignalSpy m_action_activated_spy;
 
@@ -312,19 +296,19 @@ TEST_F( TestQtGMenu, ExportImportGMenu )
 {
   // no menu exported
 
-  g_menu_append( m_menu, "New", "app.new" );
-
-  EXPECT_EQ( nullptr, m_importer.GetQMenu() );
+  EXPECT_EQ( 0, GetGMenuSize() );
 
   // export menu
 
   m_menu_export_id = g_dbus_connection_export_menu_model( m_connection, c_path,
       G_MENU_MODEL( m_menu ), NULL );
 
-  RefreshImporter();
+  // add 1 item
 
-  EXPECT_FALSE( m_menu_appeared_spy.empty() );
-  m_menu_appeared_spy.clear();
+  g_menu_append( m_menu, "New", "app.new" );
+  m_items_changed_spy.wait();
+  EXPECT_FALSE( m_items_changed_spy.empty() );
+  m_items_changed_spy.clear();
 
   EXPECT_NE( nullptr, m_importer.GetQMenu() );
   EXPECT_EQ( 1, GetGMenuSize() );
@@ -356,12 +340,8 @@ TEST_F( TestQtGMenu, ExportImportGMenu )
 
   g_dbus_connection_unexport_menu_model( m_connection, m_menu_export_id );
 
-  RefreshImporter();
+  m_importer.Refresh();
 
-  EXPECT_FALSE( m_menu_disappeared_spy.empty() );
-  m_menu_disappeared_spy.clear();
-
-  EXPECT_EQ( nullptr, m_importer.GetQMenu() );
   EXPECT_EQ( 0, GetGMenuSize() );
 }
 
@@ -369,22 +349,20 @@ TEST_F( TestQtGMenu, ExportImportGActions )
 {
   // no actions exported
 
-  GSimpleAction* action = g_simple_action_new_stateful( "new", nullptr,
-      g_variant_new_boolean( false ) );
-  g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
-
-  EXPECT_EQ( nullptr, m_importer.GetGActionGroup() );
+  EXPECT_EQ( 0, GetGActionCount() );
 
   // export actions
 
   m_actions_export_id = g_dbus_connection_export_action_group( m_connection, c_path,
       G_ACTION_GROUP( m_actions ), NULL );
 
-  RefreshImporter();
+  // add 1 action
 
-  EXPECT_FALSE( m_actions_appeared_spy.empty() );
-  m_actions_appeared_spy.clear();
+  GSimpleAction* action = g_simple_action_new_stateful( "new", nullptr,
+      g_variant_new_boolean( false ) );
+  g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
+  m_action_added_spy.wait();
   EXPECT_FALSE( m_action_added_spy.empty() );
   EXPECT_EQ( "new", m_action_added_spy.at( 0 ).at( 0 ).toString().toStdString() );
   m_action_added_spy.clear();
@@ -395,16 +373,16 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   // disable / enable action
 
   g_simple_action_set_enabled( action, false );
-  m_action_enabled_spy.wait();
 
+  m_action_enabled_spy.wait();
   EXPECT_FALSE( m_action_enabled_spy.empty() );
   EXPECT_EQ( "new", m_action_enabled_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "false", m_action_enabled_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_enabled_spy.clear();
 
   g_simple_action_set_enabled( action, true );
-  m_action_enabled_spy.wait();
 
+  m_action_enabled_spy.wait();
   EXPECT_FALSE( m_action_enabled_spy.empty() );
   EXPECT_EQ( "new", m_action_enabled_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "true", m_action_enabled_spy.at( 0 ).at( 1 ).toString().toStdString() );
@@ -413,16 +391,16 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   // change action state
 
   g_action_change_state( G_ACTION( action ), g_variant_new_boolean( true ) );
-  m_action_state_changed_spy.wait();
 
+  m_action_state_changed_spy.wait();
   EXPECT_FALSE( m_action_state_changed_spy.empty() );
   EXPECT_EQ( "new", m_action_state_changed_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "true", m_action_state_changed_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_state_changed_spy.clear();
 
   g_action_change_state( G_ACTION( action ), g_variant_new_boolean( false ) );
-  m_action_state_changed_spy.wait();
 
+  m_action_state_changed_spy.wait();
   EXPECT_FALSE( m_action_state_changed_spy.empty() );
   EXPECT_EQ( "new", m_action_state_changed_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "false", m_action_state_changed_spy.at( 0 ).at( 1 ).toString().toStdString() );
@@ -432,16 +410,16 @@ TEST_F( TestQtGMenu, ExportImportGActions )
 
   action = g_simple_action_new_stateful( "add", G_VARIANT_TYPE_BOOLEAN, FALSE );
   g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
-  m_action_added_spy.wait();
 
+  m_action_added_spy.wait();
   EXPECT_FALSE( m_action_added_spy.empty() );
   EXPECT_EQ( "add", m_action_added_spy.at( 0 ).at( 0 ).toString().toStdString() );
   m_action_added_spy.clear();
 
   action = g_simple_action_new_stateful( "del", G_VARIANT_TYPE_BOOLEAN, FALSE );
   g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
-  m_action_added_spy.wait();
 
+  m_action_added_spy.wait();
   EXPECT_FALSE( m_action_added_spy.empty() );
   EXPECT_EQ( "del", m_action_added_spy.at( 0 ).at( 0 ).toString().toStdString() );
   m_action_added_spy.clear();
@@ -451,8 +429,8 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   // remove 1 action
 
   g_action_map_remove_action( G_ACTION_MAP( m_actions ), "del" );
-  m_action_removed_spy.wait();
 
+  m_action_removed_spy.wait();
   EXPECT_FALSE( m_action_removed_spy.empty() );
   EXPECT_EQ( "del", m_action_removed_spy.at( 0 ).at( 0 ).toString().toStdString() );
   m_action_removed_spy.clear();
@@ -463,12 +441,8 @@ TEST_F( TestQtGMenu, ExportImportGActions )
 
   g_dbus_connection_unexport_action_group( m_connection, m_actions_export_id );
 
-  RefreshImporter();
+  m_importer.Refresh();
 
-  EXPECT_FALSE( m_actions_disappeared_spy.empty() );
-  m_actions_disappeared_spy.clear();
-
-  EXPECT_EQ( nullptr, m_importer.GetGActionGroup() );
   EXPECT_EQ( 0, GetGActionCount() );
 }
 
