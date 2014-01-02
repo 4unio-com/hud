@@ -35,10 +35,8 @@ GMenuCollector::GMenuCollector(const QString &name,
 			new QtGMenuImporter(m_name, m_menuPath.path(),
 					m_actionPath.path()));
 
-	connect(m_importer.data(), SIGNAL(MenuAppeared()), this,
-			SLOT(menuAppeared()));
 	connect(m_importer.data(), SIGNAL(MenuItemsChanged()), this,
-			SLOT(menuAppeared()));
+			SLOT(menuItemsChanged()));
 }
 
 GMenuCollector::~GMenuCollector() {
@@ -66,7 +64,7 @@ CollectorToken::Ptr GMenuCollector::activate() {
 void GMenuCollector::deactivate() {
 }
 
-void GMenuCollector::menuAppeared() {
+void GMenuCollector::menuItemsChanged() {
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 	if (collectorToken) {
 		collectorToken->changed();

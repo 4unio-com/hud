@@ -25,6 +25,12 @@ QtGActionGroup::QtGActionGroup( GActionGroup* action_group )
     : m_action_group( action_group )
 {
   ConnectCallbacks();
+
+  // add initial items
+  for( int i = 0; i < Size(); ++i )
+  {
+    emit ActionAdded( Action( i ) );
+  }
 }
 
 QtGActionGroup::~QtGActionGroup()
@@ -34,7 +40,7 @@ QtGActionGroup::~QtGActionGroup()
     return;
   }
 
-  for( int i = 0; i < Size(); i++ )
+  for( int i = 0; i < Size(); ++i )
   {
     emit ActionRemoved( Action( i ) );
   }

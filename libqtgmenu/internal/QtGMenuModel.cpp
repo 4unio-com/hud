@@ -96,10 +96,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
     m_size = g_menu_model_get_n_items( m_model );
   }
 
-  for( int i = 0; i < m_size; ++i )
-  {
-    CreateChild( this, m_model, i );
-  }
+  ChangeMenuItems( 0, m_size, 0 );
 }
 
 QtGMenuModel::~QtGMenuModel()
