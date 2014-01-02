@@ -32,7 +32,7 @@ Build-Depends: cmake,
                qtdbustest-runner,
                unity-voice-service,
                valac,
-               valgrind,
+               valgrind [!arm64 !ppc64el],
                xvfb,
 Standards-Version: 3.9.4
 Homepage: http://launchpad.net/hud
