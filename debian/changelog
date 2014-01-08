@@ -1,3 +1,31 @@
+hud (13.10.1+14.04.20140108-0ubuntu1) trusty; urgency=low
+
+  [ Pete Woods ]
+  * Replace core HUD service and improve testing.
+  * Generate valid window stack introspection XML. (LP: #1254949)
+  * Fix window stack breakage introduced by last commit.
+  * Build application paths using NIH DBus utils to maintain
+    compatibility with confinement policies. (LP: #1262316)
+  * Restore keyword reading functionality to libQtGmenu. (LP: #1262323,
+    #1262326, #1262318)
+  * Restore the sqlite database reading functionality. (LP: #1262320)
+  * Valgrind is not available on all platforms.
+
+  [ Ted Gould ]
+  * Search for Pango so we can build the command line utilities.
+
+  [ Marcus Tomlinson ]
+  * Replace core HUD service and improve testing.
+  * Check window handle is not null before attempting to dereferencing
+    it.
+  * Remove unnecessary polling from QtGMenuImporter to reduce DBus
+    comms. (LP: #1262333)
+
+  [ Ubuntu daily release ]
+  * Automatic snapshot from revision 361
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 08 Jan 2014 03:21:14 +0000
+
 hud (13.10.1+14.04.20131205-0ubuntu1) trusty; urgency=low
 
   [ Pete Woods ]
