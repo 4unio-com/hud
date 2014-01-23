@@ -26,6 +26,8 @@ static const int EnabledRole = Qt::UserRole + 1;
 
 static QString iconForAction(int action) {
 	switch (action) {
+	case HUD_CLIENT_QUERY_TOOLBAR_QUIT:
+		return "graphics/close.png";
 	case HUD_CLIENT_QUERY_TOOLBAR_UNDO:
 		return "graphics/undo.png";
 	case HUD_CLIENT_QUERY_TOOLBAR_HELP:
@@ -48,7 +50,8 @@ public:
 HudToolBarModel::HudToolBarModel(HudClientQuery *query) :
 		p(new Priv()) {
 	p->m_query = query;
-	p->m_actions << HUD_CLIENT_QUERY_TOOLBAR_UNDO
+	p->m_actions << HUD_CLIENT_QUERY_TOOLBAR_QUIT
+			<< HUD_CLIENT_QUERY_TOOLBAR_UNDO
 			<< HUD_CLIENT_QUERY_TOOLBAR_HELP
 			<< HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN
 			<< HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES;
