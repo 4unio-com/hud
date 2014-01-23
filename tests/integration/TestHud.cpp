@@ -297,13 +297,13 @@ TEST_F(TestHud, SearchLibHudOneResult) {
 
 	EXPECT_TOOLBAR(toolbarModel, 0, "graphics/close.png",
 			HUD_CLIENT_QUERY_TOOLBAR_QUIT, true);
-	EXPECT_TOOLBAR(toolbarModel, 0, "graphics/undo.png",
+	EXPECT_TOOLBAR(toolbarModel, 1, "graphics/undo.png",
 			HUD_CLIENT_QUERY_TOOLBAR_UNDO, true);
-	EXPECT_TOOLBAR(toolbarModel, 1, "graphics/help.png",
+	EXPECT_TOOLBAR(toolbarModel, 2, "graphics/help.png",
 			HUD_CLIENT_QUERY_TOOLBAR_HELP, true);
-	EXPECT_TOOLBAR(toolbarModel, 2, "graphics/view-fullscreen.png",
+	EXPECT_TOOLBAR(toolbarModel, 3, "graphics/view-fullscreen.png",
 			HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN, false);
-	EXPECT_TOOLBAR(toolbarModel, 3, "graphics/settings.png",
+	EXPECT_TOOLBAR(toolbarModel, 4, "graphics/settings.png",
 			HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES, false);
 
 	QSignalSpy actionInvokedSpy(&libhudTestInterface,
