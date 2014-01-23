@@ -296,7 +296,7 @@ TEST_F(TestHud, SearchLibHudOneResult) {
 	ASSERT_EQ(5, toolbarModel.rowCount());
 
 	EXPECT_TOOLBAR(toolbarModel, 0, "graphics/close.png",
-			HUD_CLIENT_QUERY_TOOLBAR_QUIT, true);
+			HUD_CLIENT_QUERY_TOOLBAR_QUIT, false);
 	EXPECT_TOOLBAR(toolbarModel, 1, "graphics/undo.png",
 			HUD_CLIENT_QUERY_TOOLBAR_UNDO, true);
 	EXPECT_TOOLBAR(toolbarModel, 2, "graphics/help.png",
