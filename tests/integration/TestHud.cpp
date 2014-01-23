@@ -293,8 +293,10 @@ TEST_F(TestHud, SearchLibHudOneResult) {
 	EXPECT_EQ(ResultPair("quiter", ""), result(results, 0));
 
 	const QAbstractListModel &toolbarModel(*client.toolBarModel());
-	ASSERT_EQ(4, toolbarModel.rowCount());
+	ASSERT_EQ(5, toolbarModel.rowCount());
 
+	EXPECT_TOOLBAR(toolbarModel, 0, "graphics/close.png",
+			HUD_CLIENT_QUERY_TOOLBAR_QUIT, true);
 	EXPECT_TOOLBAR(toolbarModel, 0, "graphics/undo.png",
 			HUD_CLIENT_QUERY_TOOLBAR_UNDO, true);
 	EXPECT_TOOLBAR(toolbarModel, 1, "graphics/help.png",
