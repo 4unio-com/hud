@@ -25,6 +25,7 @@
  * @HUD_CLIENT_QUERY_TOOLBAR_HELP: Help the user use the application
  * @HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES: Configure the application
  * @HUD_CLIENT_QUERY_TOOLBAR_UNDO: Revert the last user action
+ * @HUD_CLIENT_QUERY_TOOLBAR_QUIT: Quit the application
  *
  * @short_description: Preconfigured toolbar items for the application
  *
@@ -37,6 +38,7 @@ typedef enum { /*< prefix=HUD_CLIENT_QUERY_TOOLBAR >*/
 	HUD_CLIENT_QUERY_TOOLBAR_HELP,
 	HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES,
 	HUD_CLIENT_QUERY_TOOLBAR_UNDO,
+	HUD_CLIENT_QUERY_TOOLBAR_QUIT,
 } HudClientQueryToolbarItems;
 
 #endif /* LIBHUD_CLIENT_TOOLBAR_ITEMS_H_ */

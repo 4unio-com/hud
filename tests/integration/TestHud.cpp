@@ -183,6 +183,9 @@ TEST_F(TestHud, SearchDBusMenuContext) {
 	countChangedSpy.wait();
 
 	QAbstractListModel &results(*client.results());
+	if(results.rowCount() != 3) {
+		countChangedSpy.wait();
+	}
 	ASSERT_EQ(3, results.rowCount());
 	EXPECT_EQ(ResultPair("swift sad", "piece hook"), result(results, 0));
 	EXPECT_EQ(ResultPair("stray slash", "piece hook"), result(results, 1));
@@ -215,6 +218,9 @@ TEST_F(TestHud, SearchDBusMenuOneResult) {
 	countChangedSpy.wait();
 
 	QAbstractListModel &results(*client.results());
+	if(results.rowCount() == 0) {
+		countChangedSpy.wait();
+	}
 	ASSERT_EQ(1, results.rowCount());
 	EXPECT_EQ(ResultPair("Quiter", ""), result(results, 0));
 }
@@ -251,9 +257,11 @@ TEST_F(TestHud, SearchGMenuOneResult) {
 	QSignalSpy countChangedSpy(client.results(), SIGNAL(countChanged()));
 	client.setQuery("closr");
 	countChangedSpy.wait();
-	countChangedSpy.wait();
 
 	QAbstractListModel &results(*client.results());
+	if(results.rowCount() == 0) {
+		countChangedSpy.wait();
+	}
 	ASSERT_EQ(1, results.rowCount());
 	EXPECT_EQ(ResultPair("Close", ""), result(results, 0));
 }
@@ -286,22 +294,26 @@ TEST_F(TestHud, SearchLibHudOneResult) {
 
 	client.setQuery("quitter");
 	countChangedSpy.wait();
-	countChangedSpy.wait();
 
 	QAbstractListModel &results(*client.results());
+	if(results.rowCount() == 0) {
+		countChangedSpy.wait();
+	}
 	ASSERT_EQ(1, results.rowCount());
 	EXPECT_EQ(ResultPair("quiter", ""), result(results, 0));
 
 	const QAbstractListModel &toolbarModel(*client.toolBarModel());
-	ASSERT_EQ(4, toolbarModel.rowCount());
+	ASSERT_EQ(5, toolbarModel.rowCount());
 
-	EXPECT_TOOLBAR(toolbarModel, 0, "graphics/undo.png",
+	EXPECT_TOOLBAR(toolbarModel, 0, "graphics/close.png",
+			HUD_CLIENT_QUERY_TOOLBAR_QUIT, false);
+	EXPECT_TOOLBAR(toolbarModel, 1, "graphics/undo.png",
 			HUD_CLIENT_QUERY_TOOLBAR_UNDO, true);
-	EXPECT_TOOLBAR(toolbarModel, 1, "graphics/help.png",
+	EXPECT_TOOLBAR(toolbarModel, 2, "graphics/help.png",
 			HUD_CLIENT_QUERY_TOOLBAR_HELP, true);
-	EXPECT_TOOLBAR(toolbarModel, 2, "graphics/view-fullscreen.png",
+	EXPECT_TOOLBAR(toolbarModel, 3, "graphics/view-fullscreen.png",
 			HUD_CLIENT_QUERY_TOOLBAR_FULLSCREEN, false);
-	EXPECT_TOOLBAR(toolbarModel, 3, "graphics/settings.png",
+	EXPECT_TOOLBAR(toolbarModel, 4, "graphics/settings.png",
 			HUD_CLIENT_QUERY_TOOLBAR_PREFERENCES, false);
 
 	QSignalSpy actionInvokedSpy(&libhudTestInterface,
@@ -345,9 +357,11 @@ TEST_F(TestHud, ExecuteGMenuAction) {
 	QSignalSpy countChangedSpy(client.results(), SIGNAL(countChanged()));
 	client.setQuery("closr");
 	countChangedSpy.wait();
-	countChangedSpy.wait();
 
 	QAbstractListModel &results(*client.results());
+	if(results.rowCount() == 0) {
+		countChangedSpy.wait();
+	}
 	ASSERT_EQ(1, results.rowCount());
 	EXPECT_EQ(ResultPair("Close", ""), result(results, 0));
 
@@ -393,9 +407,11 @@ TEST_F(TestHud, ExecuteParameterized) {
 	QSignalSpy countChangedSpy(client.results(), SIGNAL(countChanged()));
 	client.setQuery("fruiy");
 	countChangedSpy.wait();
-	countChangedSpy.wait();
 
 	QAbstractListModel &results(*client.results());
+	if(results.rowCount() == 0) {
+		countChangedSpy.wait();
+	}
 	ASSERT_EQ(1, results.rowCount());
 	ASSERT_EQ(ResultPair("fruit", ""), result(results, 0));
 
