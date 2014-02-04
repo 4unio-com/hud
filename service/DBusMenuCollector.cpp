@@ -123,7 +123,13 @@ CollectorToken::Ptr DBusMenuCollector::activate() {
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 
 	if (collectorToken.isNull()) {
+		if(!m_menuImporter) {
+			return CollectorToken::Ptr();
+		}
 		openMenu(m_menuImporter->menu());
+		if (!m_menuImporter) {
+			return CollectorToken::Ptr();
+		}
 		collectorToken.reset(
 				new CollectorToken(shared_from_this(), m_menuImporter->menu()));
 		m_collectorToken = collectorToken;
