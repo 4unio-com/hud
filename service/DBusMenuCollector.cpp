@@ -125,16 +125,20 @@ void DBusMenuCollector::hideMenu(QMenu *menu) {
 
 CollectorToken::Ptr DBusMenuCollector::activate() {
 	CollectorToken::Ptr collectorToken(m_collectorToken);
-	QSharedPointer<DBusMenuImporter> menuImporter(m_menuImporter);
 
-	if(menuImporter.isNull()) {
+	if(m_menuImporter.isNull()) {
 		return CollectorToken::Ptr();
 	}
 
 	if (collectorToken.isNull()) {
-		openMenu(menuImporter->menu());
+		openMenu(m_menuImporter->menu());
+
+		if(m_menuImporter.isNull()) {
+			return CollectorToken::Ptr();
+		}
+
 		collectorToken.reset(
-				new CollectorToken(shared_from_this(), menuImporter->menu()));
+				new CollectorToken(shared_from_this(), m_menuImporter->menu()));
 		m_collectorToken = collectorToken;
 	}
 
