@@ -91,11 +91,7 @@ void DBusMenuCollector::openMenu(QMenu *menu) {
 
 	menu->aboutToShow();
 
-	if(!m_menuImporter) {
-		return;
-	}
-
-	for (int i(0); i < menu->actions().size(); ++i) {
+	for (int i(0); m_menuImporter && i < menu->actions().size(); ++i) {
 		QAction *action = menu->actions().at(i);
 		if (!action->isEnabled()) {
 			continue;
