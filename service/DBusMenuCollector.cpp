@@ -84,14 +84,14 @@ inline uint qHash(const QStringList &key, uint seed) {
 	return hash;
 }
 
-static void openMenu(QMenu *menu) {
+void DBusMenuCollector::openMenu(QMenu *menu) {
 	if (!menu) {
 		return;
 	}
 
 	menu->aboutToShow();
 
-	for (int i(0); i < menu->actions().size(); ++i) {
+	for (int i(0); m_menuImporter && i < menu->actions().size(); ++i) {
 		QAction *action = menu->actions().at(i);
 		if (!action->isEnabled()) {
 			continue;
@@ -107,7 +107,7 @@ static void openMenu(QMenu *menu) {
 	}
 }
 
-static void hideMenu(QMenu *menu) {
+void DBusMenuCollector::hideMenu(QMenu *menu) {
 	for (int i(0); i < menu->actions().size(); ++i) {
 		QAction *action = menu->actions().at(i);
 		QMenu *child(action->menu());
@@ -117,13 +117,26 @@ static void hideMenu(QMenu *menu) {
 	}
 
 	menu->aboutToHide();
+
+	if(!m_menuImporter) {
+		return;
+	}
 }
 
 CollectorToken::Ptr DBusMenuCollector::activate() {
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 
+	if(m_menuImporter.isNull()) {
+		return CollectorToken::Ptr();
+	}
+
 	if (collectorToken.isNull()) {
 		openMenu(m_menuImporter->menu());
+
+		if(m_menuImporter.isNull()) {
+			return CollectorToken::Ptr();
+		}
+
 		collectorToken.reset(
 				new CollectorToken(shared_from_this(), m_menuImporter->menu()));
 		m_collectorToken = collectorToken;
@@ -133,6 +146,9 @@ CollectorToken::Ptr DBusMenuCollector::activate() {
 }
 
 void DBusMenuCollector::deactivate() {
+	if(m_menuImporter.isNull()) {
+		return;
+	}
 	hideMenu(m_menuImporter->menu());
 }
 
