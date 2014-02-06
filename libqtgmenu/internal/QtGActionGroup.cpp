@@ -26,8 +26,19 @@ QtGActionGroup::QtGActionGroup( GActionGroup* action_group )
 {
   ConnectCallbacks();
 
+  gchar** actions_list = g_action_group_list_actions( m_action_group );
+  if( actions_list )
+  {
+    while( actions_list[m_size] != nullptr )
+    {
+      ++m_size;
+    }
+
+    g_strfreev( actions_list );
+  }
+
   // add initial items
-  for( int i = 0; i < Size(); ++i )
+  for( int i = 0; i < m_size; ++i )
   {
     emit ActionAdded( Action( i ) );
   }
@@ -40,7 +51,7 @@ QtGActionGroup::~QtGActionGroup()
     return;
   }
 
-  for( int i = 0; i < Size(); ++i )
+  for( int i = 0; i < m_size; ++i )
   {
     emit ActionRemoved( Action( i ) );
   }
@@ -58,29 +69,14 @@ GActionGroup* QtGActionGroup::ActionGroup() const
   return m_action_group;
 }
 
-int QtGActionGroup::Size()
+int QtGActionGroup::Size() const
 {
-  gchar** actions_list = g_action_group_list_actions( m_action_group );
-
-  if( !actions_list )
-  {
-    return 0;
-  }
-
-  int action_count = 0;
-  while( actions_list[action_count] != nullptr )
-  {
-    ++action_count;
-  }
-
-  g_strfreev( actions_list );
-
-  return action_count;
+  return m_size;
 }
 
 QString QtGActionGroup::Action( int index )
 {
-  if( index >= Size() )
+  if( index >= m_size )
   {
     return QString();
   }
@@ -121,7 +117,7 @@ void QtGActionGroup::EmitStates()
 {
   gchar** actions_list = g_action_group_list_actions( m_action_group );
 
-  for( int i = 0; i < Size(); ++i )
+  for( int i = 0; i < m_size; ++i )
   {
     gchar* action_name = actions_list[i];
 
@@ -154,6 +150,8 @@ void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* act
       action_name );
   if( type != nullptr )
     emit self->ActionParameterized( action_name, type != nullptr );
+
+  ++self->m_size;
 }
 
 void QtGActionGroup::ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
@@ -161,6 +159,8 @@ void QtGActionGroup::ActionRemovedCallback( GActionGroup* action_group, gchar* a
 {
   QtGActionGroup* self = reinterpret_cast< QtGActionGroup* >( user_data );
   emit self->ActionRemoved( action_name );
+
+  --self->m_size;
 }
 
 void QtGActionGroup::ActionEnabledCallback( GActionGroup* action_group, gchar* action_name,
