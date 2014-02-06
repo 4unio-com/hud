@@ -1,3 +1,15 @@
+hud (13.10.1+14.04.20140206-0ubuntu1) trusty; urgency=low
+
+  [ Pete Woods ]
+  * Re-enable quit action in HUD client library. (LP: #1269409)
+  * Extra checks for null DBusMenuCollector
+
+  [ Marcus Tomlinson ]
+  * Cache size of QtGActionGroup in m_size rather and re-calculating it
+    on every Size() call. (LP: #1276225)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 06 Feb 2014 11:58:43 +0000
+
 hud (13.10.1+14.04.20140120-0ubuntu1) trusty; urgency=low
 
   * New rebuild forced
