@@ -62,13 +62,17 @@ protected:
 			const QDBusObjectPath &menuObjectPath);
 
 protected:
+	void openMenu(QMenu *menu);
+
+	void hideMenu(QMenu *menu);
+
 	unsigned int m_windowId;
 
 	QSharedPointer<ComCanonicalAppMenuRegistrarInterface> m_registrar;
 
 	QWeakPointer<CollectorToken> m_collectorToken;
 
-	QScopedPointer<DBusMenuImporter> m_menuImporter;
+	QSharedPointer<DBusMenuImporter> m_menuImporter;
 
 	QString m_service;
 
