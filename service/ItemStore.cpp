@@ -36,7 +36,7 @@ static const QRegularExpression WHITESPACE_OR_SEMICOLON("[;\\s+]");
 ItemStore::ItemStore(const QString &applicationId,
 		UsageTracker::Ptr usageTracker) :
 		m_applicationId(applicationId), m_usageTracker(usageTracker), m_nextId(
-				0) {
+				0), m_settings(nullptr, &QObject::deleteLater) {
 	ErrorValues &errorValues(m_matcher.getErrorValues());
 	errorValues.addStandardErrors();
 
