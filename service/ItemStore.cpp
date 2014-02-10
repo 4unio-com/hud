@@ -36,7 +36,7 @@ static const QRegularExpression WHITESPACE_OR_SEMICOLON("[;\\s+]");
 ItemStore::ItemStore(const QString &applicationId,
 		UsageTracker::Ptr usageTracker) :
 		m_applicationId(applicationId), m_usageTracker(usageTracker), m_nextId(
-				0), m_settings(nullptr, &QObject::deleteLater) {
+				0) {
 	ErrorValues &errorValues(m_matcher.getErrorValues());
 	errorValues.addStandardErrors();
 
@@ -48,7 +48,8 @@ ItemStore::ItemStore(const QString &applicationId,
 	} else {
 		m_settings.reset(
 				new QGSettings("com.canonical.indicator.appmenu.hud.search",
-						"/com/canonical/indicator/appmenu/hud/search/"));
+						"/com/canonical/indicator/appmenu/hud/search/"),
+				&QObject::deleteLater);
 		connect(m_settings.data(), SIGNAL(changed(const QString &)), this,
 				SLOT(settingChanged(const QString &)));
 		settingChanged(QString());
