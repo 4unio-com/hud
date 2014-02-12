@@ -87,7 +87,7 @@ protected:
 
 	DocumentID m_nextId;
 
-	QScopedPointer<QGSettings> m_settings;
+	QSharedPointer<QGSettings> m_settings;
 
 	QMap<DocumentID, Item::Ptr> m_items;
 
