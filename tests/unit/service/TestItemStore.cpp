@@ -17,6 +17,7 @@
  */
 
 #include <service/ItemStore.h>
+#include <service/HardCodedSearchSettings.h>
 #include <tests/unit/service/Mocks.h>
 
 #include <string>
@@ -35,7 +36,9 @@ protected:
 	TestItemStore() {
 		usageTracker.reset(new NiceMock<MockUsageTracker>());
 
-		store.reset(new ItemStore("app-id", usageTracker));
+		searchSettings.reset(new HardCodedSearchSettings());
+
+		store.reset(new ItemStore("app-id", usageTracker, searchSettings));
 	}
 
 	/* Test a set of strings */
@@ -55,6 +58,8 @@ protected:
 	ItemStore::Ptr store;
 
 	QSharedPointer<MockUsageTracker> usageTracker;
+
+	SearchSettings::Ptr searchSettings;
 };
 
 /* Ensure the base calculation works */

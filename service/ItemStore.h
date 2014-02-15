@@ -21,6 +21,7 @@
 
 #include <service/Item.h>
 #include <service/Result.h>
+#include <service/SearchSettings.h>
 #include <service/UsageTracker.h>
 
 #include <QSharedPointer>
@@ -33,8 +34,6 @@ QT_BEGIN_NAMESPACE
 class QDBusObjectPath;
 QT_END_NAMESPACE
 
-class QGSettings;
-
 namespace hud {
 namespace service {
 
@@ -44,7 +43,8 @@ Q_OBJECT
 public:
 	typedef QSharedPointer<ItemStore> Ptr;
 
-	ItemStore(const QString &applicationId, UsageTracker::Ptr usageTracker);
+	ItemStore(const QString &applicationId, UsageTracker::Ptr usageTracker,
+			SearchSettings::Ptr searchSettings);
 
 	virtual ~ItemStore();
 
@@ -65,7 +65,7 @@ public:
 	QStringList toolbarItems() const;
 
 protected Q_SLOTS:
-	void settingChanged(const QString &key);
+	void settingChanged();
 
 protected:
 	void indexMenu(const QMenu *menu, const QMenu *root,
@@ -87,7 +87,7 @@ protected:
 
 	DocumentID m_nextId;
 
-	QSharedPointer<QGSettings> m_settings;
+	SearchSettings::Ptr m_settings;
 
 	QMap<DocumentID, Item::Ptr> m_items;
 

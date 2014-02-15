@@ -18,7 +18,6 @@
 
 #include <common/Localisation.h>
 #include <service/ItemStore.h>
-#include <QGSettings/qgsettings.h>
 
 #include <columbus.hh>
 #include <QRegularExpression>
@@ -34,39 +33,26 @@ static const QRegularExpression WHITESPACE("\\s+");
 static const QRegularExpression WHITESPACE_OR_SEMICOLON("[;\\s+]");
 
 ItemStore::ItemStore(const QString &applicationId,
-		UsageTracker::Ptr usageTracker) :
+		UsageTracker::Ptr usageTracker, SearchSettings::Ptr settings) :
 		m_applicationId(applicationId), m_usageTracker(usageTracker), m_nextId(
-				0) {
+				0), m_settings(settings) {
 	ErrorValues &errorValues(m_matcher.getErrorValues());
 	errorValues.addStandardErrors();
 
-	if (qEnvironmentVariableIsSet("HUD_IGNORE_SEARCH_SETTINGS")) {
-		errorValues.setInsertionError(100);
-		errorValues.setDeletionError(100);
-		errorValues.setEndDeletionError(1);
-		errorValues.setTransposeError(15);
-	} else {
-		m_settings.reset(
-				new QGSettings("com.canonical.indicator.appmenu.hud.search",
-						"/com/canonical/indicator/appmenu/hud/search/"),
-				&QObject::deleteLater);
-		connect(m_settings.data(), SIGNAL(changed(const QString &)), this,
-				SLOT(settingChanged(const QString &)));
-		settingChanged(QString());
-	}
+	connect(m_settings.data(), SIGNAL(changed()), this,
+					SLOT(settingChanged()));
+	settingChanged();
 }
 
 ItemStore::~ItemStore() {
 }
 
-void ItemStore::settingChanged(const QString &key) {
-	Q_UNUSED(key);
-
+void ItemStore::settingChanged() {
 	ErrorValues &errorValues(m_matcher.getErrorValues());
-	errorValues.setInsertionError(m_settings->get("addPenalty").toUInt() * 10);
-	errorValues.setDeletionError(m_settings->get("dropPenalty").toUInt() * 10);
-	errorValues.setEndDeletionError(m_settings->get("endDropPenalty").toUInt());
-	errorValues.setTransposeError(m_settings->get("swapPenalty").toUInt());
+	errorValues.setInsertionError(m_settings->addPenalty());
+	errorValues.setDeletionError(m_settings->dropPenalty());
+	errorValues.setEndDeletionError(m_settings->endDropPenalty());
+	errorValues.setTransposeError(m_settings->swapPenalty());
 }
 
 static QString convertActionText(const QAction *action) {

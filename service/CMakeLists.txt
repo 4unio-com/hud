@@ -19,13 +19,16 @@ set(HUD_SERVICE_LIB_SOURCES
   Factory.cpp
   GMenuCollector.cpp
   GMenuWindowCollector.cpp
+  HardCodedSearchSettings.cpp
   HudService.cpp
   HudServiceImpl.cpp
   Item.cpp
   ItemStore.cpp
+  QGSettingsSearchSettings.cpp
   Query.cpp
   QueryImpl.cpp
   Result.cpp
+  SearchSettings.cpp
   SqliteUsageTracker.cpp
   UsageTracker.cpp
   Voice.cpp
