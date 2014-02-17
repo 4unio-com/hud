@@ -27,17 +27,45 @@ HardCodedSearchSettings::~HardCodedSearchSettings() {
 }
 
 uint HardCodedSearchSettings::addPenalty() const {
-	return 100;
+	return m_addPenalty;
 }
 
 uint HardCodedSearchSettings::dropPenalty() const {
-	return 100;
+	return m_dropPenalty;
 }
 
 uint HardCodedSearchSettings::endDropPenalty() const {
-	return 1;
+	return m_endDropPenalty;
 }
 
 uint HardCodedSearchSettings::swapPenalty() const {
-	return 15;
+	return m_swapPenalty;
+}
+
+void HardCodedSearchSettings::setAddPenalty(uint penalty) {
+	if (m_addPenalty != penalty) {
+		m_addPenalty = penalty;
+		changed();
+	}
+}
+
+void HardCodedSearchSettings::setDropPenalty(uint penalty) {
+	if (m_dropPenalty != penalty) {
+		m_dropPenalty = penalty;
+		changed();
+	}
+}
+
+void HardCodedSearchSettings::setEndDropPenalty(uint penalty) {
+	if (m_endDropPenalty != penalty) {
+		m_endDropPenalty = penalty;
+		changed();
+	}
+}
+
+void HardCodedSearchSettings::setSwapPenalty(uint penalty) {
+	if (m_swapPenalty != penalty) {
+		m_swapPenalty = penalty;
+		changed();
+	}
 }

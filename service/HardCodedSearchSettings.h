@@ -32,11 +32,28 @@ public:
 
 	uint addPenalty() const;
 
+	void setAddPenalty(uint penalty);
+
 	uint dropPenalty() const;
+
+	void setDropPenalty(uint penalty);
 
 	uint endDropPenalty() const;
 
+	void setEndDropPenalty(uint penalty);
+
 	uint swapPenalty() const;
+
+	void setSwapPenalty(uint penalty);
+
+protected:
+	uint m_addPenalty = 100;
+
+	uint m_dropPenalty = 100;
+
+	uint m_endDropPenalty = 1;
+
+	uint m_swapPenalty = 5;
 };
 
 }

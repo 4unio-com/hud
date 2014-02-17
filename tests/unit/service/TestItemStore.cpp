@@ -59,7 +59,7 @@ protected:
 
 	QSharedPointer<MockUsageTracker> usageTracker;
 
-	SearchSettings::Ptr searchSettings;
+	QSharedPointer<HardCodedSearchSettings> searchSettings;
 };
 
 /* Ensure the base calculation works */
@@ -278,6 +278,24 @@ TEST_F(TestItemStore, ExecuteMarksHistory) {
 	EXPECT_CALL(*usageTracker,
 			markUsage(QString("app-id"), QString("File||Save As...")));
 	store->execute(0);
+}
+
+TEST_F(TestItemStore, ChangeSearchSettings) {
+	QMenu root;
+
+	QMenu file("&File");
+	file.addAction("Apple");
+	file.addAction("Banana");
+	file.addAction("Can Cherry");
+	root.addMenu(&file);
+
+	store->indexMenu(&root);
+
+	EXPECT_EQ("Banana", search("Ban"));
+
+	searchSettings->setEndDropPenalty(100);
+
+	EXPECT_EQ("Can Cherry", search("Ban"));
 }
 
 } // namespace
