@@ -168,7 +168,8 @@ void QtGMenuModel::ActionTriggered( bool checked )
 
 void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
 {
-  QAction* action = FindAction( action_name );
+  std::map< QtGMenuModel*, bool > known_menus;
+  QAction* action = FindAction( action_name, known_menus );
   if( action )
   {
     action->setEnabled( enabled );
@@ -177,7 +178,8 @@ void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
 
 void QtGMenuModel::ActionParameterized( QString action_name, bool parameterized )
 {
-  QAction* action = FindAction( action_name );
+  std::map< QtGMenuModel*, bool > known_menus;
+  QAction* action = FindAction( action_name, known_menus );
   if( action )
   {
     action->setProperty( c_property_isParameterized, parameterized );
@@ -416,7 +418,7 @@ QAction* QtGMenuModel::CreateAction( int index )
   return action;
 }
 
-QAction* QtGMenuModel::FindAction( QString name )
+QAction* QtGMenuModel::FindAction( QString name, std::map< QtGMenuModel*, bool >& known_menus )
 {
   if( m_ext_menu->menuAction()->property( c_property_actionName ) == name )
   {
@@ -431,12 +433,16 @@ QAction* QtGMenuModel::FindAction( QString name )
     }
   }
 
+  known_menus[this] = true;
   for( QtGMenuModel* child : m_children )
   {
-    QAction* action = child->FindAction( name );
-    if( action )
+    if( known_menus.find( child ) == end( known_menus ) )
     {
-      return action;
+      QAction* action = child->FindAction( name, known_menus );
+      if( action )
+      {
+        return action;
+      }
     }
   }
 

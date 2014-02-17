@@ -93,7 +93,7 @@ private:
   int ChildIndex( QtGMenuModel* child );
 
   QAction* CreateAction( int index );
-  QAction* FindAction( QString name );
+  QAction* FindAction(QString name , std::map< QtGMenuModel*, bool >& known_menus);
 
   void AppendQMenu( std::shared_ptr< QMenu > top_menu );
   void UpdateExtQMenu();
