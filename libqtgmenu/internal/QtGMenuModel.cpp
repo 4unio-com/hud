@@ -422,14 +422,14 @@ QAction* QtGMenuModel::CreateAction( int index )
 
 QAction* QtGMenuModel::FindAction( QString name, std::map< QtGMenuModel*, bool >& known_menus )
 {
-  if( m_ext_menu->menuAction()->property( c_property_actionName ) == name )
+  if( m_ext_menu->menuAction()->property( c_property_actionName ).toString() == name )
   {
     return m_ext_menu->menuAction();
   }
 
   for( QAction* action : m_menu->actions() )
   {
-    if( action->property( c_property_actionName ) == name )
+    if( action->property( c_property_actionName ).toString() == name )
     {
       return action;
     }
