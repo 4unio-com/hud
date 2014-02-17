@@ -448,8 +448,8 @@ QAction* QtGMenuModel::FindAction( QString name, std::map< QtGMenuModel*, bool >
     }
     else
     {
-      qWarning() << "Feedback loop found in GMenu hierarchy while searching for action: \""
-                 << name << "\"";
+      qWarning() << "QtGMenuModel::FindAction: Feedback loop found in GMenu hierarchy "
+                 << "while searching for action: \"" << name << "\"";
     }
   }
 
