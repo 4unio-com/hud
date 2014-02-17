@@ -53,8 +53,6 @@ protected Q_SLOTS:
 	void WindowRegistered(uint windowId, const QString &service,
 			const QDBusObjectPath &menuObjectPath);
 
-	void WindowUnregistered(uint windowId);
-
 protected:
 	virtual void deactivate();
 

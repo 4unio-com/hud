@@ -23,7 +23,6 @@
 
 #include <dbusmenuimporter.h>
 #include <QMenu>
-#include <columbus.hh>
 
 using namespace hud::common;
 using namespace hud::service;
@@ -36,9 +35,6 @@ DBusMenuCollector::DBusMenuCollector(unsigned int windowId,
 	SIGNAL(WindowRegistered(uint, const QString &, const QDBusObjectPath &)),
 			this,
 			SLOT( WindowRegistered(uint, const QString &, const QDBusObjectPath &)));
-
-	connect(registrar.data(), SIGNAL(
-			WindowUnregistered(uint)), this, SLOT(WindowUnregistered(uint)));
 
 	QDBusPendingReply<QString, QDBusObjectPath> windowReply =
 			registrar->GetMenuForWindow(m_windowId);
@@ -56,13 +52,20 @@ DBusMenuCollector::~DBusMenuCollector() {
 
 void DBusMenuCollector::windowRegistered(const QString &service,
 		const QDBusObjectPath &menuObjectPath) {
+
+	if (service.isEmpty()) {
+		return;
+	}
+
 	m_service = service;
 	m_path = menuObjectPath;
 
-	if (m_service.isEmpty()) {
-		m_menuImporter.reset();
-		return;
-	}
+	disconnect(m_registrar.data(),
+			SIGNAL(
+					WindowRegistered(uint, const QString &, const QDBusObjectPath &)),
+			this,
+			SLOT(
+					WindowRegistered(uint, const QString &, const QDBusObjectPath &)));
 
 	m_menuImporter.reset(new DBusMenuImporter(m_service, m_path.path()));
 
@@ -160,13 +163,4 @@ void DBusMenuCollector::WindowRegistered(uint windowId, const QString &service,
 	}
 
 	windowRegistered(service, menuObjectPath);
-}
-
-void DBusMenuCollector::WindowUnregistered(uint windowId) {
-	// Simply ignore updates for other windows
-	if (windowId != m_windowId) {
-		return;
-	}
-
-	m_menuImporter.reset();
 }
