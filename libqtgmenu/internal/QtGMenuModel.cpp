@@ -19,6 +19,8 @@
 #include <QtGMenuModel.h>
 #include <QtGMenuUtils.h>
 
+#include <QDebug>
+
 using namespace qtgmenu;
 
 QtGMenuModel::QtGMenuModel( GMenuModel* model )
@@ -443,6 +445,11 @@ QAction* QtGMenuModel::FindAction( QString name, std::map< QtGMenuModel*, bool >
       {
         return action;
       }
+    }
+    else
+    {
+      qWarning() << "Feedback loop found in GMenu hierarchy while searching for action: \""
+                 << name << "\"";
     }
   }
 
