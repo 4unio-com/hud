@@ -1,3 +1,15 @@
+hud (13.10.1+14.04.20140218.2-0ubuntu1) trusty; urgency=low
+
+  [ Pete Woods ]
+  * Abstract out settings for improved testability (LP: #1280559)
+  * Prevent rare crash when first opening dbusmenu window
+
+  [ Marcus Tomlinson ]
+  * Store actions for entire QtGMenuModel hierarchy in top menu
+    m_actions (LP: #1276225)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 18 Feb 2014 14:29:30 +0000
+
 hud (13.10.1+14.04.20140212-0ubuntu1) trusty; urgency=low
 
   [ Pete Woods ]
