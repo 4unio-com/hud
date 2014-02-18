@@ -19,8 +19,6 @@
 #include <QtGMenuModel.h>
 #include <QtGMenuUtils.h>
 
-#include <QDebug>
-
 using namespace qtgmenu;
 
 QtGMenuModel::QtGMenuModel( GMenuModel* model )
