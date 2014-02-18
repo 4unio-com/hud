@@ -17,6 +17,7 @@
  */
 
 #include <service/ItemStore.h>
+#include <service/HardCodedSearchSettings.h>
 #include <tests/unit/service/Mocks.h>
 
 #include <string>
@@ -35,7 +36,9 @@ protected:
 	TestItemStore() {
 		usageTracker.reset(new NiceMock<MockUsageTracker>());
 
-		store.reset(new ItemStore("app-id", usageTracker));
+		searchSettings.reset(new HardCodedSearchSettings());
+
+		store.reset(new ItemStore("app-id", usageTracker, searchSettings));
 	}
 
 	/* Test a set of strings */
@@ -55,6 +58,8 @@ protected:
 	ItemStore::Ptr store;
 
 	QSharedPointer<MockUsageTracker> usageTracker;
+
+	QSharedPointer<HardCodedSearchSettings> searchSettings;
 };
 
 /* Ensure the base calculation works */
@@ -273,6 +278,24 @@ TEST_F(TestItemStore, ExecuteMarksHistory) {
 	EXPECT_CALL(*usageTracker,
 			markUsage(QString("app-id"), QString("File||Save As...")));
 	store->execute(0);
+}
+
+TEST_F(TestItemStore, ChangeSearchSettings) {
+	QMenu root;
+
+	QMenu file("&File");
+	file.addAction("Apple");
+	file.addAction("Banana");
+	file.addAction("Can Cherry");
+	root.addMenu(&file);
+
+	store->indexMenu(&root);
+
+	EXPECT_EQ("Banana", search("Ban"));
+
+	searchSettings->setEndDropPenalty(100);
+
+	EXPECT_EQ("Can Cherry", search("Ban"));
 }
 
 } // namespace

@@ -27,6 +27,7 @@
 #include <service/GMenuCollector.h>
 #include <service/ItemStore.h>
 #include <service/UsageTracker.h>
+#include <service/SearchSettings.h>
 #include <service/Voice.h>
 #include <service/Query.h>
 #include <service/Window.h>
@@ -65,6 +66,8 @@ public:
 
 	virtual UsageTracker::Ptr singletonUsageTracker();
 
+	virtual SearchSettings::Ptr singletonSearchSettings();
+
 	virtual Voice::Ptr singletonVoice();
 
 	virtual Application::Ptr newApplication(const QString &applicationId);
@@ -98,6 +101,8 @@ protected:
 	ApplicationList::Ptr m_applicationList;
 
 	UsageTracker::Ptr m_usageTracker;
+
+	SearchSettings::Ptr m_searchSettings;
 
 	Voice::Ptr m_voice;
 

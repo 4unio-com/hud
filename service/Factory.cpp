@@ -20,8 +20,10 @@
 #include <service/ApplicationImpl.h>
 #include <service/ApplicationListImpl.h>
 #include <service/AppmenuRegistrarInterface.h>
+#include <service/HardCodedSearchSettings.h>
 #include <service/HudServiceImpl.h>
 #include <service/WindowImpl.h>
+#include <service/QGSettingsSearchSettings.h>
 #include <service/QueryImpl.h>
 #include <service/SqliteUsageTracker.h>
 #include <service/VoiceImpl.h>
@@ -109,6 +111,17 @@ UsageTracker::Ptr Factory::singletonUsageTracker() {
 	return m_usageTracker;
 }
 
+SearchSettings::Ptr Factory::singletonSearchSettings() {
+	if (m_searchSettings.isNull()) {
+		if (qEnvironmentVariableIsSet("HUD_IGNORE_SEARCH_SETTINGS")) {
+			m_searchSettings.reset(new HardCodedSearchSettings());
+		} else {
+			m_searchSettings.reset(new QGSettingsSearchSettings());
+		}
+	}
+	return m_searchSettings;
+}
+
 Voice::Ptr Factory::singletonVoice() {
 	if (m_voice.isNull()) {
 		QSharedPointer<ComCanonicalUnityVoiceInterface> voiceInterface(
@@ -126,7 +139,9 @@ Application::Ptr Factory::newApplication(const QString &applicationId) {
 }
 
 ItemStore::Ptr Factory::newItemStore(const QString &applicationId) {
-	return ItemStore::Ptr(new ItemStore(applicationId, singletonUsageTracker()));
+	return ItemStore::Ptr(
+			new ItemStore(applicationId, singletonUsageTracker(),
+					singletonSearchSettings()));
 }
 
 Window::Ptr Factory::newWindow(unsigned int windowId,
