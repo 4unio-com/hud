@@ -168,19 +168,19 @@ void QtGMenuModel::ActionTriggered( bool checked )
 
 void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
 {
-  QAction* action = FindAction( action_name );
-  if( action )
+  auto action_it = m_actions.find( action_name );
+  if( action_it != end( m_actions ) )
   {
-    action->setEnabled( enabled );
+    action_it->second->setEnabled( enabled );
   }
 }
 
 void QtGMenuModel::ActionParameterized( QString action_name, bool parameterized )
 {
-  QAction* action = FindAction( action_name );
-  if( action )
+  auto action_it = m_actions.find( action_name );
+  if( action_it != end( m_actions ) )
   {
-    action->setProperty( c_property_isParameterized, parameterized );
+    action_it->second->setProperty( c_property_isParameterized, parameterized );
   }
 }
 
@@ -219,6 +219,7 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
       if( index < m_menu->actions().size() )
       {
         QAction* at_action = m_menu->actions().at( index );
+        ActionRemoved( at_action->property( c_property_actionName ).toString() );
         m_menu->removeAction( at_action );
       }
     }
@@ -263,7 +264,9 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
 
       if( !model )
       {
-        m_menu->insertAction( at_action, CreateAction( i ) );
+        QAction* new_action = CreateAction( i );
+        ActionAdded( new_action->property( c_property_actionName ).toString(), new_action );
+        m_menu->insertAction( at_action, new_action );
       }
       else if( model->Type() == LinkType::Section )
       {
@@ -416,33 +419,6 @@ QAction* QtGMenuModel::CreateAction( int index )
   return action;
 }
 
-QAction* QtGMenuModel::FindAction( QString name )
-{
-  if( m_ext_menu->menuAction()->property( c_property_actionName ) == name )
-  {
-    return m_ext_menu->menuAction();
-  }
-
-  for( QAction* action : m_menu->actions() )
-  {
-    if( action->property( c_property_actionName ) == name )
-    {
-      return action;
-    }
-  }
-
-  for( QtGMenuModel* child : m_children )
-  {
-    QAction* action = child->FindAction( name );
-    if( action )
-    {
-      return action;
-    }
-  }
-
-  return nullptr;
-}
-
 void QtGMenuModel::AppendQMenu( std::shared_ptr< QMenu > top_menu )
 {
   if( m_link_type == LinkType::Root )
@@ -506,4 +482,26 @@ void QtGMenuModel::UpdateExtQMenu()
       m_ext_menu->removeAction( last_action );
     }
   }
+}
+
+void QtGMenuModel::ActionAdded( const QString& name, QAction* action )
+{
+  // add action to top menu's m_actions
+  if( m_parent )
+  {
+    m_parent->ActionAdded( name, action );
+  }
+
+  m_actions[name] = action;
+}
+
+void QtGMenuModel::ActionRemoved( const QString& name )
+{
+  // remove action from top menu's m_actions
+  if( m_parent )
+  {
+    m_parent->ActionRemoved( name );
+  }
+
+  m_actions.erase( name );
 }
