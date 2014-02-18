@@ -34,7 +34,7 @@ public:
 
 	MOCK_METHOD0(sessionBus, QDBusConnection());
 
-	MOCK_METHOD2(newQuery, Query::Ptr( const QString &, const QString &));
+	MOCK_METHOD3(newQuery, Query::Ptr( const QString &, const QString &, Query::EmptyBehaviour));
 
 	MOCK_METHOD1(newApplication, Application::Ptr(const QString &));
 
@@ -106,7 +106,8 @@ public:
 
 class MockWindowToken: public WindowToken {
 public:
-	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
+	MOCK_METHOD3(search, void(const QString &,
+					Query::EmptyBehaviour emptyBehaviour, QList<Result> &));
 
 	MOCK_METHOD1(execute, void(unsigned long long));
 

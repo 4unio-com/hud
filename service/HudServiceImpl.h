@@ -74,7 +74,8 @@ public Q_SLOTS:
 	void CloseQuery(const QDBusVariant &querykey);
 
 protected:
-	Query::Ptr createQuery(const QString &query, const QString &service);
+	Query::Ptr createQuery(const QString &query, const QString &service,
+			Query::EmptyBehaviour emptyBehaviour);
 
 	QScopedPointer<HudAdaptor> m_adaptor;
 
