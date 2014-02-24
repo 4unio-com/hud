@@ -69,8 +69,6 @@ struct _HudManagerClass {
 
 /**
  * HudManager:
- * @parent: #GObject instance data
- * @priv: Private data
  *
  * Instance data for the HUD Manager object.  This object
  * tracks the information exported to the HUD for a specific

@@ -48,6 +48,12 @@ typedef struct _HudClientConnectionClass    HudClientConnectionClass;
 typedef struct _HudClientConnectionPrivate  HudClientConnectionPrivate ;
 
 /**
+ * HudClientConnectionPrivate:
+ *
+ * Private data for #HudClientConnection.
+ */
+
+/**
  * HudClientConnectionNewQueryCallback:
  * @connection: #HudClientConnection for the request
  * @query_path: Path to the query object on DBus
