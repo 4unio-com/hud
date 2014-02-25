@@ -39,8 +39,9 @@ ItemStore::ItemStore(const QString &applicationId,
 	ErrorValues &errorValues(m_matcher.getErrorValues());
 	errorValues.addStandardErrors();
 
-	connect(m_settings.data(), SIGNAL(changed()), this,
-					SLOT(settingChanged()));
+	m_matcher.getIndexWeights().setWeight(Word("context"), 0.5);
+
+	connect(m_settings.data(), SIGNAL(changed()), this, SLOT(settingChanged()));
 	settingChanged();
 }
 

@@ -15,7 +15,7 @@
     </key>
 
     <key type='u' name='add-penalty'>
-      <default>10</default>
+      <default>100</default>
       <summary>Penalty for extra characters added to the search</summary>
       <description>
         The penalty for each extra character in the search string that does not appear in the text of a menu
@@ -27,7 +27,7 @@
     </key>
 
     <key type='u' name='drop-penalty'>
-      <default>10</default>
+      <default>100</default>
       <summary>Penalty applied if a character is dropped</summary>
       <description>
         The penalty for each character dropped from the search string, as compared with the text of a menu item.
@@ -39,7 +39,7 @@
     </key>
 
     <key type='u' name='end-drop-penalty'>
-      <default>1</default>
+      <default>24</default>
       <summary>Penalty applied if a character is dropped from the end</summary>
       <description>
         The penalty for each missing character at the end of a search term.
@@ -50,7 +50,7 @@
     </key>
 
     <key type='u' name='swap-penalty'>
-      <default>15</default>
+      <default>100</default>
       <summary>Penalty applied when the characters are not the same</summary>
       <description>
         The penalty for each substituted character in the search term.
