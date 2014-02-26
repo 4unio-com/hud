@@ -57,12 +57,13 @@ BamfWindow::BamfWindow(const QString &path, const QDBusConnection &connection) :
 		QDBusPendingReply<QString> desktopFileReply(application.DesktopFile());
 		desktopFileReply.waitForFinished();
 		if (desktopFileReply.isError()) {
-			qWarning() << _("Could not get desktop file for") << path;
+			qWarning() << _("Could not get desktop file for") << path
+					<< desktopFileReply.error();
 			m_error = true;
 			return;
 		} else {
-			QFile desktopFile(desktopFileReply);
-			if (desktopFile.exists()) {
+			QString desktopFile(desktopFileReply);
+			if (!desktopFile.isEmpty()) {
 				m_applicationId = QFileInfo(desktopFile).baseName();
 			}
 		}
@@ -160,6 +161,7 @@ BamfWindowStack::~BamfWindowStack() {
 }
 
 QString BamfWindowStack::GetAppIdFromPid(uint pid) {
+	Q_UNUSED(pid);
 	// FIXME Not implemented
 	sendErrorReply(QDBusError::NotSupported,
 			"GetAppIdFromPid method not implemented");
@@ -169,17 +171,33 @@ QString BamfWindowStack::GetAppIdFromPid(uint pid) {
 QList<WindowInfo> BamfWindowStack::GetWindowStack() {
 	QList<WindowInfo> results;
 
-	QStringList stack(m_matcher.WindowStackForMonitor(-1));
+	QDBusPendingReply<QStringList> stackReply(
+			m_matcher.WindowStackForMonitor(-1));
+	stackReply.waitForFinished();
+	if (stackReply.isError()) {
+		qWarning() << "Failed to get BAMF window stack" << stackReply.error();
+		return results;
+	}
+
+	QStringList stack(stackReply);
 	for (const QString &path : stack) {
-		const auto window (m_windows[path]);
+		const auto window(m_windows[path]);
 		if (window) {
-			results << WindowInfo(window->windowId(),
-			                      window->applicationId(),
-			                      false);
+			results
+					<< WindowInfo(window->windowId(), window->applicationId(),
+							false);
 		}
 	}
 
-	const auto window (m_windows[m_matcher.ActiveWindow()]);
+	QDBusPendingReply<QString> activeWindowReply(m_matcher.ActiveWindow());
+	activeWindowReply.waitForFinished();
+	if (activeWindowReply.isError()) {
+		qWarning() << "Failed to get BAMF active window"
+				<< activeWindowReply.error();
+		return results;
+	}
+
+	const auto window(m_windows[activeWindowReply]);
 	if (window) {
 		const uint windowId(window->windowId());
 
@@ -195,8 +213,9 @@ QList<WindowInfo> BamfWindowStack::GetWindowStack() {
 
 QStringList BamfWindowStack::GetWindowProperties(uint windowId,
 		const QString &appId, const QStringList &names) {
+	Q_UNUSED(appId);
 	QStringList result;
-	auto window = m_windowsById[windowId];
+	const auto window = m_windowsById[windowId];
 
 	if (window == nullptr) {
 		sendErrorReply(QDBusError::InvalidArgs, "Unable to find windowId");
@@ -204,19 +223,23 @@ QStringList BamfWindowStack::GetWindowProperties(uint windowId,
 	}
 
 	for (const QString &name : names) {
-		result << window->xProp(name);
+		if (window) {
+			result << window->xProp(name);
+		} else {
+			result << QString();
+		}
 	}
 	return result;
 }
 
 void BamfWindowStack::ActiveWindowChanged(const QString &oldWindowPath,
 		const QString &newWindowPath) {
+	Q_UNUSED(oldWindowPath);
 	if (!newWindowPath.isEmpty()) {
 		const auto window(m_windows[newWindowPath]);
 		if (window) {
-			FocusedWindowChanged(window->windowId(),
-			                     window->applicationId(),
-			                     WindowInfo::MAIN);
+			FocusedWindowChanged(window->windowId(), window->applicationId(),
+					WindowInfo::MAIN);
 		}
 	}
 }
