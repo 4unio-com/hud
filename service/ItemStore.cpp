@@ -29,6 +29,7 @@ using namespace hud::service;
 using namespace Columbus;
 
 static const QRegularExpression SINGLE_AMPERSAND("(?<![&])[&](?![&])");
+static const QRegularExpression BAD_CHARACTERS("\\.\\.\\.|…");
 static const QRegularExpression WHITESPACE("\\s+");
 static const QRegularExpression WHITESPACE_OR_SEMICOLON("[;\\s+]");
 
@@ -73,7 +74,9 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 			continue;
 		}
 
-		QStringList text(convertActionText(action).split(WHITESPACE));
+		QStringList text(
+				convertActionText(action).remove(BAD_CHARACTERS).split(
+						WHITESPACE));
 
 		bool isParameterized(action->property("isParameterized").toBool());
 
