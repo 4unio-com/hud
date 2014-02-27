@@ -90,7 +90,7 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 
 			WordList command;
 			for (const QString &word : text) {
-				command.addWord(Word(word.toStdString()));
+				command.addWord(Word(word.toUtf8().constData()));
 			}
 			document.addText(Word("command"), command);
 
@@ -103,7 +103,7 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 				context = stack;
 			}
 			for (const QString &word : context) {
-				wordList.addWord(Word(word.toStdString()));
+				wordList.addWord(Word(word.toUtf8().constData()));
 			}
 			document.addText(Word("context"), wordList);
 
@@ -180,10 +180,10 @@ void ItemStore::search(const QString &query,
 	} else {
 		WordList queryList;
 		for (const QString &word : query.split(WHITESPACE)) {
-			queryList.addWord(word.toStdString());
+			queryList.addWord(Word(word.toUtf8().constData()));
 		}
 
-		MatchResults matchResults(m_matcher.match(queryList));
+		MatchResults matchResults(m_matcher.tempMatch(queryList, Word("command")));
 
 		int queryLength(query.length());
 
