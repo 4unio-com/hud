@@ -39,7 +39,7 @@
     </key>
 
     <key type='u' name='end-drop-penalty'>
-      <default>24</default>
+      <default>20</default>
       <summary>Penalty applied if a character is dropped from the end</summary>
       <description>
         The penalty for each missing character at the end of a search term.
@@ -50,7 +50,7 @@
     </key>
 
     <key type='u' name='swap-penalty'>
-      <default>100</default>
+      <default>150</default>
       <summary>Penalty applied when the characters are not the same</summary>
       <description>
         The penalty for each substituted character in the search term.
