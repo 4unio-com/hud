@@ -181,8 +181,11 @@ void ItemStore::search(const QString &query,
 		}
 
 	} else {
+		QString cleanQuery(query);
+		cleanQuery.remove(BAD_CHARACTERS);
+
 		WordList queryList;
-		for (const QString &word : query.split(WHITESPACE)) {
+		for (const QString &word : cleanQuery.split(WHITESPACE)) {
 			queryList.addWord(Word(word.toUtf8().constData()));
 		}
 
