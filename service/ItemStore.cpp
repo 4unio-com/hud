@@ -191,7 +191,7 @@ void ItemStore::search(const QString &query,
 
 		try {
 			MatchResults matchResults(
-					m_matcher.tempMatch(queryList, Word("command")));
+					m_matcher.onlineMatch(queryList, Word("command")));
 
 			int queryLength(query.length());
 
