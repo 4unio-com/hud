@@ -189,16 +189,20 @@ void ItemStore::search(const QString &query,
 			queryList.addWord(Word(word.toUtf8().constData()));
 		}
 
-		MatchResults matchResults(m_matcher.tempMatch(queryList, Word("command")));
+		try {
+			MatchResults matchResults(
+					m_matcher.tempMatch(queryList, Word("command")));
 
-		int queryLength(query.length());
+			int queryLength(query.length());
 
-		size_t maxResults = std::min(matchResults.size(), size_t(20));
+			size_t maxResults = std::min(matchResults.size(), size_t(20));
 
-		for (size_t i(0); i < maxResults; ++i) {
-			DocumentID id(matchResults.getDocumentID(i));
-			double relevancy(matchResults.getRelevancy(i));
-			addResult(id, stringMatcher, queryLength, relevancy, results);
+			for (size_t i(0); i < maxResults; ++i) {
+				DocumentID id(matchResults.getDocumentID(i));
+				double relevancy(matchResults.getRelevancy(i));
+				addResult(id, stringMatcher, queryLength, relevancy, results);
+			}
+		} catch (std::invalid_argument &e) {
 		}
 	}
 
