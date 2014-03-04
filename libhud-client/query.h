@@ -58,6 +58,12 @@ typedef struct _HudClientQueryClass    HudClientQueryClass;
 typedef struct _HudClientQueryPrivate  HudClientQueryPrivate;
 
 /**
+ * HudClientQueryPrivate:
+ *
+ * Private data for #HudClientQuery.
+ */
+
+/**
  * HudClientQueryClass:
  * @parent_class: #GObjectClass
  *

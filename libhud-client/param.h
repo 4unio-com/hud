@@ -50,6 +50,12 @@ typedef struct _HudClientParamClass     HudClientParamClass;
 typedef struct _HudClientParamPrivate   HudClientParamPrivate;
 
 /**
+ * HudClientParamPrivate:
+ *
+ * Private data for #HudClientParam.
+ */
+
+/**
  * HudClientParamClass:
  * @parent_class: #GObjectClass
  * @model_ready: Slot for the model-ready signal

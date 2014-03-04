@@ -43,6 +43,12 @@ typedef struct _HudGtkManagerClass    HudGtkManagerClass;
 typedef struct _HudGtkManagerPrivate  HudGtkManagerPrivate;
 
 /**
+ * HudGtkManagerPrivate:
+ *
+ * Private data for #HudGtkManager.
+ */
+
+/**
  * HudGtkManagerClass:
  * @parent_class: #HudManagerClass
  *
@@ -54,8 +60,6 @@ struct _HudGtkManagerClass {
 
 /**
  * HudGtkManager:
- * @parent: #HudManager
- * @priv: Private data
  *
  * Helper class to work with #GtkApplication to automatically
  * export action groups registered there to the HUD.
