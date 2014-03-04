@@ -1,3 +1,11 @@
+hud (13.10.1+14.04.20140304-0ubuntu1) trusty; urgency=low
+
+  [ Pete Woods ]
+  * Change GTK documentation so that it builds with the new glib version
+    (LP: #1287580)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 04 Mar 2014 09:58:04 +0000
+
 hud (13.10.1+14.04.20140218.2-0ubuntu1) trusty; urgency=low
 
   [ Pete Woods ]
