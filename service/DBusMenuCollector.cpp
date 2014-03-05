@@ -67,7 +67,9 @@ void DBusMenuCollector::windowRegistered(const QString &service,
 			SLOT(
 					WindowRegistered(uint, const QString &, const QDBusObjectPath &)));
 
-	m_menuImporter.reset(new DBusMenuImporter(m_service, m_path.path()));
+	m_menuImporter.reset(
+			new DBusMenuImporter(m_service, m_path.path(),
+					DBusMenuImporterType::SYNCHRONOUS));
 
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 	if(collectorToken) {
