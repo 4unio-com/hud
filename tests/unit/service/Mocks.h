@@ -49,7 +49,8 @@ public:
 	MOCK_METHOD2(newGMenuWindowCollector, Collector::Ptr(unsigned int, const QString &));
 
 	MOCK_METHOD3(newGMenuCollector, Collector::Ptr(const QString &,
-					const QDBusObjectPath &, const QDBusObjectPath &));
+					const QMap<QString, QDBusObjectPath> &,
+					const QDBusObjectPath &));
 };
 
 class MockHudService: public HudService {
@@ -163,7 +164,7 @@ class MockCollector: public Collector {
 public:
 	MOCK_CONST_METHOD0(isValid, bool());
 
-	MOCK_METHOD0(activate, CollectorToken::Ptr());
+	MOCK_METHOD0(activate, QList<CollectorToken::Ptr>());
 
 	MOCK_METHOD2(search, void(const QString &, QList<Result> &));
 

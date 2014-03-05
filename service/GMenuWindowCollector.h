@@ -47,30 +47,16 @@ public:
 
 	virtual bool isValid() const override;
 
-	virtual CollectorToken::Ptr activate() override;
+	virtual QList<CollectorToken::Ptr> activate() override;
 
 protected:
 	virtual void deactivate();
 
 	QSharedPointer<ComCanonicalUnityWindowStackInterface> m_windowStack;
 
-	QWeakPointer<CollectorToken> m_collectorToken;
-
 	QString m_busName;
 
-	QDBusObjectPath m_appmenuPath;
-
-	QDBusObjectPath m_menubarPath;
-
-	QDBusObjectPath m_applicationPath;
-
-	QDBusObjectPath m_windowPath;
-
-	QDBusObjectPath m_unityPath;
-
-	Collector::Ptr m_menubarCollector;
-
-	std::shared_ptr<QMenu> m_menubar;
+	QList<Collector::Ptr> m_collectors;
 };
 
 }

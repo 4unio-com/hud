@@ -239,7 +239,7 @@ TEST_F(TestHud, SearchGMenuOneResult) {
 					"  ret.append('/menu')\n"
 					"  ret.append('')\n"
 					"  ret.append('')\n"
-					"  ret.append('')\n"
+					"  ret.append('/menu')\n"
 					"else:\n"
 					"  for arg in args[2]:\n"
 					"    ret.append('')").waitForFinished();
@@ -339,7 +339,7 @@ TEST_F(TestHud, ExecuteGMenuAction) {
 					"  ret.append('/menu')\n"
 					"  ret.append('')\n"
 					"  ret.append('')\n"
-					"  ret.append('')\n"
+					"  ret.append('/menu')\n"
 					"else:\n"
 					"  for arg in args[2]:\n"
 					"    ret.append('')").waitForFinished();

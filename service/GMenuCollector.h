@@ -39,14 +39,15 @@ Q_OBJECT
 public:
 	typedef std::shared_ptr<GMenuCollector> Ptr;
 
-	GMenuCollector(const QString &name, const QDBusObjectPath &actionPath,
+	GMenuCollector(const QString &name,
+			const QMap<QString, QDBusObjectPath> &actions,
 			const QDBusObjectPath &menuPath);
 
 	virtual ~GMenuCollector();
 
 	virtual bool isValid() const override;
 
-	virtual CollectorToken::Ptr activate() override;
+	virtual QList<CollectorToken::Ptr> activate() override;
 
 protected Q_SLOTS:
 	void menuItemsChanged();
@@ -58,7 +59,7 @@ protected:
 
 	QString m_name;
 
-	QDBusObjectPath m_actionPath;
+	QMap<QString, QDBusObjectPath> m_actions;
 
 	QDBusObjectPath m_menuPath;
 

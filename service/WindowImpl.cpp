@@ -95,10 +95,7 @@ WindowToken::Ptr WindowImpl::activate() {
 	QList<CollectorToken::Ptr> tokens;
 	for (Collector::Ptr collector : collectors) {
 		if (collector && collector->isValid()) {
-			CollectorToken::Ptr token(collector->activate());
-			if (token) {
-				tokens << token;
-			}
+			tokens.append(collector->activate());
 		}
 	}
 

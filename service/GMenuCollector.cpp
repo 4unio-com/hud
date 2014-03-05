@@ -28,12 +28,15 @@ using namespace hud::service;
 using namespace qtgmenu;
 
 GMenuCollector::GMenuCollector(const QString &name,
-		const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath) :
-		m_name(name), m_actionPath(actionPath), m_menuPath(menuPath) {
+		const QMap<QString, QDBusObjectPath> &actions,
+		const QDBusObjectPath &menuPath) :
+		m_name(name), m_actions(actions), m_menuPath(menuPath) {
 
+	// TODO Hi Marcus, I'd like to pass the whole map as the action argument
+	// This is a temporary hack to just give the first value
+	QDBusObjectPath action(actions.cbegin().value());
 	m_importer.reset(
-			new QtGMenuImporter(m_name, m_menuPath.path(),
-					m_actionPath.path()));
+			new QtGMenuImporter(m_name, m_menuPath.path(), action.path()));
 
 	connect(m_importer.data(), SIGNAL(MenuItemsChanged()), this,
 			SLOT(menuItemsChanged()));
@@ -46,7 +49,7 @@ bool GMenuCollector::isValid() const {
 	return !m_menuPath.path().isEmpty();
 }
 
-CollectorToken::Ptr GMenuCollector::activate() {
+QList<CollectorToken::Ptr> GMenuCollector::activate() {
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 
 	std::shared_ptr<QMenu> menu(m_importer->GetQMenu());
@@ -58,7 +61,7 @@ CollectorToken::Ptr GMenuCollector::activate() {
 		m_collectorToken = collectorToken;
 	}
 
-	return collectorToken;
+	return QList<CollectorToken::Ptr>() << collectorToken;
 }
 
 void GMenuCollector::deactivate() {

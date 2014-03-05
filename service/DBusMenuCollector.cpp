@@ -128,18 +128,18 @@ void DBusMenuCollector::hideMenu(QMenu *menu) {
 	}
 }
 
-CollectorToken::Ptr DBusMenuCollector::activate() {
+QList<CollectorToken::Ptr> DBusMenuCollector::activate() {
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 
 	if(m_menuImporter.isNull()) {
-		return CollectorToken::Ptr();
+		return QList<CollectorToken::Ptr>();
 	}
 
 	if (collectorToken.isNull()) {
 		openMenu(m_menuImporter->menu());
 
 		if(m_menuImporter.isNull()) {
-			return CollectorToken::Ptr();
+			return QList<CollectorToken::Ptr>();
 		}
 
 		collectorToken.reset(
@@ -147,7 +147,7 @@ CollectorToken::Ptr DBusMenuCollector::activate() {
 		m_collectorToken = collectorToken;
 	}
 
-	return collectorToken;
+	return QList<CollectorToken::Ptr>() << collectorToken;
 }
 
 void DBusMenuCollector::deactivate() {
