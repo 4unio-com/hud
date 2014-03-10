@@ -40,7 +40,7 @@ Q_OBJECT
 
 protected:
   TestQtGMenu()
-      : m_importer( c_service, c_path, c_path ),
+      : m_importer( c_service, QDBusObjectPath( c_path ), "", QDBusObjectPath( c_path ) ),
 
         m_items_changed_spy( &m_importer, SIGNAL( MenuItemsChanged() ) ),
 

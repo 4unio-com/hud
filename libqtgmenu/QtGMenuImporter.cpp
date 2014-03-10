@@ -23,10 +23,19 @@
 
 using namespace qtgmenu;
 
-QtGMenuImporter::QtGMenuImporter( const QString &service, const QString& menu_path,
-    const QString& actions_path, QObject* parent )
+QtGMenuImporter::QtGMenuImporter( const QString& service, const QDBusObjectPath& menu_path,
+                                  const QString& action_prefix, const QDBusObjectPath& action_path, QObject* parent )
+    : QObject( parent )
+{
+    QMap<QString, QDBusObjectPath> action_paths;
+    action_paths[action_prefix] = action_path;
+    d.reset( new QtGMenuImporterPrivate( service, menu_path, action_paths, *this ) );
+}
+
+QtGMenuImporter::QtGMenuImporter( const QString& service, const QDBusObjectPath& menu_path,
+                                  const QMap<QString, QDBusObjectPath>& action_paths, QObject* parent )
     : QObject( parent ),
-      d( new QtGMenuImporterPrivate( service, menu_path, actions_path, *this ) )
+      d( new QtGMenuImporterPrivate( service, menu_path, action_paths, *this ) )
 {
 }
 

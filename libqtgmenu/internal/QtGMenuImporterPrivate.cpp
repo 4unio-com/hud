@@ -29,16 +29,16 @@ template< typename ... T > void unused( T&& ... )
 {
 }
 
-QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QString& menu_path,
-    const QString& actions_path, QtGMenuImporter& parent )
+QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QDBusObjectPath& menu_path,
+                                                const QMap<QString, QDBusObjectPath>& action_paths, QtGMenuImporter& parent )
     : QObject( 0 ),
       m_service_watcher( service, QDBusConnection::sessionBus(),
           QDBusServiceWatcher::WatchForOwnerChange ),
       m_parent( parent ),
       m_connection( g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL ) ),
       m_service( service.toStdString() ),
-      m_menu_path( menu_path.toStdString() ),
-      m_actions_path( actions_path.toStdString() )
+      m_menu_path( menu_path.path().toStdString() ),
+      m_actions_path( action_paths.cbegin().value().path().toStdString() )
 {
   connect( &m_service_watcher, SIGNAL( serviceRegistered( const QString& ) ), this,
       SLOT( ServiceRegistered() ) );

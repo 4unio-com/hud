@@ -20,6 +20,7 @@
 #define QTGMENUIMPORTER_H
 
 #include <QObject>
+#include <QtDBus/QtDBus>
 #include <memory>
 
 class QMenu;
@@ -40,8 +41,10 @@ class QtGMenuImporter final : public QObject
 Q_OBJECT
 
 public:
-  QtGMenuImporter( const QString& service, const QString& menu_path, const QString& actions_path,
-      QObject* parent = 0 );
+  QtGMenuImporter( const QString& service, const QDBusObjectPath& menu_path,
+                   const QString& action_prefix, const QDBusObjectPath& action_path, QObject* parent = 0 );
+  QtGMenuImporter( const QString& service, const QDBusObjectPath& menu_path,
+                   const QMap<QString, QDBusObjectPath>& action_paths, QObject* parent = 0 );
   virtual ~QtGMenuImporter();
 
   GMenuModel* GetGMenuModel() const;

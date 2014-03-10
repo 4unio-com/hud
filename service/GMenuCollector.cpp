@@ -32,11 +32,8 @@ GMenuCollector::GMenuCollector(const QString &name,
 		const QDBusObjectPath &menuPath) :
 		m_name(name), m_actions(actions), m_menuPath(menuPath) {
 
-	// TODO Hi Marcus, I'd like to pass the whole map as the action argument
-	// This is a temporary hack to just give the first value
-	QDBusObjectPath action(actions.cbegin().value());
 	m_importer.reset(
-			new QtGMenuImporter(m_name, m_menuPath.path(), action.path()));
+            new QtGMenuImporter(m_name, m_menuPath, actions));
 
 	connect(m_importer.data(), SIGNAL(MenuItemsChanged()), this,
 			SLOT(menuItemsChanged()));
