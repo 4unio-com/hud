@@ -23,11 +23,6 @@
 
 using namespace qtgmenu;
 
-QtGMenuImporter::QtGMenuImporter( const QString &service, const QString& path, QObject* parent )
-    : QtGMenuImporter( service, path, path, parent )
-{
-}
-
 QtGMenuImporter::QtGMenuImporter( const QString &service, const QString& menu_path,
     const QString& actions_path, QObject* parent )
     : QObject( parent ),
