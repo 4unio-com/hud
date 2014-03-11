@@ -71,7 +71,7 @@ private:
   GDBusConnection* m_connection;
   std::string m_service;
   std::string m_menu_path;
-  std::map<std::string, std::string> m_action_paths;
+  std::map<QString, std::string> m_action_paths;
 
   std::shared_ptr< QtGMenuModel > m_menu_model = nullptr;
   std::vector< std::shared_ptr< QtGActionGroup > > m_action_groups;

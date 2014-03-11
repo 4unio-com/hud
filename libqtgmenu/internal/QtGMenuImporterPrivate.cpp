@@ -34,9 +34,11 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QD
       m_service( service.toStdString() ),
       m_menu_path( menu_path.path().toStdString() )
 {
+  // we need to store action paths as std::strings because G_ACTION_GROUP requires C strings.
+  // using QString::toStdString().c_str() is not safe as the std::string created is a temporary.
   for( auto const& action_path : action_paths.toStdMap() )
   {
-    m_action_paths[action_path.first.toStdString()] = action_path.second.path().toStdString();
+    m_action_paths[action_path.first] = action_path.second.path().toStdString();
   }
 
   connect( &m_service_watcher, SIGNAL( serviceRegistered( const QString& ) ), this,
@@ -117,11 +119,6 @@ void QtGMenuImporterPrivate::ClearActionGroups()
 {
   for( auto& action_group : m_action_groups )
   {
-    if( action_group == nullptr )
-    {
-      continue;
-    }
-
     action_group->disconnect();
   }
 
@@ -179,13 +176,13 @@ void QtGMenuImporterPrivate::RefreshGMenuModel()
 
 void QtGMenuImporterPrivate::RefreshGActionGroup()
 {
-  // clear the action group for the refresh
+  // clear the action groups for the refresh
   ClearActionGroups();
 
   for( auto const& action_path : m_action_paths )
   {
     m_action_groups.push_back(
-        std::make_shared< QtGActionGroup > ( action_path.first.c_str(),
+        std::make_shared< QtGActionGroup > ( action_path.first,
                 G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), action_path.second.c_str() ) ) ) );
 
     auto action_group = m_action_groups.back();
