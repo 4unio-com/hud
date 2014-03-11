@@ -48,9 +48,9 @@ GMenuModel* QtGMenuImporter::GetGMenuModel() const
   return d->GetGMenuModel();
 }
 
-GActionGroup* QtGMenuImporter::GetGActionGroup() const
+GActionGroup* QtGMenuImporter::GetGActionGroup( int index ) const
 {
-  return d->GetGActionGroup();
+  return d->GetGActionGroup( index );
 }
 
 std::shared_ptr< QMenu > QtGMenuImporter::GetQMenu() const

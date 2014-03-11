@@ -21,8 +21,9 @@
 
 using namespace qtgmenu;
 
-QtGActionGroup::QtGActionGroup( GActionGroup* action_group )
-    : m_action_group( action_group )
+QtGActionGroup::QtGActionGroup( const QString& action_prefix, GActionGroup* action_group )
+    : m_action_prefix( action_prefix ),
+      m_action_group( action_group )
 {
   ConnectCallbacks();
 

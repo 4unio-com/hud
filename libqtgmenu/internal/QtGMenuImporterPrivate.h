@@ -44,7 +44,7 @@ public:
   virtual ~QtGMenuImporterPrivate();
 
   GMenuModel* GetGMenuModel();
-  GActionGroup* GetGActionGroup();
+  GActionGroup* GetGActionGroup( int index = 0);
 
   std::shared_ptr< QMenu > GetQMenu();
 
@@ -52,7 +52,7 @@ public:
 
 private:
   void ClearMenuModel();
-  void ClearActionGroup();
+  void ClearActionGroups();
 
   void LinkMenuActions();
 
@@ -71,10 +71,10 @@ private:
   GDBusConnection* m_connection;
   std::string m_service;
   std::string m_menu_path;
-  std::string m_actions_path;
+  std::map<std::string, std::string> m_action_paths;
 
   std::shared_ptr< QtGMenuModel > m_menu_model = nullptr;
-  std::shared_ptr< QtGActionGroup > m_action_group = nullptr;
+  std::vector< std::shared_ptr< QtGActionGroup > > m_action_groups;
 
   bool m_menu_actions_linked = false;
 };

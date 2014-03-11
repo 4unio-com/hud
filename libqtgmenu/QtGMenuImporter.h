@@ -48,7 +48,7 @@ public:
   virtual ~QtGMenuImporter();
 
   GMenuModel* GetGMenuModel() const;
-  GActionGroup* GetGActionGroup() const;
+  GActionGroup* GetGActionGroup( int index = 0 ) const;
 
   std::shared_ptr< QMenu > GetQMenu() const;
 

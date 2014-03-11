@@ -32,9 +32,13 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QD
       m_parent( parent ),
       m_connection( g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL ) ),
       m_service( service.toStdString() ),
-      m_menu_path( menu_path.path().toStdString() ),
-      m_actions_path( action_paths.cbegin().value().path().toStdString() )
+      m_menu_path( menu_path.path().toStdString() )
 {
+  for( auto const& action_path : action_paths.toStdMap() )
+  {
+    m_action_paths[action_path.first.toStdString()] = action_path.second.path().toStdString();
+  }
+
   connect( &m_service_watcher, SIGNAL( serviceRegistered( const QString& ) ), this,
       SLOT( ServiceRegistered() ) );
 
@@ -47,7 +51,7 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QD
 QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
 {
   ClearMenuModel();
-  ClearActionGroup();
+  ClearActionGroups();
 
   g_object_unref( m_connection );
 }
@@ -62,14 +66,15 @@ GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
   return m_menu_model->Model();
 }
 
-GActionGroup* QtGMenuImporterPrivate::GetGActionGroup()
+GActionGroup* QtGMenuImporterPrivate::GetGActionGroup( int index )
 {
-  if( m_action_group == nullptr )
+  if( index >= m_action_groups.size() ||
+      m_action_groups[index] == nullptr )
   {
     return nullptr;
   }
 
-  return m_action_group->ActionGroup();
+  return m_action_groups[index]->ActionGroup();
 }
 
 std::shared_ptr< QMenu > QtGMenuImporterPrivate::GetQMenu()
@@ -89,7 +94,7 @@ void QtGMenuImporterPrivate::Refresh()
     RefreshGMenuModel();
   }
 
-  if( !m_actions_path.empty() )
+  if( !m_action_paths.empty() )
   {
     RefreshGActionGroup();
   }
@@ -108,34 +113,40 @@ void QtGMenuImporterPrivate::ClearMenuModel()
   m_menu_model = nullptr;
 }
 
-void QtGMenuImporterPrivate::ClearActionGroup()
+void QtGMenuImporterPrivate::ClearActionGroups()
 {
-  if( m_action_group == nullptr )
+  for( auto& action_group : m_action_groups )
   {
-    return;
+    if( action_group == nullptr )
+    {
+      continue;
+    }
+
+    action_group->disconnect();
   }
 
-  m_action_group->disconnect();
   m_menu_actions_linked = false;
-
-  m_action_group = nullptr;
+  m_action_groups.clear();
 }
 
 void QtGMenuImporterPrivate::LinkMenuActions()
 {
-  if( m_menu_model && m_action_group && !m_menu_actions_linked )
+  if( m_menu_model && !m_action_groups.empty() && !m_menu_actions_linked )
   {
-    connect( m_menu_model.get(), SIGNAL( ActionTriggered( QString, bool ) ), m_action_group.get(),
-        SLOT( TriggerAction( QString, bool ) ) );
+    for( auto& action_group : m_action_groups )
+    {
+      connect( m_menu_model.get(), SIGNAL( ActionTriggered( QString, bool ) ), action_group.get(),
+          SLOT( TriggerAction( QString, bool ) ) );
 
-    connect( m_menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int, int ) ),
-        m_action_group.get(), SLOT( EmitStates() ) );
+      connect( m_menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int, int ) ),
+          action_group.get(), SLOT( EmitStates() ) );
 
-    connect( m_action_group.get(), SIGNAL( ActionEnabled( QString, bool ) ), m_menu_model.get(),
-        SLOT( ActionEnabled( QString, bool ) ) );
+      connect( action_group.get(), SIGNAL( ActionEnabled( QString, bool ) ), m_menu_model.get(),
+          SLOT( ActionEnabled( QString, bool ) ) );
 
-    connect( m_action_group.get(), SIGNAL( ActionParameterized( QString, bool ) ),
-        m_menu_model.get(), SLOT( ActionParameterized( QString, bool ) ) );
+      connect( action_group.get(), SIGNAL( ActionParameterized( QString, bool ) ),
+          m_menu_model.get(), SLOT( ActionParameterized( QString, bool ) ) );
+    }
 
     m_menu_actions_linked = true;
   }
@@ -149,7 +160,7 @@ void QtGMenuImporterPrivate::ServiceRegistered()
 void QtGMenuImporterPrivate::ServiceUnregistered()
 {
   ClearMenuModel();
-  ClearActionGroup();
+  ClearActionGroups();
 }
 
 void QtGMenuImporterPrivate::RefreshGMenuModel()
@@ -160,7 +171,7 @@ void QtGMenuImporterPrivate::RefreshGMenuModel()
   m_menu_model =
       std::make_shared< QtGMenuModel > (
               G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), m_menu_path.c_str() ) ),
-              m_service.c_str(), m_menu_path.c_str(), m_actions_path.c_str() );
+              m_service.c_str(), m_menu_path.c_str() );
 
   connect( m_menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
           int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );
@@ -169,20 +180,25 @@ void QtGMenuImporterPrivate::RefreshGMenuModel()
 void QtGMenuImporterPrivate::RefreshGActionGroup()
 {
   // clear the action group for the refresh
-  ClearActionGroup();
+  ClearActionGroups();
 
-  m_action_group =
-      std::make_shared< QtGActionGroup > (
-              G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), m_actions_path.c_str() ) ) );
+  for( auto const& action_path : m_action_paths )
+  {
+    m_action_groups.push_back(
+        std::make_shared< QtGActionGroup > ( action_path.first.c_str(),
+                G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), action_path.second.c_str() ) ) ) );
 
-  connect( m_action_group.get(), SIGNAL( ActionAdded( QString ) ), &m_parent,
-      SIGNAL( ActionAdded( QString ) ) );
-  connect( m_action_group.get(), SIGNAL( ActionRemoved( QString ) ), &m_parent,
-      SIGNAL( ActionRemoved( QString ) ) );
-  connect( m_action_group.get(), SIGNAL( ActionEnabled( QString, bool ) ), &m_parent,
-      SIGNAL( ActionEnabled( QString, bool ) ) );
-  connect( m_action_group.get(), SIGNAL( ActionStateChanged( QString,
-          QVariant ) ), &m_parent, SIGNAL( ActionStateChanged( QString, QVariant) ) );
+    auto action_group = m_action_groups.back();
+
+    connect( action_group.get(), SIGNAL( ActionAdded( QString ) ), &m_parent,
+        SIGNAL( ActionAdded( QString ) ) );
+    connect( action_group.get(), SIGNAL( ActionRemoved( QString ) ), &m_parent,
+        SIGNAL( ActionRemoved( QString ) ) );
+    connect( action_group.get(), SIGNAL( ActionEnabled( QString, bool ) ), &m_parent,
+        SIGNAL( ActionEnabled( QString, bool ) ) );
+    connect( action_group.get(), SIGNAL( ActionStateChanged( QString,
+            QVariant ) ), &m_parent, SIGNAL( ActionStateChanged( QString, QVariant) ) );
+  }
 
   LinkMenuActions();
 }

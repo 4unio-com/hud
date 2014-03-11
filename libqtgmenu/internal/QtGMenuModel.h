@@ -43,8 +43,7 @@ public:
   };
 
   explicit QtGMenuModel( GMenuModel* model );
-  QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path,
-      const QString& actions_path );
+  QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path );
   virtual ~QtGMenuModel();
 
   GMenuModel* Model() const;
@@ -61,7 +60,6 @@ public:
   constexpr static const char* c_property_isParameterized = "isParameterized";
   constexpr static const char* c_property_busName = "busName";
   constexpr static const char* c_property_menuPath = "menuPath";
-  constexpr static const char* c_property_actionsPath = "actionsPath";
   constexpr static const char* c_property_keywords = "keywords";
   constexpr static const char* c_property_hud_toolbar_item = "hud-toolbar-item";
 
@@ -115,7 +113,6 @@ private:
 
   QString m_bus_name;
   QString m_menu_path;
-  QString m_actions_path;
 
   std::map< QString, QAction* > m_actions;
 };
