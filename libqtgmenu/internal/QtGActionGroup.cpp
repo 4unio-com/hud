@@ -94,6 +94,13 @@ QString QtGActionGroup::Action( int index )
 
 void QtGActionGroup::TriggerAction( QString action_name, bool checked )
 {
+  QString prefix = action_name.left( action_name.indexOf( '.' ) );
+  if( prefix != m_action_prefix )
+  {
+    return;
+  }
+
+  action_name = action_name.right( action_name.size() - action_name.indexOf( '.' ) - 1 );
   std::string action = action_name.toStdString();
 
   const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,

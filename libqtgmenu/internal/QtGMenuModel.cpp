@@ -356,9 +356,6 @@ QAction* QtGMenuModel::CreateAction( int index )
     QString qaction_name = QString::fromUtf8( action_name );
     g_free( action_name );
 
-    int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
-    qaction_name = qaction_name.right( name_length );
-
     action->setProperty( c_property_actionName, qaction_name );
   }
 
