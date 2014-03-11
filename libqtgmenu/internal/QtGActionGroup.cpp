@@ -132,12 +132,12 @@ void QtGActionGroup::EmitStates()
     bool enabled = G_ACTION_GROUP_GET_IFACE( m_action_group ) ->get_action_enabled( m_action_group,
         action_name );
     if( !enabled )
-      emit ActionEnabled( action_name, enabled );
+      emit ActionEnabled( m_action_prefix + "." + action_name, enabled );
 
     const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,
         action_name );
     if( type != nullptr )
-      emit ActionParameterized( action_name, type != nullptr );
+      emit ActionParameterized( m_action_prefix + "." + action_name, type != nullptr );
   }
 
   g_strfreev( actions_list );
@@ -152,12 +152,12 @@ void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* act
   bool enabled = G_ACTION_GROUP_GET_IFACE( self->m_action_group ) ->get_action_enabled(
       self->m_action_group, action_name );
   if( !enabled )
-    emit self->ActionEnabled( action_name, enabled );
+    emit self->ActionEnabled( self->m_action_prefix + "." + action_name, enabled );
 
   const GVariantType* type = g_action_group_get_action_parameter_type( self->m_action_group,
       action_name );
   if( type != nullptr )
-    emit self->ActionParameterized( action_name, type != nullptr );
+    emit self->ActionParameterized( self->m_action_prefix + "." + action_name, type != nullptr );
 
   ++self->m_size;
 }
@@ -175,7 +175,7 @@ void QtGActionGroup::ActionEnabledCallback( GActionGroup* action_group, gchar* a
     gboolean enabled, gpointer user_data )
 {
   QtGActionGroup* self = reinterpret_cast< QtGActionGroup* >( user_data );
-  emit self->ActionEnabled( action_name, enabled );
+  emit self->ActionEnabled( self->m_action_prefix + "." + action_name, enabled );
 }
 
 void QtGActionGroup::ActionStateChangedCallback( GActionGroup* action_group, gchar* action_name,
