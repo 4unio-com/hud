@@ -24,11 +24,6 @@
 
 using namespace qtgmenu;
 
-// this is used to suppress compiler warnings about unused parameters
-template< typename ... T > void unused( T&& ... )
-{
-}
-
 QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QDBusObjectPath& menu_path,
                                                 const QMap<QString, QDBusObjectPath>& action_paths, QtGMenuImporter& parent )
     : QObject( 0 ),
