@@ -32,8 +32,7 @@ GMenuCollector::GMenuCollector(const QString &name,
 		const QDBusObjectPath &menuPath) :
 		m_name(name), m_actions(actions), m_menuPath(menuPath) {
 
-	m_importer.reset(
-            new QtGMenuImporter(m_name, m_menuPath, actions));
+	m_importer.reset(new QtGMenuImporter(m_name, m_menuPath, actions));
 
 	connect(m_importer.data(), SIGNAL(MenuItemsChanged()), this,
 			SLOT(menuItemsChanged()));
