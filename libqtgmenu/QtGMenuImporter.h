@@ -20,7 +20,7 @@
 #define QTGMENUIMPORTER_H
 
 #include <QObject>
-#include <QtDBus/QtDBus>
+#include <QDBusObjectPath>
 #include <memory>
 
 class QMenu;
