@@ -45,8 +45,9 @@ const QList<CollectorToken::Ptr> & WindowTokenImpl::tokens() const {
 	return m_tokens;
 }
 
-void WindowTokenImpl::search(const QString &query, QList<Result> &results) {
-	m_items->search(query, results);
+void WindowTokenImpl::search(const QString &query,
+		Query::EmptyBehaviour emptyBehaviour, QList<Result> &results) {
+	m_items->search(query, emptyBehaviour, results);
 }
 
 void WindowTokenImpl::execute(unsigned long long commandId) {

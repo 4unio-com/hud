@@ -62,8 +62,8 @@ QList<QDBusObjectPath> HudServiceImpl::openQueries() const {
 }
 
 Query::Ptr HudServiceImpl::createQuery(const QString &query,
-		const QString &sender) {
-	Query::Ptr hudQuery(m_factory.newQuery(query, sender));
+		const QString &sender, Query::EmptyBehaviour emptyBehaviour) {
+	Query::Ptr hudQuery(m_factory.newQuery(query, sender, emptyBehaviour));
 	m_queries[hudQuery->path()] = hudQuery;
 
 	return hudQuery;
@@ -73,7 +73,9 @@ QDBusObjectPath HudServiceImpl::CreateQuery(const QString &query,
 		QString &resultsName, QString &appstackName, int &modelRevision) {
 	QString sender(messageSender());
 
-	Query::Ptr hudQuery(createQuery(query, sender));
+	Query::Ptr hudQuery(
+			createQuery(query, sender,
+					Query::EmptyBehaviour::SHOW_SUGGESTIONS));
 
 	resultsName = hudQuery->resultsModel();
 	appstackName = hudQuery->appstackModel();
@@ -104,7 +106,8 @@ QString HudServiceImpl::StartQuery(const QString &queryString, int entries,
 
 	Query::Ptr query(m_legacyQueries[sender]);
 	if (query.isNull()) {
-		query = createQuery(queryString, sender);
+		query = createQuery(queryString, sender,
+				Query::EmptyBehaviour::NO_SUGGESTIONS);
 		m_legacyQueries[sender] = query;
 	} else {
 		query->UpdateQuery(queryString);

@@ -44,7 +44,8 @@ public:
 
 	virtual ~WindowTokenImpl();
 
-	void search(const QString &query, QList<Result> &results) override;
+	void search(const QString &query, Query::EmptyBehaviour emptyBehaviour,
+			QList<Result> &results) override;
 
 	void execute(unsigned long long commandId) override;
 

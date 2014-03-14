@@ -30,13 +30,14 @@ using namespace hud::common;
 using namespace hud::service;
 
 QueryImpl::QueryImpl(unsigned int id, const QString &query,
-		const QString &sender, HudService &service,
-		ApplicationList::Ptr applicationList, Voice::Ptr voice,
-		const QDBusConnection &connection, QObject *parent) :
+		const QString &sender, EmptyBehaviour emptyBehaviour,
+		HudService &service, ApplicationList::Ptr applicationList,
+		Voice::Ptr voice, const QDBusConnection &connection, QObject *parent) :
 		Query(parent), m_adaptor(new QueryAdaptor(this)), m_connection(
 				connection), m_path(DBusTypes::queryPath(id)), m_service(
-				service), m_applicationList(applicationList), m_voice(voice), m_query(
-				query), m_serviceWatcher(sender, m_connection,
+				service), m_emptyBehaviour(emptyBehaviour), m_applicationList(
+				applicationList), m_voice(voice), m_query(query), m_serviceWatcher(
+				sender, m_connection,
 				QDBusServiceWatcher::WatchForUnregistration) {
 
 	connect(&m_serviceWatcher, SIGNAL(serviceUnregistered(const QString &)),
@@ -202,7 +203,7 @@ void QueryImpl::refresh() {
 		// Hold onto a token for the active window
 		updateToken(window);
 
-		m_windowToken->search(m_query, m_results);
+		m_windowToken->search(m_query, m_emptyBehaviour, m_results);
 
 		notifyPropertyChanged("com.canonical.hud.query", "ToolbarItems");
 	}

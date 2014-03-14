@@ -60,7 +60,8 @@ public:
 
 	virtual QSharedPointer<ComCanonicalAppMenuRegistrarInterface> singletonAppmenu();
 
-	virtual Query::Ptr newQuery(const QString &query, const QString &sender);
+	virtual Query::Ptr newQuery(const QString &query, const QString &sender,
+			Query::EmptyBehaviour emptyBehaviour);
 
 	virtual ApplicationList::Ptr singletonApplicationList();
 

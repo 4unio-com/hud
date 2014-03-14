@@ -150,10 +150,15 @@ static QString convertToEntry(Item::Ptr item, const QAction *action) {
 	return result;
 }
 
-void ItemStore::search(const QString &query, QList<Result> &results) {
+void ItemStore::search(const QString &query,
+		Query::EmptyBehaviour emptyBehaviour, QList<Result> &results) {
 	QStringMatcher stringMatcher(query, Qt::CaseInsensitive);
 
 	if (query.isEmpty()) {
+		if (emptyBehaviour == Query::EmptyBehaviour::NO_SUGGESTIONS) {
+			return;
+		}
+
 		QMap<unsigned int, DocumentID> tempResults;
 
 		for (auto it(m_items.constBegin()); it != m_items.constEnd(); ++it) {
