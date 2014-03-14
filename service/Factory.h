@@ -87,7 +87,8 @@ public:
 			const QString &applicationId);
 
 	virtual Collector::Ptr newGMenuCollector(const QString &name,
-			const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath);
+			const QMap<QString, QDBusObjectPath> &actions,
+			const QDBusObjectPath &menuPath);
 
 	virtual Collector::Ptr newGMenuWindowCollector(unsigned int windowId,
 			const QString &applicationId);

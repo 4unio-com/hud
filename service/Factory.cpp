@@ -167,8 +167,9 @@ Collector::Ptr Factory::newDBusMenuCollector(unsigned int windowId,
 }
 
 Collector::Ptr Factory::newGMenuCollector(const QString &name,
-		const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath) {
-	return Collector::Ptr(new GMenuCollector(name, actionPath, menuPath));
+		const QMap<QString, QDBusObjectPath> &actions,
+		const QDBusObjectPath &menuPath) {
+	return Collector::Ptr(new GMenuCollector(name, actions, menuPath));
 }
 
 Collector::Ptr Factory::newGMenuWindowCollector(unsigned int windowId,

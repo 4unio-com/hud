@@ -29,7 +29,7 @@ int main( int argc, char **argv )
 	  return 1;
   }
 
-  MainWindow mainWindow(argv[1], argv[2], argv[3]);
+  MainWindow mainWindow(argv[1], QDBusObjectPath( argv[2] ), QDBusObjectPath( argv[3] ) );
   mainWindow.show();
 
   return application.exec();

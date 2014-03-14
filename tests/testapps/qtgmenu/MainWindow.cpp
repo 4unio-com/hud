@@ -2,8 +2,8 @@
 
 #include <QtWidgets>
 
-MainWindow::MainWindow(const QString &name, const QString &actionPath, const QString &menuPath)
-    : m_menu_importer( name, menuPath, actionPath )
+MainWindow::MainWindow(const QString &name, const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath)
+    : m_menu_importer( name, menuPath, "", actionPath )
 {
   m_refresh_connection = connect( &m_menu_importer, SIGNAL( MenuItemsChanged() ), this,
       SLOT( RefreshMenus() ) );

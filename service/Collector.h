@@ -69,7 +69,7 @@ public:
 
 	virtual bool isValid() const = 0;
 
-	virtual CollectorToken::Ptr activate() = 0;
+	virtual QList<CollectorToken::Ptr> activate() = 0;
 
 protected:
 	virtual void deactivate() = 0;

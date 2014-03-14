@@ -10,7 +10,7 @@ class MainWindow : public QMainWindow
 Q_OBJECT
 
 public:
-  MainWindow(const QString &name, const QString &actionPath, const QString &menuPath);
+  MainWindow(const QString &name, const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath);
 
   ~MainWindow();
 

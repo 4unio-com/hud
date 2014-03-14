@@ -46,8 +46,11 @@ void WindowContextImpl::setContext(const QString &context) {
 void WindowContextImpl::addMenu(const QString &context,
 		const MenuDefinition &menuDefinition) {
 
+	QMap<QString, QDBusObjectPath> actions;
+	actions[menuDefinition.actionPrefix] = menuDefinition.actionPath;
+
 	m_collectors[context] = m_factory.newGMenuCollector(menuDefinition.name,
-			menuDefinition.actionPath, menuDefinition.menuPath);
+			actions, menuDefinition.menuPath);
 }
 
 Collector::Ptr WindowContextImpl::activeCollector() {

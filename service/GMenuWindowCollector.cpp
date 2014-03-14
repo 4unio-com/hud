@@ -62,35 +62,53 @@ GMenuWindowCollector::GMenuWindowCollector(unsigned int windowId,
 		return;
 	}
 
+	QSet<QDBusObjectPath> menus;
+	QMap<QString, QDBusObjectPath> actions;
+
 	if (!windowProperties.at(1).isEmpty()) {
-		m_appmenuPath = QDBusObjectPath(windowProperties.at(1));
+		//	_GTK_APP_MENU_OBJECT_PATH -> menu
+		menus << QDBusObjectPath(windowProperties.at(1));
 	}
 	if (!windowProperties.at(2).isEmpty()) {
-		m_menubarPath = QDBusObjectPath(windowProperties.at(2));
+		//	_GTK_MENUBAR_OBJECT_PATH -> menu
+		menus << QDBusObjectPath(windowProperties.at(2));
 	}
 	if (!windowProperties.at(3).isEmpty()) {
-		m_applicationPath = QDBusObjectPath(windowProperties.at(3));
+		//	_GTK_APPLICATION_OBJECT_PATH -> actions with prefix "app"
+		actions["app"] = QDBusObjectPath(windowProperties.at(3));
 	}
 	if (!windowProperties.at(4).isEmpty()) {
-		m_windowPath = QDBusObjectPath(windowProperties.at(4));
+		//	_GTK_WINDOW_OBJECT_PATH -> actions with prefix "win"
+		actions["win"] = QDBusObjectPath(windowProperties.at(4));
 	}
 	if (!windowProperties.at(5).isEmpty()) {
-		m_unityPath = QDBusObjectPath(windowProperties.at(5));
+		//	_UNITY_OBJECT_PATH -> menu + action with prefix "unity"
+		menus << QDBusObjectPath(windowProperties.at(5));
+		actions["unity"] = QDBusObjectPath(windowProperties.at(5));
 	}
 
-	m_menubarCollector = factory.newGMenuCollector(m_busName, m_menubarPath,
-			m_menubarPath);
+	if (!actions.isEmpty()) {
+		for (const QDBusObjectPath &menu : menus) {
+			m_collectors << factory.newGMenuCollector(m_busName, actions, menu);
+		}
+	}
 }
 
 GMenuWindowCollector::~GMenuWindowCollector() {
 }
 
 bool GMenuWindowCollector::isValid() const {
-	return !m_menubarPath.path().isEmpty();
+	return !m_collectors.isEmpty();
 }
 
-CollectorToken::Ptr GMenuWindowCollector::activate() {
-	return m_menubarCollector->activate();
+QList<CollectorToken::Ptr> GMenuWindowCollector::activate() {
+	QList<CollectorToken::Ptr> tokens;
+
+	for (Collector::Ptr collector : m_collectors) {
+		tokens.append(collector->activate());
+	}
+
+	return tokens;
 }
 
 void GMenuWindowCollector::deactivate() {
