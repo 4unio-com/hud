@@ -34,11 +34,11 @@ QGSettingsSearchSettings::~QGSettingsSearchSettings() {
 }
 
 uint QGSettingsSearchSettings::addPenalty() const {
-	return m_settings.get("addPenalty").toUInt() * 10;
+	return m_settings.get("addPenalty").toUInt();
 }
 
 uint QGSettingsSearchSettings::dropPenalty() const {
-	return m_settings.get("dropPenalty").toUInt() * 10;
+	return m_settings.get("dropPenalty").toUInt();
 }
 
 uint QGSettingsSearchSettings::endDropPenalty() const {

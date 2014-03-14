@@ -222,8 +222,11 @@ TEST_F(TestItemStore, DistanceExtraTerms) {
 	QMenu root;
 
 	QMenu file("File");
-	file.addAction("Save As...");
+	file.addAction("Banana");
+	file.addAction("Save All");
 	file.addAction("Save");
+	file.addAction("Save As...");
+	file.addAction("Apple");
 	root.addMenu(&file);
 
 	store->indexMenu(&root);

@@ -51,9 +51,9 @@ protected:
 
 	uint m_dropPenalty = 100;
 
-	uint m_endDropPenalty = 1;
+	uint m_endDropPenalty = 20;
 
-	uint m_swapPenalty = 5;
+	uint m_swapPenalty = 150;
 };
 
 }
