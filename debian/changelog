@@ -1,3 +1,15 @@
+hud (13.10.1+14.04.20140314-0ubuntu1) trusty; urgency=low
+
+  [ Pete Woods ]
+  * Make legacy queries return no results with an empty search string
+    (LP: #1276569)
+  * Tweak search parameters following advice from Jussi (LP: #1276569)
+  * Use new DBusMenu API to make dbusmenu calls sync (LP: #1292586)
+  * Support multiple GMenuCollectors for each window, and multiple
+    QtGActionGroups for each QtGMenuModel. (LP: #1288025)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 14 Mar 2014 16:37:38 +0000
+
 hud (13.10.1+14.04.20140304-0ubuntu1) trusty; urgency=low
 
   [ Pete Woods ]
