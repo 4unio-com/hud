@@ -38,8 +38,6 @@ public:
 
   GActionGroup* ActionGroup() const;
 
-  QString Action( int index );
-
 Q_SIGNALS:
   void ActionAdded( QString action_name );
   void ActionRemoved( QString action_name );

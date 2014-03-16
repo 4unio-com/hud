@@ -26,7 +26,7 @@ QtGActionGroup::QtGActionGroup( GActionGroup* action_group )
 {
   ConnectCallbacks();
 
-  gchar** actions_list = g_action_group_list_actions( m_action_group );
+  auto actions_list = g_action_group_list_actions( m_action_group );
   if( actions_list )
   {
     while( actions_list[m_size] != nullptr )
@@ -34,13 +34,12 @@ QtGActionGroup::QtGActionGroup( GActionGroup* action_group )
       ++m_size;
     }
 
-    g_strfreev( actions_list );
-  }
+    for( int i = 0; i < m_size; ++i )
+    {
+      emit ActionAdded( actions_list[i] );
+    }
 
-  // add initial items
-  for( int i = 0; i < m_size; ++i )
-  {
-    emit ActionAdded( Action( i ) );
+    g_strfreev( actions_list );
   }
 }
 
@@ -51,9 +50,16 @@ QtGActionGroup::~QtGActionGroup()
     return;
   }
 
-  for( int i = 0; i < m_size; ++i )
+  if( m_size )
   {
-    emit ActionRemoved( Action( i ) );
+    auto actions_list = g_action_group_list_actions( m_action_group );
+
+    for( int i = 0; i < m_size; ++i )
+    {
+      emit ActionRemoved( actions_list[i] );
+    }
+
+    g_strfreev( actions_list );
   }
 
   DisconnectCallbacks();
@@ -67,23 +73,6 @@ QtGActionGroup::~QtGActionGroup()
 GActionGroup* QtGActionGroup::ActionGroup() const
 {
   return m_action_group;
-}
-
-QString QtGActionGroup::Action( int index )
-{
-  if( index >= m_size )
-  {
-    return QString();
-  }
-
-  QString action_name;
-  gchar** actions_list = g_action_group_list_actions( m_action_group );
-
-  action_name = QString( actions_list[index] );
-
-  g_strfreev( actions_list );
-
-  return action_name;
 }
 
 void QtGActionGroup::TriggerAction( QString action_name, bool checked )
