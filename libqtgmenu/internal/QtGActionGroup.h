@@ -63,8 +63,6 @@ private:
   void DisconnectCallbacks();
 
 private:
-  int m_size = 0;
-
   GActionGroup* m_action_group = nullptr;
 
   gulong m_action_added_handler = 0;

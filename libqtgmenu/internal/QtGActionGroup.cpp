@@ -29,12 +29,7 @@ QtGActionGroup::QtGActionGroup( GActionGroup* action_group )
   auto actions_list = g_action_group_list_actions( m_action_group );
   if( actions_list )
   {
-    while( actions_list[m_size] != nullptr )
-    {
-      ++m_size;
-    }
-
-    for( int i = 0; i < m_size; ++i )
+    for( int i = 0; actions_list[i]; ++i )
     {
       emit ActionAdded( actions_list[i] );
     }
@@ -50,11 +45,10 @@ QtGActionGroup::~QtGActionGroup()
     return;
   }
 
-  if( m_size )
+  auto actions_list = g_action_group_list_actions( m_action_group );
+  if( actions_list )
   {
-    auto actions_list = g_action_group_list_actions( m_action_group );
-
-    for( int i = 0; i < m_size; ++i )
+    for( int i = 0; actions_list[i]; ++i )
     {
       emit ActionRemoved( actions_list[i] );
     }
@@ -100,9 +94,9 @@ void QtGActionGroup::TriggerAction( QString action_name, bool checked )
 
 void QtGActionGroup::EmitStates()
 {
-  gchar** actions_list = g_action_group_list_actions( m_action_group );
+  auto actions_list = g_action_group_list_actions( m_action_group );
 
-  for( int i = 0; i < m_size; ++i )
+  for( int i = 0; actions_list && actions_list[i]; ++i )
   {
     gchar* action_name = actions_list[i];
 
@@ -135,8 +129,6 @@ void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* act
       action_name );
   if( type != nullptr )
     emit self->ActionParameterized( action_name, type != nullptr );
-
-  ++self->m_size;
 }
 
 void QtGActionGroup::ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
@@ -144,8 +136,6 @@ void QtGActionGroup::ActionRemovedCallback( GActionGroup* action_group, gchar* a
 {
   QtGActionGroup* self = reinterpret_cast< QtGActionGroup* >( user_data );
   emit self->ActionRemoved( action_name );
-
-  --self->m_size;
 }
 
 void QtGActionGroup::ActionEnabledCallback( GActionGroup* action_group, gchar* action_name,
