@@ -69,11 +69,6 @@ GActionGroup* QtGActionGroup::ActionGroup() const
   return m_action_group;
 }
 
-int QtGActionGroup::Size() const
-{
-  return m_size;
-}
-
 QString QtGActionGroup::Action( int index )
 {
   if( index >= m_size )

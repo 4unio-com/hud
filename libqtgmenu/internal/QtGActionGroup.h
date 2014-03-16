@@ -37,7 +37,6 @@ public:
   virtual ~QtGActionGroup();
 
   GActionGroup* ActionGroup() const;
-  int Size() const;
 
   QString Action( int index );
 
