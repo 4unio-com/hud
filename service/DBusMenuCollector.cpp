@@ -67,7 +67,9 @@ void DBusMenuCollector::windowRegistered(const QString &service,
 			SLOT(
 					WindowRegistered(uint, const QString &, const QDBusObjectPath &)));
 
-	m_menuImporter.reset(new DBusMenuImporter(m_service, m_path.path()));
+	m_menuImporter.reset(
+			new DBusMenuImporter(m_service, m_path.path(),
+					DBusMenuImporterType::SYNCHRONOUS));
 
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 	if(collectorToken) {
@@ -126,18 +128,18 @@ void DBusMenuCollector::hideMenu(QMenu *menu) {
 	}
 }
 
-CollectorToken::Ptr DBusMenuCollector::activate() {
+QList<CollectorToken::Ptr> DBusMenuCollector::activate() {
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 
 	if(m_menuImporter.isNull()) {
-		return CollectorToken::Ptr();
+		return QList<CollectorToken::Ptr>();
 	}
 
 	if (collectorToken.isNull()) {
 		openMenu(m_menuImporter->menu());
 
 		if(m_menuImporter.isNull()) {
-			return CollectorToken::Ptr();
+			return QList<CollectorToken::Ptr>();
 		}
 
 		collectorToken.reset(
@@ -145,7 +147,7 @@ CollectorToken::Ptr DBusMenuCollector::activate() {
 		m_collectorToken = collectorToken;
 	}
 
-	return collectorToken;
+	return QList<CollectorToken::Ptr>() << collectorToken;
 }
 
 void DBusMenuCollector::deactivate() {

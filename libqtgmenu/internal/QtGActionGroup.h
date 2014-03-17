@@ -33,7 +33,7 @@ class QtGActionGroup : public QObject
 Q_OBJECT
 
 public:
-  explicit QtGActionGroup( GActionGroup* action_group );
+  QtGActionGroup( const QString& action_prefix, GActionGroup* action_group );
   virtual ~QtGActionGroup();
 
   GActionGroup* ActionGroup() const;
@@ -63,6 +63,8 @@ private:
   void DisconnectCallbacks();
 
 private:
+
+  QString m_action_prefix;
   GActionGroup* m_action_group = nullptr;
 
   gulong m_action_added_handler = 0;

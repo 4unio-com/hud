@@ -28,12 +28,11 @@ using namespace hud::service;
 using namespace qtgmenu;
 
 GMenuCollector::GMenuCollector(const QString &name,
-		const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath) :
-		m_name(name), m_actionPath(actionPath), m_menuPath(menuPath) {
+		const QMap<QString, QDBusObjectPath> &actions,
+		const QDBusObjectPath &menuPath) :
+		m_name(name), m_actions(actions), m_menuPath(menuPath) {
 
-	m_importer.reset(
-			new QtGMenuImporter(m_name, m_menuPath.path(),
-					m_actionPath.path()));
+	m_importer.reset(new QtGMenuImporter(m_name, m_menuPath, actions));
 
 	connect(m_importer.data(), SIGNAL(MenuItemsChanged()), this,
 			SLOT(menuItemsChanged()));
@@ -46,7 +45,7 @@ bool GMenuCollector::isValid() const {
 	return !m_menuPath.path().isEmpty();
 }
 
-CollectorToken::Ptr GMenuCollector::activate() {
+QList<CollectorToken::Ptr> GMenuCollector::activate() {
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 
 	std::shared_ptr<QMenu> menu(m_importer->GetQMenu());
@@ -58,7 +57,7 @@ CollectorToken::Ptr GMenuCollector::activate() {
 		m_collectorToken = collectorToken;
 	}
 
-	return collectorToken;
+	return QList<CollectorToken::Ptr>() << collectorToken;
 }
 
 void GMenuCollector::deactivate() {

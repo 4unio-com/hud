@@ -26,13 +26,11 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model )
 {
 }
 
-QtGMenuModel::QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path,
-    const QString& actions_path )
+QtGMenuModel::QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path )
     : QtGMenuModel( model, LinkType::Root, nullptr, 0 )
 {
   m_bus_name = bus_name;
   m_menu_path = menu_path;
-  m_actions_path = actions_path;
 }
 
 QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index )
@@ -48,7 +46,6 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 
     m_bus_name = m_parent->m_bus_name;
     m_menu_path = m_parent->m_menu_path;
-    m_actions_path = m_parent->m_actions_path;
 
     gchar* label = NULL;
     if( g_menu_model_get_item_attribute( m_parent->m_model, index,
@@ -87,7 +84,6 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
       // dbus paths
       m_ext_menu->menuAction()->setProperty( c_property_busName, m_bus_name );
       m_ext_menu->menuAction()->setProperty( c_property_menuPath, m_menu_path );
-      m_ext_menu->menuAction()->setProperty( c_property_actionsPath, m_actions_path );
     }
   }
 
@@ -360,9 +356,6 @@ QAction* QtGMenuModel::CreateAction( int index )
     QString qaction_name = QString::fromUtf8( action_name );
     g_free( action_name );
 
-    int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
-    qaction_name = qaction_name.right( name_length );
-
     action->setProperty( c_property_actionName, qaction_name );
   }
 
@@ -372,7 +365,6 @@ QAction* QtGMenuModel::CreateAction( int index )
   // dbus paths
   action->setProperty( c_property_busName, m_bus_name );
   action->setProperty( c_property_menuPath, m_menu_path );
-  action->setProperty( c_property_actionsPath, m_actions_path );
 
   // action icon
   GVariant* icon = g_menu_model_get_item_attribute_value( m_model, index, G_MENU_ATTRIBUTE_ICON,

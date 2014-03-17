@@ -44,7 +44,7 @@ protected:
 	/* Test a set of strings */
 	string search(const QString &query) {
 		QList<Result> results;
-		store->search(query, results);
+		store->search(query, Query::EmptyBehaviour::SHOW_SUGGESTIONS, results);
 
 		QString result;
 
@@ -222,8 +222,11 @@ TEST_F(TestItemStore, DistanceExtraTerms) {
 	QMenu root;
 
 	QMenu file("File");
-	file.addAction("Save As...");
+	file.addAction("Banana");
+	file.addAction("Save All");
 	file.addAction("Save");
+	file.addAction("Save As...");
+	file.addAction("Apple");
 	root.addMenu(&file);
 
 	store->indexMenu(&root);
@@ -257,12 +260,42 @@ TEST_F(TestItemStore, BlankSearchFrequentlyUsedItems) {
 			Return(3));
 
 	QList<Result> results;
-	store->search("", results);
+	store->search("", Query::EmptyBehaviour::SHOW_SUGGESTIONS, results);
 	ASSERT_EQ(4, results.size());
 	EXPECT_EQ(QString("Three"), results.at(0).commandName());
 	EXPECT_EQ(QString("Four"), results.at(1).commandName());
 	EXPECT_EQ(QString("One"), results.at(2).commandName());
 	EXPECT_EQ(QString("Two"), results.at(3).commandName());
+}
+
+TEST_F(TestItemStore, BlankSearchNoSuggestions) {
+	QMenu root;
+
+	QMenu file("&File");
+	file.addAction("&One");
+	file.addAction("&Two");
+	file.addAction("T&hree");
+	file.addAction("Fou&r");
+	root.addMenu(&file);
+
+	store->indexMenu(&root);
+
+	ON_CALL(*usageTracker,
+			usage(QString("app-id"), QString("File||One"))).WillByDefault(
+			Return(2));
+	ON_CALL(*usageTracker,
+			usage(QString("app-id"), QString("File||Two"))).WillByDefault(
+			Return(0));
+	ON_CALL(*usageTracker,
+			usage(QString("app-id"), QString("File||Three"))).WillByDefault(
+			Return(4));
+	ON_CALL(*usageTracker,
+			usage(QString("app-id"), QString("File||Four"))).WillByDefault(
+			Return(3));
+
+	QList<Result> results;
+	store->search("", Query::EmptyBehaviour::NO_SUGGESTIONS, results);
+	ASSERT_TRUE(results.empty());
 }
 
 TEST_F(TestItemStore, ExecuteMarksHistory) {

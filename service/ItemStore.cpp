@@ -29,6 +29,7 @@ using namespace hud::service;
 using namespace Columbus;
 
 static const QRegularExpression SINGLE_AMPERSAND("(?<![&])[&](?![&])");
+static const QRegularExpression BAD_CHARACTERS("\\.\\.\\.|…");
 static const QRegularExpression WHITESPACE("\\s+");
 static const QRegularExpression WHITESPACE_OR_SEMICOLON("[;\\s+]");
 
@@ -39,8 +40,9 @@ ItemStore::ItemStore(const QString &applicationId,
 	ErrorValues &errorValues(m_matcher.getErrorValues());
 	errorValues.addStandardErrors();
 
-	connect(m_settings.data(), SIGNAL(changed()), this,
-					SLOT(settingChanged()));
+	m_matcher.getIndexWeights().setWeight(Word("context"), 0.5);
+
+	connect(m_settings.data(), SIGNAL(changed()), this, SLOT(settingChanged()));
 	settingChanged();
 }
 
@@ -72,7 +74,9 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 			continue;
 		}
 
-		QStringList text(convertActionText(action).split(WHITESPACE));
+		QStringList text(
+				convertActionText(action).remove(BAD_CHARACTERS).split(
+						WHITESPACE));
 
 		bool isParameterized(action->property("isParameterized").toBool());
 
@@ -89,7 +93,7 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 
 			WordList command;
 			for (const QString &word : text) {
-				command.addWord(Word(word.toStdString()));
+				command.addWord(Word(word.toUtf8().constData()));
 			}
 			document.addText(Word("command"), command);
 
@@ -102,7 +106,7 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 				context = stack;
 			}
 			for (const QString &word : context) {
-				wordList.addWord(Word(word.toStdString()));
+				wordList.addWord(Word(word.toUtf8().constData()));
 			}
 			document.addText(Word("context"), wordList);
 
@@ -150,10 +154,15 @@ static QString convertToEntry(Item::Ptr item, const QAction *action) {
 	return result;
 }
 
-void ItemStore::search(const QString &query, QList<Result> &results) {
+void ItemStore::search(const QString &query,
+		Query::EmptyBehaviour emptyBehaviour, QList<Result> &results) {
 	QStringMatcher stringMatcher(query, Qt::CaseInsensitive);
 
 	if (query.isEmpty()) {
+		if (emptyBehaviour == Query::EmptyBehaviour::NO_SUGGESTIONS) {
+			return;
+		}
+
 		QMap<unsigned int, DocumentID> tempResults;
 
 		for (auto it(m_items.constBegin()); it != m_items.constEnd(); ++it) {
@@ -172,21 +181,28 @@ void ItemStore::search(const QString &query, QList<Result> &results) {
 		}
 
 	} else {
+		QString cleanQuery(query);
+		cleanQuery.remove(BAD_CHARACTERS);
+
 		WordList queryList;
-		for (const QString &word : query.split(WHITESPACE)) {
-			queryList.addWord(word.toStdString());
+		for (const QString &word : cleanQuery.split(WHITESPACE)) {
+			queryList.addWord(Word(word.toUtf8().constData()));
 		}
 
-		MatchResults matchResults(m_matcher.match(queryList));
+		try {
+			MatchResults matchResults(
+					m_matcher.onlineMatch(queryList, Word("command")));
 
-		int queryLength(query.length());
+			int queryLength(query.length());
 
-		size_t maxResults = std::min(matchResults.size(), size_t(20));
+			size_t maxResults = std::min(matchResults.size(), size_t(20));
 
-		for (size_t i(0); i < maxResults; ++i) {
-			DocumentID id(matchResults.getDocumentID(i));
-			double relevancy(matchResults.getRelevancy(i));
-			addResult(id, stringMatcher, queryLength, relevancy, results);
+			for (size_t i(0); i < maxResults; ++i) {
+				DocumentID id(matchResults.getDocumentID(i));
+				double relevancy(matchResults.getRelevancy(i));
+				addResult(id, stringMatcher, queryLength, relevancy, results);
+			}
+		} catch (std::invalid_argument &e) {
 		}
 	}
 

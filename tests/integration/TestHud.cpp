@@ -187,8 +187,8 @@ TEST_F(TestHud, SearchDBusMenuContext) {
 		countChangedSpy.wait();
 	}
 	ASSERT_EQ(3, results.rowCount());
-	EXPECT_EQ(ResultPair("swift sad", "piece hook"), result(results, 0));
-	EXPECT_EQ(ResultPair("stray slash", "piece hook"), result(results, 1));
+	EXPECT_EQ(ResultPair("stray slash", "piece hook"), result(results, 0));
+	EXPECT_EQ(ResultPair("swift sad", "piece hook"), result(results, 1));
 	EXPECT_EQ(ResultPair("bowl", "link"), result(results, 2));
 }
 
@@ -239,7 +239,7 @@ TEST_F(TestHud, SearchGMenuOneResult) {
 					"  ret.append('/menu')\n"
 					"  ret.append('')\n"
 					"  ret.append('')\n"
-					"  ret.append('')\n"
+					"  ret.append('/menu')\n"
 					"else:\n"
 					"  for arg in args[2]:\n"
 					"    ret.append('')").waitForFinished();
@@ -339,7 +339,7 @@ TEST_F(TestHud, ExecuteGMenuAction) {
 					"  ret.append('/menu')\n"
 					"  ret.append('')\n"
 					"  ret.append('')\n"
-					"  ret.append('')\n"
+					"  ret.append('/menu')\n"
 					"else:\n"
 					"  for arg in args[2]:\n"
 					"    ret.append('')").waitForFinished();

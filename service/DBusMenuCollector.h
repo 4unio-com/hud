@@ -47,7 +47,7 @@ public:
 
 	virtual bool isValid() const override;
 
-	virtual CollectorToken::Ptr activate() override;
+	virtual QList<CollectorToken::Ptr> activate() override;
 
 protected Q_SLOTS:
 	void WindowRegistered(uint windowId, const QString &service,

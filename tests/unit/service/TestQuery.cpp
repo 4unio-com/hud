@@ -113,13 +113,15 @@ TEST_F(TestQuery, Create) {
 
 	EXPECT_CALL(*window, activate()).WillOnce(Return(windowToken));
 
-	EXPECT_CALL(*windowToken, search(queryString, _)).WillOnce(
-			Invoke([&expectedResults](const QString &, QList<Result> &results) {
+	EXPECT_CALL(*windowToken, search(queryString, Query::EmptyBehaviour::SHOW_SUGGESTIONS, _)).WillOnce(
+			Invoke(
+					[&expectedResults](const QString &, Query::EmptyBehaviour, QList<Result> &results) {
 				results.append(expectedResults);
 			}));
 
-	QueryImpl query(0, queryString, "keep.alive", *hudService, applicationList,
-			voice, dbus.sessionConnection());
+	QueryImpl query(0, queryString, "keep.alive",
+			Query::EmptyBehaviour::SHOW_SUGGESTIONS, *hudService,
+			applicationList, voice, dbus.sessionConnection());
 
 	const QList<Result> results(query.results());
 	ASSERT_EQ(expectedResults.size(), results.size());
@@ -129,8 +131,9 @@ TEST_F(TestQuery, Create) {
 }
 
 TEST_F(TestQuery, ExecuteCommand) {
-	QueryImpl query(0, "query", "keep.alive", *hudService, applicationList,
-			voice, dbus.sessionConnection());
+	QueryImpl query(0, "query", "keep.alive",
+			Query::EmptyBehaviour::SHOW_SUGGESTIONS, *hudService,
+			applicationList, voice, dbus.sessionConnection());
 
 	EXPECT_CALL(*windowToken, execute(123));
 	query.ExecuteCommand(QDBusVariant(123), 12345);
@@ -144,7 +147,8 @@ TEST_F(TestQuery, CloseWhenSenderDies) {
 	keepAliveService->start(dbus.sessionConnection());
 
 	Query::Ptr query(
-			new QueryImpl(0, "query", "keep.alive", *hudService,
+			new QueryImpl(0, "query", "keep.alive",
+					Query::EmptyBehaviour::SHOW_SUGGESTIONS, *hudService,
 					applicationList, voice, dbus.sessionConnection()));
 
 	EXPECT_CALL(*hudService, closeQuery(query->path())).WillOnce(
@@ -169,8 +173,9 @@ TEST_F(TestQuery, CloseWhenSenderDies) {
 }
 
 TEST_F(TestQuery, VoiceQuery) {
-	QueryImpl query(0, "query", "keep.alive", *hudService, applicationList,
-			voice, dbus.sessionConnection());
+	QueryImpl query(0, "query", "keep.alive",
+			Query::EmptyBehaviour::SHOW_SUGGESTIONS, *hudService,
+			applicationList, voice, dbus.sessionConnection());
 
 	EXPECT_CALL(*voice, listen(QList<QStringList>()
 					<< (QStringList() << "command1" << "command2"))).WillOnce(

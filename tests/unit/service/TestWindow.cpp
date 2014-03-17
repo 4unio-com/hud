@@ -110,7 +110,7 @@ TEST_F(TestWindow, ActivateOnlyWithDBusMenu) {
 	CollectorToken::Ptr dbusMenuCollectorToken(
 			new CollectorToken(dbusMenuCollector, &dbusMenuCollectorMenu));
 	EXPECT_CALL(*dbusMenuCollector, activate()).Times(1).WillOnce(
-			Return(dbusMenuCollectorToken));
+			Return(QList<CollectorToken::Ptr>() << dbusMenuCollectorToken));
 
 	WindowToken::Ptr token(window->activate());
 	EXPECT_EQ(QList<CollectorToken::Ptr>() << dbusMenuCollectorToken,
@@ -129,7 +129,7 @@ TEST_F(TestWindow, ActivateOnlyWithGMenu) {
 			new CollectorToken(gmenuWindowCollector,
 					&gmenuWindowCollectorMenu));
 	EXPECT_CALL(*gmenuWindowCollector, activate()).Times(1).WillOnce(
-			Return(gmenuWindowCollectorToken));
+			Return(QList<CollectorToken::Ptr>() << gmenuWindowCollectorToken));
 
 	WindowToken::Ptr token(window->activate());
 	EXPECT_EQ(QList<CollectorToken::Ptr>() << gmenuWindowCollectorToken,
@@ -147,7 +147,7 @@ TEST_F(TestWindow, ActivateOnlyWithValidAllWindowsContext) {
 	CollectorToken::Ptr allWindowsCollectorToken(
 			new CollectorToken(allWindowsCollector, &allWindowsCollectorMenu));
 	EXPECT_CALL(*allWindowsCollector, activate()).Times(1).WillOnce(
-			Return(allWindowsCollectorToken));
+			Return(QList<CollectorToken::Ptr>() << allWindowsCollectorToken));
 
 	ON_CALL(*allWindowsContext, activeCollector()).WillByDefault(
 			Return(allWindowsCollector));
@@ -169,7 +169,10 @@ TEST_F(TestWindow, ActivateOnlyWithValidWindowContext) {
 	definition.actionPrefix = "hud";
 	definition.menuPath = QDBusObjectPath("/menu/path");
 
-	EXPECT_CALL(factory, newGMenuCollector(definition.name, definition.actionPath, definition.menuPath)).Times(
+	QMap<QString, QDBusObjectPath> actions;
+	actions[definition.actionPrefix] = definition.actionPath;
+
+	EXPECT_CALL(factory, newGMenuCollector(definition.name, actions, definition.menuPath)).Times(
 			1).WillOnce(Return(windowCollector));
 
 	window->addMenu("context_1", definition);
@@ -179,7 +182,7 @@ TEST_F(TestWindow, ActivateOnlyWithValidWindowContext) {
 	CollectorToken::Ptr windowCollectorToken(
 			new CollectorToken(windowCollector, &windowCollectorMenu));
 	EXPECT_CALL(*windowCollector, activate()).Times(1).WillOnce(
-			Return(windowCollectorToken));
+			Return(QList<CollectorToken::Ptr>() << windowCollectorToken));
 
 	WindowToken::Ptr token(window->activate());
 	EXPECT_EQ(QList<CollectorToken::Ptr>() << windowCollectorToken,
@@ -196,19 +199,19 @@ TEST_F(TestWindow, ActivateWithMultipleCollectorsThenChange) {
 			new CollectorToken(gmenuWindowCollector,
 					&gmenuWindowCollectorMenu));
 	EXPECT_CALL(*gmenuWindowCollector, activate()).Times(1).WillOnce(
-			Return(gmenuWindowCollectorToken));
+			Return(QList<CollectorToken::Ptr>() << gmenuWindowCollectorToken));
 
 	QMenu dbusMenuCollectorMenu;
 	CollectorToken::Ptr dbusMenuCollectorToken(
 			new CollectorToken(dbusMenuCollector, &dbusMenuCollectorMenu));
 	EXPECT_CALL(*dbusMenuCollector, activate()).Times(1).WillOnce(
-			Return(dbusMenuCollectorToken));
+			Return(QList<CollectorToken::Ptr>() << dbusMenuCollectorToken));
 
 	QMenu allWindowsCollectorMenu;
 	CollectorToken::Ptr allWindowsCollectorToken(
 			new CollectorToken(allWindowsCollector, &allWindowsCollectorMenu));
 	EXPECT_CALL(*allWindowsCollector, activate()).Times(1).WillOnce(
-			Return(allWindowsCollectorToken));
+			Return(QList<CollectorToken::Ptr>() << allWindowsCollectorToken));
 	ON_CALL(*allWindowsContext, activeCollector()).WillByDefault(
 			Return(allWindowsCollector));
 
@@ -224,13 +227,13 @@ TEST_F(TestWindow, ActivateWithMultipleCollectorsThenChange) {
 			new CollectorToken(gmenuWindowCollector,
 					&gmenuWindowCollectorMenuChanged));
 	EXPECT_CALL(*gmenuWindowCollector, activate()).Times(1).WillOnce(
-			Return(gmenuWindowCollectorTokenChanged));
+			Return(QList<CollectorToken::Ptr>() << gmenuWindowCollectorTokenChanged));
 
 	// Re-prime the other collectors
 	EXPECT_CALL(*dbusMenuCollector, activate()).Times(1).WillOnce(
-			Return(dbusMenuCollectorToken));
+			Return(QList<CollectorToken::Ptr>() << dbusMenuCollectorToken));
 	EXPECT_CALL(*allWindowsCollector, activate()).Times(1).WillOnce(
-			Return(allWindowsCollectorToken));
+			Return(QList<CollectorToken::Ptr>() << allWindowsCollectorToken));
 
 	WindowToken::Ptr tokenChanged(window->activate());
 	EXPECT_NE(token, tokenChanged);
@@ -249,7 +252,10 @@ TEST_F(TestWindow, Context) {
 	definition.actionPrefix = "hud";
 	definition.menuPath = QDBusObjectPath("/menu/path");
 
-	EXPECT_CALL(factory, newGMenuCollector(definition.name, definition.actionPath, definition.menuPath)).Times(
+	QMap<QString, QDBusObjectPath> actions;
+	actions[definition.actionPrefix] = definition.actionPath;
+
+	EXPECT_CALL(factory, newGMenuCollector(definition.name, actions, definition.menuPath)).Times(
 			1).WillOnce(Return(windowCollector));
 
 	context.addMenu("context_1", definition);

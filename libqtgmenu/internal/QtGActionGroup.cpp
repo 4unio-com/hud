@@ -21,8 +21,9 @@
 
 using namespace qtgmenu;
 
-QtGActionGroup::QtGActionGroup( GActionGroup* action_group )
-    : m_action_group( action_group )
+QtGActionGroup::QtGActionGroup( const QString& action_prefix, GActionGroup* action_group )
+    : m_action_prefix( action_prefix ),
+      m_action_group( action_group )
 {
   ConnectCallbacks();
 
@@ -71,6 +72,13 @@ GActionGroup* QtGActionGroup::ActionGroup() const
 
 void QtGActionGroup::TriggerAction( QString action_name, bool checked )
 {
+  QString prefix = action_name.left( action_name.indexOf( '.' ) );
+  if( prefix != m_action_prefix )
+  {
+    return;
+  }
+
+  action_name = action_name.right( action_name.size() - action_name.indexOf( '.' ) - 1 );
   std::string action = action_name.toStdString();
 
   const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,
@@ -103,12 +111,12 @@ void QtGActionGroup::EmitStates()
     bool enabled = G_ACTION_GROUP_GET_IFACE( m_action_group ) ->get_action_enabled( m_action_group,
         action_name );
     if( !enabled )
-      emit ActionEnabled( action_name, enabled );
+      emit ActionEnabled( m_action_prefix + "." + action_name, enabled );
 
     const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,
         action_name );
     if( type != nullptr )
-      emit ActionParameterized( action_name, type != nullptr );
+      emit ActionParameterized( m_action_prefix + "." + action_name, type != nullptr );
   }
 
   g_strfreev( actions_list );
@@ -123,12 +131,12 @@ void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* act
   bool enabled = G_ACTION_GROUP_GET_IFACE( self->m_action_group ) ->get_action_enabled(
       self->m_action_group, action_name );
   if( !enabled )
-    emit self->ActionEnabled( action_name, enabled );
+    emit self->ActionEnabled( self->m_action_prefix + "." + action_name, enabled );
 
   const GVariantType* type = g_action_group_get_action_parameter_type( self->m_action_group,
       action_name );
   if( type != nullptr )
-    emit self->ActionParameterized( action_name, type != nullptr );
+    emit self->ActionParameterized( self->m_action_prefix + "." + action_name, type != nullptr );
 }
 
 void QtGActionGroup::ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
@@ -142,7 +150,7 @@ void QtGActionGroup::ActionEnabledCallback( GActionGroup* action_group, gchar* a
     gboolean enabled, gpointer user_data )
 {
   QtGActionGroup* self = reinterpret_cast< QtGActionGroup* >( user_data );
-  emit self->ActionEnabled( action_name, enabled );
+  emit self->ActionEnabled( self->m_action_prefix + "." + action_name, enabled );
 }
 
 void QtGActionGroup::ActionStateChangedCallback( GActionGroup* action_group, gchar* action_name,

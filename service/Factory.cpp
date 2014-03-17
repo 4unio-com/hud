@@ -88,9 +88,10 @@ QDBusConnection Factory::sessionBus() {
 	return m_sessionBus;
 }
 
-Query::Ptr Factory::newQuery(const QString &query, const QString &sender) {
+Query::Ptr Factory::newQuery(const QString &query, const QString &sender,
+		Query::EmptyBehaviour emptyBehaviour) {
 	return Query::Ptr(
-			new QueryImpl(m_queryCounter++, query, sender,
+			new QueryImpl(m_queryCounter++, query, sender, emptyBehaviour,
 					*singletonHudService(), singletonApplicationList(),
 					singletonVoice(), sessionBus()));
 }
@@ -166,8 +167,9 @@ Collector::Ptr Factory::newDBusMenuCollector(unsigned int windowId,
 }
 
 Collector::Ptr Factory::newGMenuCollector(const QString &name,
-		const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath) {
-	return Collector::Ptr(new GMenuCollector(name, actionPath, menuPath));
+		const QMap<QString, QDBusObjectPath> &actions,
+		const QDBusObjectPath &menuPath) {
+	return Collector::Ptr(new GMenuCollector(name, actions, menuPath));
 }
 
 Collector::Ptr Factory::newGMenuWindowCollector(unsigned int windowId,

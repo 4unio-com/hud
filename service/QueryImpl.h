@@ -43,9 +43,9 @@ class Q_DECL_EXPORT QueryImpl: public Query, protected QDBusContext {
 Q_OBJECT
 public:
 	QueryImpl(unsigned int id, const QString &query, const QString &sender,
-			HudService &service, ApplicationList::Ptr applicationList,
-			Voice::Ptr voice, const QDBusConnection &connection,
-			QObject *parent = 0);
+			EmptyBehaviour emptyBehaviour, HudService &service,
+			ApplicationList::Ptr applicationList, Voice::Ptr voice,
+			const QDBusConnection &connection, QObject *parent = 0);
 
 	virtual ~QueryImpl();
 
@@ -97,6 +97,8 @@ protected:
 	QDBusObjectPath m_path;
 
 	HudService &m_service;
+
+	EmptyBehaviour m_emptyBehaviour;
 
 	ApplicationList::Ptr m_applicationList;
 

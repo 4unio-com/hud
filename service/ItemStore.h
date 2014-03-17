@@ -20,6 +20,7 @@
 #define HUD_SERVICE_ITEMSTORE_H_
 
 #include <service/Item.h>
+#include <service/Query.h>
 #include <service/Result.h>
 #include <service/SearchSettings.h>
 #include <service/UsageTracker.h>
@@ -50,7 +51,8 @@ public:
 
 	void indexMenu(const QMenu *menu);
 
-	void search(const QString &query, QList<Result> &results);
+	void search(const QString &query, Query::EmptyBehaviour emptyBehaviour,
+			QList<Result> &results);
 
 	void execute(unsigned long long commandId);
 

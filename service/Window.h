@@ -19,6 +19,7 @@
 #ifndef HUD_SERVICE_WINDOW_H_
 #define HUD_SERVICE_WINDOW_H_
 
+#include <service/Query.h>
 #include <service/Result.h>
 #include <service/WindowContext.h>
 
@@ -35,7 +36,8 @@ public:
 
 	virtual ~WindowToken();
 
-	virtual void search(const QString &query, QList<Result> &results) = 0;
+	virtual void search(const QString &query,
+			Query::EmptyBehaviour emptyBehaviour, QList<Result> &results) = 0;
 
 	virtual void execute(unsigned long long commandId) = 0;
 

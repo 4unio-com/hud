@@ -53,7 +53,8 @@ protected:
 };
 
 TEST_F(TestHudService, OpenCloseQuery) {
-	HudServiceImpl hudService(factory, applicationList, dbus.sessionConnection());
+	HudServiceImpl hudService(factory, applicationList,
+			dbus.sessionConnection());
 
 	QDBusObjectPath queryPath("/path/query0");
 	QString resultsModel("com.canonical.hud.results0");
@@ -63,7 +64,7 @@ TEST_F(TestHudService, OpenCloseQuery) {
 	ON_CALL(*query, resultsModel()).WillByDefault(Return(resultsModel));
 	ON_CALL(*query, appstackModel()).WillByDefault(Return(appstackModel));
 
-	EXPECT_CALL(factory, newQuery(QString("query text"), QString("local"))).Times(
+	EXPECT_CALL(factory, newQuery(QString("query text"), QString("local"), Query::EmptyBehaviour::SHOW_SUGGESTIONS)).Times(
 			1).WillOnce(Return(query));
 
 	QString resultsName;
@@ -83,7 +84,8 @@ TEST_F(TestHudService, OpenCloseQuery) {
 }
 
 TEST_F(TestHudService, CloseUnknownQuery) {
-	HudServiceImpl hudService(factory, applicationList, dbus.sessionConnection());
+	HudServiceImpl hudService(factory, applicationList,
+			dbus.sessionConnection());
 
 	QDBusObjectPath queryPath("/path/query0");
 
@@ -93,7 +95,8 @@ TEST_F(TestHudService, CloseUnknownQuery) {
 }
 
 TEST_F(TestHudService, CreateMultipleQueries) {
-	HudServiceImpl hudService(factory, applicationList, dbus.sessionConnection());
+	HudServiceImpl hudService(factory, applicationList,
+			dbus.sessionConnection());
 
 	QDBusObjectPath queryPath0("/path/query0");
 	QString resultsModel0("com.canonical.hud.results0");
@@ -111,10 +114,10 @@ TEST_F(TestHudService, CreateMultipleQueries) {
 	ON_CALL(*query1, resultsModel()).WillByDefault(Return(resultsModel1));
 	ON_CALL(*query1, appstackModel()).WillByDefault(Return(appstackModel1));
 
-	EXPECT_CALL(factory, newQuery(QString("query0"), QString("local"))).Times(1).WillOnce(
-			Return(query0));
-	EXPECT_CALL(factory, newQuery(QString("query1"), QString("local"))).Times(1).WillOnce(
-			Return(query1));
+	EXPECT_CALL(factory, newQuery(QString("query0"), QString("local"), Query::EmptyBehaviour::SHOW_SUGGESTIONS)).Times(
+			1).WillOnce(Return(query0));
+	EXPECT_CALL(factory, newQuery(QString("query1"), QString("local"), Query::EmptyBehaviour::SHOW_SUGGESTIONS)).Times(
+			1).WillOnce(Return(query1));
 
 	int modelRevision;
 	QString resultsName;
@@ -153,7 +156,8 @@ TEST_F(TestHudService, LegacyQuery) {
 	ON_CALL(*applicationList, focusedApplication()).WillByDefault(
 			Return(application));
 
-	HudServiceImpl hudService(factory, applicationList, dbus.sessionConnection());
+	HudServiceImpl hudService(factory, applicationList,
+			dbus.sessionConnection());
 
 	QDBusObjectPath queryPath("/path/query0");
 	QList<Result> results;
@@ -172,7 +176,7 @@ TEST_F(TestHudService, LegacyQuery) {
 	ON_CALL(*query, path()).WillByDefault(ReturnRef(queryPath));
 	ON_CALL(*query, results()).WillByDefault(ReturnRef(results));
 
-	EXPECT_CALL(factory, newQuery(QString("query text"), QString("local"))).Times(
+	EXPECT_CALL(factory, newQuery(QString("query text"), QString("local"), Query::EmptyBehaviour::NO_SUGGESTIONS)).Times(
 			1).WillOnce(Return(query));
 
 	QList<Suggestion> suggestions;
@@ -213,13 +217,13 @@ TEST_F(TestHudService, RegisterApplication) {
 
 	QSharedPointer<MockApplication> application(
 			new NiceMock<MockApplication>());
-	ON_CALL(*application, path()).WillByDefault(
-			ReturnRef(path));
+	ON_CALL(*application, path()).WillByDefault(ReturnRef(path));
 
 	EXPECT_CALL(*applicationList, ensureApplication(QString("app-id"))).WillOnce(
 			Return(application));
 
-	HudServiceImpl hudService(factory, applicationList, dbus.sessionConnection());
+	HudServiceImpl hudService(factory, applicationList,
+			dbus.sessionConnection());
 
 	EXPECT_EQ(path, hudService.RegisterApplication("app-id"));
 }

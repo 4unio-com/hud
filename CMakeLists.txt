@@ -163,9 +163,9 @@ if(${ENABLE_TESTS})
 		check
 		${CMAKE_CTEST_COMMAND} --force-new-ctest-process --output-on-failure
 	)
+	add_subdirectory(tests)
 endif()
 
-add_subdirectory(tests)
 
 add_subdirectory(tools-vala)
 if(${ENABLE_DOCUMENTATION})

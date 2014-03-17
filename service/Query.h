@@ -39,6 +39,11 @@ Q_OBJECT
 public:
 	typedef QSharedPointer<Query> Ptr;
 
+	enum class EmptyBehaviour {
+		SHOW_SUGGESTIONS,
+		NO_SUGGESTIONS,
+	};
+
 	explicit Query(QObject *parent = 0);
 
 	virtual ~Query();
