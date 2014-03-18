@@ -519,7 +519,7 @@ TEST_F( TestQtGMenu, QMenuActionTriggers )
   file_menu->actions().at( 0 )->trigger();
   m_action_activated_spy.wait();
 
-  EXPECT_FALSE( m_action_activated_spy.empty() );
+  ASSERT_FALSE( m_action_activated_spy.empty() );
   EXPECT_EQ( "new", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "", m_action_activated_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_activated_spy.clear();
@@ -527,7 +527,7 @@ TEST_F( TestQtGMenu, QMenuActionTriggers )
   file_menu->actions().at( 1 )->trigger();
   m_action_activated_spy.wait();
 
-  EXPECT_FALSE( m_action_activated_spy.empty() );
+  ASSERT_FALSE( m_action_activated_spy.empty() );
   EXPECT_EQ( "open", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "", m_action_activated_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_activated_spy.clear();
@@ -535,7 +535,7 @@ TEST_F( TestQtGMenu, QMenuActionTriggers )
   file_menu->actions().at( 3 )->trigger();
   m_action_activated_spy.wait();
 
-  EXPECT_FALSE( m_action_activated_spy.empty() );
+  ASSERT_FALSE( m_action_activated_spy.empty() );
   EXPECT_EQ( "lock", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "", m_action_activated_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_activated_spy.clear();
