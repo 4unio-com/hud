@@ -167,8 +167,9 @@ void ItemStore::search(const QString &query,
 
 		for (auto it(m_items.constBegin()); it != m_items.constEnd(); ++it) {
 			const QAction* action = it.value()->action();
-			if(action) {
-				tempResults.insertMulti(m_usageTracker->usage(m_applicationId,
+			if (action) {
+				tempResults.insertMulti(
+						m_usageTracker->usage(m_applicationId,
 								convertToEntry(it.value(), action)), it.key());
 			}
 		}
@@ -217,7 +218,7 @@ void ItemStore::addResult(DocumentID id, const QStringMatcher &stringMatcher,
 	Item::Ptr item(m_items[id]);
 	const QAction *action(item->action());
 
-	if(!action) {
+	if (!action) {
 		return;
 	}
 
