@@ -102,6 +102,18 @@ void QtGActionGroup::TriggerAction( QString action_name, bool checked )
   }
 }
 
+QString QtGActionGroup::FullName( const QString& prefix, const QString& action_name )
+{
+  if ( prefix.isEmpty() )
+  {
+    return action_name;
+  }
+  else
+  {
+    return prefix + "." + action_name;
+  }
+}
+
 void QtGActionGroup::EmitStates()
 {
   auto actions_list = g_action_group_list_actions( m_action_group );
@@ -113,12 +125,12 @@ void QtGActionGroup::EmitStates()
     bool enabled = G_ACTION_GROUP_GET_IFACE( m_action_group ) ->get_action_enabled( m_action_group,
         action_name );
     if( !enabled )
-      emit ActionEnabled( m_action_prefix + "." + action_name, enabled );
+      emit ActionEnabled( FullName(m_action_prefix, action_name), enabled );
 
     const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,
         action_name );
     if( type != nullptr )
-      emit ActionParameterized( m_action_prefix + "." + action_name, type != nullptr );
+      emit ActionParameterized( FullName(m_action_prefix, action_name), type != nullptr );
   }
 
   g_strfreev( actions_list );
@@ -133,12 +145,12 @@ void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* act
   bool enabled = G_ACTION_GROUP_GET_IFACE( self->m_action_group ) ->get_action_enabled(
       self->m_action_group, action_name );
   if( !enabled )
-    emit self->ActionEnabled( self->m_action_prefix + "." + action_name, enabled );
+    emit self->ActionEnabled( FullName(self->m_action_prefix, action_name), enabled );
 
   const GVariantType* type = g_action_group_get_action_parameter_type( self->m_action_group,
       action_name );
   if( type != nullptr )
-    emit self->ActionParameterized( self->m_action_prefix + "." + action_name, type != nullptr );
+    emit self->ActionParameterized( FullName(self->m_action_prefix, action_name), type != nullptr );
 }
 
 void QtGActionGroup::ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
@@ -152,7 +164,7 @@ void QtGActionGroup::ActionEnabledCallback( GActionGroup* action_group, gchar* a
     gboolean enabled, gpointer user_data )
 {
   QtGActionGroup* self = reinterpret_cast< QtGActionGroup* >( user_data );
-  emit self->ActionEnabled( self->m_action_prefix + "." + action_name, enabled );
+  emit self->ActionEnabled( FullName(self->m_action_prefix, action_name), enabled );
 }
 
 void QtGActionGroup::ActionStateChangedCallback( GActionGroup* action_group, gchar* action_name,
