@@ -49,7 +49,7 @@ public:
 
 	void execute(unsigned long long commandId) override;
 
-	QString executeParameterized(unsigned long long commandId,
+	QString executeParameterized(unsigned long long commandId, QString &prefix,
 			QString &baseAction, QDBusObjectPath &actionPath,
 			QDBusObjectPath &modelPath) override;
 

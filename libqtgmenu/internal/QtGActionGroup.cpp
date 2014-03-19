@@ -72,29 +72,31 @@ GActionGroup* QtGActionGroup::ActionGroup() const
 
 void QtGActionGroup::TriggerAction( QString action_name, bool checked )
 {
-  QString prefix = action_name.left( action_name.indexOf( '.' ) );
+  QPair<QString, QString> split = QtGMenuUtils::splitPrefixAndName(action_name);
+  const QString& prefix(split.first);
+
   if( prefix != m_action_prefix )
   {
     return;
   }
 
-  action_name = action_name.right( action_name.size() - action_name.indexOf( '.' ) - 1 );
-  std::string action = action_name.toStdString();
+  const QString& action(split.second);
+  QByteArray action_utf = action.toUtf8();
 
   const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,
-      action.c_str() );
+		  action_utf.constData() );
 
   if( type == nullptr )
   {
-    g_action_group_activate_action( m_action_group, action.c_str(), nullptr );
+    g_action_group_activate_action( m_action_group, action_utf.constData(), nullptr );
   }
   else
   {
     ///! need to evaluate and send parameter value
     if( g_variant_type_equal( type, G_VARIANT_TYPE_STRING ) )
     {
-      GVariant* param = g_variant_new_string( action.c_str() );
-      g_action_group_activate_action( m_action_group, action.c_str(), param );
+      GVariant* param = g_variant_new_string( action_utf.constData() );
+      g_action_group_activate_action( m_action_group, action_utf.constData(), param );
       g_variant_unref( param );
     }
   }

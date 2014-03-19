@@ -69,7 +69,7 @@ private:
   QtGMenuImporter& m_parent;
 
   GDBusConnection* m_connection;
-  std::string m_service;
+  QString m_service;
   QDBusObjectPath m_menu_path;
   QMap<QString, QDBusObjectPath> m_action_paths;
 

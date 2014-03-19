@@ -279,7 +279,7 @@ void ItemStore::execute(unsigned long long int commandId) {
 }
 
 QString ItemStore::executeParameterized(unsigned long long commandId,
-		QString &baseAction, QDBusObjectPath &actionPath,
+		QString &prefix, QString &baseAction, QDBusObjectPath &actionPath,
 		QDBusObjectPath &modelPath) {
 
 	Item::Ptr item(m_items[commandId]);
@@ -297,7 +297,15 @@ QString ItemStore::executeParameterized(unsigned long long commandId,
 		return QString();
 	}
 
-	baseAction = action->property("actionName").toString();
+	QString name = action->property("actionName").toString();
+	int index = name.indexOf( '.' );
+	if (index == -1) {
+		baseAction = name;
+	} else {
+		prefix = name.left(index);
+		baseAction = name.right(name.size() - index - 1);
+	}
+
 	actionPath = QDBusObjectPath(action->property("actionsPath").toString());
 	modelPath = QDBusObjectPath(action->property("menuPath").toString());
 

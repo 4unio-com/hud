@@ -162,9 +162,8 @@ QString QueryImpl::ExecuteParameterized(const QDBusVariant &item,
 	}
 
 	qulonglong commandId(item.variant().toULongLong());
-	prefix = "hud";
 	modelSection = 1;
-	return m_windowToken->executeParameterized(commandId, baseAction,
+	return m_windowToken->executeParameterized(commandId, prefix, baseAction,
 			actionPath, modelPath);
 }
 

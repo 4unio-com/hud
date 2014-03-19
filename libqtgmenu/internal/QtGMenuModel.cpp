@@ -18,6 +18,7 @@
 
 #include <QtGMenuModel.h>
 #include <QtGMenuUtils.h>
+#include <QDebug>
 
 using namespace qtgmenu;
 
@@ -26,11 +27,12 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model )
 {
 }
 
-QtGMenuModel::QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path )
+QtGMenuModel::QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths )
     : QtGMenuModel( model, LinkType::Root, nullptr, 0 )
 {
   m_bus_name = bus_name;
   m_menu_path = menu_path;
+  m_action_paths = action_paths;
 }
 
 QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index )
@@ -46,6 +48,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 
     m_bus_name = m_parent->m_bus_name;
     m_menu_path = m_parent->m_menu_path;
+    m_action_paths = m_parent->m_action_paths;
 
     gchar* label = NULL;
     if( g_menu_model_get_item_attribute( m_parent->m_model, index,
@@ -59,14 +62,12 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
     }
 
     gchar* action_name = NULL;
+    QString qaction_name;
     if( g_menu_model_get_item_attribute( m_parent->m_model, index,
             G_MENU_ATTRIBUTE_ACTION, "s", &action_name ) )
     {
-      QString qaction_name = QString::fromUtf8( action_name );
+      qaction_name = QString::fromUtf8( action_name );
       g_free( action_name );
-
-      int name_length = qaction_name.size() - qaction_name.indexOf( '.' ) - 1;
-      qaction_name = qaction_name.right( name_length );
 
       m_ext_menu->menuAction()->setProperty( c_property_actionName, qaction_name );
     }
@@ -84,6 +85,16 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
       // dbus paths
       m_ext_menu->menuAction()->setProperty( c_property_busName, m_bus_name );
       m_ext_menu->menuAction()->setProperty( c_property_menuPath, m_menu_path );
+
+      if( !qaction_name.isEmpty() )
+      {
+        QPair<QString, QString> split = QtGMenuUtils::splitPrefixAndName(qaction_name);
+        const QString& prefix(split.first);
+        if( m_action_paths.contains(prefix) )
+        {
+          m_ext_menu->menuAction()->setProperty( c_property_actionsPath, m_action_paths[prefix].path() );
+        }
+      }
     }
   }
 

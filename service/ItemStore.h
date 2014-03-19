@@ -57,7 +57,7 @@ public:
 	void execute(unsigned long long commandId);
 
 	QString executeParameterized(unsigned long long commandId,
-			QString &baseAction, QDBusObjectPath &actionPath,
+			QString &prefix, QString &baseAction, QDBusObjectPath &actionPath,
 			QDBusObjectPath &modelPath);
 
 	void executeToolbar(const QString &item);

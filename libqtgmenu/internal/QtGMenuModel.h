@@ -19,6 +19,7 @@
 #ifndef QTGMENUMODEL_H
 #define QTGMENUMODEL_H
 
+#include <QDBusObjectPath>
 #include <QObject>
 #include <QMap>
 #include <QMenu>
@@ -43,7 +44,7 @@ public:
   };
 
   explicit QtGMenuModel( GMenuModel* model );
-  QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path );
+  QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths );
   virtual ~QtGMenuModel();
 
   GMenuModel* Model() const;
@@ -59,6 +60,7 @@ public:
   constexpr static const char* c_property_actionName = "actionName";
   constexpr static const char* c_property_isParameterized = "isParameterized";
   constexpr static const char* c_property_busName = "busName";
+  constexpr static const char* c_property_actionsPath = "actionsPath";
   constexpr static const char* c_property_menuPath = "menuPath";
   constexpr static const char* c_property_keywords = "keywords";
   constexpr static const char* c_property_hud_toolbar_item = "hud-toolbar-item";
@@ -113,6 +115,7 @@ private:
 
   QString m_bus_name;
   QString m_menu_path;
+  QMap<QString, QDBusObjectPath> m_action_paths;
 
   std::map< QString, QAction* > m_actions;
 };
