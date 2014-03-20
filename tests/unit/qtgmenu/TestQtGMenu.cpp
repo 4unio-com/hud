@@ -40,7 +40,7 @@ Q_OBJECT
 
 protected:
   TestQtGMenu()
-      : m_importer( c_service, QDBusObjectPath( c_path ), "", QDBusObjectPath( c_path ) ),
+      : m_importer( c_service, QDBusObjectPath( c_path ), "app", QDBusObjectPath( c_path ) ),
 
         m_items_changed_spy( &m_importer, SIGNAL( MenuItemsChanged() ) ),
 
@@ -376,7 +376,7 @@ TEST_F( TestQtGMenu, ExportImportGActions )
 
   m_action_enabled_spy.wait();
   EXPECT_FALSE( m_action_enabled_spy.empty() );
-  EXPECT_EQ( "new", m_action_enabled_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  EXPECT_EQ( "app.new", m_action_enabled_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "false", m_action_enabled_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_enabled_spy.clear();
 
@@ -384,7 +384,7 @@ TEST_F( TestQtGMenu, ExportImportGActions )
 
   m_action_enabled_spy.wait();
   EXPECT_FALSE( m_action_enabled_spy.empty() );
-  EXPECT_EQ( "new", m_action_enabled_spy.at( 0 ).at( 0 ).toString().toStdString() );
+  EXPECT_EQ( "app.new", m_action_enabled_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "true", m_action_enabled_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_enabled_spy.clear();
 
