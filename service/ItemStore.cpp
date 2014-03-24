@@ -31,7 +31,7 @@ using namespace Columbus;
 static const QRegularExpression SINGLE_AMPERSAND("(?<![&])[&](?![&])");
 static const QRegularExpression BAD_CHARACTERS("\\.\\.\\.|…");
 static const QRegularExpression WHITESPACE("\\s+");
-static const QRegularExpression WHITESPACE_OR_SEMICOLON("[;\\s+]");
+static const QRegularExpression WHITESPACE_OR_SEMICOLON("[;\\s]+");
 
 ItemStore::ItemStore(const QString &applicationId,
 		UsageTracker::Ptr usageTracker, SearchSettings::Ptr settings) :
