@@ -18,18 +18,13 @@
 
 #include <common/Localisation.h>
 #include <service/Factory.h>
+#include <service/SignalHandler.h>
 
 #include <QDebug>
 #include <QApplication>
-#include <csignal>
 
 using namespace std;
 using namespace hud::service;
-
-static void exitQt(int sig) {
-	Q_UNUSED(sig);
-	QApplication::exit(0);
-}
 
 int main(int argc, char *argv[]) {
 	qputenv("QT_QPA_PLATFORM", "minimal");
@@ -39,12 +34,11 @@ int main(int argc, char *argv[]) {
 	bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);
 	textdomain(GETTEXT_PACKAGE);
 
-	signal(SIGINT, &exitQt);
-	signal(SIGTERM, &exitQt);
-
 	try {
 		Factory factory;
 		factory.singletonHudService();
+		SignalHandler handler;
+		handler.setupUnixSignalHandlers();
 		return application.exec();
 	} catch (std::exception &e) {
 		qWarning() << _("Hud Service:") << e.what();

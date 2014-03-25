@@ -29,6 +29,7 @@ set(HUD_SERVICE_LIB_SOURCES
   QueryImpl.cpp
   Result.cpp
   SearchSettings.cpp
+  SignalHandler.cpp
   SqliteUsageTracker.cpp
   UsageTracker.cpp
   Voice.cpp
