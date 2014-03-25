@@ -1,3 +1,29 @@
+hud (13.10.1+14.04.20140325-0ubuntu1) trusty; urgency=low
+
+  [ Charles Kerr ]
+  * Simplify the implementation of QtGActionGroup. This started off with
+    the intent of removing the overhead of g_action_group_list_actions()
+    in QtGActionGroup::Action(), but then I found
+    QtGActionGroup::Action() was only called in the object's constructor
+    and destructor, so it made more sense to remove the function
+    altogether. Summary of changes:   * Plugged GVariant leak in
+    QtGActionGroup::TriggerAction()   * Plugged char* leak in
+    QtGMenuUtils::makeStringListQVariant   * ActionGroup ctor calls
+    g_action_group_list_actions() once instead of n+1 times   *
+    ActionGroup dtor calls g_action_group_list_actions() once instead of
+    n times   * Removed unused public method Size()   * Removed newly-
+    unused public method Action()   * Removed newly-unused field m_size
+    (LP: #1296746)
+
+  [ Pete Woods ]
+  * Add null guards to ItemStore search (LP: #1292237)
+  * Fix test failures exposed by fix to libqtdbustest (LP: #1296744)
+  * Call only "safe" write method from UNIX signal handler See
+    http://pubs.opengroup.org/onlinepubs/000095399/functions/xsh_chap02_
+    04.html#tag_02_04_01 (LP: #1296602)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 25 Mar 2014 12:46:25 +0000
+
 hud (13.10.1+14.04.20140314-0ubuntu1) trusty; urgency=low
 
   [ Pete Woods ]
