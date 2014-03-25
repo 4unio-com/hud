@@ -229,3 +229,17 @@ QKeySequence QtGMenuUtils::QStringToQKeySequence( QString& shortcut )
 
   return QKeySequence::fromString( shortcut );
 }
+
+QPair<QString, QString> QtGMenuUtils::splitPrefixAndName( const QString& name )
+{
+  int index = name.indexOf( '.' );
+
+  if( index == -1 )
+  {
+    return qMakePair(QString(), name);
+  }
+  else
+  {
+    return qMakePair(name.left( index ), name.right( name.size() - index - 1 ));
+  }
+}

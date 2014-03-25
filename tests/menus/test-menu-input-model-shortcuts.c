@@ -45,22 +45,22 @@ int main(int argv, char ** argc) {
 	GMenu * menu = g_menu_new();
 	GMenuItem * mi = NULL;
 
-	mi = g_menu_item_new("Save", "save");
+	mi = g_menu_item_new("Save", "unity.save");
 	g_menu_item_set_attribute_value(mi, "accel",
 			g_variant_new_string("<Control>S"));
 	g_menu_append_item(menu, mi);
 
-	mi = g_menu_item_new("Quiter", "quiter");
+	mi = g_menu_item_new("Quiter", "unity.quiter");
 	g_menu_item_set_attribute_value(mi, "accel",
 			g_variant_new_string("<Primary><Alt>Q"));
 	g_menu_append_item(menu, mi);
 
-	mi = g_menu_item_new("Close", "close");
+	mi = g_menu_item_new("Close", "unity.close");
 	g_menu_item_set_attribute_value(mi, "accel",
 			g_variant_new_string("<Super>W"));
 	g_menu_append_item(menu, mi);
 
-	mi = g_menu_item_new("Nothing", "nothing");
+	mi = g_menu_item_new("Nothing", "unity.nothing");
 	g_menu_append_item(menu, mi);
 
 	GSimpleAction *save = g_simple_action_new("save", NULL);

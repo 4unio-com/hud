@@ -50,6 +50,7 @@ private Q_SLOTS:
   void EmitStates();
 
 private:
+  static QString FullName( const QString& prefix, const QString& name );
   static void ActionAddedCallback( GActionGroup* action_group, gchar* action_name,
       gpointer user_data );
   static void ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,

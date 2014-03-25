@@ -114,8 +114,8 @@ public:
 
 	MOCK_METHOD1(executeToolbar, void(const QString &));
 
-	MOCK_METHOD4(executeParameterized, QString(unsigned long long,
-					QString &, QDBusObjectPath &, QDBusObjectPath &));
+	MOCK_METHOD5(executeParameterized, QString(unsigned long long,
+					QString &, QString &, QDBusObjectPath &, QDBusObjectPath &));
 
 	MOCK_CONST_METHOD0(commands, QList<QStringList>());
 

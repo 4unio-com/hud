@@ -373,7 +373,7 @@ TEST_F(TestHud, ExecuteGMenuAction) {
 	EXPECT_FALSE(executedSpy.isEmpty());
 
 	actionInvokedSpy.wait();
-	EXPECT_FALSE(actionInvokedSpy.isEmpty());
+	ASSERT_FALSE(actionInvokedSpy.isEmpty());
 	EXPECT_EQ(QVariantList() << QVariant("close"), actionInvokedSpy.at(0));
 }
 

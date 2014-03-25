@@ -31,7 +31,7 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QD
           QDBusServiceWatcher::WatchForOwnerChange ),
       m_parent( parent ),
       m_connection( g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL ) ),
-      m_service( service.toStdString() ),
+      m_service( service ),
       m_menu_path( menu_path ),
       m_action_paths( action_paths )
 {
@@ -162,8 +162,8 @@ void QtGMenuImporterPrivate::RefreshGMenuModel()
   QString menu_path = m_menu_path.path();
   m_menu_model =
       std::make_shared< QtGMenuModel > (
-              G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.c_str(), menu_path.toUtf8().constData() ) ),
-              m_service.c_str(), menu_path.toUtf8().constData() );
+              G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.toUtf8().constData(), menu_path.toUtf8().constData() ) ),
+              m_service, menu_path, m_action_paths );
 
   connect( m_menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
           int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );
@@ -174,12 +174,15 @@ void QtGMenuImporterPrivate::RefreshGActionGroup()
   // clear the action groups for the refresh
   ClearActionGroups();
 
-  for( auto const& action_path_it : m_action_paths.toStdMap() )
+  QMapIterator<QString, QDBusObjectPath> action_path_it(m_action_paths);
+  while( action_path_it.hasNext() )
   {
-    QString action_path = action_path_it.second.path();
+    action_path_it.next();
+
+    QString action_path = action_path_it.value().path();
     m_action_groups.push_back(
-        std::make_shared< QtGActionGroup > ( action_path_it.first,
-                G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.c_str(), action_path.toUtf8().constData() ) ) ) );
+        std::make_shared< QtGActionGroup > ( action_path_it.key(),
+                G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.toUtf8().constData(), action_path.toUtf8().constData() ) ) ) );
 
     auto action_group = m_action_groups.back();
 

@@ -72,31 +72,45 @@ GActionGroup* QtGActionGroup::ActionGroup() const
 
 void QtGActionGroup::TriggerAction( QString action_name, bool checked )
 {
-  QString prefix = action_name.left( action_name.indexOf( '.' ) );
+  QPair<QString, QString> split = QtGMenuUtils::splitPrefixAndName(action_name);
+  const QString& prefix(split.first);
+
   if( prefix != m_action_prefix )
   {
     return;
   }
 
-  action_name = action_name.right( action_name.size() - action_name.indexOf( '.' ) - 1 );
-  std::string action = action_name.toStdString();
+  const QString& action(split.second);
+  QByteArray action_utf = action.toUtf8();
 
   const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,
-      action.c_str() );
+		  action_utf.constData() );
 
   if( type == nullptr )
   {
-    g_action_group_activate_action( m_action_group, action.c_str(), nullptr );
+    g_action_group_activate_action( m_action_group, action_utf.constData(), nullptr );
   }
   else
   {
     ///! need to evaluate and send parameter value
     if( g_variant_type_equal( type, G_VARIANT_TYPE_STRING ) )
     {
-      GVariant* param = g_variant_new_string( action.c_str() );
-      g_action_group_activate_action( m_action_group, action.c_str(), param );
+      GVariant* param = g_variant_new_string( action_utf.constData() );
+      g_action_group_activate_action( m_action_group, action_utf.constData(), param );
       g_variant_unref( param );
     }
+  }
+}
+
+QString QtGActionGroup::FullName( const QString& prefix, const QString& action_name )
+{
+  if ( prefix.isEmpty() )
+  {
+    return action_name;
+  }
+  else
+  {
+    return prefix + "." + action_name;
   }
 }
 
@@ -111,12 +125,12 @@ void QtGActionGroup::EmitStates()
     bool enabled = G_ACTION_GROUP_GET_IFACE( m_action_group ) ->get_action_enabled( m_action_group,
         action_name );
     if( !enabled )
-      emit ActionEnabled( m_action_prefix + "." + action_name, enabled );
+      emit ActionEnabled( FullName(m_action_prefix, action_name), enabled );
 
     const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,
         action_name );
     if( type != nullptr )
-      emit ActionParameterized( m_action_prefix + "." + action_name, type != nullptr );
+      emit ActionParameterized( FullName(m_action_prefix, action_name), type != nullptr );
   }
 
   g_strfreev( actions_list );
@@ -131,12 +145,12 @@ void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* act
   bool enabled = G_ACTION_GROUP_GET_IFACE( self->m_action_group ) ->get_action_enabled(
       self->m_action_group, action_name );
   if( !enabled )
-    emit self->ActionEnabled( self->m_action_prefix + "." + action_name, enabled );
+    emit self->ActionEnabled( FullName(self->m_action_prefix, action_name), enabled );
 
   const GVariantType* type = g_action_group_get_action_parameter_type( self->m_action_group,
       action_name );
   if( type != nullptr )
-    emit self->ActionParameterized( self->m_action_prefix + "." + action_name, type != nullptr );
+    emit self->ActionParameterized( FullName(self->m_action_prefix, action_name), type != nullptr );
 }
 
 void QtGActionGroup::ActionRemovedCallback( GActionGroup* action_group, gchar* action_name,
@@ -150,7 +164,7 @@ void QtGActionGroup::ActionEnabledCallback( GActionGroup* action_group, gchar* a
     gboolean enabled, gpointer user_data )
 {
   QtGActionGroup* self = reinterpret_cast< QtGActionGroup* >( user_data );
-  emit self->ActionEnabled( self->m_action_prefix + "." + action_name, enabled );
+  emit self->ActionEnabled( FullName(self->m_action_prefix, action_name), enabled );
 }
 
 void QtGActionGroup::ActionStateChangedCallback( GActionGroup* action_group, gchar* action_name,

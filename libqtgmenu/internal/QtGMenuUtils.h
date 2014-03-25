@@ -19,6 +19,8 @@
 #ifndef QTGMENUUTILS_H
 #define QTGMENUUTILS_H
 
+#include <QPair>
+
 class _GVariant;
 typedef _GVariant GVariant;
 
@@ -34,6 +36,7 @@ class QtGMenuUtils final
 public:
   static QVariant GVariantToQVariant( GVariant* gvariant );
   static QKeySequence QStringToQKeySequence( QString& shortcut );
+  static QPair<QString, QString> splitPrefixAndName( const QString& name );
 };
 
 } // namespace qtgmenu

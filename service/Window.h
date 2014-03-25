@@ -42,7 +42,7 @@ public:
 	virtual void execute(unsigned long long commandId) = 0;
 
 	virtual QString executeParameterized(unsigned long long commandId,
-			QString &baseAction, QDBusObjectPath &actionPath,
+			QString &prefix, QString &baseAction, QDBusObjectPath &actionPath,
 			QDBusObjectPath &modelPath) = 0;
 
 	virtual void executeToolbar(const QString &item) = 0;

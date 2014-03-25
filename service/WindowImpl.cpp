@@ -55,10 +55,10 @@ void WindowTokenImpl::execute(unsigned long long commandId) {
 }
 
 QString WindowTokenImpl::executeParameterized(unsigned long long commandId,
-		QString &baseAction, QDBusObjectPath &actionPath,
+		QString &prefix, QString &baseAction, QDBusObjectPath &actionPath,
 		QDBusObjectPath &modelPath) {
-	return m_items->executeParameterized(commandId, baseAction, actionPath,
-			modelPath);
+	return m_items->executeParameterized(commandId, prefix, baseAction,
+			actionPath, modelPath);
 }
 
 void WindowTokenImpl::executeToolbar(const QString &item) {
