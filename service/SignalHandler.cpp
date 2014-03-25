@@ -41,10 +41,10 @@ SignalHandler::SignalHandler(QObject *parent) :
 		qFatal("Couldn't create TERM socketpair");
 	}
 
-	snInt = new QSocketNotifier(sigintFd[1], QSocketNotifier::Read, this);
-	connect(snInt, SIGNAL(activated(int)), this, SLOT(handleSigInt()));
-	snTerm = new QSocketNotifier(sigtermFd[1], QSocketNotifier::Read, this);
-	connect(snTerm, SIGNAL(activated(int)), this, SLOT(handleSigTerm()));
+	m_socketNotifierInt = new QSocketNotifier(sigintFd[1], QSocketNotifier::Read, this);
+	connect(m_socketNotifierInt, &QSocketNotifier::activated, this, &SignalHandler::handleSigInt);
+	m_socketNotifierTerm = new QSocketNotifier(sigtermFd[1], QSocketNotifier::Read, this);
+	connect(m_socketNotifierTerm, &QSocketNotifier::activated, this, &SignalHandler::handleSigTerm);
 }
 
 void SignalHandler::intSignalHandler(int) {
@@ -57,7 +57,7 @@ void SignalHandler::termSignalHandler(int) {
 	::write(sigtermFd[0], &a, sizeof(a));
 }
 
-int SignalHandler::setup_unix_signal_handlers() {
+int SignalHandler::setupUnixSignalHandlers() {
 	struct sigaction sigint, term;
 
 	sigint.sa_handler = SignalHandler::intSignalHandler;
@@ -79,21 +79,21 @@ int SignalHandler::setup_unix_signal_handlers() {
 }
 
 void SignalHandler::handleSigTerm() {
-	snTerm->setEnabled(false);
+	m_socketNotifierTerm->setEnabled(false);
 	char tmp;
 	::read(sigtermFd[1], &tmp, sizeof(tmp));
 
 	QCoreApplication::exit(0);
 
-	snTerm->setEnabled(true);
+	m_socketNotifierTerm->setEnabled(true);
 }
 
 void SignalHandler::handleSigInt() {
-	snInt->setEnabled(false);
+	m_socketNotifierInt->setEnabled(false);
 	char tmp;
 	::read(sigintFd[1], &tmp, sizeof(tmp));
 
 	QCoreApplication::exit(0);
 
-	snInt->setEnabled(true);
+	m_socketNotifierInt->setEnabled(true);
 }

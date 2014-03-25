@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
 		Factory factory;
 		factory.singletonHudService();
 		SignalHandler handler;
-		handler.setup_unix_signal_handlers();
+		handler.setupUnixSignalHandlers();
 		return application.exec();
 	} catch (std::exception &e) {
 		qWarning() << _("Hud Service:") << e.what();

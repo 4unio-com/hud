@@ -33,25 +33,25 @@ public:
 
 	~SignalHandler() = default;
 
-	static void intSignalHandler(int unused);
+	static int setupUnixSignalHandlers();
 
-	static void termSignalHandler(int unused);
-
-	static int setup_unix_signal_handlers();
-
-public Q_SLOTS:
+protected Q_SLOTS:
 	void handleSigInt();
 
 	void handleSigTerm();
 
 protected:
+	static void intSignalHandler(int unused);
+
+	static void termSignalHandler(int unused);
+
 	static int sigintFd[2];
 
 	static int sigtermFd[2];
 
-	QSocketNotifier *snInt;
+	QSocketNotifier *m_socketNotifierInt;
 
-	QSocketNotifier *snTerm;
+	QSocketNotifier *m_socketNotifierTerm;
 };
 
 }
