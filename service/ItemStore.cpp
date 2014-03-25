@@ -166,8 +166,12 @@ void ItemStore::search(const QString &query,
 		QMap<unsigned int, DocumentID> tempResults;
 
 		for (auto it(m_items.constBegin()); it != m_items.constEnd(); ++it) {
-			tempResults.insertMulti(m_usageTracker->usage(m_applicationId,
-					convertToEntry(it.value(), it.value()->action())), it.key());
+			const QAction* action = it.value()->action();
+			if (action) {
+				tempResults.insertMulti(
+						m_usageTracker->usage(m_applicationId,
+								convertToEntry(it.value(), action)), it.key());
+			}
 		}
 
 		int maxResults = std::min(m_items.size(), 20);
@@ -213,6 +217,10 @@ void ItemStore::addResult(DocumentID id, const QStringMatcher &stringMatcher,
 
 	Item::Ptr item(m_items[id]);
 	const QAction *action(item->action());
+
+	if (!action) {
+		return;
+	}
 
 	QString commandName(convertActionText(action));
 

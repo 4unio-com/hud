@@ -331,4 +331,25 @@ TEST_F(TestItemStore, ChangeSearchSettings) {
 	EXPECT_EQ("Can Cherry", search("Ban"));
 }
 
+TEST_F(TestItemStore, DeletedActions) {
+	QMenu root;
+
+	QMenu file("&File");
+	file.addAction("Apple");
+	file.addAction("Banana");
+	file.addAction("Can Cherry");
+	root.addMenu(&file);
+
+	store->indexMenu(&root);
+
+	file.clear();
+	root.clear();
+
+	// It should not crash! :)
+	EXPECT_EQ("", search("flibble"));
+
+	// It should not crash! :)
+	EXPECT_EQ("", search(""));
+}
+
 } // namespace
