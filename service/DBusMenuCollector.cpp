@@ -89,14 +89,21 @@ inline uint qHash(const QStringList &key, uint seed) {
 	return hash;
 }
 
-void DBusMenuCollector::openMenu(QMenu *menu) {
+void DBusMenuCollector::openMenu(QMenu *menu, unsigned int &limit) {
 	if (!menu) {
+		return;
+	}
+
+	if (limit == 0) {
+		qWarning() << "Hit DBusMenu safety valve for menu at" << m_service
+				<< m_path.path();
 		return;
 	}
 
 	menu->aboutToShow();
 
 	for (int i(0); m_menuImporter && i < menu->actions().size(); ++i) {
+
 		QAction *action = menu->actions().at(i);
 		if (!action->isEnabled()) {
 			continue;
@@ -107,7 +114,8 @@ void DBusMenuCollector::openMenu(QMenu *menu) {
 
 		QMenu *child(action->menu());
 		if (child) {
-			openMenu(child);
+			--limit;
+			openMenu(child, limit);
 		}
 	}
 }
@@ -136,7 +144,8 @@ QList<CollectorToken::Ptr> DBusMenuCollector::activate() {
 	}
 
 	if (collectorToken.isNull()) {
-		openMenu(m_menuImporter->menu());
+		unsigned int limit(50);
+		openMenu(m_menuImporter->menu(), limit);
 
 		if(m_menuImporter.isNull()) {
 			return QList<CollectorToken::Ptr>();
