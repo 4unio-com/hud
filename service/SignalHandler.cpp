@@ -58,7 +58,7 @@ void SignalHandler::termSignalHandler(int) {
 }
 
 int SignalHandler::setupUnixSignalHandlers() {
-	struct sigaction sigint, term;
+	struct sigaction sigint, sigterm;
 
 	sigint.sa_handler = SignalHandler::intSignalHandler;
 	sigemptyset(&sigint.sa_mask);
@@ -68,11 +68,11 @@ int SignalHandler::setupUnixSignalHandlers() {
 	if (sigaction(SIGINT, &sigint, 0) > 0)
 		return 1;
 
-	term.sa_handler = SignalHandler::termSignalHandler;
-	sigemptyset(&term.sa_mask);
-	term.sa_flags |= SA_RESTART;
+	sigterm.sa_handler = SignalHandler::termSignalHandler;
+	sigemptyset(&sigterm.sa_mask);
+	sigterm.sa_flags |= SA_RESTART;
 
-	if (sigaction(SIGTERM, &term, 0) > 0)
+	if (sigaction(SIGTERM, &sigterm, 0) > 0)
 		return 2;
 
 	return 0;
