@@ -92,6 +92,8 @@ static QVariant makeStringListQVariant( GVariant* gvariant )
   while( stringArray[i] != NULL )
     value << QString::fromUtf8( stringArray[i++] );
 
+  g_free (const_cast<gchar**>(stringArray));
+
   return QVariant::fromValue( value );
 }
 

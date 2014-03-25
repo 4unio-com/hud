@@ -37,9 +37,6 @@ public:
   virtual ~QtGActionGroup();
 
   GActionGroup* ActionGroup() const;
-  int Size() const;
-
-  QString Action( int index );
 
 Q_SIGNALS:
   void ActionAdded( QString action_name );
@@ -66,7 +63,6 @@ private:
   void DisconnectCallbacks();
 
 private:
-  int m_size = 0;
 
   QString m_action_prefix;
   GActionGroup* m_action_group = nullptr;
