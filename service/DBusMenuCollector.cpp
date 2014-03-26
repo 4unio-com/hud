@@ -119,12 +119,19 @@ void DBusMenuCollector::openMenu(QMenu *menu, unsigned int &limit) {
 	}
 }
 
-void DBusMenuCollector::hideMenu(QMenu *menu) {
+void DBusMenuCollector::hideMenu(QMenu *menu, unsigned int &limit) {
+	if (limit == 0) {
+		qWarning() << "Hit DBusMenu safety valve for menu at" << m_service
+				<< m_path.path();
+		return;
+	}
+
 	for (int i(0); i < menu->actions().size(); ++i) {
 		QAction *action = menu->actions().at(i);
 		QMenu *child(action->menu());
 		if (child) {
-			hideMenu(child);
+			--limit;
+			hideMenu(child, limit);
 		}
 	}
 
@@ -162,7 +169,8 @@ void DBusMenuCollector::deactivate() {
 	if(m_menuImporter.isNull()) {
 		return;
 	}
-	hideMenu(m_menuImporter->menu());
+	unsigned int limit(50);
+	hideMenu(m_menuImporter->menu(), limit);
 }
 
 void DBusMenuCollector::WindowRegistered(uint windowId, const QString &service,
