@@ -60,9 +60,9 @@ protected:
 			const QDBusObjectPath &menuObjectPath);
 
 protected:
-	void openMenu(QMenu *menu);
+	void openMenu(QMenu *menu, unsigned int &limit);
 
-	void hideMenu(QMenu *menu);
+	void hideMenu(QMenu *menu, unsigned int &limit);
 
 	unsigned int m_windowId;
 
