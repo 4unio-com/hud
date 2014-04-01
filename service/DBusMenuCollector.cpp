@@ -23,6 +23,7 @@
 
 #include <dbusmenuimporter.h>
 #include <QMenu>
+#include <stdexcept>
 
 using namespace hud::common;
 using namespace hud::service;
@@ -95,9 +96,9 @@ void DBusMenuCollector::openMenu(QMenu *menu, unsigned int &limit) {
 	}
 
 	if (limit == 0) {
-		qWarning() << "Hit DBusMenu safety valve for menu at" << m_service
-				<< m_path.path();
-		return;
+		QString error = "Hit DBusMenu safety valve for menu at " + m_service
+				+ " " + m_path.path();
+		throw std::logic_error(error.toStdString());
 	}
 
 	menu->aboutToShow();
@@ -121,9 +122,9 @@ void DBusMenuCollector::openMenu(QMenu *menu, unsigned int &limit) {
 
 void DBusMenuCollector::hideMenu(QMenu *menu, unsigned int &limit) {
 	if (limit == 0) {
-		qWarning() << "Hit DBusMenu safety valve for menu at" << m_service
-				<< m_path.path();
-		return;
+		QString error = "Hit DBusMenu safety valve for menu at " + m_service
+				+ " " + m_path.path();
+		throw std::logic_error(error.toStdString());
 	}
 
 	for (int i(0); i < menu->actions().size(); ++i) {
@@ -150,8 +151,12 @@ QList<CollectorToken::Ptr> DBusMenuCollector::activate() {
 	}
 
 	if (collectorToken.isNull()) {
-		unsigned int limit(50);
-		openMenu(m_menuImporter->menu(), limit);
+		try {
+			unsigned int limit(50);
+			openMenu(m_menuImporter->menu(), limit);
+		} catch (std::logic_error &e) {
+			qDebug() << e.what();
+		}
 
 		if(m_menuImporter.isNull()) {
 			return QList<CollectorToken::Ptr>();
@@ -169,8 +174,12 @@ void DBusMenuCollector::deactivate() {
 	if(m_menuImporter.isNull()) {
 		return;
 	}
-	unsigned int limit(50);
-	hideMenu(m_menuImporter->menu(), limit);
+	try {
+		unsigned int limit(50);
+		hideMenu(m_menuImporter->menu(), limit);
+	} catch (std::logic_error &e) {
+		qDebug() << e.what();
+	}
 }
 
 void DBusMenuCollector::WindowRegistered(uint windowId, const QString &service,
