@@ -1,3 +1,11 @@
+hud (13.10.1+14.04.20140402-0ubuntu1) trusty; urgency=low
+
+  [ Pete Woods ]
+  * Make the DBusMenu safety valve actually work this time (LP:
+    #1280372)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 02 Apr 2014 10:38:40 +0000
+
 hud (13.10.1+14.04.20140326-0ubuntu1) trusty; urgency=low
 
   [ Pete Woods ]
