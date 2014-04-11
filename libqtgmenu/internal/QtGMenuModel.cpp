@@ -38,7 +38,9 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, const QString& bus_name, const QS
 QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index )
     : m_parent( parent ),
       m_model( model ),
-      m_link_type( link_type )
+      m_link_type( link_type ),
+      m_menu( new QMenu() ),
+      m_ext_menu( new QMenu() )
 {
   ConnectCallback();
 
@@ -117,9 +119,6 @@ QtGMenuModel::~QtGMenuModel()
   }
 
   m_children.clear();
-
-  delete m_menu;
-  delete m_ext_menu;
 }
 
 GMenuModel* QtGMenuModel::Model() const
@@ -306,7 +305,7 @@ void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int 
         InsertChild( model, i );
         ActionAdded( model->m_ext_menu->menuAction()->property( c_property_actionName ).toString(),
                      model->m_ext_menu->menuAction() );
-        m_menu->insertMenu( at_action, model->m_ext_menu );
+        m_menu->insertMenu( at_action, model->m_ext_menu.data() );
       }
     }
   }
@@ -482,9 +481,8 @@ void QtGMenuModel::UpdateExtQMenu()
       {
         continue;
       }
-      QMenu* section = child->m_ext_menu;
 
-      for( QAction* sub_action : section->actions() )
+      for( QAction* sub_action : child->m_ext_menu->actions() )
       {
         m_ext_menu->addAction( sub_action );
       }

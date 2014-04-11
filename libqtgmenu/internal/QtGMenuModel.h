@@ -107,8 +107,8 @@ private:
   LinkType m_link_type;
   int m_size = 0;
 
-  QMenu* m_menu = new QMenu();
-  QMenu* m_ext_menu = new QMenu();
+  QScopedPointer<QMenu> m_menu;
+  QScopedPointer<QMenu> m_ext_menu;
 
   QString m_bus_name;
   QString m_menu_path;
