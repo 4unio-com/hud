@@ -219,8 +219,10 @@ void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint
 
 void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
 {
+  // process removed items first (see “items-changed” on the GMenuModel man page)
   if( removed > 0 )
   {
+    // remove QAction from 'index' of our QMenu, 'removed' times
     for( int i = 0; i < removed; ++i )
     {
       if( index < m_menu->actions().size() )
@@ -231,34 +233,42 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
       }
     }
 
+    // update m_children
     for( int i = index; i < m_size; ++i )
     {
-      if( i <= ( index + removed ) )
+      // remove children from index until ( index + removed )
+      if( i < ( index + removed ) )
       {
         delete m_children.take( i );
       }
+      // shift children from ( index + removed ) to m_size into the now empty positions
       else if( m_children.contains( i ) )
       {
         m_children.insert( i - removed, m_children.take( i ) );
       }
     }
 
+    // update m_size
     m_size -= removed;
   }
 
+  // now process added items
   if( added > 0 )
   {
-    // shift items up
-    for( int i = ( m_size + added ) - 1; i >= index; --i )
+    // update m_children
+    for( int i = index; i < ( index + added ); ++i )
     {
+      // shift 'added' items up from their current index to ( index + added )
       if( m_children.contains( i ) )
       {
         m_children.insert( i + added, m_children.take( i ) );
       }
     }
 
+    // update m_size
     m_size += added;
 
+    // now add a new QAction to our QMenu for each new item
     for( int i = index; i < ( index + added ); ++i )
     {
       QAction* at_action = nullptr;
@@ -267,20 +277,28 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
         at_action = m_menu->actions().at( i );
       }
 
+      // try first to create a child model
       QtGMenuModel* model = CreateChild( this, m_model, i );
 
+      // if this is a menu item and not a model
       if( !model )
       {
         QAction* new_action = CreateAction( i );
         ActionAdded( new_action->property( c_property_actionName ).toString(), new_action );
         m_menu->insertAction( at_action, new_action );
       }
+      // else if this is a section model
       else if( model->Type() == LinkType::Section )
       {
+        InsertChild( model, i );
         m_menu->insertSeparator( at_action );
       }
+      // else if this is a sub menu model
       else if( model->Type() == LinkType::SubMenu )
       {
+        InsertChild( model, i );
+        ActionAdded( model->m_ext_menu->menuAction()->property( c_property_actionName ).toString(),
+                     model->m_ext_menu->menuAction() );
         m_menu->insertMenu( at_action, model->m_ext_menu );
       }
     }
@@ -293,6 +311,7 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
     m_parent->UpdateExtQMenu();
   }
 
+  // now tell the outside world that items have changed
   emit MenuItemsChanged( this, index, removed, added );
 }
 
