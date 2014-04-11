@@ -196,13 +196,11 @@ QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent, GM
     if( strcmp( g_menu_link_iter_get_name( link_it ), G_MENU_LINK_SUBMENU ) == 0 )
     {
       new_child.reset(new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::SubMenu, parent, index ));
-      parent->InsertChild( new_child, index );
     }
     // else if link is a section
     else if( strcmp( g_menu_link_iter_get_name( link_it ), G_MENU_LINK_SECTION ) == 0 )
     {
       new_child.reset(new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::Section, parent, index ));
-      parent->InsertChild( new_child, index );
     }
   }
 
