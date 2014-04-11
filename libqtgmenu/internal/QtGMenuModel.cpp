@@ -302,13 +302,11 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
       // else if this is a section model
       else if( model->Type() == LinkType::Section )
       {
-        InsertChild( model, i );
         m_menu->insertSeparator( at_action );
       }
       // else if this is a sub menu model
       else if( model->Type() == LinkType::SubMenu )
       {
-        InsertChild( model, i );
         ActionAdded( model->m_ext_menu->menuAction()->property( c_property_actionName ).toString(),
                      model->m_ext_menu->menuAction() );
         m_menu->insertMenu( at_action, model->m_ext_menu );
