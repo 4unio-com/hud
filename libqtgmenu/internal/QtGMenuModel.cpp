@@ -116,10 +116,6 @@ QtGMenuModel::~QtGMenuModel()
     g_object_unref( m_model );
   }
 
-  for( auto child : m_children )
-  {
-    delete child;
-  }
   m_children.clear();
 
   delete m_menu;
@@ -136,24 +132,19 @@ QtGMenuModel::LinkType QtGMenuModel::Type() const
   return m_link_type;
 }
 
-int QtGMenuModel::Size() const
-{
-  return m_size;
-}
-
 QtGMenuModel* QtGMenuModel::Parent() const
 {
   return m_parent;
 }
 
-QtGMenuModel* QtGMenuModel::Child( int index ) const
+QSharedPointer<QtGMenuModel> QtGMenuModel::Child( int index ) const
 {
   if( m_children.contains( index ) )
   {
     return m_children.value( index );
   }
 
-  return nullptr;
+  return QSharedPointer<QtGMenuModel>();
 }
 
 std::shared_ptr< QMenu > QtGMenuModel::GetQMenu()
@@ -189,9 +180,9 @@ void QtGMenuModel::ActionParameterized( QString action_name, bool parameterized 
   }
 }
 
-QtGMenuModel* QtGMenuModel::CreateChild( QtGMenuModel* parent, GMenuModel* model, int index )
+QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent, GMenuModel* model, int index )
 {
-  QtGMenuModel* new_child = nullptr;
+  QSharedPointer<QtGMenuModel> new_child;
   GMenuLinkIter* link_it = g_menu_model_iterate_item_links( model, index );
 
   // get the first link, if it exists, create the child accordingly
@@ -200,12 +191,14 @@ QtGMenuModel* QtGMenuModel::CreateChild( QtGMenuModel* parent, GMenuModel* model
     // if link is a sub menu
     if( strcmp( g_menu_link_iter_get_name( link_it ), G_MENU_LINK_SUBMENU ) == 0 )
     {
-      new_child = new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::SubMenu, parent, index );
+      new_child.reset(new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::SubMenu, parent, index ));
+      parent->InsertChild( new_child, index );
     }
     // else if link is a section
     else if( strcmp( g_menu_link_iter_get_name( link_it ), G_MENU_LINK_SECTION ) == 0 )
     {
-      new_child = new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::Section, parent, index );
+      new_child.reset(new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::Section, parent, index ));
+      parent->InsertChild( new_child, index );
     }
   }
 
@@ -227,9 +220,9 @@ void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint
   self->ChangeMenuItems( index, added, removed );
 }
 
-void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
+void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int removed )
 {
-  // process removed items first (see “items-changed” on the GMenuModel man page)
+  // process removed items first (see "items-changed" on the GMenuModel man page)
   if( removed > 0 )
   {
     // remove QAction from 'index' of our QMenu, 'removed' times
@@ -249,7 +242,7 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
       // remove children from index until ( index + removed )
       if( i < ( index + removed ) )
       {
-        delete m_children.take( i );
+        m_children.take( i );
       }
       // shift children from ( index + removed ) to m_size into the now empty positions
       else if( m_children.contains( i ) )
@@ -288,7 +281,7 @@ void QtGMenuModel::ChangeMenuItems( int index, int added, int removed )
       }
 
       // try first to create a child model
-      QtGMenuModel* model = CreateChild( this, m_model, i );
+      QSharedPointer<QtGMenuModel> model = CreateChild( this, m_model, i );
 
       // if this is a menu item and not a model
       if( !model )
@@ -344,7 +337,7 @@ void QtGMenuModel::DisconnectCallback()
   m_items_changed_handler = 0;
 }
 
-void QtGMenuModel::InsertChild( QtGMenuModel* child, int index )
+void QtGMenuModel::InsertChild( QSharedPointer<QtGMenuModel> child, int index )
 {
   if( m_children.contains( index ) )
   {
@@ -354,24 +347,11 @@ void QtGMenuModel::InsertChild( QtGMenuModel* child, int index )
   child->m_parent = this;
   m_children.insert( index, child );
 
-  connect( child, SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int, int ) ), this,
+  connect( child.data(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int, int ) ), this,
       SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int, int ) ) );
 
-  connect( child, SIGNAL( ActionTriggered( QString, bool ) ), this,
+  connect( child.data(), SIGNAL( ActionTriggered( QString, bool ) ), this,
       SIGNAL( ActionTriggered( QString, bool ) ) );
-}
-
-int QtGMenuModel::ChildIndex( QtGMenuModel* child )
-{
-  for( int i = 0; i < m_children.size(); ++i )
-  {
-    if( child == m_children[i] )
-    {
-      return i;
-    }
-  }
-
-  return -1;
 }
 
 QAction* QtGMenuModel::CreateAction( int index )
@@ -487,7 +467,7 @@ void QtGMenuModel::UpdateExtQMenu()
 
     if( action->isSeparator() )
     {
-      QtGMenuModel* child = Child( i );
+      QSharedPointer<QtGMenuModel> child = Child( i );
       if( !child || child->Type() != LinkType::Section )
       {
         continue;

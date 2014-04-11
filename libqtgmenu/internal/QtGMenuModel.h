@@ -50,10 +50,8 @@ public:
   GMenuModel* Model() const;
   LinkType Type() const;
 
-  int Size() const;
-
   QtGMenuModel* Parent() const;
-  QtGMenuModel* Child( int index ) const;
+  QSharedPointer<QtGMenuModel> Child( int index ) const;
 
   std::shared_ptr< QMenu > GetQMenu();
 
@@ -79,18 +77,17 @@ private Q_SLOTS:
 private:
   QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index );
 
-  static QtGMenuModel* CreateChild( QtGMenuModel* parent, GMenuModel* model, int index );
+  static QSharedPointer<QtGMenuModel> CreateChild( QtGMenuModel* parent, GMenuModel* model, int index );
 
   static void MenuItemsChangedCallback( GMenuModel* model, gint index, gint removed, gint added,
       gpointer user_data );
 
-  void ChangeMenuItems( int index, int added, int removed );
+  void ChangeMenuItems( const int index, const int added, const int removed );
 
   void ConnectCallback();
   void DisconnectCallback();
 
-  void InsertChild( QtGMenuModel* child, int index );
-  int ChildIndex( QtGMenuModel* child );
+  void InsertChild( QSharedPointer<QtGMenuModel> child, int index );
 
   QAction* CreateAction( int index );
 
@@ -102,7 +99,7 @@ private:
 
 private:
   QtGMenuModel* m_parent = nullptr;
-  QMap< int, QtGMenuModel* > m_children;
+  QMap< int, QSharedPointer<QtGMenuModel>> m_children;
 
   GMenuModel* m_model = nullptr;
   gulong m_items_changed_handler = 0;
