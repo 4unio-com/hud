@@ -193,27 +193,39 @@ void QtGMenuModel::ActionParameterized( QString action_name, bool parameterized 
 
 QtGMenuModel* QtGMenuModel::CreateChild( QtGMenuModel* parent, GMenuModel* model, int index )
 {
-  LinkType linkType( LinkType::SubMenu );
-  GMenuModel* link = g_menu_model_get_item_link( model, index, G_MENU_LINK_SUBMENU );
+  QtGMenuModel* new_child = nullptr;
+  GMenuLinkIter* link_it = g_menu_model_iterate_item_links( model, index );
 
-  if( !link )
+  // get the first link, if it exists, create the child accordingly
+  if( link_it && g_menu_link_iter_next( link_it ) )
   {
-    linkType = LinkType::Section;
-    link = g_menu_model_get_item_link( model, index, G_MENU_LINK_SECTION );
+    // if link is a sub menu
+    if( strcmp( g_menu_link_iter_get_name( link_it ), G_MENU_LINK_SUBMENU ) == 0 )
+    {
+      new_child = new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::SubMenu, parent, index );
+    }
+    // else if link is a section
+    else if( strcmp( g_menu_link_iter_get_name( link_it ), G_MENU_LINK_SECTION ) == 0 )
+    {
+      new_child = new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::Section, parent, index );
+    }
   }
 
-  if( link )
-  {
-    return new QtGMenuModel( link, linkType, parent, index );
-  }
-
-  return nullptr;
+  g_object_unref( link_it );
+  return new_child;
 }
 
 void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint removed,
     gint added, gpointer user_data )
 {
   QtGMenuModel* self = reinterpret_cast< QtGMenuModel* >( user_data );
+
+  if( self->m_model != model )
+  {
+    qWarning() << "\"items-changed\" signal received from an unrecognised menu model";
+    return;
+  }
+
   self->ChangeMenuItems( index, added, removed );
 }
 

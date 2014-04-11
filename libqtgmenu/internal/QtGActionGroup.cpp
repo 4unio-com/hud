@@ -97,7 +97,6 @@ void QtGActionGroup::TriggerAction( QString action_name, bool checked )
     {
       GVariant* param = g_variant_new_string( action_utf.constData() );
       g_action_group_activate_action( m_action_group, action_utf.constData(), param );
-      g_variant_unref( param );
     }
   }
 }
