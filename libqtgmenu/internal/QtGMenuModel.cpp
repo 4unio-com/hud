@@ -671,6 +671,8 @@ void QtGMenuModel::AbortWithLocals()
     write_pair(recoverable, "LinkType", link_type);
 
     write_pair(recoverable, "ActionPaths", action_paths);
+
+    recoverable.closeWriteChannel();
   }
 
   QCoreApplication::exit(1);
