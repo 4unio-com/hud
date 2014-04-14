@@ -570,7 +570,6 @@ void QtGMenuModel::AbortWithLocals()
       g_free( action_name );
     }
   }
-  gmenu_action_names.resize( gmenu_action_names.size() - 2 );
 
   // parent model properties
   bool has_parent = false;
@@ -590,7 +589,6 @@ void QtGMenuModel::AbortWithLocals()
     {
       parent_action_names += action->property( c_property_actionName ).toString().toStdString() + ", ";
     }
-    parent_action_names.resize( parent_action_names.size() - 2 );
 
     switch( m_parent->m_link_type )
     {
@@ -618,7 +616,6 @@ void QtGMenuModel::AbortWithLocals()
   {
     action_names += action->property( c_property_actionName ).toString().toStdString() + ", ";
   }
-  action_names.resize( action_names.size() - 2 );
 
   switch( m_link_type )
   {
@@ -636,7 +633,6 @@ void QtGMenuModel::AbortWithLocals()
   {
     action_paths += action.path().toStdString() + ", ";
   }
-  action_paths.resize( action_paths.size() - 2 );
 
   // sender process command line
   std::string process_cmd;
