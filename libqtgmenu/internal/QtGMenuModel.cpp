@@ -18,12 +18,11 @@
 
 #include <QtGMenuModel.h>
 #include <QtGMenuUtils.h>
-#include <QDebug>
 #include <QCoreApplication>
-#include <QFile>
+#include <QDBusConnection>
+#include <QDBusConnectionInterface>
+#include <QDebug>
 #include <QProcess>
-
-#include <fstream>
 
 using namespace qtgmenu;
 
@@ -648,22 +647,8 @@ void QtGMenuModel::AbortWithLocals()
     action_paths += action.path() + ", ";
   }
 
-  guint32 sender_pid = 0;
-  GError* error = NULL;
-  GVariant* ret =
-      g_dbus_connection_call_sync( m_connection,
-                                   "org.freedesktop.DBus",
-                                   "/org/freedesktop/DBus",
-                                   "org.freedesktop.DBus",
-                                   "GetConnectionUnixProcessID",
-                                   g_variant_new( "(s)", m_bus_name.toUtf8().constData() ),
-                                   G_VARIANT_TYPE( "(u)" ),
-                                   G_DBUS_CALL_FLAGS_NONE,
-                                   -1,
-                                   NULL,
-                                   &error );
-  g_variant_get( ret, "(u)", &sender_pid );
-  g_variant_unref( ret );
+  uint sender_pid = QDBusConnection::sessionBus().interface()->servicePid(
+            m_bus_name);
 
   QProcess recoverable;
   if (recoverable.startDetached("/usr/share/apport/recoverable_problem",
