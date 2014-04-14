@@ -19,6 +19,9 @@
 #include <QtGMenuModel.h>
 #include <QtGMenuUtils.h>
 #include <QDebug>
+#include <QCoreApplication>
+#include <QFile>
+#include <QProcess>
 
 #include <fstream>
 
@@ -552,11 +555,19 @@ void QtGMenuModel::ActionRemoved( const QString& name )
   }
 }
 
+static void write_pair(QIODevice& device, const QString& key, const QString& value)
+{
+  device.write(key.toUtf8());
+  device.write("\n");
+  device.write(value.toUtf8());
+  device.write("\n");
+}
+
 void QtGMenuModel::AbortWithLocals()
 {
   // gmenumodel properties
   int gmenu_item_count = 0;
-  std::string gmenu_action_names;
+  QString gmenu_action_names;
 
   gmenu_item_count = g_menu_model_get_n_items( m_model );
 
@@ -566,28 +577,29 @@ void QtGMenuModel::AbortWithLocals()
     if( g_menu_model_get_item_attribute( m_model, i,
           G_MENU_ATTRIBUTE_ACTION, "s", &action_name ) )
     {
-      gmenu_action_names += std::string( action_name ) + ", ";
+      gmenu_action_names += action_name;
+      gmenu_action_names += ", ";
       g_free( action_name );
     }
   }
 
   // parent model properties
   bool has_parent = false;
-  std::string parent_menu_label;
-  std::string parent_menu_name;
-  std::string parent_action_names;
-  std::string parent_link_type;
+  QString parent_menu_label;
+  QString parent_menu_name;
+  QString parent_action_names;
+  QString parent_link_type;
 
   if( m_parent )
   {
     has_parent = true;
 
-    parent_menu_label = m_parent->m_menu->menuAction()->text().toStdString();
-    parent_menu_name = m_parent->m_menu->menuAction()->property( c_property_actionName ).toString().toStdString();
+    parent_menu_label = m_parent->m_menu->menuAction()->text();
+    parent_menu_name = m_parent->m_menu->menuAction()->property( c_property_actionName ).toString();
 
     for( QAction* action : m_parent->m_menu->actions() )
     {
-      parent_action_names += action->property( c_property_actionName ).toString().toStdString() + ", ";
+      parent_action_names += action->property( c_property_actionName ).toString() + ", ";
     }
 
     switch( m_parent->m_link_type )
@@ -605,19 +617,17 @@ void QtGMenuModel::AbortWithLocals()
   }
 
   // local model properties
-  std::string menu_label;
-  std::string menu_name;
-  std::string action_names;
-  std::string link_type;
-  std::string bus_name;
-  std::string menu_path;
-  std::string action_paths;
+  QString menu_label;
+  QString menu_name;
+  QString action_names;
+  QString link_type;
+  QString action_paths;
 
-  menu_label = m_menu->menuAction()->text().toStdString();
-  menu_name = m_menu->menuAction()->property( c_property_actionName ).toString().toStdString();
+  menu_label = m_menu->menuAction()->text();
+  menu_name = m_menu->menuAction()->property( c_property_actionName ).toString();
   for( QAction* action : m_menu->actions() )
   {
-    action_names += action->property( c_property_actionName ).toString().toStdString() + ", ";
+    action_names += action->property( c_property_actionName ).toString() + ", ";
   }
 
   switch( m_link_type )
@@ -633,15 +643,10 @@ void QtGMenuModel::AbortWithLocals()
     break;
   }
 
-  bus_name = m_bus_name.toStdString();
-  menu_path = m_menu_path.toStdString();
   for( auto const& action : m_action_paths )
   {
-    action_paths += action.path().toStdString() + ", ";
+    action_paths += action.path() + ", ";
   }
-
-  // sender process command line
-  std::string process_cmd;
 
   guint32 sender_pid = 0;
   GError* error = NULL;
@@ -660,9 +665,28 @@ void QtGMenuModel::AbortWithLocals()
   g_variant_get( ret, "(u)", &sender_pid );
   g_variant_unref( ret );
 
-  std::ifstream process_file( "/proc/" + std::to_string( sender_pid ) + "/cmdline" );
-  process_cmd = std::string( std::istreambuf_iterator< char >( process_file ),
-                             std::istreambuf_iterator< char >() );
+  QProcess recoverable;
+  if (recoverable.startDetached("/usr/share/apport/recoverable_problem",
+            QStringList() << "-p" << QString::number(sender_pid)))
+  {
+    write_pair(recoverable, "DuplicateSignature", "hud;items-changed");
+    write_pair(recoverable, "BusName", m_bus_name);
+    write_pair(recoverable, "ItemCount", QString::number(gmenu_item_count));
+    write_pair(recoverable, "ActionNames", gmenu_action_names);
+    write_pair(recoverable, "HasParent", has_parent ? "true" : "false");
 
-  abort();
+    write_pair(recoverable, "ParentMenuLabel", parent_menu_label);
+    write_pair(recoverable, "ParentMenuName", parent_menu_name);
+    write_pair(recoverable, "ParentActionNames", parent_action_names);
+    write_pair(recoverable, "ParentLinkType", parent_link_type);
+
+    write_pair(recoverable, "MenuLabel", menu_label);
+    write_pair(recoverable, "MenuName", menu_name);
+    write_pair(recoverable, "ActionNames", action_names);
+    write_pair(recoverable, "LinkType", link_type);
+
+    write_pair(recoverable, "ActionPaths", action_paths);
+  }
+
+  QCoreApplication::exit(1);
 }
