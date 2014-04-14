@@ -159,11 +159,6 @@ QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent_qtg
 {
   QSharedPointer<QtGMenuModel> new_child;
 
-  if( child_index < 0 || child_index >= g_menu_model_get_n_items( parent_gmenu ) )
-  {
-    throw std::invalid_argument( "Invalid index provided" );
-  }
-
   GMenuLinkIter* link_it = g_menu_model_iterate_item_links( parent_gmenu, child_index );
 
   // get the first link, if it exists, create the child accordingly
@@ -225,6 +220,8 @@ void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint
 
 void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int removed )
 {
+  const int n_items = g_menu_model_get_n_items( m_model );
+
   // process removed items first (see "items-changed" on the GMenuModel man page)
   if( removed > 0 )
   {
@@ -277,6 +274,12 @@ void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int 
     // now add a new QAction to our QMenu for each new item
     for( int i = index; i < ( index + added ); ++i )
     {
+      if( i < 0 || i >= n_items )
+      {
+        qWarning() << "Illegal argument when updating GMenuModel";
+        AbortWithLocals();
+      }
+
       QAction* at_action = nullptr;
       if( i < m_menu->actions().size() )
       {
@@ -284,16 +287,7 @@ void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int 
       }
 
       // try first to create a child model
-      QSharedPointer< QtGMenuModel > model;
-      try
-      {
-        model = CreateChild( this, m_model, i );
-      }
-      catch( std::invalid_argument& )
-      {
-        qWarning() << "Illegal argument when updating GMenuModel";
-        AbortWithLocals();
-      }
+      QSharedPointer< QtGMenuModel > model = CreateChild( this, m_model, i );
 
       // if this is a menu item and not a model
       if( !model )
