@@ -366,7 +366,7 @@ void QtGMenuModel::InsertChild( QSharedPointer<QtGMenuModel> child, int index )
 QAction* QtGMenuModel::CreateAction( int index )
 {
   // action label
-  QAction* action = new QAction( this );
+  QAction* action = new QAction( m_menu.data() );
 
   gchar* label = NULL;
   if( g_menu_model_get_item_attribute( m_model, index, G_MENU_ATTRIBUTE_LABEL, "s", &label ) ) {
