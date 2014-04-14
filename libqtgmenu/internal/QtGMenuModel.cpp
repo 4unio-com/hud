@@ -189,7 +189,7 @@ QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent, GM
   }
 
   // get the first link, if it exists, create the child accordingly
-  if( link_it && g_menu_link_iter_next( link_it ) )
+  if( g_menu_link_iter_next( link_it ) )
   {
     // if link is a sub menu
     if( strcmp( g_menu_link_iter_get_name( link_it ), G_MENU_LINK_SUBMENU ) == 0 )
@@ -361,13 +361,16 @@ void QtGMenuModel::InsertChild( QSharedPointer<QtGMenuModel> child, int index )
 
   connect( child.data(), SIGNAL( ActionTriggered( QString, bool ) ), this,
       SIGNAL( ActionTriggered( QString, bool ) ) );
+
+  // emit signal informing subscribers that this child has added all of its menu items
+  emit MenuItemsChanged( child.data(), 0, 0, child->m_size );
 }
 
 QAction* QtGMenuModel::CreateAction( int index )
 {
-  // action label
   QAction* action = new QAction( m_menu.data() );
 
+  // action label
   gchar* label = NULL;
   if( g_menu_model_get_item_attribute( m_model, index, G_MENU_ATTRIBUTE_LABEL, "s", &label ) ) {
     QString qlabel = QString::fromUtf8( label );
