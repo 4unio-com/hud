@@ -112,7 +112,7 @@ QtGMenuModel::~QtGMenuModel()
   {
     if( m_size > 0 )
     {
-      MenuItemsChangedCallback( m_model, 0, m_size, 0, this );
+      ChangeMenuItems( 0, 0, m_size );
     }
     DisconnectCallback();
     g_object_unref( m_model );
@@ -155,34 +155,10 @@ std::shared_ptr< QMenu > QtGMenuModel::GetQMenu()
   return top_menu;
 }
 
-void QtGMenuModel::ActionTriggered( bool checked )
-{
-  QAction* action = dynamic_cast< QAction* >( QObject::sender() );
-  emit ActionTriggered( action->property( c_property_actionName ).toString(), checked );
-}
-
-void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
-{
-  auto action_it = m_actions.find( action_name );
-  if( action_it != end( m_actions ) )
-  {
-    action_it->second->setEnabled( enabled );
-  }
-}
-
-void QtGMenuModel::ActionParameterized( QString action_name, bool parameterized )
-{
-  auto action_it = m_actions.find( action_name );
-  if( action_it != end( m_actions ) )
-  {
-    action_it->second->setProperty( c_property_isParameterized, parameterized );
-  }
-}
-
-QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent, GMenuModel* model, int index )
+QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent_qtgmenu, GMenuModel* parent_gmenu, int child_index )
 {
   QSharedPointer<QtGMenuModel> new_child;
-  GMenuLinkIter* link_it = g_menu_model_iterate_item_links( model, index );
+  GMenuLinkIter* link_it = g_menu_model_iterate_item_links( parent_gmenu, child_index );
 
   if (link_it == NULL) {
     throw std::invalid_argument("Invalid index provided");
@@ -194,17 +170,41 @@ QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent, GM
     // if link is a sub menu
     if( strcmp( g_menu_link_iter_get_name( link_it ), G_MENU_LINK_SUBMENU ) == 0 )
     {
-      new_child.reset(new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::SubMenu, parent, index ));
+      new_child.reset(new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::SubMenu, parent_qtgmenu, child_index ));
     }
     // else if link is a section
     else if( strcmp( g_menu_link_iter_get_name( link_it ), G_MENU_LINK_SECTION ) == 0 )
     {
-      new_child.reset(new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::Section, parent, index ));
+      new_child.reset(new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::Section, parent_qtgmenu, child_index ));
     }
   }
 
   g_object_unref( link_it );
   return new_child;
+}
+
+void QtGMenuModel::ActionTriggered( bool checked )
+{
+  QAction* action = dynamic_cast< QAction* >( QObject::sender() );
+  emit ActionTriggered( action->property( c_property_actionName ).toString(), checked );
+}
+
+void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
+{
+  auto action_it = m_actions.find( action_name );
+  if( action_it != end( m_actions ) )
+  {
+    action_it->second.second->setEnabled( enabled );
+  }
+}
+
+void QtGMenuModel::ActionParameterized( QString action_name, bool parameterized )
+{
+  auto action_it = m_actions.find( action_name );
+  if( action_it != end( m_actions ) )
+  {
+    action_it->second.second->setProperty( c_property_isParameterized, parameterized );
+  }
 }
 
 void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint removed,
@@ -514,8 +514,20 @@ void QtGMenuModel::ActionAdded( const QString& name, QAction* action )
   {
     m_parent->ActionAdded( name, action );
   }
-
-  m_actions[name] = action;
+  else
+  {
+    // check if this action is already in our map
+    if( m_actions.find( name ) != m_actions.end() )
+    {
+      // increment the reference count for this action
+      ++m_actions[name].first;
+    }
+    else
+    {
+      // otherwise insert the new action into the map
+      m_actions.insert( std::make_pair( name, std::make_pair( 1, action ) ) );
+    }
+  }
 }
 
 void QtGMenuModel::ActionRemoved( const QString& name )
@@ -525,6 +537,17 @@ void QtGMenuModel::ActionRemoved( const QString& name )
   {
     m_parent->ActionRemoved( name );
   }
-
-  m_actions.erase( name );
+  else
+  {
+    // check if this action is actually in our map
+    if( m_actions.find( name ) != m_actions.end() )
+    {
+      // decrement the reference count for this action
+      if( --m_actions[name].first == 0 )
+      {
+        // if there are no more references to this action, remove it from the map
+        m_actions.erase( name );
+      }
+    }
+  }
 }

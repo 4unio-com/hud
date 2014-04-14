@@ -17,6 +17,7 @@
  */
 
 #include <libqtgmenu/QtGMenuImporter.h>
+#include <libqtgmenu/internal/QtGMenuModel.h>
 #include <libqtgmenu/internal/QtGMenuUtils.h>
 
 #include <QMenu>
@@ -593,6 +594,10 @@ TEST_F( TestQtGMenu, QMenuActionStates )
   EXPECT_TRUE( file_menu->actions().at( 0 )->isEnabled() );
 
   UnexportGMenu();
+}
+
+TEST_F( TestQtGMenu, CreateChild )
+{
 }
 
 } // namespace

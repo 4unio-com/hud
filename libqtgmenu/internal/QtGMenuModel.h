@@ -55,6 +55,8 @@ public:
 
   std::shared_ptr< QMenu > GetQMenu();
 
+  static QSharedPointer<QtGMenuModel> CreateChild( QtGMenuModel* parent_qtgmenu, GMenuModel* parent_gmenu, int child_index );
+
   constexpr static const char* c_property_actionName = "actionName";
   constexpr static const char* c_property_isParameterized = "isParameterized";
   constexpr static const char* c_property_busName = "busName";
@@ -76,8 +78,6 @@ private Q_SLOTS:
 
 private:
   QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index );
-
-  static QSharedPointer<QtGMenuModel> CreateChild( QtGMenuModel* parent, GMenuModel* model, int index );
 
   static void MenuItemsChangedCallback( GMenuModel* model, gint index, gint removed, gint added,
       gpointer user_data );
@@ -114,7 +114,8 @@ private:
   QString m_menu_path;
   QMap<QString, QDBusObjectPath> m_action_paths;
 
-  std::map< QString, QAction* > m_actions;
+  // a map of QActions indexed by their name and stored with a reference count
+  std::map< QString, std::pair< int, QAction* > > m_actions;
 };
 
 } // namespace qtgmenu
