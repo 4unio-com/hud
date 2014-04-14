@@ -24,10 +24,11 @@
 
 using namespace qtgmenu;
 
-QtGMenuModel::QtGMenuModel( GDBusConnection* connection, const QString& bus_name, const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths )
-    : QtGMenuModel( G_MENU_MODEL(  g_dbus_menu_model_get( connection,
-                                                          bus_name.toUtf8().constData(),
-                                                          menu_path.toUtf8().constData() ) ),
+QtGMenuModel::QtGMenuModel( GDBusConnection* connection, const QString& bus_name,
+                            const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths )
+    : QtGMenuModel( G_MENU_MODEL( g_dbus_menu_model_get( connection,
+                                                         bus_name.toUtf8().constData(),
+                                                         menu_path.toUtf8().constData() ) ),
                     LinkType::Root, nullptr, 0 )
 {
   m_connection = connection;
@@ -157,6 +158,30 @@ std::shared_ptr< QMenu > QtGMenuModel::GetQMenu()
   return top_menu;
 }
 
+void QtGMenuModel::ActionTriggered( bool checked )
+{
+  QAction* action = dynamic_cast< QAction* >( QObject::sender() );
+  emit ActionTriggered( action->property( c_property_actionName ).toString(), checked );
+}
+
+void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
+{
+  auto action_it = m_actions.find( action_name );
+  if( action_it != end( m_actions ) )
+  {
+    action_it->second.second->setEnabled( enabled );
+  }
+}
+
+void QtGMenuModel::ActionParameterized( QString action_name, bool parameterized )
+{
+  auto action_it = m_actions.find( action_name );
+  if( action_it != end( m_actions ) )
+  {
+    action_it->second.second->setProperty( c_property_isParameterized, parameterized );
+  }
+}
+
 QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent_qtgmenu, GMenuModel* parent_gmenu, int child_index )
 {
   QSharedPointer<QtGMenuModel> new_child;
@@ -180,30 +205,6 @@ QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent_qtg
 
   g_object_unref( link_it );
   return new_child;
-}
-
-void QtGMenuModel::ActionTriggered( bool checked )
-{
-  QAction* action = dynamic_cast< QAction* >( QObject::sender() );
-  emit ActionTriggered( action->property( c_property_actionName ).toString(), checked );
-}
-
-void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
-{
-  auto action_it = m_actions.find( action_name );
-  if( action_it != end( m_actions ) )
-  {
-    action_it->second.second->setEnabled( enabled );
-  }
-}
-
-void QtGMenuModel::ActionParameterized( QString action_name, bool parameterized )
-{
-  auto action_it = m_actions.find( action_name );
-  if( action_it != end( m_actions ) )
-  {
-    action_it->second.second->setProperty( c_property_isParameterized, parameterized );
-  }
 }
 
 void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint removed,
