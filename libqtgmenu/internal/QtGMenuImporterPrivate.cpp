@@ -160,10 +160,7 @@ void QtGMenuImporterPrivate::RefreshGMenuModel()
   ClearMenuModel();
 
   QString menu_path = m_menu_path.path();
-  m_menu_model =
-      std::make_shared< QtGMenuModel > (
-              G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.toUtf8().constData(), menu_path.toUtf8().constData() ) ),
-              m_service, menu_path, m_action_paths );
+  m_menu_model = std::make_shared< QtGMenuModel > ( m_connection, m_service, menu_path, m_action_paths );
 
   connect( m_menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
           int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );

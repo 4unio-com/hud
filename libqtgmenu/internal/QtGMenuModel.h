@@ -43,8 +43,7 @@ public:
     Root, Section, SubMenu
   };
 
-  explicit QtGMenuModel( GMenuModel* model );
-  QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths );
+  QtGMenuModel( GDBusConnection* connection, const QString& bus_name, const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths );
   virtual ~QtGMenuModel();
 
   GMenuModel* Model() const;
@@ -112,6 +111,7 @@ private:
   QScopedPointer<QMenu> m_menu;
   QScopedPointer<QMenu> m_ext_menu;
 
+  GDBusConnection* m_connection;
   QString m_bus_name;
   QString m_menu_path;
   QMap<QString, QDBusObjectPath> m_action_paths;

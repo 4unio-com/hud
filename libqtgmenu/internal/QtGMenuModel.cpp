@@ -20,16 +20,17 @@
 #include <QtGMenuUtils.h>
 #include <QDebug>
 
+#include <fstream>
+
 using namespace qtgmenu;
 
-QtGMenuModel::QtGMenuModel( GMenuModel* model )
-    : QtGMenuModel( model, LinkType::Root, nullptr, 0 )
+QtGMenuModel::QtGMenuModel( GDBusConnection* connection, const QString& bus_name, const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths )
+    : QtGMenuModel( G_MENU_MODEL(  g_dbus_menu_model_get( connection,
+                                                          bus_name.toUtf8().constData(),
+                                                          menu_path.toUtf8().constData() ) ),
+                    LinkType::Root, nullptr, 0 )
 {
-}
-
-QtGMenuModel::QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths )
-    : QtGMenuModel( model, LinkType::Root, nullptr, 0 )
-{
+  m_connection = connection;
   m_bus_name = bus_name;
   m_menu_path = menu_path;
   m_action_paths = action_paths;
@@ -46,6 +47,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 
   if( m_parent )
   {
+    m_connection = m_parent->m_connection;
     m_bus_name = m_parent->m_bus_name;
     m_menu_path = m_parent->m_menu_path;
     m_action_paths = m_parent->m_action_paths;
@@ -558,8 +560,11 @@ void QtGMenuModel::ActionRemoved( const QString& name )
 void QtGMenuModel::AbortWithLocals()
 {
   // gmenumodel properties
-  int gmenu_item_count = g_menu_model_get_n_items( m_model );
+  int gmenu_item_count = 0;
   std::string gmenu_action_names;
+
+  gmenu_item_count = g_menu_model_get_n_items( m_model );
+
   for( int i = 0; i < gmenu_item_count; ++i )
   {
     gchar* action_name = NULL;
@@ -604,17 +609,22 @@ void QtGMenuModel::AbortWithLocals()
   }
 
   // local model properties
-  std::string menu_label = m_menu->menuAction()->text().toStdString();
-  std::string menu_name = m_menu->menuAction()->property( c_property_actionName ).toString().toStdString();
-
+  std::string menu_label;
+  std::string menu_name;
   std::string action_names;
+  std::string link_type;
+  std::string bus_name;
+  std::string menu_path;
+  std::string action_paths;
+
+  menu_label = m_menu->menuAction()->text().toStdString();
+  menu_name = m_menu->menuAction()->property( c_property_actionName ).toString().toStdString();
   for( QAction* action : m_menu->actions() )
   {
     action_names += action->property( c_property_actionName ).toString().toStdString() + ", ";
   }
   action_names.resize( action_names.size() - 2 );
 
-  std::string link_type;
   switch( m_link_type )
   {
   case LinkType::Root:
@@ -625,14 +635,37 @@ void QtGMenuModel::AbortWithLocals()
     link_type = "sub menu";
   }
 
-  std::string bus_name = m_bus_name.toStdString();
-  std::string menu_path = m_menu_path.toStdString();
-  std::string action_paths;
+  bus_name = m_bus_name.toStdString();
+  menu_path = m_menu_path.toStdString();
   for( auto const& action : m_action_paths )
   {
     action_paths += action.path().toStdString() + ", ";
   }
   action_paths.resize( action_paths.size() - 2 );
+
+  // sender process command line
+  std::string process_cmd;
+
+  guint32 sender_pid = 0;
+  GError* error = NULL;
+  GVariant* ret =
+      g_dbus_connection_call_sync( m_connection,
+                                   "org.freedesktop.DBus",
+                                   "/org/freedesktop/DBus",
+                                   "org.freedesktop.DBus",
+                                   "GetConnectionUnixProcessID",
+                                   g_variant_new( "(s)", m_bus_name.toUtf8().constData() ),
+                                   G_VARIANT_TYPE( "(u)" ),
+                                   G_DBUS_CALL_FLAGS_NONE,
+                                   -1,
+                                   NULL,
+                                   &error );
+  g_variant_get( ret, "(u)", &sender_pid );
+  g_variant_unref( ret );
+
+  std::ifstream process_file( "/proc/" + std::to_string( sender_pid ) + "/cmdline" );
+  process_cmd = std::string( std::istreambuf_iterator< char >( process_file ),
+                             std::istreambuf_iterator< char >() );
 
   abort();
 }
