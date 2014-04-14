@@ -594,10 +594,13 @@ void QtGMenuModel::AbortWithLocals()
     {
     case LinkType::Root:
       parent_link_type = "root";
+      break;
     case LinkType::Section:
       parent_link_type = "section";
+      break;
     case LinkType::SubMenu:
       parent_link_type = "sub menu";
+      break;
     }
   }
 
@@ -621,10 +624,13 @@ void QtGMenuModel::AbortWithLocals()
   {
   case LinkType::Root:
     link_type = "root";
+    break;
   case LinkType::Section:
     link_type = "section";
+    break;
   case LinkType::SubMenu:
     link_type = "sub menu";
+    break;
   }
 
   bus_name = m_bus_name.toStdString();
