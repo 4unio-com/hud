@@ -158,14 +158,16 @@ std::shared_ptr< QMenu > QtGMenuModel::GetQMenu()
 QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent_qtgmenu, GMenuModel* parent_gmenu, int child_index )
 {
   QSharedPointer<QtGMenuModel> new_child;
-  GMenuLinkIter* link_it = g_menu_model_iterate_item_links( parent_gmenu, child_index );
 
-  if (link_it == NULL) {
-    throw std::invalid_argument("Invalid index provided");
+  if( child_index < 0 || child_index >= g_menu_model_get_n_items( parent_gmenu ) )
+  {
+    throw std::invalid_argument( "Invalid index provided" );
   }
 
+  GMenuLinkIter* link_it = g_menu_model_iterate_item_links( parent_gmenu, child_index );
+
   // get the first link, if it exists, create the child accordingly
-  if( g_menu_link_iter_next( link_it ) )
+  if( link_it && g_menu_link_iter_next( link_it ) )
   {
     // if link is a sub menu
     if( strcmp( g_menu_link_iter_get_name( link_it ), G_MENU_LINK_SUBMENU ) == 0 )
@@ -223,8 +225,6 @@ void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint
 
 void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int removed )
 {
-  try
-  {
   // process removed items first (see "items-changed" on the GMenuModel man page)
   if( removed > 0 )
   {
@@ -284,7 +284,16 @@ void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int 
       }
 
       // try first to create a child model
-      QSharedPointer<QtGMenuModel> model = CreateChild( this, m_model, i );
+      QSharedPointer< QtGMenuModel > model;
+      try
+      {
+        model = CreateChild( this, m_model, i );
+      }
+      catch( std::invalid_argument& )
+      {
+        qWarning() << "Illegal argument when updating GMenuModel";
+        AbortWithLocals();
+      }
 
       // if this is a menu item and not a model
       if( !model )
@@ -319,12 +328,6 @@ void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int 
 
   // now tell the outside world that items have changed
   emit MenuItemsChanged( this, index, removed, added );
-
-  }
-  catch ( std::logic_error &e )
-  {
-    qWarning() << "Illegal argument when updating GMenuModel";
-  }
 }
 
 void QtGMenuModel::ConnectCallback()
@@ -550,4 +553,86 @@ void QtGMenuModel::ActionRemoved( const QString& name )
       }
     }
   }
+}
+
+void QtGMenuModel::AbortWithLocals()
+{
+  // gmenumodel properties
+  int gmenu_item_count = g_menu_model_get_n_items( m_model );
+  std::string gmenu_action_names;
+  for( int i = 0; i < gmenu_item_count; ++i )
+  {
+    gchar* action_name = NULL;
+    if( g_menu_model_get_item_attribute( m_model, i,
+          G_MENU_ATTRIBUTE_ACTION, "s", &action_name ) )
+    {
+      gmenu_action_names += std::string( action_name ) + ", ";
+      g_free( action_name );
+    }
+  }
+  gmenu_action_names.resize( gmenu_action_names.size() - 2 );
+
+  // parent model properties
+  bool has_parent = false;
+  std::string parent_menu_label;
+  std::string parent_menu_name;
+  std::string parent_action_names;
+  std::string parent_link_type;
+
+  if( m_parent )
+  {
+    has_parent = true;
+
+    parent_menu_label = m_parent->m_menu->menuAction()->text().toStdString();
+    parent_menu_name = m_parent->m_menu->menuAction()->property( c_property_actionName ).toString().toStdString();
+
+    for( QAction* action : m_parent->m_menu->actions() )
+    {
+      parent_action_names += action->property( c_property_actionName ).toString().toStdString() + ", ";
+    }
+    parent_action_names.resize( parent_action_names.size() - 2 );
+
+    switch( m_parent->m_link_type )
+    {
+    case LinkType::Root:
+      parent_link_type = "root";
+    case LinkType::Section:
+      parent_link_type = "section";
+    case LinkType::SubMenu:
+      parent_link_type = "sub menu";
+    }
+  }
+
+  // local model properties
+  std::string menu_label = m_menu->menuAction()->text().toStdString();
+  std::string menu_name = m_menu->menuAction()->property( c_property_actionName ).toString().toStdString();
+
+  std::string action_names;
+  for( QAction* action : m_menu->actions() )
+  {
+    action_names += action->property( c_property_actionName ).toString().toStdString() + ", ";
+  }
+  action_names.resize( action_names.size() - 2 );
+
+  std::string link_type;
+  switch( m_link_type )
+  {
+  case LinkType::Root:
+    link_type = "root";
+  case LinkType::Section:
+    link_type = "section";
+  case LinkType::SubMenu:
+    link_type = "sub menu";
+  }
+
+  std::string bus_name = m_bus_name.toStdString();
+  std::string menu_path = m_menu_path.toStdString();
+  std::string action_paths;
+  for( auto const& action : m_action_paths )
+  {
+    action_paths += action.path().toStdString() + ", ";
+  }
+  action_paths.resize( action_paths.size() - 2 );
+
+  abort();
 }

@@ -598,6 +598,30 @@ TEST_F( TestQtGMenu, QMenuActionStates )
 
 TEST_F( TestQtGMenu, CreateChild )
 {
+  // export menu
+
+  m_menu_export_id = g_dbus_connection_export_menu_model( m_connection, c_path,
+      G_MENU_MODEL( m_menu ), NULL );
+
+  // add an item
+
+  g_menu_append( m_menu, "New", "app.new" );
+
+  EXPECT_THROW( QtGMenuModel::CreateChild( nullptr, G_MENU_MODEL( m_menu ), -1 ), std::invalid_argument );
+  EXPECT_NO_THROW( QtGMenuModel::CreateChild( nullptr, G_MENU_MODEL( m_menu ), 0 ) );
+  EXPECT_THROW( QtGMenuModel::CreateChild( nullptr, G_MENU_MODEL( m_menu ), 1 ), std::invalid_argument );
+
+  // remove the item
+
+  g_menu_remove( m_menu, 0 );
+
+  EXPECT_THROW( QtGMenuModel::CreateChild( nullptr, G_MENU_MODEL( m_menu ), -1 ), std::invalid_argument );
+  EXPECT_THROW( QtGMenuModel::CreateChild( nullptr, G_MENU_MODEL( m_menu ), 0 ), std::invalid_argument );
+  EXPECT_THROW( QtGMenuModel::CreateChild( nullptr, G_MENU_MODEL( m_menu ), 1 ), std::invalid_argument );
+
+  // unexport menu
+
+  g_dbus_connection_unexport_menu_model( m_connection, m_menu_export_id );
 }
 
 } // namespace
