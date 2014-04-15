@@ -648,7 +648,7 @@ void QtGMenuModel::AbortWithLocals()
             m_bus_name);
 
   QProcess recoverable;
-  if (recoverable.startDetached("/usr/share/apport/recoverable_problem",
+  if (recoverable.start("/usr/share/apport/recoverable_problem",
             QStringList() << "-p" << QString::number(sender_pid)))
   {
     write_pair(recoverable, "DuplicateSignature", "hud;items-changed");
