@@ -577,13 +577,12 @@ void QtGMenuModel::AbortWithLocals()
           G_MENU_ATTRIBUTE_ACTION, "s", &action_name ) )
     {
       gmenu_action_names += action_name;
-      gmenu_action_names += ", ";
+      gmenu_action_names += ";";
       g_free( action_name );
     }
   }
 
   // parent model properties
-  bool has_parent = false;
   QString parent_menu_label;
   QString parent_menu_name;
   QString parent_action_names;
@@ -591,14 +590,12 @@ void QtGMenuModel::AbortWithLocals()
 
   if( m_parent )
   {
-    has_parent = true;
-
     parent_menu_label = m_parent->m_menu->menuAction()->text();
     parent_menu_name = m_parent->m_menu->menuAction()->property( c_property_actionName ).toString();
 
     for( QAction* action : m_parent->m_menu->actions() )
     {
-      parent_action_names += action->property( c_property_actionName ).toString() + ", ";
+      parent_action_names += action->property( c_property_actionName ).toString() + ";";
     }
 
     switch( m_parent->m_link_type )
@@ -626,7 +623,7 @@ void QtGMenuModel::AbortWithLocals()
   menu_name = m_menu->menuAction()->property( c_property_actionName ).toString();
   for( QAction* action : m_menu->actions() )
   {
-    action_names += action->property( c_property_actionName ).toString() + ", ";
+    action_names += action->property( c_property_actionName ).toString() + ";";
   }
 
   switch( m_link_type )
@@ -644,7 +641,7 @@ void QtGMenuModel::AbortWithLocals()
 
   for( auto const& action : m_action_paths )
   {
-    action_paths += action.path() + ", ";
+    action_paths += action.path() + ";";
   }
 
   uint sender_pid = QDBusConnection::sessionBus().interface()->servicePid(
@@ -658,12 +655,14 @@ void QtGMenuModel::AbortWithLocals()
     write_pair(recoverable, "BusName", m_bus_name);
     write_pair(recoverable, "ItemCount", QString::number(gmenu_item_count));
     write_pair(recoverable, "ActionNames", gmenu_action_names);
-    write_pair(recoverable, "HasParent", has_parent ? "true" : "false");
 
-    write_pair(recoverable, "ParentMenuLabel", parent_menu_label);
-    write_pair(recoverable, "ParentMenuName", parent_menu_name);
-    write_pair(recoverable, "ParentActionNames", parent_action_names);
-    write_pair(recoverable, "ParentLinkType", parent_link_type);
+    if ( m_parent )
+    {
+      write_pair(recoverable, "ParentMenuLabel", parent_menu_label);
+      write_pair(recoverable, "ParentMenuName", parent_menu_name);
+      write_pair(recoverable, "ParentActionNames", parent_action_names);
+      write_pair(recoverable, "ParentLinkType", parent_link_type);
+    }
 
     write_pair(recoverable, "MenuLabel", menu_label);
     write_pair(recoverable, "MenuName", menu_name);
