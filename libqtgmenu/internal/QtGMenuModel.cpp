@@ -656,7 +656,7 @@ void QtGMenuModel::ReportRecoverableError()
               QStringList() << "-p" << QString::number(sender_pid));
   if (recoverable.waitForStarted())
   {
-    write_pair(recoverable, "DuplicateSignature", "hud;items-changed");
+    write_pair(recoverable, "DuplicateSignature", "GMenuModelItemsChangedInvalidIndex");
     write_pair(recoverable, "BusName", m_bus_name);
     write_pair(recoverable, "ItemCount", QString::number(gmenu_item_count));
     write_pair(recoverable, "ActionNames", gmenu_action_names);
