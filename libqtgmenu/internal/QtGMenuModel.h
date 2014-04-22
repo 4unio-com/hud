@@ -96,7 +96,7 @@ private:
   void ActionAdded( const QString& name, QAction* action );
   void ActionRemoved( const QString& name );
 
-  void AbortWithLocals();
+  void ReportRecoverableError();
 
 private:
   QtGMenuModel* m_parent = nullptr;

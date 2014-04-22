@@ -279,10 +279,11 @@ void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int 
     // now add a new QAction to our QMenu for each new item
     for( int i = index; i < ( index + added ); ++i )
     {
-      if( i < 0 || i >= n_items )
+      if( i < 0 || i >= n_items)
       {
         qWarning() << "Illegal argument when updating GMenuModel";
-        AbortWithLocals();
+        ReportRecoverableError();
+        return;
       }
 
       QAction* at_action = nullptr;
@@ -560,9 +561,12 @@ static void write_pair(QIODevice& device, const QString& key, const QString& val
   device.write("\n");
   device.write(value.toUtf8());
   device.write("\n");
+
+  qWarning() << key;
+  qWarning() << value;
 }
 
-void QtGMenuModel::AbortWithLocals()
+void QtGMenuModel::ReportRecoverableError()
 {
   // gmenumodel properties
   int gmenu_item_count = 0;
@@ -670,9 +674,15 @@ void QtGMenuModel::AbortWithLocals()
     write_pair(recoverable, "ActionNames", action_names);
     write_pair(recoverable, "LinkType", link_type);
 
+    write_pair(recoverable, "MenuPath", m_menu_path);
     write_pair(recoverable, "ActionPaths", action_paths);
 
     recoverable.closeWriteChannel();
+    recoverable.waitForFinished();
+  }
+  else
+  {
+    qWarning() << "Failed to report recoverable error";
   }
 
   QCoreApplication::exit(1);
