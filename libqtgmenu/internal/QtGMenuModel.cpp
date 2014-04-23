@@ -240,7 +240,7 @@ void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int 
   const int n_items = g_menu_model_get_n_items( m_model.data() );
   bool invalid_arguments = false;
 
-  if( index < 0 || added < 0 || removed < 0 || index + added > n_items )
+  if( index < 0 || added < 0 || removed < 0 || index + added > n_items || index + removed > m_size )
   {
     ReportRecoverableError(index, added, removed);
     return;
