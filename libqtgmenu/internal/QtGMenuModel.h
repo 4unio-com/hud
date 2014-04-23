@@ -119,6 +119,8 @@ private:
 
   // a map of QActions indexed by their name and stored with a reference count
   std::map< QString, std::pair< int, QAction* > > m_actions;
+
+  bool m_error_reported = false;
 };
 
 } // namespace qtgmenu

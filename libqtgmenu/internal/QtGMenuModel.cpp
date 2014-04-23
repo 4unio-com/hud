@@ -560,12 +560,15 @@ void QtGMenuModel::ActionRemoved( const QString& name )
   }
 }
 
-static void write_pair(QIODevice& device, const QString& key, const QString& value)
+static void write_pair(QIODevice& device, const QString& key, const QString& value, bool last = false)
 {
   device.write(key.toUtf8());
-  device.write("\n");
+  device.write("", 1);
   device.write(value.toUtf8());
-  device.write("\n");
+  if( !last )
+  {
+    device.write("", 1);
+  }
 
   qWarning() << key;
   qWarning() << value;
@@ -573,6 +576,11 @@ static void write_pair(QIODevice& device, const QString& key, const QString& val
 
 void QtGMenuModel::ReportRecoverableError(const int index, const int added, const int removed)
 {
+  if( m_error_reported )
+  {
+    return;
+  }
+
   // gmenumodel properties
   int gmenu_item_count = 0;
   QString gmenu_action_names;
@@ -659,8 +667,13 @@ void QtGMenuModel::ReportRecoverableError(const int index, const int added, cons
 
   uint sender_pid = QDBusConnection::sessionBus().interface()->servicePid(
             m_bus_name);
+  if( sender_pid == 0 ) {
+      qWarning() << "Failed to read PID, cannot report error";
+      return;
+  }
 
   QProcess recoverable;
+  recoverable.setProcessChannelMode(QProcess::ForwardedChannels);
   recoverable.start("/usr/share/apport/recoverable_problem",
               QStringList() << "-p" << QString::number(sender_pid));
   if (recoverable.waitForStarted())
@@ -687,10 +700,12 @@ void QtGMenuModel::ReportRecoverableError(const int index, const int added, cons
     write_pair(recoverable, "LinkType", link_type);
 
     write_pair(recoverable, "MenuPath", m_menu_path);
-    write_pair(recoverable, "ActionPaths", action_paths);
+    write_pair(recoverable, "ActionPaths", action_paths, true);
 
     recoverable.closeWriteChannel();
     recoverable.waitForFinished();
+
+    m_error_reported = true;
   }
   else
   {
