@@ -71,28 +71,28 @@ protected:
 
   int GetGMenuSize()
   {
-    GMenuModel* menu = m_importer.GetGMenuModel();
+    QSharedPointer<GMenuModel> menu = m_importer.GetGMenuModel();
 
     if( !menu )
     {
       return 0;
     }
 
-    gint item_count = g_menu_model_get_n_items( G_MENU_MODEL( menu ) );
+    gint item_count = g_menu_model_get_n_items( G_MENU_MODEL( menu.data() ) );
 
     return item_count;
   }
 
   int GetGActionCount()
   {
-    GActionGroup* actions = m_importer.GetGActionGroup();
+    QSharedPointer<GActionGroup> actions = m_importer.GetGActionGroup();
 
     if( !actions )
     {
       return 0;
     }
 
-    gchar** actions_list = g_action_group_list_actions( actions );
+    gchar** actions_list = g_action_group_list_actions( actions.data() );
 
     int action_count = 0;
     while( actions_list[action_count] != nullptr )

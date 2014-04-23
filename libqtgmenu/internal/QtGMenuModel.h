@@ -46,7 +46,7 @@ public:
   QtGMenuModel( QSharedPointer<GDBusConnection> connection, const QString& bus_name, const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths );
   virtual ~QtGMenuModel();
 
-  GMenuModel* Model() const;
+  QSharedPointer<GMenuModel> Model() const;
   LinkType Type() const;
 
   QtGMenuModel* Parent() const;
@@ -75,9 +75,9 @@ private Q_SLOTS:
   void ActionTriggered( bool );
 
 private:
-  QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index );
+  QtGMenuModel( QSharedPointer<GMenuModel> model, LinkType link_type, QtGMenuModel* parent, int index );
 
-  static QSharedPointer<QtGMenuModel> CreateChild( QtGMenuModel* parent_qtgmenu, GMenuModel* parent_gmenu, int child_index );
+  static QSharedPointer<QtGMenuModel> CreateChild( QtGMenuModel* parent_qtgmenu, QSharedPointer<GMenuModel> parent_gmenu, int child_index );
 
   static void MenuItemsChangedCallback( GMenuModel* model, gint index, gint removed, gint added,
       gpointer user_data );
@@ -103,7 +103,7 @@ private:
   QtGMenuModel* m_parent = nullptr;
   QMap< int, QSharedPointer<QtGMenuModel>> m_children;
 
-  GMenuModel* m_model = nullptr;
+  QSharedPointer<GMenuModel> m_model;
   gulong m_items_changed_handler = 0;
 
   LinkType m_link_type;

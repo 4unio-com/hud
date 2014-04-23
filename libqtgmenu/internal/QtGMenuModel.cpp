@@ -31,9 +31,9 @@ static const QRegularExpression SINGLE_UNDERSCORE("(?<![_])[_](?![_])");
 
 QtGMenuModel::QtGMenuModel( QSharedPointer<GDBusConnection> connection, const QString& bus_name,
                             const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths )
-    : QtGMenuModel( G_MENU_MODEL( g_dbus_menu_model_get( connection.data(),
+    : QtGMenuModel( QSharedPointer<GMenuModel>(G_MENU_MODEL( g_dbus_menu_model_get( connection.data(),
                                                          bus_name.toUtf8().constData(),
-                                                         menu_path.toUtf8().constData() ) ),
+                                                         menu_path.toUtf8().constData() ) ), &g_object_unref ),
                     LinkType::Root, nullptr, 0 )
 {
   m_connection = connection;
@@ -42,7 +42,7 @@ QtGMenuModel::QtGMenuModel( QSharedPointer<GDBusConnection> connection, const QS
   m_action_paths = action_paths;
 }
 
-QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index )
+QtGMenuModel::QtGMenuModel( QSharedPointer<GMenuModel> model, LinkType link_type, QtGMenuModel* parent, int index )
     : m_parent( parent ),
       m_model( model ),
       m_link_type( link_type ),
@@ -59,7 +59,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
     m_action_paths = m_parent->m_action_paths;
 
     gchar* label = NULL;
-    if( g_menu_model_get_item_attribute( m_parent->m_model, index,
+    if( g_menu_model_get_item_attribute( m_parent->m_model.data(), index,
             G_MENU_ATTRIBUTE_LABEL, "s", &label ) )
     {
       QString qlabel = QString::fromUtf8( label );
@@ -71,7 +71,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 
     gchar* action_name = NULL;
     QString qaction_name;
-    if( g_menu_model_get_item_attribute( m_parent->m_model, index,
+    if( g_menu_model_get_item_attribute( m_parent->m_model.data(), index,
             G_MENU_ATTRIBUTE_ACTION, "s", &action_name ) )
     {
       qaction_name = QString::fromUtf8( action_name );
@@ -82,7 +82,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 
     // if this model has a "commitLabel" property, it is a libhud parameterized action
     gchar* commit_label = NULL;
-    if( g_menu_model_get_item_attribute( m_parent->m_model, index,
+    if( g_menu_model_get_item_attribute( m_parent->m_model.data(), index,
             "commitLabel", "s", &commit_label ) )
     {
       g_free( commit_label );
@@ -108,7 +108,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
 
   if( m_model )
   {
-    m_size = g_menu_model_get_n_items( m_model );
+    m_size = g_menu_model_get_n_items( m_model.data() );
   }
 
   ChangeMenuItems( 0, m_size, 0 );
@@ -123,13 +123,12 @@ QtGMenuModel::~QtGMenuModel()
       ChangeMenuItems( 0, 0, m_size );
     }
     DisconnectCallback();
-    g_object_unref( m_model );
   }
 
   m_children.clear();
 }
 
-GMenuModel* QtGMenuModel::Model() const
+QSharedPointer<GMenuModel> QtGMenuModel::Model() const
 {
   return m_model;
 }
@@ -187,11 +186,11 @@ void QtGMenuModel::ActionParameterized( QString action_name, bool parameterized 
   }
 }
 
-QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent_qtgmenu, GMenuModel* parent_gmenu, int child_index )
+QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent_qtgmenu, QSharedPointer<GMenuModel> parent_gmenu, int child_index )
 {
   QSharedPointer<QtGMenuModel> new_child;
 
-  GMenuLinkIter* link_it = g_menu_model_iterate_item_links( parent_gmenu, child_index );
+  GMenuLinkIter* link_it = g_menu_model_iterate_item_links( parent_gmenu.data(), child_index );
 
   // get the first link, if it exists, create the child accordingly
   if( link_it && g_menu_link_iter_next( link_it ) )
@@ -199,12 +198,22 @@ QSharedPointer<QtGMenuModel> QtGMenuModel::CreateChild( QtGMenuModel* parent_qtg
     // if link is a sub menu
     if( strcmp( g_menu_link_iter_get_name( link_it ), G_MENU_LINK_SUBMENU ) == 0 )
     {
-      new_child.reset(new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::SubMenu, parent_qtgmenu, child_index ));
+      new_child.reset(
+                new QtGMenuModel(
+                        QSharedPointer<GMenuModel>(
+                                g_menu_link_iter_get_value(link_it),
+                                &g_object_unref), LinkType::SubMenu,
+                        parent_qtgmenu, child_index));
     }
     // else if link is a section
     else if( strcmp( g_menu_link_iter_get_name( link_it ), G_MENU_LINK_SECTION ) == 0 )
     {
-      new_child.reset(new QtGMenuModel( g_menu_link_iter_get_value( link_it ), LinkType::Section, parent_qtgmenu, child_index ));
+      new_child.reset(
+                    new QtGMenuModel(
+                            QSharedPointer<GMenuModel>(
+                                    g_menu_link_iter_get_value(link_it),
+                                    &g_object_unref), LinkType::Section,
+                            parent_qtgmenu, child_index));
     }
   }
 
@@ -228,7 +237,7 @@ void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint
 
 void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int removed )
 {
-  const int n_items = g_menu_model_get_n_items( m_model );
+  const int n_items = g_menu_model_get_n_items( m_model.data() );
   bool invalid_arguments = false;
 
   if( index < 0 || added < 0 || removed < 0 || index + added > n_items )
@@ -337,7 +346,7 @@ void QtGMenuModel::ConnectCallback()
 {
   if( m_model && m_items_changed_handler == 0 )
   {
-    m_items_changed_handler = g_signal_connect( m_model, "items-changed",
+    m_items_changed_handler = g_signal_connect( m_model.data(), "items-changed",
         G_CALLBACK( MenuItemsChangedCallback ), this );
   }
 }
@@ -346,7 +355,7 @@ void QtGMenuModel::DisconnectCallback()
 {
   if( m_model && m_items_changed_handler != 0 )
   {
-    g_signal_handler_disconnect( m_model, m_items_changed_handler );
+    g_signal_handler_disconnect( m_model.data(), m_items_changed_handler );
   }
 
   m_items_changed_handler = 0;
@@ -380,7 +389,7 @@ QAction* QtGMenuModel::CreateAction( int index )
 
   // action label
   gchar* label = NULL;
-  if( g_menu_model_get_item_attribute( m_model, index, G_MENU_ATTRIBUTE_LABEL, "s", &label ) ) {
+  if( g_menu_model_get_item_attribute( m_model.data(), index, G_MENU_ATTRIBUTE_LABEL, "s", &label ) ) {
     QString qlabel = QString::fromUtf8( label );
     qlabel.replace( SINGLE_UNDERSCORE, "&" );
     g_free( label );
@@ -390,7 +399,7 @@ QAction* QtGMenuModel::CreateAction( int index )
 
   // action name
   gchar* action_name = NULL;
-  if( g_menu_model_get_item_attribute( m_model, index,
+  if( g_menu_model_get_item_attribute( m_model.data(), index,
 	      G_MENU_ATTRIBUTE_ACTION, "s", &action_name ) )
   {
     QString qaction_name = QString::fromUtf8( action_name );
@@ -407,7 +416,7 @@ QAction* QtGMenuModel::CreateAction( int index )
   action->setProperty( c_property_menuPath, m_menu_path );
 
   // action icon
-  GVariant* icon = g_menu_model_get_item_attribute_value( m_model, index, G_MENU_ATTRIBUTE_ICON,
+  GVariant* icon = g_menu_model_get_item_attribute_value( m_model.data(), index, G_MENU_ATTRIBUTE_ICON,
       G_VARIANT_TYPE_VARIANT );
 
   if( icon )
@@ -417,7 +426,7 @@ QAction* QtGMenuModel::CreateAction( int index )
 
   // action shortcut
   gchar* shortcut = NULL;
-  if( g_menu_model_get_item_attribute( m_model, index, "accel", "s", &shortcut ) )
+  if( g_menu_model_get_item_attribute( m_model.data(), index, "accel", "s", &shortcut ) )
   {
     QString qshortcut = QString::fromUtf8( shortcut );
     g_free( shortcut );
@@ -427,7 +436,7 @@ QAction* QtGMenuModel::CreateAction( int index )
 
   // action shortcut
   gchar* toolbar_item = NULL;
-  if( g_menu_model_get_item_attribute( m_model, index, c_property_hud_toolbar_item, "s", &toolbar_item ) )
+  if( g_menu_model_get_item_attribute( m_model.data(), index, c_property_hud_toolbar_item, "s", &toolbar_item ) )
   {
     QString qtoolbar_item = QString::fromUtf8( toolbar_item );
     g_free( toolbar_item );
@@ -437,7 +446,7 @@ QAction* QtGMenuModel::CreateAction( int index )
 
   // action keywords
   gchar* keywords = NULL;
-  if( g_menu_model_get_item_attribute( m_model, index, c_property_keywords, "s", &keywords ) )
+  if( g_menu_model_get_item_attribute( m_model.data(), index, c_property_keywords, "s", &keywords ) )
   {
     QVariant qkeywords = QString::fromUtf8( keywords );
     g_free( keywords );
@@ -570,8 +579,10 @@ static void write_pair(QIODevice& device, const QString& key, const QString& val
     device.write("", 1);
   }
 
-  qWarning() << key;
-  qWarning() << value;
+  if( !value.isEmpty())
+  {
+    qWarning() << key << " =" << value;
+  }
 }
 
 void QtGMenuModel::ReportRecoverableError(const int index, const int added, const int removed)
@@ -585,7 +596,7 @@ void QtGMenuModel::ReportRecoverableError(const int index, const int added, cons
   int gmenu_item_count = 0;
   QString gmenu_action_names;
 
-  gmenu_item_count = g_menu_model_get_n_items( m_model );
+  gmenu_item_count = g_menu_model_get_n_items( m_model.data() );
 
   qWarning() << "Illegal arguments when updating GMenuModel: position ="
              << index << ", added =" << added << ", removed =" << removed
@@ -594,7 +605,7 @@ void QtGMenuModel::ReportRecoverableError(const int index, const int added, cons
   for( int i = 0; i < gmenu_item_count; ++i )
   {
     gchar* action_name = NULL;
-    if( g_menu_model_get_item_attribute( m_model, i,
+    if( g_menu_model_get_item_attribute( m_model.data(), i,
           G_MENU_ATTRIBUTE_ACTION, "s", &action_name ) )
     {
       gmenu_action_names += action_name;

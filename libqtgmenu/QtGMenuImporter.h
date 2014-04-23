@@ -47,8 +47,8 @@ public:
                    const QMap<QString, QDBusObjectPath>& action_paths, QObject* parent = 0 );
   virtual ~QtGMenuImporter();
 
-  GMenuModel* GetGMenuModel() const;
-  GActionGroup* GetGActionGroup( int index = 0 ) const;
+  QSharedPointer<GMenuModel> GetGMenuModel() const;
+  QSharedPointer<GActionGroup> GetGActionGroup( int index = 0 ) const;
 
   std::shared_ptr< QMenu > GetQMenu() const;
 

@@ -43,12 +43,12 @@ QtGMenuImporter::~QtGMenuImporter()
 {
 }
 
-GMenuModel* QtGMenuImporter::GetGMenuModel() const
+QSharedPointer<GMenuModel> QtGMenuImporter::GetGMenuModel() const
 {
   return d->GetGMenuModel();
 }
 
-GActionGroup* QtGMenuImporter::GetGActionGroup( int index ) const
+QSharedPointer<GActionGroup> QtGMenuImporter::GetGActionGroup( int index ) const
 {
   return d->GetGActionGroup( index );
 }

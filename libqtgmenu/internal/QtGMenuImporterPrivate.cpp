@@ -50,22 +50,22 @@ QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
   ClearActionGroups();
 }
 
-GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
+QSharedPointer<GMenuModel> QtGMenuImporterPrivate::GetGMenuModel()
 {
   if( m_menu_model == nullptr )
   {
-    return nullptr;
+    return QSharedPointer<GMenuModel>();
   }
 
   return m_menu_model->Model();
 }
 
-GActionGroup* QtGMenuImporterPrivate::GetGActionGroup( int index )
+QSharedPointer<GActionGroup> QtGMenuImporterPrivate::GetGActionGroup( int index )
 {
   if( index >= m_action_groups.size() ||
       m_action_groups[index] == nullptr )
   {
-    return nullptr;
+    return QSharedPointer<GActionGroup>();
   }
 
   return m_action_groups[index]->ActionGroup();
@@ -178,8 +178,8 @@ void QtGMenuImporterPrivate::RefreshGActionGroup()
 
     QString action_path = action_path_it.value().path();
     m_action_groups.push_back(
-        std::make_shared< QtGActionGroup > ( action_path_it.key(),
-                G_ACTION_GROUP( g_dbus_action_group_get( m_connection.data(), m_service.toUtf8().constData(), action_path.toUtf8().constData() ) ) ) );
+                std::make_shared<QtGActionGroup>(m_connection,
+                        action_path_it.key(), m_service, action_path));
 
     auto action_group = m_action_groups.back();
 
