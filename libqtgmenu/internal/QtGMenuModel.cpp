@@ -368,6 +368,8 @@ void QtGMenuModel::InsertChild( QSharedPointer<QtGMenuModel> child, int index )
   connect( child.data(), SIGNAL( ActionTriggered( QString, bool ) ), this,
       SIGNAL( ActionTriggered( QString, bool ) ) );
 
+  connect( child.data(), SIGNAL( MenuInvalid() ), this, SIGNAL( MenuInvalid() ) );
+
   // emit signal informing subscribers that this child has added all of its menu items
   emit MenuItemsChanged( child.data(), 0, 0, child->m_size );
 }
@@ -694,4 +696,6 @@ void QtGMenuModel::ReportRecoverableError(const int index, const int added, cons
   {
     qWarning() << "Failed to report recoverable error";
   }
+
+  emit MenuInvalid();
 }

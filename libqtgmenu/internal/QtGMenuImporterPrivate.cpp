@@ -162,6 +162,8 @@ void QtGMenuImporterPrivate::RefreshGMenuModel()
 
   connect( m_menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
           int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );
+
+  connect( m_menu_model.get(), SIGNAL( MenuInvalid() ), this, SLOT( MenuInvalid() ) );
 }
 
 void QtGMenuImporterPrivate::RefreshGActionGroup()
@@ -192,4 +194,15 @@ void QtGMenuImporterPrivate::RefreshGActionGroup()
   }
 
   LinkMenuActions();
+}
+
+void QtGMenuImporterPrivate::MenuInvalid()
+{
+  disconnect( &m_service_watcher, SIGNAL( serviceRegistered( const QString& ) ), this,
+        SLOT( ServiceRegistered() ) );
+
+  disconnect( &m_service_watcher, SIGNAL( serviceUnregistered( const QString& ) ), this,
+        SLOT( ServiceUnregistered() ) );
+
+  ServiceUnregistered();
 }

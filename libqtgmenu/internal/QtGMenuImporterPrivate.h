@@ -62,6 +62,7 @@ private Q_SLOTS:
 
   void RefreshGMenuModel();
   void RefreshGActionGroup();
+  void MenuInvalid();
 
 private:
   QDBusServiceWatcher m_service_watcher;
