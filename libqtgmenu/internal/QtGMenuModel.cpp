@@ -23,12 +23,15 @@
 #include <QDBusConnectionInterface>
 #include <QDebug>
 #include <QProcess>
+#include <QRegularExpression>
 
 using namespace qtgmenu;
 
-QtGMenuModel::QtGMenuModel( GDBusConnection* connection, const QString& bus_name,
+static const QRegularExpression SINGLE_UNDERSCORE("(?<![_])[_](?![_])");
+
+QtGMenuModel::QtGMenuModel( QSharedPointer<GDBusConnection> connection, const QString& bus_name,
                             const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths )
-    : QtGMenuModel( G_MENU_MODEL( g_dbus_menu_model_get( connection,
+    : QtGMenuModel( G_MENU_MODEL( g_dbus_menu_model_get( connection.data(),
                                                          bus_name.toUtf8().constData(),
                                                          menu_path.toUtf8().constData() ) ),
                     LinkType::Root, nullptr, 0 )
@@ -60,7 +63,7 @@ QtGMenuModel::QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel*
             G_MENU_ATTRIBUTE_LABEL, "s", &label ) )
     {
       QString qlabel = QString::fromUtf8( label );
-      qlabel.replace( '_', '&' );
+      qlabel.replace( SINGLE_UNDERSCORE, "&" );
       g_free( label );
 
       m_ext_menu->setTitle( qlabel );
@@ -226,6 +229,13 @@ void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint
 void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int removed )
 {
   const int n_items = g_menu_model_get_n_items( m_model );
+  bool invalid_arguments = false;
+
+  if( index < 0 || added < 0 || removed < 0 || index + added > n_items )
+  {
+    ReportRecoverableError(index, added, removed);
+    return;
+  }
 
   // process removed items first (see "items-changed" on the GMenuModel man page)
   if( removed > 0 )
@@ -279,13 +289,6 @@ void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int 
     // now add a new QAction to our QMenu for each new item
     for( int i = index; i < ( index + added ); ++i )
     {
-      if( i < 0 || i >= n_items)
-      {
-        qWarning() << "Illegal argument when updating GMenuModel";
-        ReportRecoverableError();
-        return;
-      }
-
       QAction* at_action = nullptr;
       if( i < m_menu->actions().size() )
       {
@@ -377,7 +380,7 @@ QAction* QtGMenuModel::CreateAction( int index )
   gchar* label = NULL;
   if( g_menu_model_get_item_attribute( m_model, index, G_MENU_ATTRIBUTE_LABEL, "s", &label ) ) {
     QString qlabel = QString::fromUtf8( label );
-    qlabel.replace( '_', '&' );
+    qlabel.replace( SINGLE_UNDERSCORE, "&" );
     g_free( label );
 
     action->setText( qlabel );
@@ -566,13 +569,17 @@ static void write_pair(QIODevice& device, const QString& key, const QString& val
   qWarning() << value;
 }
 
-void QtGMenuModel::ReportRecoverableError()
+void QtGMenuModel::ReportRecoverableError(const int index, const int added, const int removed)
 {
   // gmenumodel properties
   int gmenu_item_count = 0;
   QString gmenu_action_names;
 
   gmenu_item_count = g_menu_model_get_n_items( m_model );
+
+  qWarning() << "Illegal arguments when updating GMenuModel: position ="
+             << index << ", added =" << added << ", removed =" << removed
+             << ", size =" << gmenu_item_count;
 
   for( int i = 0; i < gmenu_item_count; ++i )
   {
@@ -658,6 +665,9 @@ void QtGMenuModel::ReportRecoverableError()
   {
     write_pair(recoverable, "DuplicateSignature", "GMenuModelItemsChangedInvalidIndex");
     write_pair(recoverable, "BusName", m_bus_name);
+    write_pair(recoverable, "Position", QString::number(index));
+    write_pair(recoverable, "Added", QString::number(added));
+    write_pair(recoverable, "Removed", QString::number(removed));
     write_pair(recoverable, "ItemCount", QString::number(gmenu_item_count));
     write_pair(recoverable, "ActionNames", gmenu_action_names);
 
@@ -684,6 +694,4 @@ void QtGMenuModel::ReportRecoverableError()
   {
     qWarning() << "Failed to report recoverable error";
   }
-
-  QCoreApplication::exit(1);
 }

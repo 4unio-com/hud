@@ -30,7 +30,7 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QD
       m_service_watcher( service, QDBusConnection::sessionBus(),
           QDBusServiceWatcher::WatchForOwnerChange ),
       m_parent( parent ),
-      m_connection( g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL ) ),
+      m_connection( g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL ), &g_object_unref ),
       m_service( service ),
       m_menu_path( menu_path ),
       m_action_paths( action_paths )
@@ -48,8 +48,6 @@ QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
 {
   ClearMenuModel();
   ClearActionGroups();
-
-  g_object_unref( m_connection );
 }
 
 GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
@@ -179,7 +177,7 @@ void QtGMenuImporterPrivate::RefreshGActionGroup()
     QString action_path = action_path_it.value().path();
     m_action_groups.push_back(
         std::make_shared< QtGActionGroup > ( action_path_it.key(),
-                G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.toUtf8().constData(), action_path.toUtf8().constData() ) ) ) );
+                G_ACTION_GROUP( g_dbus_action_group_get( m_connection.data(), m_service.toUtf8().constData(), action_path.toUtf8().constData() ) ) ) );
 
     auto action_group = m_action_groups.back();
 

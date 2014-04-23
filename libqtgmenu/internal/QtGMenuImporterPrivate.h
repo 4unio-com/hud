@@ -68,7 +68,7 @@ private:
 
   QtGMenuImporter& m_parent;
 
-  GDBusConnection* m_connection;
+  QSharedPointer<GDBusConnection> m_connection;
   QString m_service;
   QDBusObjectPath m_menu_path;
   QMap<QString, QDBusObjectPath> m_action_paths;
