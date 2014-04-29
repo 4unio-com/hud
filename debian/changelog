@@ -1,3 +1,9 @@
+hud (13.10.1+14.04.20140402-0ubuntu2) utopic; urgency=medium
+
+  * No-change rebuild for shlib changes in qtbase and qtdeclarative.
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Tue, 29 Apr 2014 09:29:40 -0700
+
 hud (13.10.1+14.04.20140402-0ubuntu1) trusty; urgency=low
 
   [ Pete Woods ]
