@@ -95,7 +95,7 @@ private:
   void UpdateExtQMenu();
 
   void ActionAdded( const QString& name, QAction* action );
-  void ActionRemoved( const QString& name );
+  void ActionRemoved( const QString& name, QAction* action );
 
   void ReportRecoverableError(const int index, const int added, const int removed);
 
@@ -118,7 +118,7 @@ private:
   QMap<QString, QDBusObjectPath> m_action_paths;
 
   // a map of QActions indexed by their name and stored with a reference count
-  std::map< QString, std::pair< int, QAction* > > m_actions;
+  std::map< QString, std::vector< QAction* > > m_actions;
 
   bool m_error_reported = false;
 };

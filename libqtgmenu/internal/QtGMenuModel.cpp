@@ -173,7 +173,10 @@ void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
   auto action_it = m_actions.find( action_name );
   if( action_it != end( m_actions ) )
   {
-    action_it->second.second->setEnabled( enabled );
+    for( auto& action : action_it->second )
+    {
+      action->setEnabled( enabled );
+    }
   }
 }
 
@@ -182,7 +185,10 @@ void QtGMenuModel::ActionParameterized( QString action_name, bool parameterized 
   auto action_it = m_actions.find( action_name );
   if( action_it != end( m_actions ) )
   {
-    action_it->second.second->setProperty( c_property_isParameterized, parameterized );
+    for( auto& action : action_it->second )
+    {
+      action->setProperty( c_property_isParameterized, parameterized );
+    }
   }
 }
 
@@ -255,7 +261,7 @@ void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int 
       if( index < m_menu->actions().size() )
       {
         QAction* at_action = m_menu->actions().at( index );
-        ActionRemoved( at_action->property( c_property_actionName ).toString() );
+        ActionRemoved( at_action->property( c_property_actionName ).toString(), at_action );
         m_menu->removeAction( at_action );
       }
     }
@@ -533,36 +539,44 @@ void QtGMenuModel::ActionAdded( const QString& name, QAction* action )
   }
   else
   {
-    // check if this action is already in our map
+    // check if the action name is already in our map
     if( m_actions.find( name ) != m_actions.end() )
     {
-      // increment the reference count for this action
-      ++m_actions[name].first;
+      // add the QAction pointer to the list of actions under this name
+      m_actions[name].push_back( action );
     }
     else
     {
       // otherwise insert the new action into the map
-      m_actions.insert( std::make_pair( name, std::make_pair( 1, action ) ) );
+      m_actions.insert( std::make_pair( name, std::vector< QAction* >{ action } ) );
     }
   }
 }
 
-void QtGMenuModel::ActionRemoved( const QString& name )
+void QtGMenuModel::ActionRemoved( const QString& name, QAction* action )
 {
   // remove action from top menu's m_actions
   if( m_parent )
   {
-    m_parent->ActionRemoved( name );
+    m_parent->ActionRemoved( name, action );
   }
   else
   {
     // check if this action is actually in our map
     if( m_actions.find( name ) != m_actions.end() )
     {
-      // decrement the reference count for this action
-      if( --m_actions[name].first == 0 )
+      // remove the QAction pointer from the list of actions under this name
+      auto& actionList = m_actions[name];
+      auto actionIt = std::find( actionList.begin(), actionList.end(), action );
+
+      if( actionIt != actionList.end())
       {
-        // if there are no more references to this action, remove it from the map
+        actionList.erase( actionIt );
+      }
+
+      // if there are no more references to this action, remove it from the map
+      if( actionList.size() == 0 )
+      {
         m_actions.erase( name );
       }
     }
