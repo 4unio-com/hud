@@ -1,21 +1,9 @@
 description "Unity HUD"
 
-pre-start script
-	if [ -z $DBUS_SESSION_BUS_ADDRESS ]; then
-		echo "Working around missing DBUS_SESSION_BUS_ADDRESS variable"
-		printf "DuplicateSignature\0DBusSessionAddressNotSet" | /usr/share/apport/recoverable_problem -p `pidof -s -o 1 init`
-		. "${HOME}/.cache/upstart/dbus-session"
-		initctl set-env "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS"
-	fi
-end script
-
 # Currently started by the dbus service file
 # start on dbus-activation com.canonical.hud
 stop on desktop-end
 start on started dbus and ((xsession SESSION=ubuntu-touch) or (xsession SESSION=ubuntu-touch-surfaceflinger) or (xsession SESSION=ubuntu))
-
-env HUD_SERVICE_TIMEOUT=0
-export HUD_SERVICE_TIMEOUT
 
 pre-start script
 	if [ -z $DBUS_SESSION_BUS_ADDRESS ]; then
