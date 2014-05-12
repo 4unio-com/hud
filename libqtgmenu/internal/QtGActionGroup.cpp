@@ -126,13 +126,11 @@ void QtGActionGroup::EmitStates()
 
     bool enabled = G_ACTION_GROUP_GET_IFACE( m_action_group.data() ) ->get_action_enabled( m_action_group.data(),
         action_name );
-    if( !enabled )
-      emit ActionEnabled( FullName(m_action_prefix, action_name), enabled );
+    emit ActionEnabled( FullName(m_action_prefix, action_name), enabled );
 
     const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group.data(),
         action_name );
-    if( type != nullptr )
-      emit ActionParameterized( FullName(m_action_prefix, action_name), type != nullptr );
+    emit ActionParameterized( FullName(m_action_prefix, action_name), type != nullptr );
   }
 
   g_strfreev( actions_list );
