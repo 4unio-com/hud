@@ -178,10 +178,6 @@ void QtGMenuModel::ActionEnabled( QString action_name, bool enabled )
       action->setEnabled( enabled );
     }
   }
-  else
-  {
-    qWarning() << "Couldn't find action" << action_name;
-  }
 }
 
 void QtGMenuModel::ActionParameterized( QString action_name, bool parameterized )
