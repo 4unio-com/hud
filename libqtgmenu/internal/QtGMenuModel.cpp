@@ -342,10 +342,6 @@ void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int 
 
   // update external menu
   UpdateExtQMenu();
-  if( m_link_type == LinkType::Section && m_parent )
-  {
-    m_parent->UpdateExtQMenu();
-  }
 
   // now tell the outside world that items have changed
   emit MenuItemsChanged( this, index, removed, added );
@@ -530,6 +526,12 @@ void QtGMenuModel::UpdateExtQMenu()
     {
       m_ext_menu->removeAction( last_action );
     }
+  }
+
+  // if this is a section within a parent menu, we need to update the parent menu as well
+  if( m_link_type == LinkType::Section && m_parent )
+  {
+    m_parent->UpdateExtQMenu();
   }
 }
 
