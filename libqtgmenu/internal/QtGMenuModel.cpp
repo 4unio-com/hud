@@ -291,8 +291,8 @@ void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int 
   // now process added items
   if( added > 0 )
   {
-    // update m_children
-    for( int i = index; i < ( index + added ); ++i )
+    // update m_children (start from the end and work backwards as not to overlap items as we shift them up)
+    for( int i = m_size - 1; i >= index; --i )
     {
       // shift 'added' items up from their current index to ( index + added )
       if( m_children.contains( i ) )
