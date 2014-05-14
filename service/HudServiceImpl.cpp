@@ -104,13 +104,24 @@ QString HudServiceImpl::StartQuery(const QString &queryString, int entries,
 		QList<Suggestion> &suggestions, QDBusVariant &querykey) {
 	QString sender(messageSender());
 
-	Query::Ptr query(m_legacyQueries[sender]);
+	QPair<Query::Ptr, QSharedPointer<QTimer>> entry(m_legacyQueries[sender]);
+	Query::Ptr query(entry.first);
+	QSharedPointer<QTimer> legacyTimeout(entry.second);
 	if (query.isNull()) {
 		query = createQuery(queryString, sender,
 				Query::EmptyBehaviour::NO_SUGGESTIONS);
-		m_legacyQueries[sender] = query;
+
+		legacyTimeout.reset(new QTimer());
+		legacyTimeout->setInterval(2000);
+		legacyTimeout->setSingleShot(true);
+		connect(legacyTimeout.data(), SIGNAL(timeout()), this,
+				SLOT(legacyTimeout()));
+
+		m_legacyQueries[sender] = qMakePair(query, legacyTimeout);
 	} else {
 		query->UpdateQuery(queryString);
+		legacyTimeout->stop();
+		legacyTimeout->setProperty("sender", QVariant());
 	}
 
 	// The legacy API only allows you to search the current application
@@ -142,8 +153,13 @@ void HudServiceImpl::ExecuteQuery(const QDBusVariant &itemKey, uint timestamp) {
 	Q_UNUSED(timestamp);
 	QString sender(messageSender());
 
-	Query::Ptr query(m_legacyQueries.take(sender));
+	QPair<Query::Ptr, QSharedPointer<QTimer>> entry(m_legacyQueries.take(sender));
+	Query::Ptr query(entry.first);
+	QSharedPointer<QTimer> legacyTimeout(entry.second);
 	if (!query.isNull()) {
+		legacyTimeout->stop();
+		legacyTimeout->setProperty("sender", QVariant());
+
 		query->ExecuteCommand(itemKey, timestamp);
 		closeQuery(query->path());
 	}
@@ -156,8 +172,32 @@ void HudServiceImpl::CloseQuery(const QDBusVariant &querykey) {
 	// We don't actually close legacy queries, or we'd be constructing
 	// and destructing them during the search, due to the way that
 	// Unity7 uses the API.
-	Query::Ptr query(m_legacyQueries[sender]);
+	QPair<Query::Ptr, QSharedPointer<QTimer>> entry(m_legacyQueries[sender]);
+	Query::Ptr query(entry.first);
+	QSharedPointer<QTimer> legacyTimeout(entry.second);
 	if (!query.isNull()) {
 		query->UpdateQuery(QString());
+		legacyTimeout->start();
+		legacyTimeout->setProperty("sender", sender);
 	}
+}
+
+void HudServiceImpl::legacyTimeout() {
+	QObject *timer(sender());
+	if (!timer) {
+		return;
+	}
+
+	QVariant from(timer->property("sender"));
+	if (from.isNull()) {
+		return;
+	}
+
+	QString sender(from.toString());
+	QPair<Query::Ptr, QSharedPointer<QTimer>> entry(m_legacyQueries.take(sender));
+	Query::Ptr query(entry.first);
+	if (query) {
+		closeQuery(query->path());
+	}
+
 }
