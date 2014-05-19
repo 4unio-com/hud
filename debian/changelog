@@ -1,3 +1,10 @@
+hud (13.10.1+14.04.20140519-0ubuntu1) UNRELEASED; urgency=medium
+
+  * fix duplicated pre-start blocks in upstart jobs
+  * make sure we use dbus address from /run/user/$USER
+
+ -- Oliver Grawert <ogra@ubuntu.com>  Mon, 19 May 2014 16:30:07 +0200
+
 hud (13.10.1+14.04.20140402-0ubuntu2) utopic; urgency=medium
 
   * No-change rebuild for shlib changes in qtbase and qtdeclarative.
