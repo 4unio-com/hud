@@ -1,12 +1,9 @@
 
 if(${ENABLE_BAMF})
 	add_definitions( -DENABLE_BAMF=1 )
-elseif(${ENABLE_PLATFORM_API})
-	add_definitions( -DENABLE_PLATFORM_API=1 )
-	set(PLATFORM_API_LIBRARIES "-lubuntu_application_api")
 endif()
 
-if(${ENABLE_BAMF} OR ${ENABLE_PLATFORM_API})
+if(${ENABLE_BAMF})
 
 set(
 	WINDOW_STACK_BRIDGE_SOURCES
@@ -27,10 +24,6 @@ if(${ENABLE_BAMF})
 		${BAMF_VIEW_XML}
 		BamfViewInterface
 	)
-endif()
-
-if(${ENABLE_PLATFORM_API})
-	list(APPEND WINDOW_STACK_BRIDGE_SOURCES PlatformApiWindowStack.cpp)
 endif()
 
 qt5_add_dbus_adaptor(
@@ -62,7 +55,6 @@ qt5_use_modules(
 target_link_libraries(
 	window-stack-bridge
 	hud-common
-	${PLATFORM_API_LIBRARIES}
 )
 
 add_executable(
