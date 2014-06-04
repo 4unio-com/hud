@@ -1,4 +1,4 @@
-hud (14.04-0ubuntu1) UNRELEASED; urgency=medium
+hud (14.04+14.04.20140604-0ubuntu1) trusty; urgency=medium
 
   [ Pete Woods ]
   * Resolve crasher in previous attempted SRU. (LP: #1298656)
@@ -7,7 +7,7 @@ hud (14.04-0ubuntu1) UNRELEASED; urgency=medium
     - Improve legacy menu safety valve trigger.
     - Remove duplicate entries in upstart job.
 
- -- Pete Woods <pete.woods@canonical.com>  Wed, 28 May 2014 10:16:06 +0200
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 04 Jun 2014 14:04:12 +0000
 
 hud (13.10.1+14.04.20140425-0ubuntu1) trusty; urgency=low
 
