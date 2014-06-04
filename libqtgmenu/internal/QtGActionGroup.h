@@ -20,6 +20,7 @@
 #define QTGACTIONGROUP_H
 
 #include <QObject>
+#include <QSharedPointer>
 #include <QVariant>
 
 #undef signals
@@ -33,10 +34,13 @@ class QtGActionGroup : public QObject
 Q_OBJECT
 
 public:
-  QtGActionGroup( const QString& action_prefix, GActionGroup* action_group );
+  QtGActionGroup(QSharedPointer<GDBusConnection> connection,
+            const QString& action_prefix,
+            const QString& service,
+            const QString& path);
   virtual ~QtGActionGroup();
 
-  GActionGroup* ActionGroup() const;
+  QSharedPointer<GActionGroup> ActionGroup() const;
 
 Q_SIGNALS:
   void ActionAdded( QString action_name );
@@ -66,7 +70,7 @@ private:
 private:
 
   QString m_action_prefix;
-  GActionGroup* m_action_group = nullptr;
+  QSharedPointer<GActionGroup> m_action_group;
 
   gulong m_action_added_handler = 0;
   gulong m_action_removed_handler = 0;

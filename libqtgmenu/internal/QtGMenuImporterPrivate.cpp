@@ -30,7 +30,7 @@ QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QD
       m_service_watcher( service, QDBusConnection::sessionBus(),
           QDBusServiceWatcher::WatchForOwnerChange ),
       m_parent( parent ),
-      m_connection( g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL ) ),
+      m_connection( g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL ), &g_object_unref ),
       m_service( service ),
       m_menu_path( menu_path ),
       m_action_paths( action_paths )
@@ -48,26 +48,24 @@ QtGMenuImporterPrivate::~QtGMenuImporterPrivate()
 {
   ClearMenuModel();
   ClearActionGroups();
-
-  g_object_unref( m_connection );
 }
 
-GMenuModel* QtGMenuImporterPrivate::GetGMenuModel()
+QSharedPointer<GMenuModel> QtGMenuImporterPrivate::GetGMenuModel()
 {
   if( m_menu_model == nullptr )
   {
-    return nullptr;
+    return QSharedPointer<GMenuModel>();
   }
 
   return m_menu_model->Model();
 }
 
-GActionGroup* QtGMenuImporterPrivate::GetGActionGroup( int index )
+QSharedPointer<GActionGroup> QtGMenuImporterPrivate::GetGActionGroup( int index )
 {
   if( index >= m_action_groups.size() ||
       m_action_groups[index] == nullptr )
   {
-    return nullptr;
+    return QSharedPointer<GActionGroup>();
   }
 
   return m_action_groups[index]->ActionGroup();
@@ -160,13 +158,12 @@ void QtGMenuImporterPrivate::RefreshGMenuModel()
   ClearMenuModel();
 
   QString menu_path = m_menu_path.path();
-  m_menu_model =
-      std::make_shared< QtGMenuModel > (
-              G_MENU_MODEL( g_dbus_menu_model_get( m_connection, m_service.toUtf8().constData(), menu_path.toUtf8().constData() ) ),
-              m_service, menu_path, m_action_paths );
+  m_menu_model = std::make_shared< QtGMenuModel > ( m_connection, m_service, menu_path, m_action_paths );
 
   connect( m_menu_model.get(), SIGNAL( MenuItemsChanged( QtGMenuModel*, int, int,
           int ) ), &m_parent, SIGNAL( MenuItemsChanged()) );
+
+  connect( m_menu_model.get(), SIGNAL( MenuInvalid() ), this, SLOT( MenuInvalid() ) );
 }
 
 void QtGMenuImporterPrivate::RefreshGActionGroup()
@@ -181,8 +178,8 @@ void QtGMenuImporterPrivate::RefreshGActionGroup()
 
     QString action_path = action_path_it.value().path();
     m_action_groups.push_back(
-        std::make_shared< QtGActionGroup > ( action_path_it.key(),
-                G_ACTION_GROUP( g_dbus_action_group_get( m_connection, m_service.toUtf8().constData(), action_path.toUtf8().constData() ) ) ) );
+                std::make_shared<QtGActionGroup>(m_connection,
+                        action_path_it.key(), m_service, action_path));
 
     auto action_group = m_action_groups.back();
 
@@ -197,4 +194,15 @@ void QtGMenuImporterPrivate::RefreshGActionGroup()
   }
 
   LinkMenuActions();
+}
+
+void QtGMenuImporterPrivate::MenuInvalid()
+{
+  disconnect( &m_service_watcher, SIGNAL( serviceRegistered( const QString& ) ), this,
+        SLOT( ServiceRegistered() ) );
+
+  disconnect( &m_service_watcher, SIGNAL( serviceUnregistered( const QString& ) ), this,
+        SLOT( ServiceUnregistered() ) );
+
+  ServiceUnregistered();
 }

@@ -28,6 +28,7 @@
 #include <QDBusVariant>
 #include <QMap>
 #include <QScopedPointer>
+#include <QTimer>
 
 class HudAdaptor;
 
@@ -73,6 +74,9 @@ public Q_SLOTS:
 
 	void CloseQuery(const QDBusVariant &querykey);
 
+protected Q_SLOTS:
+	void legacyTimeout();
+
 protected:
 	Query::Ptr createQuery(const QString &query, const QString &service,
 			Query::EmptyBehaviour emptyBehaviour);
@@ -85,7 +89,7 @@ protected:
 
 	QMap<QDBusObjectPath, Query::Ptr> m_queries;
 
-	QMap<QString, Query::Ptr> m_legacyQueries;
+	QMap<QString, QPair<Query::Ptr, QSharedPointer<QTimer>>> m_legacyQueries;
 
 	QSharedPointer<ApplicationList> m_applicationList;
 

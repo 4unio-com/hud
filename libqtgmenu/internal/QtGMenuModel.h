@@ -43,17 +43,14 @@ public:
     Root, Section, SubMenu
   };
 
-  explicit QtGMenuModel( GMenuModel* model );
-  QtGMenuModel( GMenuModel* model, const QString& bus_name, const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths );
+  QtGMenuModel( QSharedPointer<GDBusConnection> connection, const QString& bus_name, const QString& menu_path, const QMap<QString, QDBusObjectPath>& action_paths );
   virtual ~QtGMenuModel();
 
-  GMenuModel* Model() const;
+  QSharedPointer<GMenuModel> Model() const;
   LinkType Type() const;
 
-  int Size() const;
-
   QtGMenuModel* Parent() const;
-  QtGMenuModel* Child( int index ) const;
+  QSharedPointer<QtGMenuModel> Child( int index ) const;
 
   std::shared_ptr< QMenu > GetQMenu();
 
@@ -68,6 +65,7 @@ public:
 Q_SIGNALS:
   void MenuItemsChanged( QtGMenuModel* model, int index, int removed, int added );
   void ActionTriggered( QString action_name, bool checked );
+  void MenuInvalid();
 
 public Q_SLOTS:
   void ActionEnabled( QString action_name, bool enabled );
@@ -77,20 +75,19 @@ private Q_SLOTS:
   void ActionTriggered( bool );
 
 private:
-  QtGMenuModel( GMenuModel* model, LinkType link_type, QtGMenuModel* parent, int index );
+  QtGMenuModel( QSharedPointer<GMenuModel> model, LinkType link_type, QtGMenuModel* parent, int index );
 
-  static QtGMenuModel* CreateChild( QtGMenuModel* parent, GMenuModel* model, int index );
+  static QSharedPointer<QtGMenuModel> CreateChild( QtGMenuModel* parent_qtgmenu, QSharedPointer<GMenuModel> parent_gmenu, int child_index );
 
   static void MenuItemsChangedCallback( GMenuModel* model, gint index, gint removed, gint added,
       gpointer user_data );
 
-  void ChangeMenuItems( int index, int added, int removed );
+  void ChangeMenuItems( const int index, const int added, const int removed );
 
   void ConnectCallback();
   void DisconnectCallback();
 
-  void InsertChild( QtGMenuModel* child, int index );
-  int ChildIndex( QtGMenuModel* child );
+  void InsertChild( QSharedPointer<QtGMenuModel> child, int index );
 
   QAction* CreateAction( int index );
 
@@ -98,26 +95,32 @@ private:
   void UpdateExtQMenu();
 
   void ActionAdded( const QString& name, QAction* action );
-  void ActionRemoved( const QString& name );
+  void ActionRemoved( const QString& name, QAction* action );
+
+  void ReportRecoverableError(const int index, const int added, const int removed);
 
 private:
   QtGMenuModel* m_parent = nullptr;
-  QMap< int, QtGMenuModel* > m_children;
+  QMap< int, QSharedPointer<QtGMenuModel>> m_children;
 
-  GMenuModel* m_model = nullptr;
+  QSharedPointer<GMenuModel> m_model;
   gulong m_items_changed_handler = 0;
 
   LinkType m_link_type;
   int m_size = 0;
 
-  QMenu* m_menu = new QMenu();
-  QMenu* m_ext_menu = new QMenu();
+  QScopedPointer<QMenu> m_menu;
+  QScopedPointer<QMenu> m_ext_menu;
 
+  QSharedPointer<GDBusConnection> m_connection;
   QString m_bus_name;
   QString m_menu_path;
   QMap<QString, QDBusObjectPath> m_action_paths;
 
-  std::map< QString, QAction* > m_actions;
+  // a map of QActions indexed by their name and stored with a reference count
+  std::map< QString, std::vector< QAction* > > m_actions;
+
+  bool m_error_reported = false;
 };
 
 } // namespace qtgmenu
