@@ -1,12 +1,7 @@
-
-if(${ENABLE_BAMF} OR ${ENABLE_PLATFORM_API})
+if(${ENABLE_BAMF})
 
 if(${ENABLE_BAMF})
 	list(APPEND UNIT_TESTS_SRC TestBamfWindowStack.cpp)
-endif()
-
-if(${ENABLE_PLATFORM_API})
-	list(APPEND UNIT_TESTS_SRC TestPlatformApiWindowStack.cpp)
 endif()
 
 add_executable(
