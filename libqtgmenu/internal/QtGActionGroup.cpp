@@ -21,13 +21,20 @@
 
 using namespace qtgmenu;
 
-QtGActionGroup::QtGActionGroup( const QString& action_prefix, GActionGroup* action_group )
+QtGActionGroup::QtGActionGroup( QSharedPointer<GDBusConnection> connection,
+        const QString& action_prefix,
+        const QString& service,
+        const QString& path )
     : m_action_prefix( action_prefix ),
-      m_action_group( action_group )
+      m_action_group(
+                G_ACTION_GROUP(
+                        g_dbus_action_group_get(connection.data(),
+                                service.toUtf8().constData(),
+                                path.toUtf8().constData())), &g_object_unref)
 {
   ConnectCallbacks();
 
-  auto actions_list = g_action_group_list_actions( m_action_group );
+  auto actions_list = g_action_group_list_actions( m_action_group.data() );
   if( actions_list )
   {
     for( int i = 0; actions_list[i]; ++i )
@@ -46,7 +53,7 @@ QtGActionGroup::~QtGActionGroup()
     return;
   }
 
-  auto actions_list = g_action_group_list_actions( m_action_group );
+  auto actions_list = g_action_group_list_actions( m_action_group.data() );
   if( actions_list )
   {
     for( int i = 0; actions_list[i]; ++i )
@@ -58,14 +65,9 @@ QtGActionGroup::~QtGActionGroup()
   }
 
   DisconnectCallbacks();
-
-  g_object_unref( m_action_group );
-  m_action_group = nullptr;
-
-  return;
 }
 
-GActionGroup* QtGActionGroup::ActionGroup() const
+QSharedPointer<GActionGroup> QtGActionGroup::ActionGroup() const
 {
   return m_action_group;
 }
@@ -83,12 +85,12 @@ void QtGActionGroup::TriggerAction( QString action_name, bool checked )
   const QString& action(split.second);
   QByteArray action_utf = action.toUtf8();
 
-  const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,
+  const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group.data(),
 		  action_utf.constData() );
 
   if( type == nullptr )
   {
-    g_action_group_activate_action( m_action_group, action_utf.constData(), nullptr );
+    g_action_group_activate_action( m_action_group.data(), action_utf.constData(), nullptr );
   }
   else
   {
@@ -96,7 +98,7 @@ void QtGActionGroup::TriggerAction( QString action_name, bool checked )
     if( g_variant_type_equal( type, G_VARIANT_TYPE_STRING ) )
     {
       GVariant* param = g_variant_new_string( action_utf.constData() );
-      g_action_group_activate_action( m_action_group, action_utf.constData(), param );
+      g_action_group_activate_action( m_action_group.data(), action_utf.constData(), param );
       g_variant_unref( param );
     }
   }
@@ -116,21 +118,19 @@ QString QtGActionGroup::FullName( const QString& prefix, const QString& action_n
 
 void QtGActionGroup::EmitStates()
 {
-  auto actions_list = g_action_group_list_actions( m_action_group );
+  auto actions_list = g_action_group_list_actions( m_action_group.data() );
 
   for( int i = 0; actions_list && actions_list[i]; ++i )
   {
     gchar* action_name = actions_list[i];
 
-    bool enabled = G_ACTION_GROUP_GET_IFACE( m_action_group ) ->get_action_enabled( m_action_group,
+    bool enabled = G_ACTION_GROUP_GET_IFACE( m_action_group.data() ) ->get_action_enabled( m_action_group.data(),
         action_name );
-    if( !enabled )
-      emit ActionEnabled( FullName(m_action_prefix, action_name), enabled );
+    emit ActionEnabled( FullName(m_action_prefix, action_name), enabled );
 
-    const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group,
+    const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group.data(),
         action_name );
-    if( type != nullptr )
-      emit ActionParameterized( FullName(m_action_prefix, action_name), type != nullptr );
+    emit ActionParameterized( FullName(m_action_prefix, action_name), type != nullptr );
   }
 
   g_strfreev( actions_list );
@@ -142,12 +142,12 @@ void QtGActionGroup::ActionAddedCallback( GActionGroup* action_group, gchar* act
   QtGActionGroup* self = reinterpret_cast< QtGActionGroup* >( user_data );
   emit self->ActionAdded( action_name );
 
-  bool enabled = G_ACTION_GROUP_GET_IFACE( self->m_action_group ) ->get_action_enabled(
-      self->m_action_group, action_name );
+  bool enabled = G_ACTION_GROUP_GET_IFACE( self->m_action_group.data() ) ->get_action_enabled(
+      self->m_action_group.data(), action_name );
   if( !enabled )
     emit self->ActionEnabled( FullName(self->m_action_prefix, action_name), enabled );
 
-  const GVariantType* type = g_action_group_get_action_parameter_type( self->m_action_group,
+  const GVariantType* type = g_action_group_get_action_parameter_type( self->m_action_group.data(),
       action_name );
   if( type != nullptr )
     emit self->ActionParameterized( FullName(self->m_action_prefix, action_name), type != nullptr );
@@ -178,22 +178,22 @@ void QtGActionGroup::ConnectCallbacks()
 {
   if( m_action_group && m_action_added_handler == 0 )
   {
-    m_action_added_handler = g_signal_connect( m_action_group, "action-added",
+    m_action_added_handler = g_signal_connect( m_action_group.data(), "action-added",
         G_CALLBACK( ActionAddedCallback ), this );
   }
   if( m_action_group && m_action_removed_handler == 0 )
   {
-    m_action_removed_handler = g_signal_connect( m_action_group, "action-removed",
+    m_action_removed_handler = g_signal_connect( m_action_group.data(), "action-removed",
         G_CALLBACK( ActionRemovedCallback ), this );
   }
   if( m_action_group && m_action_enabled_handler == 0 )
   {
-    m_action_enabled_handler = g_signal_connect( m_action_group, "action-enabled-changed",
+    m_action_enabled_handler = g_signal_connect( m_action_group.data(), "action-enabled-changed",
         G_CALLBACK( ActionEnabledCallback ), this );
   }
   if( m_action_group && m_action_state_changed_handler == 0 )
   {
-    m_action_state_changed_handler = g_signal_connect( m_action_group, "action-state-changed",
+    m_action_state_changed_handler = g_signal_connect( m_action_group.data(), "action-state-changed",
         G_CALLBACK( ActionStateChangedCallback ), this );
   }
 }
@@ -202,19 +202,19 @@ void QtGActionGroup::DisconnectCallbacks()
 {
   if( m_action_group && m_action_added_handler != 0 )
   {
-    g_signal_handler_disconnect( m_action_group, m_action_added_handler );
+    g_signal_handler_disconnect( m_action_group.data(), m_action_added_handler );
   }
   if( m_action_group && m_action_removed_handler != 0 )
   {
-    g_signal_handler_disconnect( m_action_group, m_action_removed_handler );
+    g_signal_handler_disconnect( m_action_group.data(), m_action_removed_handler );
   }
   if( m_action_group && m_action_enabled_handler != 0 )
   {
-    g_signal_handler_disconnect( m_action_group, m_action_enabled_handler );
+    g_signal_handler_disconnect( m_action_group.data(), m_action_enabled_handler );
   }
   if( m_action_group && m_action_state_changed_handler != 0 )
   {
-    g_signal_handler_disconnect( m_action_group, m_action_state_changed_handler );
+    g_signal_handler_disconnect( m_action_group.data(), m_action_state_changed_handler );
   }
 
   m_action_added_handler = 0;

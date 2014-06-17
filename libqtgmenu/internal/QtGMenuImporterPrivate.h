@@ -43,8 +43,8 @@ public:
                           const QMap<QString, QDBusObjectPath>& action_paths, QtGMenuImporter& parent );
   virtual ~QtGMenuImporterPrivate();
 
-  GMenuModel* GetGMenuModel();
-  GActionGroup* GetGActionGroup( int index = 0);
+  QSharedPointer<GMenuModel> GetGMenuModel();
+  QSharedPointer<GActionGroup> GetGActionGroup( int index = 0);
 
   std::shared_ptr< QMenu > GetQMenu();
 
@@ -62,13 +62,14 @@ private Q_SLOTS:
 
   void RefreshGMenuModel();
   void RefreshGActionGroup();
+  void MenuInvalid();
 
 private:
   QDBusServiceWatcher m_service_watcher;
 
   QtGMenuImporter& m_parent;
 
-  GDBusConnection* m_connection;
+  QSharedPointer<GDBusConnection> m_connection;
   QString m_service;
   QDBusObjectPath m_menu_path;
   QMap<QString, QDBusObjectPath> m_action_paths;

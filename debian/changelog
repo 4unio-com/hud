@@ -1,3 +1,21 @@
+hud (14.10-0ubuntu1) UNRELEASED; urgency=medium
+
+  [ Pete Woods ]
+  * Forward port changes from trusty.
+
+ -- Pete Woods <pete.woods@canonical.com>  Fri, 13 Jun 2014 08:22:34 +0100
+
+hud (14.04+14.04.20140604-0ubuntu1) trusty; urgency=medium
+
+  [ Pete Woods ]
+  * Resolve crasher in previous attempted SRU. (LP: #1298656)
+    - Fix order of menu traversal.
+    - Add timeout to legacy HUD queries.
+    - Improve legacy menu safety valve trigger.
+    - Remove duplicate entries in upstart job.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 04 Jun 2014 14:04:12 +0000
+
 hud (13.10.1+14.10.20140609-0ubuntu1) utopic; urgency=low
 
   [ Ubuntu daily release ]
@@ -7,6 +25,22 @@ hud (13.10.1+14.10.20140609-0ubuntu1) utopic; urgency=low
   * Drop support for Platform API (SF)
 
  -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 09 Jun 2014 14:06:31 +0000
+
+hud (13.10.1+14.04.20140425-0ubuntu1) trusty; urgency=low
+
+  [ Pete Woods ]
+  * Harden HUD against misbehaving applications Report the offending
+    applications using Apport's recoverable problem tool. Switch to
+    using shared pointers where possible for managing memory. (LP:
+    #1298656)
+
+  [ Marcus Tomlinson ]
+  * Harden HUD against misbehaving applications Report the offending
+    applications using Apport's recoverable problem tool. Switch to
+    using shared pointers where possible for managing memory. (LP:
+    #1298656)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 25 Apr 2014 08:48:46 +0000
 
 hud (13.10.1+14.04.20140402-0ubuntu2) utopic; urgency=medium
 

@@ -82,23 +82,16 @@ bool DBusMenuCollector::isValid() const {
 	return !m_menuImporter.isNull();
 }
 
-inline uint qHash(const QStringList &key, uint seed) {
-	uint hash(0);
-	for (const QString &s : key) {
-		hash ^= qHash(s, seed);
-	}
-	return hash;
-}
-
 void DBusMenuCollector::openMenu(QMenu *menu, unsigned int &limit) {
-	if (!menu) {
-		return;
-	}
-
+	--limit;
 	if (limit == 0) {
-		QString error = "Hit DBusMenu safety valve for menu at " + m_service
+		QString error = "Hit DBusMenu safety valve opening menu at " + m_service
 				+ " " + m_path.path();
 		throw std::logic_error(error.toStdString());
+	}
+
+	if (!menu) {
+		return;
 	}
 
 	menu->aboutToShow();
@@ -114,15 +107,15 @@ void DBusMenuCollector::openMenu(QMenu *menu, unsigned int &limit) {
 
 		QMenu *child(action->menu());
 		if (child) {
-			--limit;
 			openMenu(child, limit);
 		}
 	}
 }
 
 void DBusMenuCollector::hideMenu(QMenu *menu, unsigned int &limit) {
+	--limit;
 	if (limit == 0) {
-		QString error = "Hit DBusMenu safety valve for menu at " + m_service
+		QString error = "Hit DBusMenu safety valve closing menu at " + m_service
 				+ " " + m_path.path();
 		throw std::logic_error(error.toStdString());
 	}
@@ -131,7 +124,6 @@ void DBusMenuCollector::hideMenu(QMenu *menu, unsigned int &limit) {
 		QAction *action = menu->actions().at(i);
 		QMenu *child(action->menu());
 		if (child) {
-			--limit;
 			hideMenu(child, limit);
 		}
 	}
