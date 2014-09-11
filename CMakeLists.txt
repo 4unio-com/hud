@@ -11,7 +11,6 @@ option(ENABLE_TESTS "Enable tests." ON)
 option(ENABLE_SCALABILITY_TESTS "Additional scalability tests that are potentially very slow to run." OFF)
 option(LOCAL_INSTALL "Support local installation." OFF)
 option(ENABLE_BAMF "Enable building for BAMF." ON)
-option(ENABLE_PLATFORM_API "Enable building for platform API." OFF)
 
 # Trick the H10enable_coverage script into enabling coverage by including the text below:
 # CMAKE_BUILD_TYPE coverage

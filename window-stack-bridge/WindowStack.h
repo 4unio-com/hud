@@ -22,9 +22,6 @@
 #ifdef ENABLE_BAMF
 #include <BamfWindowStack.h>
 typedef BamfWindowStack WindowStack;
-#elif ENABLE_PLATFORM_API
-#include <PlatformApiWindowStack.h>
-typedef PlatformApiWindowStack WindowStack;
 #endif
 
 #endif /* WINDOWSTACK_H_ */

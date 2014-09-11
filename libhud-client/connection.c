@@ -343,11 +343,15 @@ new_query_complete (GObject * object, GAsyncResult * res, gpointer user_data)
 			g_warning("Unable to allocate query: %s", error->message);
 		}
 		g_error_free(error);
+		return;
 	}
 
 	data->cb(data->con, query_object, results_name, appstack_name, data->user_data);
 
 	g_free(data);
+	g_free(query_object);
+	g_free(results_name);
+	g_free(appstack_name);
 
 	return;
 }

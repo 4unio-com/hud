@@ -147,6 +147,7 @@ hud_client_param_finalize (GObject *object)
 	g_list_free_full(param->priv->queued_commands, g_free);
 	param->priv->queued_commands = NULL;
 
+	g_clear_pointer(&param->priv->dbus_address, g_free);
 	g_clear_pointer(&param->priv->base_action, g_free);
 	g_clear_pointer(&param->priv->action_path, g_free);
 	g_clear_pointer(&param->priv->model_path, g_free);

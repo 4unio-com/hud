@@ -240,6 +240,6 @@ QPair<QString, QString> QtGMenuUtils::splitPrefixAndName( const QString& name )
   }
   else
   {
-    return qMakePair(name.left( index ), name.right( name.size() - index - 1 ));
+    return qMakePair(name.left( index ), name.mid( index + 1 ));
   }
 }

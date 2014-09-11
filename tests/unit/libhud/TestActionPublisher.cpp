@@ -40,11 +40,10 @@ protected:
 		dbus.startServices();
 		hud.loadMethods();
 
-		connection = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+		connection.reset(g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL), &g_object_unref);
 	}
 
 	virtual ~TestActionPublisher() {
-		g_object_unref(connection);
 	}
 
 	DBusTestRunner dbus;
@@ -53,7 +52,7 @@ protected:
 
 	MockHudService hud;
 
-	GDBusConnection *connection;
+	QSharedPointer<GDBusConnection> connection;
 };
 
 TEST_F(TestActionPublisher, NewForId) {
@@ -82,31 +81,28 @@ TEST_F(TestActionPublisher, NewForId) {
 }
 
 TEST_F(TestActionPublisher, NewForApplication) {
-	GApplication *application = g_application_new("app.id",
-			G_APPLICATION_FLAGS_NONE);
-	ASSERT_TRUE(g_application_register(application, NULL, NULL));
+	QSharedPointer<GApplication> application(g_application_new("app.id",
+					G_APPLICATION_FLAGS_NONE), &g_object_unref);
+	ASSERT_TRUE(g_application_register(application.data(), NULL, NULL));
 
-	HudActionPublisher *publisher = hud_action_publisher_new_for_application(
-			application);
-	EXPECT_TRUE(publisher);
-
-	g_object_unref(application);
-	g_object_unref(publisher);
+	QSharedPointer<HudActionPublisher> publisher(hud_action_publisher_new_for_application(
+				application.data()), &g_object_unref);
+	ASSERT_TRUE(publisher.data());
 }
 
 TEST_F(TestActionPublisher, AddActionGroup) {
-	GApplication *application = g_application_new("app.id",
-			G_APPLICATION_FLAGS_NONE);
-	ASSERT_TRUE(g_application_register(application, NULL, NULL));
+	QSharedPointer<GApplication> application(g_application_new("app.id",
+				G_APPLICATION_FLAGS_NONE), &g_object_unref);
+	ASSERT_TRUE(g_application_register(application.data(), NULL, NULL));
 
-	HudActionPublisher *publisher = hud_action_publisher_new_for_application(
-			application);
-	ASSERT_TRUE(publisher);
+	QSharedPointer<HudActionPublisher> publisher(hud_action_publisher_new_for_application(
+			application.data()), &g_object_unref);
+	ASSERT_TRUE(publisher.data());
 
 	// FIXME Waiting in tests
 	QTestEventLoop::instance().enterLoopMSecs(100);
 	{
-		GList* groups = hud_action_publisher_get_action_groups(publisher);
+		GList* groups = hud_action_publisher_get_action_groups(publisher.data());
 		ASSERT_EQ(1, g_list_length(groups));
 		{
 			HudActionPublisherActionGroupSet *group =
@@ -117,12 +113,12 @@ TEST_F(TestActionPublisher, AddActionGroup) {
 		}
 	}
 
-	hud_action_publisher_add_action_group(publisher, "prefix", "/object/path");
+	hud_action_publisher_add_action_group(publisher.data(), "prefix", "/object/path");
 
 	// FIXME Waiting in tests
 	QTestEventLoop::instance().enterLoopMSecs(100);
 	{
-		GList* groups = hud_action_publisher_get_action_groups(publisher);
+		GList* groups = hud_action_publisher_get_action_groups(publisher.data());
 		ASSERT_EQ(2, g_list_length(groups));
 		{
 			HudActionPublisherActionGroupSet *group =
@@ -151,28 +147,27 @@ TEST_F(TestActionPublisher, AddActionGroup) {
 	}
 
 	// FIXME This API method currently does nothing
-	hud_action_publisher_remove_action_group(publisher, "prefix",
-			g_variant_new_string("/object/path"));
-
-	g_object_unref(publisher);
-	g_object_unref(application);
+	QSharedPointer<GVariant> v(g_variant_new_string("/object/path"), &g_variant_unref);
+	hud_action_publisher_remove_action_group(publisher.data(), "prefix", v.data());
 }
 
 TEST_F(TestActionPublisher, AddDescription) {
-	GApplication *application = g_application_new("app.id",
-			G_APPLICATION_FLAGS_NONE);
-	ASSERT_TRUE(g_application_register(application, NULL, NULL));
+	QSharedPointer<GApplication> application(g_application_new("app.id",
+			G_APPLICATION_FLAGS_NONE), &g_object_unref);
+	ASSERT_TRUE(g_application_register(application.data(), NULL, NULL));
 
-	HudActionPublisher *publisher = hud_action_publisher_new_for_application(
-			application);
-	ASSERT_TRUE(publisher);
+	QSharedPointer<HudActionPublisher> publisher(hud_action_publisher_new_for_application(
+			application.data()), &g_object_unref);
+	ASSERT_TRUE(publisher.data());
 
-	HudActionDescription *description = hud_action_description_new(
-			"hud.simple-action", g_variant_new_string("Foo"));
-	hud_action_description_set_attribute_value(description,
+	QSharedPointer<HudActionDescription> description(
+			hud_action_description_new("hud.simple-action",
+					g_variant_new_string("Foo")),
+			&hud_action_description_unref);
+	hud_action_description_set_attribute_value(description.data(),
 	G_MENU_ATTRIBUTE_LABEL, g_variant_new_string("Simple Action"));
 
-	hud_action_publisher_add_description(publisher, description);
+	hud_action_publisher_add_description(publisher.data(), description.data());
 
 	// FIXME Waiting in tests
 	QTestEventLoop::instance().enterLoopMSecs(100);
@@ -180,43 +175,44 @@ TEST_F(TestActionPublisher, AddDescription) {
 	{
 		GMenuModel *model =
 		G_MENU_MODEL(
-				g_dbus_menu_model_get(connection, DBUS_NAME,
+				g_dbus_menu_model_get(connection.data(), DBUS_NAME,
 						"/com/canonical/hud/publisher"));
 		ASSERT_TRUE(model);
 		EXPECT_EQ(0, g_menu_model_get_n_items(model));
 		g_object_unref(model);
 	}
 
-	HudActionDescription *paramdesc = hud_action_description_new(
-			"hud.simple-action", NULL);
-	hud_action_description_set_attribute_value(paramdesc,
+	QSharedPointer<HudActionDescription> paramdesc(hud_action_description_new(
+			"hud.simple-action", NULL), &hud_action_description_unref);
+	hud_action_description_set_attribute_value(paramdesc.data(),
 	G_MENU_ATTRIBUTE_LABEL, g_variant_new_string("Parameterized Action"));
-	hud_action_publisher_add_description(publisher, paramdesc);
+	hud_action_publisher_add_description(publisher.data(), paramdesc.data());
 
-	GMenu * menu = g_menu_new();
-	g_menu_append_item(menu, g_menu_item_new("Item One", "hud.simple-action"));
-	g_menu_append_item(menu, g_menu_item_new("Item Two", "hud.simple-action"));
-	g_menu_append_item(menu,
-			g_menu_item_new("Item Three", "hud.simple-action"));
-	hud_action_description_set_parameterized(paramdesc, G_MENU_MODEL(menu));
+	QSharedPointer<GMenu> menu (g_menu_new(), &g_object_unref);
+	QSharedPointer<GMenuItem> item1(
+			g_menu_item_new("Item One", "hud.simple-action"), &g_object_unref);
+	QSharedPointer<GMenuItem> item2(
+			g_menu_item_new("Item Two", "hud.simple-action"), &g_object_unref);
+	QSharedPointer<GMenuItem> item3(
+			g_menu_item_new("Item Three", "hud.simple-action"),
+			&g_object_unref);
+	g_menu_append_item(menu.data(), item1.data());
+	g_menu_append_item(menu.data(), item2.data());
+	g_menu_append_item(menu.data(), item3.data());
+	hud_action_description_set_parameterized(paramdesc.data(), G_MENU_MODEL(menu.data()));
 
 	// FIXME Waiting in tests
 	QTestEventLoop::instance().enterLoopMSecs(100);
 
 	{
 		GMenuModel *model = G_MENU_MODEL(
-				g_dbus_menu_model_get(connection, DBUS_NAME,
+				g_dbus_menu_model_get(connection.data(), DBUS_NAME,
 						"/com/canonical/hud/publisher"));
 		EXPECT_TRUE(model);
 		EXPECT_EQ(0, g_menu_model_get_n_items(model));
 		EXPECT_TRUE(g_menu_model_is_mutable(model));
 		g_object_unref(model);
 	}
-
-	hud_action_description_unref(paramdesc);
-	hud_action_description_unref(description);
-	g_object_unref(application);
-	g_object_unref(publisher);
 }
 
 }
