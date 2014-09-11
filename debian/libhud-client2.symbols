@@ -69,3 +69,5 @@ libhud-client.so.2 libhud-client2 #MINVER#
  hud_client_query_toolbar_items_get_type@Base 13.04.0-0ubuntu1~ppa7
  hud_client_query_toolbar_items_get_value_from_nick@Base 13.04.0-0ubuntu1~ppa7
  hud_client_query_voice_query@Base 13.04.0
+ (optional)"__gcov_rewrite@Base" 0replaceme
+ (optional)"__gcov_var@Base" 0replaceme
