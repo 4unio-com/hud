@@ -92,6 +92,30 @@
    obj:/usr/lib/*/libpango-*.so.*
 }
 
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   fun:FcPatternObjectInsertElt
+   fun:FcPatternObjectAddWithBinding
+   fun:FcPatternAddInteger
+   obj:/usr/lib/*/libcairo.so.*
+   fun:pango_cairo_fc_font_map_fontset_key_substitute
+   fun:pango_fc_font_map_get_patterns
+   fun:pango_fc_font_map_load_fontset
+   fun:pango_fc_font_map_load_font
+   fun:_pango_cairo_font_private_get_hex_box_info
+   fun:_pango_cairo_font_private_get_glyph_extents_missing
+   fun:_pango_cairo_font_private_get_glyph_extents
+   fun:pango_fc_hb_font_get_glyph_advance
+   fun:get_glyph_h_advance
+   fun:get_glyph_advance_for_direction
+   fun:hb_ot_position_default
+   fun:hb_ot_position
+   fun:hb_ot_shape_internal
+   fun:_hb_ot_shape
+}
 
 {
    <insert_a_suppression_name_here>
@@ -210,31 +234,6 @@
 ###############################
 # Pango
 ###############################
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: definite
-   fun:realloc
-   fun:FcPatternObjectInsertElt
-   fun:FcPatternObjectAddWithBinding
-   fun:FcPatternAddInteger
-   obj:/usr/lib/x86_64-linux-gnu/libcairo.so.2.11301.0
-   fun:pango_cairo_fc_font_map_fontset_key_substitute
-   fun:pango_fc_font_map_get_patterns
-   fun:pango_fc_font_map_load_fontset
-   fun:pango_fc_font_map_load_font
-   fun:_pango_cairo_font_private_get_hex_box_info
-   fun:_pango_cairo_font_private_get_glyph_extents_missing
-   fun:_pango_cairo_font_private_get_glyph_extents
-   fun:pango_fc_hb_font_get_glyph_advance
-   fun:get_glyph_h_advance
-   fun:get_glyph_advance_for_direction
-   fun:hb_ot_position_default
-   fun:hb_ot_position
-   fun:hb_ot_shape_internal
-   fun:_hb_ot_shape
-}
 
 {
    <insert_a_suppression_name_here>
@@ -465,12 +464,3 @@
    ...
 }
 
-
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: definite
-   fun:malloc
-   ...
-   fun:dlopen*
-}
