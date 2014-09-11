@@ -52,9 +52,9 @@ add_definitions(-DMODEL_LIBHUD="${CMAKE_CURRENT_BINARY_DIR}/menus/test-libhud-ap
 set(TEST_RUNNER "${CMAKE_CURRENT_SOURCE_DIR}/run-under-xvfb.sh")
 
 function(add_hud_test NAME)
-	add_test(
+	add_valgrind_test(
 		${NAME}
-		${TEST_RUNNER} qdbus-simple-test-runner "${CMAKE_CURRENT_BINARY_DIR}/${NAME}"
+		${TEST_RUNNER} qdbus-simple-test-runner VALGRIND "${CMAKE_CURRENT_BINARY_DIR}/${NAME}"
 	)
 	
 	set_tests_properties(
