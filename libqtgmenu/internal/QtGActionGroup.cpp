@@ -75,14 +75,14 @@ QSharedPointer<GActionGroup> QtGActionGroup::ActionGroup() const
 void QtGActionGroup::TriggerAction( QString action_name, bool checked )
 {
   QPair<QString, QString> split = QtGMenuUtils::splitPrefixAndName(action_name);
-  const QString &prefix(split.first);
+  const QString& prefix(split.first);
 
   if( prefix != m_action_prefix )
   {
     return;
   }
 
-  const QString &action(split.second);
+  const QString& action(split.second);
   QByteArray action_utf = action.toUtf8();
 
   const GVariantType* type = g_action_group_get_action_parameter_type( m_action_group.data(),
