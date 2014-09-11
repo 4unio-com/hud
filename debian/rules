@@ -4,7 +4,7 @@ export DPKG_GENSYMBOLS_CHECK_LEVEL = 4
 export G_MESSAGES_DEBUG=all
 export DEBIAN_TARGET_DIR="${CURDIR}/debian/tmp"
 
-ifeq (,$(filter $(DEB_HOST_ARCH),ppc64el armhf arm64))
+ifneq (,$(filter $(DEB_HOST_ARCH),ppc64el armhf arm64))
 	ENABLE_BAMF = OFF
 	ENABLE_MEMCHECK_OPTION = OFF
 else
