@@ -3,7 +3,7 @@
    Google test internals
    Memcheck:Leak
    ...
-   fun:_ZN7testing8internal*
+   fun:*_ZN7testing8internal*
    ...
 }
 
@@ -194,10 +194,10 @@
    fun:g_malloc
    ...
    obj:/usr/lib/*/libdee-1.0.so.*
+   ...
    fun:g_simple_async_result_complete
    ...
 }
-
 
 {
    <insert_a_suppression_name_here>
@@ -221,7 +221,8 @@
    ...
    fun:g_simple_async_result_complete
    ...
-   fun:g_main_context_iteration
+   fun:g_main_context_*
+   ...
 }
 
 ###############################
@@ -349,8 +350,8 @@
    match-leak-kinds: possible
    fun:realloc
    fun:g_realloc
+   ...
    fun:g_closure_add_invalidate_notifier
-   fun:g_signal_connect_closure
    ...
 }
 
@@ -416,6 +417,7 @@
    fun:malloc
    fun:realloc
    fun:g_realloc
+   ...
    fun:g_closure_add_invalidate_notifier
    fun:g_source_set_closure
    ...
@@ -430,6 +432,22 @@
    fun:g_strconcat
    fun:g_application_constructed
    ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:g_malloc
+   fun:g_slice_alloc
+   ...
+   fun:g_main_context_dispatch
+   ...
+   fun:g_main_loop_run
+   ...
+   fun:start_thread
+   fun:clone
 }
 
 ###################
