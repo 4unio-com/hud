@@ -311,7 +311,7 @@ TEST_F( TestQtGMenu, ExportImportGMenu )
   m_items_changed_spy.clear();
 
   EXPECT_NE( nullptr, m_importer.GetQMenu() );
-  EXPECT_EQ( 1, GetGMenuSize() );
+  ASSERT_EQ( 1, GetGMenuSize() );
 
   // add 2 items
 
@@ -325,7 +325,7 @@ TEST_F( TestQtGMenu, ExportImportGMenu )
   ASSERT_FALSE( m_items_changed_spy.empty() );
   m_items_changed_spy.clear();
 
-  EXPECT_EQ( 3, GetGMenuSize() );
+  ASSERT_EQ( 3, GetGMenuSize() );
 
   // remove 1 item
 
@@ -334,7 +334,7 @@ TEST_F( TestQtGMenu, ExportImportGMenu )
   ASSERT_FALSE( m_items_changed_spy.empty() );
   m_items_changed_spy.clear();
 
-  EXPECT_EQ( 2, GetGMenuSize() );
+  ASSERT_EQ( 2, GetGMenuSize() );
 
   // unexport menu
 
@@ -455,7 +455,7 @@ TEST_F( TestQtGMenu, QMenuStructure )
   std::shared_ptr< QMenu > menu = m_importer.GetQMenu();
   ASSERT_NE( nullptr, menu );
 
-  EXPECT_EQ( 2, menu->actions().size() );
+  ASSERT_EQ( 2, menu->actions().size() );
 
   EXPECT_EQ( "File", menu->actions().at( 0 )->text() );
   EXPECT_EQ( "Edit", menu->actions().at( 1 )->text() );
@@ -465,7 +465,7 @@ TEST_F( TestQtGMenu, QMenuStructure )
   QMenu* file_menu = menu->actions().at( 0 )->menu();
   ASSERT_NE( nullptr, file_menu );
 
-  EXPECT_EQ( 4, file_menu->actions().size() );
+  ASSERT_EQ( 4, file_menu->actions().size() );
 
   EXPECT_EQ( "File", file_menu->title() );
 
@@ -481,7 +481,7 @@ TEST_F( TestQtGMenu, QMenuStructure )
   QMenu* edit_menu = menu->actions().at( 1 )->menu();
   ASSERT_NE( nullptr, edit_menu );
 
-  EXPECT_EQ( 1, edit_menu->actions().size() );
+  ASSERT_EQ( 1, edit_menu->actions().size() );
 
   EXPECT_EQ( "Edit", edit_menu->title() );
 
@@ -492,7 +492,7 @@ TEST_F( TestQtGMenu, QMenuStructure )
   QMenu* style_submenu = edit_menu->actions().at( 0 )->menu();
   ASSERT_NE( nullptr, style_submenu );
 
-  EXPECT_EQ( 2, style_submenu->actions().size() );
+  ASSERT_EQ( 2, style_submenu->actions().size() );
 
   EXPECT_EQ( "Style", style_submenu->title() );
 
