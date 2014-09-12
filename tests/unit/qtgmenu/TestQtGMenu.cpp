@@ -125,7 +125,7 @@ protected:
 
     g_menu_append_section( m_menu, "Menus", G_MENU_MODEL( menus_section ) );
     m_items_changed_spy.wait();
-    EXPECT_FALSE( m_items_changed_spy.empty() );
+    ASSERT_FALSE( m_items_changed_spy.empty() );
     m_items_changed_spy.clear();
 
     //-- build file menu
@@ -152,7 +152,7 @@ protected:
 
     g_menu_append_submenu( menus_section, "File", G_MENU_MODEL( file_submenu ) );
     m_items_changed_spy.wait();
-    EXPECT_FALSE( m_items_changed_spy.empty() );
+    ASSERT_FALSE( m_items_changed_spy.empty() );
     m_items_changed_spy.clear();
 
     g_object_unref( file_submenu );
@@ -167,12 +167,12 @@ protected:
 
     g_menu_append_submenu( menus_section, "Edit", G_MENU_MODEL( edit_submenu ) );
     m_items_changed_spy.wait();
-    EXPECT_FALSE( m_items_changed_spy.empty() );
+    ASSERT_FALSE( m_items_changed_spy.empty() );
     m_items_changed_spy.clear();
 
     g_menu_append_submenu( edit_submenu, "Style", G_MENU_MODEL( style_submenu ) );
     m_items_changed_spy.wait();
-    EXPECT_FALSE( m_items_changed_spy.empty() );
+    ASSERT_FALSE( m_items_changed_spy.empty() );
     m_items_changed_spy.clear();
 
     g_object_unref( style_submenu );
@@ -192,7 +192,7 @@ protected:
             g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
     m_action_added_spy.wait();
-    EXPECT_FALSE( m_action_added_spy.empty() );
+    ASSERT_FALSE( m_action_added_spy.empty() );
     m_action_added_spy.clear();
 
     action = g_simple_action_new( "open", nullptr );
@@ -201,7 +201,7 @@ protected:
             g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
     m_action_added_spy.wait();
-    EXPECT_FALSE( m_action_added_spy.empty() );
+    ASSERT_FALSE( m_action_added_spy.empty() );
     m_action_added_spy.clear();
 
     //-- boolean state
@@ -212,7 +212,7 @@ protected:
             g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
     m_action_added_spy.wait();
-    EXPECT_FALSE( m_action_added_spy.empty() );
+    ASSERT_FALSE( m_action_added_spy.empty() );
     m_action_added_spy.clear();
 
     //-- string param + state
@@ -224,7 +224,7 @@ protected:
             g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
     m_action_added_spy.wait();
-    EXPECT_FALSE( m_action_added_spy.empty() );
+    ASSERT_FALSE( m_action_added_spy.empty() );
     m_action_added_spy.clear();
 
     action = g_simple_action_new_stateful( "text_bold", G_VARIANT_TYPE_STRING,
@@ -234,7 +234,7 @@ protected:
             g_signal_connect( action, "activate", G_CALLBACK( ActivateAction ), this ) ) );
     g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
     m_action_added_spy.wait();
-    EXPECT_FALSE( m_action_added_spy.empty() );
+    ASSERT_FALSE( m_action_added_spy.empty() );
     m_action_added_spy.clear();
   }
 
@@ -307,7 +307,7 @@ TEST_F( TestQtGMenu, ExportImportGMenu )
 
   g_menu_append( m_menu, "New", "app.new" );
   m_items_changed_spy.wait();
-  EXPECT_FALSE( m_items_changed_spy.empty() );
+  ASSERT_FALSE( m_items_changed_spy.empty() );
   m_items_changed_spy.clear();
 
   EXPECT_NE( nullptr, m_importer.GetQMenu() );
@@ -317,12 +317,12 @@ TEST_F( TestQtGMenu, ExportImportGMenu )
 
   g_menu_append( m_menu, "Add", "app.add" );
   m_items_changed_spy.wait();
-  EXPECT_FALSE( m_items_changed_spy.empty() );
+  ASSERT_FALSE( m_items_changed_spy.empty() );
   m_items_changed_spy.clear();
 
   g_menu_append( m_menu, "Del", "app.del" );
   m_items_changed_spy.wait();
-  EXPECT_FALSE( m_items_changed_spy.empty() );
+  ASSERT_FALSE( m_items_changed_spy.empty() );
   m_items_changed_spy.clear();
 
   EXPECT_EQ( 3, GetGMenuSize() );
@@ -331,7 +331,7 @@ TEST_F( TestQtGMenu, ExportImportGMenu )
 
   g_menu_remove( m_menu, 2 );
   m_items_changed_spy.wait();
-  EXPECT_FALSE( m_items_changed_spy.empty() );
+  ASSERT_FALSE( m_items_changed_spy.empty() );
   m_items_changed_spy.clear();
 
   EXPECT_EQ( 2, GetGMenuSize() );
@@ -363,7 +363,7 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
   m_action_added_spy.wait();
-  EXPECT_FALSE( m_action_added_spy.empty() );
+  ASSERT_FALSE( m_action_added_spy.empty() );
   EXPECT_EQ( "new", m_action_added_spy.at( 0 ).at( 0 ).toString().toStdString() );
   m_action_added_spy.clear();
 
@@ -375,7 +375,7 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   g_simple_action_set_enabled( action, false );
 
   m_action_enabled_spy.wait();
-  EXPECT_FALSE( m_action_enabled_spy.empty() );
+  ASSERT_FALSE( m_action_enabled_spy.empty() );
   EXPECT_EQ( "app.new", m_action_enabled_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "false", m_action_enabled_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_enabled_spy.clear();
@@ -383,7 +383,7 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   g_simple_action_set_enabled( action, true );
 
   m_action_enabled_spy.wait();
-  EXPECT_FALSE( m_action_enabled_spy.empty() );
+  ASSERT_FALSE( m_action_enabled_spy.empty() );
   EXPECT_EQ( "app.new", m_action_enabled_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "true", m_action_enabled_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_enabled_spy.clear();
@@ -393,7 +393,7 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   g_action_change_state( G_ACTION( action ), g_variant_new_boolean( true ) );
 
   m_action_state_changed_spy.wait();
-  EXPECT_FALSE( m_action_state_changed_spy.empty() );
+  ASSERT_FALSE( m_action_state_changed_spy.empty() );
   EXPECT_EQ( "new", m_action_state_changed_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "true", m_action_state_changed_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_state_changed_spy.clear();
@@ -401,7 +401,7 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   g_action_change_state( G_ACTION( action ), g_variant_new_boolean( false ) );
 
   m_action_state_changed_spy.wait();
-  EXPECT_FALSE( m_action_state_changed_spy.empty() );
+  ASSERT_FALSE( m_action_state_changed_spy.empty() );
   EXPECT_EQ( "new", m_action_state_changed_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "false", m_action_state_changed_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_state_changed_spy.clear();
@@ -412,7 +412,7 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
   m_action_added_spy.wait();
-  EXPECT_FALSE( m_action_added_spy.empty() );
+  ASSERT_FALSE( m_action_added_spy.empty() );
   EXPECT_EQ( "add", m_action_added_spy.at( 0 ).at( 0 ).toString().toStdString() );
   m_action_added_spy.clear();
 
@@ -420,7 +420,7 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   g_action_map_add_action( G_ACTION_MAP( m_actions ), G_ACTION( action ) );
 
   m_action_added_spy.wait();
-  EXPECT_FALSE( m_action_added_spy.empty() );
+  ASSERT_FALSE( m_action_added_spy.empty() );
   EXPECT_EQ( "del", m_action_added_spy.at( 0 ).at( 0 ).toString().toStdString() );
   m_action_added_spy.clear();
 
@@ -431,7 +431,7 @@ TEST_F( TestQtGMenu, ExportImportGActions )
   g_action_map_remove_action( G_ACTION_MAP( m_actions ), "del" );
 
   m_action_removed_spy.wait();
-  EXPECT_FALSE( m_action_removed_spy.empty() );
+  ASSERT_FALSE( m_action_removed_spy.empty() );
   EXPECT_EQ( "del", m_action_removed_spy.at( 0 ).at( 0 ).toString().toStdString() );
   m_action_removed_spy.clear();
 
@@ -550,7 +550,7 @@ TEST_F( TestQtGMenu, QMenuActionTriggers )
   style_submenu->actions().at( 0 )->trigger();
   m_action_activated_spy.wait();
 
-  EXPECT_FALSE( m_action_activated_spy.empty() );
+  ASSERT_FALSE( m_action_activated_spy.empty() );
   EXPECT_EQ( "text_plain", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "text_plain", m_action_activated_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_activated_spy.clear();
@@ -558,7 +558,7 @@ TEST_F( TestQtGMenu, QMenuActionTriggers )
   style_submenu->actions().at( 1 )->trigger();
   m_action_activated_spy.wait();
 
-  EXPECT_FALSE( m_action_activated_spy.empty() );
+  ASSERT_FALSE( m_action_activated_spy.empty() );
   EXPECT_EQ( "text_bold", m_action_activated_spy.at( 0 ).at( 0 ).toString().toStdString() );
   EXPECT_EQ( "text_bold", m_action_activated_spy.at( 0 ).at( 1 ).toString().toStdString() );
   m_action_activated_spy.clear();
