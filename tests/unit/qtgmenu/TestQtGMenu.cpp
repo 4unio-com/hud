@@ -513,6 +513,7 @@ TEST_F( TestQtGMenu, QMenuActionTriggers )
 
   // trigger file menu items
 
+  ASSERT_FALSE(menu->actions().empty());
   QMenu* file_menu = menu->actions().at( 0 )->menu();
   ASSERT_NE( nullptr, file_menu );
 
