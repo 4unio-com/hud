@@ -24,5 +24,3 @@ libhud.so.2 libhud2 #MINVER#
  hud_manager_new_for_application@Base 13.04.0-0ubuntu1~ppa2
  hud_manager_remove_actions@Base 13.04.0
  hud_manager_switch_window_context@Base 13.10.0
- (optional)"__gcov_rewrite@Base" 0replaceme
- (optional)"__gcov_var@Base" 0replaceme
