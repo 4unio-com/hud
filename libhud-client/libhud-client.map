@@ -1,7 +1,15 @@
 {
 global:
 	hud_*;
-	hud::*;
+	extern "C++" {
+		hud::*;
+		vtable?for?hud::*;
+		typeinfo?for?hud::*;
+		typeinfo?name?for?hud::*;
+	};
 local:
 	*;
+	extern "C++" {
+		*;
+	};
 };
