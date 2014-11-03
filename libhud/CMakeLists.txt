@@ -103,6 +103,9 @@ set_target_properties(
   COMPILE_FLAGS "-Wpedantic -Wall -Wextra"
 )
 
+set_target_properties(hud PROPERTIES LINK_FLAGS "${ldflags} -Wl,--version-script,${CMAKE_CURRENT_SOURCE_DIR}/libhud.map")
+set_target_properties(hud PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/libhud.map")
+
 target_link_libraries(hud
 hud-generated
 ${GLIB2_LIBRARIES}
