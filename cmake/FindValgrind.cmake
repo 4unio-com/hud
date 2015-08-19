@@ -2,7 +2,7 @@
 option(
   ENABLE_MEMCHECK_OPTION
   "If set to ON, enables automatic creation of memcheck targets"
-  ON
+  OFF
 )
 
 find_program(
