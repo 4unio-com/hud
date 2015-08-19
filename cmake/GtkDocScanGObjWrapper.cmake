@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 2.6)
+
 if(NOT APPLE)
     # We use pkg-config to fing glib et al
     find_package(PkgConfig)

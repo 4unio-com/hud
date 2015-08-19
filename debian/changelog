@@ -1,3 +1,23 @@
+hud (14.10+14.10.20140924-0ubuntu4) wily; urgency=medium
+
+  * No-change rebuild against libcolumbus1v5 (again)
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sun, 09 Aug 2015 00:08:13 +0000
+
+hud (14.10+14.10.20140924-0ubuntu3) wily; urgency=medium
+
+  * cmake/GtkDocScanGObjWrapper.cmake: set cmake_minimum_required(VERSION 2.6)
+    for compatibility with cmake 3.2's pkg-config macros, fixing a build 
+    failure.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sat, 08 Aug 2015 21:37:01 +0000
+
+hud (14.10+14.10.20140924-0ubuntu2) wily; urgency=medium
+
+  * No-change rebuild against libcolumbus1v5
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sat, 08 Aug 2015 19:29:11 +0000
+
 hud (14.10+14.10.20140924-0ubuntu1) utopic; urgency=low
 
   [ Ted Gould ]
