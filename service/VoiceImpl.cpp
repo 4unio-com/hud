@@ -20,57 +20,12 @@
 
 using namespace hud::service;
 
-VoiceImpl::VoiceImpl(
-		QSharedPointer<ComCanonicalUnityVoiceInterface> voiceInterface) :
-		m_voiceInterface(voiceInterface), m_isListening(false) {
-
-	// connect voice interface signals to local signals
-	connect(m_voiceInterface.data(), SIGNAL( HeardSomething() ), this,
-			SIGNAL( HeardSomething() ));
-	connect(m_voiceInterface.data(), SIGNAL( Listening() ), this,
-			SIGNAL( Listening() ));
-	connect(m_voiceInterface.data(), SIGNAL( Loading() ), this,
-			SIGNAL( Loading() ));
+VoiceImpl::VoiceImpl() {
 }
 
 VoiceImpl::~VoiceImpl() {
 }
 
-QString VoiceImpl::listen(const QList<QStringList>& commands) {
-	// return immediately if no commands were supplied
-	if (commands.isEmpty() || m_isListening) {
-		return QString();
-	}
-
-	// call voice interface listen() asynchronously
-	m_isListening = true;
-	QDBusPendingCall listen_async = m_voiceInterface->asyncCall("listen",
-			QVariant::fromValue(commands));
-
-	// connect a call watcher to the async call
-	QDBusPendingCallWatcher watcher(listen_async, this);
-	connect(&watcher, SIGNAL(finished(QDBusPendingCallWatcher*)), this,
-			SLOT(listenFinished(QDBusPendingCallWatcher*)));
-
-	// wait for async call to complete
-	m_listenWait.exec();
-	m_isListening = false;
-
-	// return query set by listenFinished
-	return m_query;
-}
-
-void VoiceImpl::listenFinished(QDBusPendingCallWatcher *call) {
-	QDBusPendingReply<QString> query = *call;
-
-	// set m_query accordingly
-	if (query.isError()) {
-		qWarning() << query.error();
-		m_query = "";
-	} else {
-		m_query = query;
-	}
-
-	// notify listen() that the async call is complete
-	m_listenWait.quit();
+QString VoiceImpl::listen(const QList<QStringList>&) {
+	return QString();
 }

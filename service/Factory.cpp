@@ -41,7 +41,6 @@ using namespace hud::service;
 Factory::Factory() :
 		m_sessionBus(QDBusConnection::sessionBus()), m_queryCounter(0) {
 	DBusTypes::registerMetaTypes();
-	LibUnityVoice::UnityVoice::registerMetaTypes();
 }
 
 Factory::~Factory() {
@@ -131,11 +130,7 @@ SearchSettings::Ptr Factory::singletonSearchSettings() {
 
 Voice::Ptr Factory::singletonVoice() {
 	if (m_voice.isNull()) {
-		QSharedPointer<ComCanonicalUnityVoiceInterface> voiceInterface(
-				new ComCanonicalUnityVoiceInterface(
-						DBusTypes::UNITY_VOICE_DBUS_NAME,
-						DBusTypes::UNITY_VOICE_DBUS_PATH, sessionBus()));
-		m_voice.reset(new VoiceImpl(voiceInterface));
+		m_voice.reset(new VoiceImpl());
 	}
 	return m_voice;
 }
