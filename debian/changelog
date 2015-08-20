@@ -1,3 +1,19 @@
+hud (14.10+15.10.20150820.1-0ubuntu1) wily; urgency=medium
+
+  [ Pete Woods ]
+  * Make the qtgmenu tests more robust added: common/GDBusHelper.h
+  * Make valgrind happy on local builds. Disable for Jenkins / LP.
+    Remove remaining traces of platform API. added: libhud-
+    client/libhud-client.map libhud/libhud.map
+  * Remove unity-voice (LP: #1483210)
+
+  [ Ted Gould ]
+  * Make valgrind happy on local builds. Disable for Jenkins / LP.
+    Remove remaining traces of platform API. added: libhud-
+    client/libhud-client.map libhud/libhud.map
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Thu, 20 Aug 2015 13:46:00 +0000
+
 hud (14.10+14.10.20140924-0ubuntu4) wily; urgency=medium
 
   * No-change rebuild against libcolumbus1v5 (again)
