@@ -4,13 +4,14 @@
 #include <QMainWindow>
 
 #include <libqtgmenu/QtGMenuImporter.h>
+#include <gio/gio.h>
 
 class MainWindow : public QMainWindow
 {
 Q_OBJECT
 
 public:
-  MainWindow(const QString &name, const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath);
+  MainWindow(const QString &name, const QDBusObjectPath &actionPath, const QDBusObjectPath &menuPath, const QDBusConnection& connection, QSharedPointer<GDBusConnection> gconnection);
 
   ~MainWindow();
 

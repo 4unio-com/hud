@@ -17,6 +17,7 @@
  */
 
 #include <common/WindowStackInterface.h>
+#include <service/Factory.h>
 #include <service/GMenuCollector.h>
 
 #include <libqtgmenu/QtGMenuImporter.h>
@@ -29,10 +30,11 @@ using namespace qtgmenu;
 
 GMenuCollector::GMenuCollector(const QString &name,
 		const QMap<QString, QDBusObjectPath> &actions,
-		const QDBusObjectPath &menuPath) :
+		const QDBusObjectPath &menuPath,
+		Factory& factory) :
 		m_name(name), m_actions(actions), m_menuPath(menuPath) {
 
-	m_importer.reset(new QtGMenuImporter(m_name, m_menuPath, actions));
+	m_importer = factory.newQtGMenuImporter(m_name, m_menuPath, actions);
 
 	connect(m_importer.data(), SIGNAL(MenuItemsChanged()), this,
 			SLOT(menuItemsChanged()));

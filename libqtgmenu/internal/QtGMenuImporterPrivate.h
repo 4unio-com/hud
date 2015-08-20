@@ -40,7 +40,8 @@ Q_OBJECT
 
 public:
   QtGMenuImporterPrivate( const QString& service, const QDBusObjectPath& menu_path,
-                          const QMap<QString, QDBusObjectPath>& action_paths, QtGMenuImporter& parent );
+                          const QMap<QString, QDBusObjectPath>& action_paths, QtGMenuImporter& parent,
+                          const QDBusConnection& connection, QSharedPointer<GDBusConnection> gconnection);
   virtual ~QtGMenuImporterPrivate();
 
   QSharedPointer<GMenuModel> GetGMenuModel();
