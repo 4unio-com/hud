@@ -97,9 +97,7 @@ void QtGActionGroup::TriggerAction( QString action_name, bool checked )
     ///! need to evaluate and send parameter value
     if( g_variant_type_equal( type, G_VARIANT_TYPE_STRING ) )
     {
-      GVariant* param = g_variant_new_string( action_utf.constData() );
-      g_action_group_activate_action( m_action_group.data(), action_utf.constData(), param );
-      g_variant_unref( param );
+      g_action_group_activate_action( m_action_group.data(), action_utf.constData(), g_variant_new_string( action_utf.constData() ) );
     }
   }
 }

@@ -125,6 +125,9 @@ ${DEE_QT_LIBRARIES}
 -Wl,--no-undefined
 )
 
+set_target_properties(hud-client PROPERTIES LINK_FLAGS "${ldflags} -Wl,--version-script,${CMAKE_CURRENT_SOURCE_DIR}/libhud-client.map")
+set_target_properties(hud-client PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/libhud-client.map")
+
 qt5_use_modules(hud-client
   Core
 )

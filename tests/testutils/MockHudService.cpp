@@ -76,8 +76,9 @@ void MockHudService::loadMethods() {
 		addMethod(methods, "UpdateApp", "s", "i", "ret = 1");
 		addMethod(methods, "CloseQuery", "", "", "");
 		addMethod(methods, "ExecuteCommand", "vu", "", "");
-		addMethod(methods, "ExecuteParameterized", "vu", "sooi",
-				"ret = ('action', '/action/path', '/model/path', 1)");
+		addMethod(methods, "ExecuteParameterized", "vu", "sssooi",
+				"ret = ('" + m_dbus.sessionConnection().baseService()
+						+ "', 'hud', 'action', '/action/path', '/model/path', 1)");
 		addMethod(methods, "ExecuteToolbar", "su", "", "");
 
 		hud.AddObject(QUERY_PATH, "com.canonical.hud.query", properties,
