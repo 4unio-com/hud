@@ -32,6 +32,8 @@ class QtGMenuImporter;
 namespace hud {
 namespace service {
 
+class Factory;
+
 class Q_DECL_EXPORT GMenuCollector: public Collector,
 		public std::enable_shared_from_this<GMenuCollector> {
 Q_OBJECT
@@ -41,7 +43,8 @@ public:
 
 	GMenuCollector(const QString &name,
 			const QMap<QString, QDBusObjectPath> &actions,
-			const QDBusObjectPath &menuPath);
+			const QDBusObjectPath &menuPath,
+			Factory& factory);
 
 	virtual ~GMenuCollector();
 
@@ -63,7 +66,7 @@ protected:
 
 	QDBusObjectPath m_menuPath;
 
-	QScopedPointer<qtgmenu::QtGMenuImporter> m_importer;
+	QSharedPointer<qtgmenu::QtGMenuImporter> m_importer;
 
 	std::shared_ptr<QMenu> m_menu;
 };

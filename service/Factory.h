@@ -32,6 +32,8 @@
 #include <service/Query.h>
 #include <service/Window.h>
 
+#include <gio/gio.h>
+
 class ComCanonicalUnityWindowStackInterface;
 class ComCanonicalAppMenuRegistrarInterface;
 
@@ -53,6 +55,8 @@ public:
 	virtual HudService::Ptr singletonHudService();
 
 	virtual QDBusConnection sessionBus();
+
+	virtual QSharedPointer<GDBusConnection> gSessionBus();
 
 	virtual QSharedPointer<ComCanonicalUnityWindowStackInterface> singletonWindowStack();
 
@@ -89,6 +93,10 @@ public:
 	virtual Collector::Ptr newGMenuCollector(const QString &name,
 			const QMap<QString, QDBusObjectPath> &actions,
 			const QDBusObjectPath &menuPath);
+
+	QSharedPointer<qtgmenu::QtGMenuImporter> newQtGMenuImporter(
+			const QString& service, const QDBusObjectPath& menu_path,
+			const QMap<QString, QDBusObjectPath>& action_paths);
 
 	virtual Collector::Ptr newGMenuWindowCollector(unsigned int windowId,
 			const QString &applicationId);

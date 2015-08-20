@@ -19,18 +19,20 @@
 #include <QtGMenuImporterPrivate.h>
 #include <QtGMenuUtils.h>
 
+#include <QDebug>
 #include <QDBusConnection>
 #include <QEventLoop>
 
 using namespace qtgmenu;
 
 QtGMenuImporterPrivate::QtGMenuImporterPrivate( const QString& service, const QDBusObjectPath& menu_path,
-                                                const QMap<QString, QDBusObjectPath>& action_paths, QtGMenuImporter& parent )
+                                                const QMap<QString, QDBusObjectPath>& action_paths, QtGMenuImporter& parent,
+                                                const QDBusConnection& connection, QSharedPointer<GDBusConnection> gconnection)
     : QObject( 0 ),
-      m_service_watcher( service, QDBusConnection::sessionBus(),
+      m_service_watcher( service, connection,
           QDBusServiceWatcher::WatchForOwnerChange ),
       m_parent( parent ),
-      m_connection( g_bus_get_sync( G_BUS_TYPE_SESSION, NULL, NULL ), &g_object_unref ),
+      m_connection ( gconnection ),
       m_service( service ),
       m_menu_path( menu_path ),
       m_action_paths( action_paths )

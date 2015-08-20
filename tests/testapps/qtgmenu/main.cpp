@@ -29,7 +29,7 @@ int main( int argc, char **argv )
 	  return 1;
   }
 
-  MainWindow mainWindow(argv[1], QDBusObjectPath( argv[2] ), QDBusObjectPath( argv[3] ) );
+  MainWindow mainWindow(argv[1], QDBusObjectPath( argv[2] ), QDBusObjectPath( argv[3] ), QDBusConnection::sessionBus(), QSharedPointer<GDBusConnection>(g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, nullptr), &g_object_unref) );
   mainWindow.show();
 
   return application.exec();

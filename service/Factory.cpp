@@ -30,6 +30,8 @@
 #include <service/WindowImpl.h>
 #include <common/DBusTypes.h>
 
+#include <libqtgmenu/QtGMenuImporter.h>
+
 #include <QDBusConnection>
 #include <QDBusServiceWatcher>
 
@@ -86,6 +88,10 @@ QSharedPointer<ComCanonicalAppMenuRegistrarInterface> Factory::singletonAppmenu(
 
 QDBusConnection Factory::sessionBus() {
 	return m_sessionBus;
+}
+
+QSharedPointer<GDBusConnection> Factory::gSessionBus() {
+	return QSharedPointer<GDBusConnection>(g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, nullptr), &g_object_unref);
 }
 
 Query::Ptr Factory::newQuery(const QString &query, const QString &sender,
@@ -169,7 +175,15 @@ Collector::Ptr Factory::newDBusMenuCollector(unsigned int windowId,
 Collector::Ptr Factory::newGMenuCollector(const QString &name,
 		const QMap<QString, QDBusObjectPath> &actions,
 		const QDBusObjectPath &menuPath) {
-	return Collector::Ptr(new GMenuCollector(name, actions, menuPath));
+	return Collector::Ptr(new GMenuCollector(name, actions, menuPath, *this));
+}
+
+QSharedPointer<qtgmenu::QtGMenuImporter> Factory::newQtGMenuImporter(
+		const QString& service, const QDBusObjectPath& menu_path,
+		const QMap<QString, QDBusObjectPath>& action_paths) {
+	return QSharedPointer<qtgmenu::QtGMenuImporter>(
+			new qtgmenu::QtGMenuImporter(service, menu_path, action_paths,
+					sessionBus(), gSessionBus()));
 }
 
 Collector::Ptr Factory::newGMenuWindowCollector(unsigned int windowId,
