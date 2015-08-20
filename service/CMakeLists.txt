@@ -82,7 +82,6 @@ target_link_libraries(hud-service
   ${GOBJECT2_LIBRARIES}
   ${DEE_LIBRARIES}
   ${COLUMBUS_LIBRARIES}
-  ${UNITYVOICE_LIBRARIES}
   ${GSETTINGS_QT_LIBRARIES}
 )
 

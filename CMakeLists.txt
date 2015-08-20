@@ -104,9 +104,6 @@ include_directories(${QTDBUSTEST_INCLUDE_DIRS})
 pkg_check_modules(QTDBUSMOCK REQUIRED libqtdbusmock-1 REQUIRED)
 include_directories(${QTDBUSMOCK_INCLUDE_DIRS})
 
-pkg_check_modules(UNITYVOICE REQUIRED libunityvoice-1 REQUIRED)
-include_directories(${UNITYVOICE_INCLUDE_DIRS})
-
 find_package(Vala 0.12)
 
 find_package(GObjectIntrospection 0.9.12)

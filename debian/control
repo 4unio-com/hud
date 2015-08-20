@@ -23,12 +23,10 @@ Build-Depends: cmake,
                libqt5sql5-sqlite,
                libqtdbustest1-dev (>= 0.2),
                libqtdbusmock1-dev (>= 0.2),
-               libunityvoice1-dev,
                pkg-config,
                python-setuptools,
                qtbase5-dev,
                qtdbustest-runner,
-               unity-voice-service,
                valac,
                xvfb,
 Standards-Version: 3.9.4
@@ -43,7 +41,6 @@ Package: hud
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         unity-voice-service,
          libqt5sql5-sqlite
 Conflicts: indicator-appmenu (<< 13),
 Description: Backend for the Unity HUD

@@ -19,7 +19,6 @@
 #ifndef HUD_SERVICE_VOICEIMPL_H_
 #define HUD_SERVICE_VOICEIMPL_H_
 
-#include <libunityvoice/VoiceInterface.h>
 #include <service/Voice.h>
 
 namespace hud {
@@ -29,21 +28,13 @@ class VoiceImpl: public Voice {
 Q_OBJECT
 
 public:
-	explicit VoiceImpl(
-			QSharedPointer<ComCanonicalUnityVoiceInterface> voiceInterface);
+	explicit VoiceImpl();
 
 	virtual ~VoiceImpl();
 
 	QString listen(const QList<QStringList>& commands) override;
 
-private Q_SLOTS:
-	void listenFinished(QDBusPendingCallWatcher *call);
-
 private:
-	QSharedPointer<ComCanonicalUnityVoiceInterface> m_voiceInterface;
-	QString m_query;
-	QEventLoop m_listenWait;
-	bool m_isListening = false;
 };
 
 } // namespace service

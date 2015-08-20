@@ -45,9 +45,6 @@ const QString DBusTypes::APPMENU_REGISTRAR_DBUS_PATH(
 const QString DBusTypes::BAMF_DBUS_NAME("org.ayatana.bamf");
 const QString DBusTypes::BAMF_MATCHER_DBUS_PATH("/org/ayatana/bamf/matcher");
 
-const QString DBusTypes::UNITY_VOICE_DBUS_NAME("com.canonical.Unity.Voice");
-const QString DBusTypes::UNITY_VOICE_DBUS_PATH("/com/canonical/Unity/Voice");
-
 void DBusTypes::registerMetaTypes() {
 	NameObject::registerMetaTypes();
 	Suggestion::registerMetaTypes();
