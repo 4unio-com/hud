@@ -109,7 +109,7 @@ QtGMenuModel::QtGMenuModel( QSharedPointer<GMenuModel> model, LinkType link_type
 
   if( m_model )
   {
-    m_size = std::min (MAX_NUM_CHILDREN, g_menu_model_get_n_items(m_model.data()) );
+    m_size = std::min( MAX_NUM_CHILDREN, g_menu_model_get_n_items( m_model.data() ) );
   }
 
   ChangeMenuItems( 0, m_size, 0 );
