@@ -27,6 +27,7 @@
 
 using namespace qtgmenu;
 
+static const int MAX_NUM_CHILDREN = 100;
 static const QRegularExpression SINGLE_UNDERSCORE("(?<![_])[_](?![_])");
 
 QtGMenuModel::QtGMenuModel( QSharedPointer<GDBusConnection> connection, const QString& bus_name,
@@ -108,7 +109,7 @@ QtGMenuModel::QtGMenuModel( QSharedPointer<GMenuModel> model, LinkType link_type
 
   if( m_model )
   {
-    m_size = g_menu_model_get_n_items( m_model.data() );
+    m_size = std::min( MAX_NUM_CHILDREN, g_menu_model_get_n_items( m_model.data() ) );
   }
 
   ChangeMenuItems( 0, m_size, 0 );
@@ -241,7 +242,7 @@ void QtGMenuModel::MenuItemsChangedCallback( GMenuModel* model, gint index, gint
   self->ChangeMenuItems( index, added, removed );
 }
 
-void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int removed )
+void QtGMenuModel::ChangeMenuItems( const int index, int added, const int removed )
 {
   const int n_items = g_menu_model_get_n_items( m_model.data() );
 
@@ -249,6 +250,12 @@ void QtGMenuModel::ChangeMenuItems( const int index, const int added, const int 
   {
     ReportRecoverableError(index, added, removed);
     return;
+  }
+
+  // Limit the menus exported to avoid memory wastage
+  if ( m_size + (added - removed) > MAX_NUM_CHILDREN )
+  {
+    added = MAX_NUM_CHILDREN - (m_size - removed);
   }
 
   // process removed items first (see "items-changed" on the GMenuModel man page)

@@ -82,7 +82,7 @@ private:
   static void MenuItemsChangedCallback( GMenuModel* model, gint index, gint removed, gint added,
       gpointer user_data );
 
-  void ChangeMenuItems( const int index, const int added, const int removed );
+  void ChangeMenuItems( const int index, int added, const int removed );
 
   void ConnectCallback();
   void DisconnectCallback();
