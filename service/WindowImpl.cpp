@@ -78,7 +78,7 @@ WindowImpl::WindowImpl(unsigned int windowId, const QString &applicationId,
 		WindowContextImpl(factory), m_applicationId(applicationId), m_allWindowsContext(
 				allWindowsContext) {
 
-	m_dbusMenuCollector = factory.newDBusMenuCollector(windowId, applicationId);
+	m_dbusMenuCollector = factory.newDBusMenuWindowCollector(windowId, applicationId);
 	m_gMenuCollector = factory.newGMenuWindowCollector(windowId, applicationId);
 }
 

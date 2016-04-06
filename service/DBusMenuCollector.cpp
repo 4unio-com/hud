@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Canonical, Ltd.
+ * Copyright (C) 2013-2016 Canonical, Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -14,68 +14,36 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Author: Pete Woods <pete.woods@canonical.com>
+ *         Andrea Azzarone <andrea.azzarone@canonical.com>
  */
 
-#include <common/DBusTypes.h>
-#include <common/Localisation.h>
 #include <service/DBusMenuCollector.h>
-#include <service/AppmenuRegistrarInterface.h>
 
 #include <dbusmenuimporter.h>
+#include <QDebug>
 #include <QMenu>
 #include <stdexcept>
 
-using namespace hud::common;
 using namespace hud::service;
 
-DBusMenuCollector::DBusMenuCollector(unsigned int windowId,
-		QSharedPointer<ComCanonicalAppMenuRegistrarInterface> registrar) :
-		m_windowId(windowId), m_registrar(registrar) {
+DBusMenuCollector::DBusMenuCollector(const QString &service,
+		const QDBusObjectPath &menuObjectPath) :
+		m_service(service), m_path(menuObjectPath) {
 
-	connect(registrar.data(),
-	SIGNAL(WindowRegistered(uint, const QString &, const QDBusObjectPath &)),
-			this,
-			SLOT( WindowRegistered(uint, const QString &, const QDBusObjectPath &)));
-
-	QDBusPendingReply<QString, QDBusObjectPath> windowReply =
-			registrar->GetMenuForWindow(m_windowId);
-
-	windowReply.waitForFinished();
-	if (windowReply.isError()) {
+	if (m_service.isEmpty()) {
 		return;
 	}
-
-	windowRegistered(windowReply.argumentAt<0>(), windowReply.argumentAt<1>());
-}
-
-DBusMenuCollector::~DBusMenuCollector() {
-}
-
-void DBusMenuCollector::windowRegistered(const QString &service,
-		const QDBusObjectPath &menuObjectPath) {
-
-	if (service.isEmpty()) {
-		return;
-	}
-
-	m_service = service;
-	m_path = menuObjectPath;
-
-	disconnect(m_registrar.data(),
-			SIGNAL(
-					WindowRegistered(uint, const QString &, const QDBusObjectPath &)),
-			this,
-			SLOT(
-					WindowRegistered(uint, const QString &, const QDBusObjectPath &)));
 
 	m_menuImporter.reset(
-			new DBusMenuImporter(m_service, m_path.path(),
-					DBusMenuImporterType::SYNCHRONOUS));
+		new DBusMenuImporter(m_service, m_path.path(), DBusMenuImporterType::SYNCHRONOUS));
 
 	CollectorToken::Ptr collectorToken(m_collectorToken);
 	if(collectorToken) {
 		collectorToken->changed();
 	}
+}
+
+DBusMenuCollector::~DBusMenuCollector() {
 }
 
 bool DBusMenuCollector::isValid() const {
@@ -86,7 +54,7 @@ void DBusMenuCollector::openMenu(QMenu *menu, unsigned int &limit) {
 	--limit;
 	if (limit == 0) {
 		QString error = "Hit DBusMenu safety valve opening menu at " + m_service
-				+ " " + m_path.path();
+			+ " " + m_path.path();
 		throw std::logic_error(error.toStdString());
 	}
 
@@ -116,7 +84,7 @@ void DBusMenuCollector::hideMenu(QMenu *menu, unsigned int &limit) {
 	--limit;
 	if (limit == 0) {
 		QString error = "Hit DBusMenu safety valve closing menu at " + m_service
-				+ " " + m_path.path();
+			+ " " + m_path.path();
 		throw std::logic_error(error.toStdString());
 	}
 
@@ -172,14 +140,4 @@ void DBusMenuCollector::deactivate() {
 	} catch (std::logic_error &e) {
 		qDebug() << e.what();
 	}
-}
-
-void DBusMenuCollector::WindowRegistered(uint windowId, const QString &service,
-		const QDBusObjectPath &menuObjectPath) {
-	// Simply ignore updates for other windows
-	if (windowId != m_windowId) {
-		return;
-	}
-
-	windowRegistered(service, menuObjectPath);
 }

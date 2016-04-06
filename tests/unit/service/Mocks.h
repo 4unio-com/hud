@@ -44,7 +44,7 @@ public:
 
 	MOCK_METHOD0(singletonUsageTracker, UsageTracker::Ptr());
 
-	MOCK_METHOD2(newDBusMenuCollector, Collector::Ptr(unsigned int, const QString &));
+	MOCK_METHOD2(newDBusMenuWindowCollector, Collector::Ptr(unsigned int, const QString &));
 
 	MOCK_METHOD2(newGMenuWindowCollector, Collector::Ptr(unsigned int, const QString &));
 
