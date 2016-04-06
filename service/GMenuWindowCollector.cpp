@@ -31,7 +31,7 @@ using namespace qtgmenu;
 static const QStringList GMENU_WINDOW_PROPERTIES( { "_GTK_UNIQUE_BUS_NAME",
 		"_GTK_APP_MENU_OBJECT_PATH", "_GTK_MENUBAR_OBJECT_PATH",
 		"_GTK_APPLICATION_OBJECT_PATH", "_GTK_WINDOW_OBJECT_PATH",
-		"_UNITY_OBJECT_PATH"});
+		"_UNITY_OBJECT_PATH" });
 
 GMenuWindowCollector::GMenuWindowCollector(unsigned int windowId,
 		const QString &applicationId,

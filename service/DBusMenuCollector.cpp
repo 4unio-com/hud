@@ -54,7 +54,7 @@ void DBusMenuCollector::openMenu(QMenu *menu, unsigned int &limit) {
 	--limit;
 	if (limit == 0) {
 		QString error = "Hit DBusMenu safety valve opening menu at " + m_service
-			+ " " + m_path.path();
+				+ " " + m_path.path();
 		throw std::logic_error(error.toStdString());
 	}
 
@@ -84,7 +84,7 @@ void DBusMenuCollector::hideMenu(QMenu *menu, unsigned int &limit) {
 	--limit;
 	if (limit == 0) {
 		QString error = "Hit DBusMenu safety valve closing menu at " + m_service
-			+ " " + m_path.path();
+				+ " " + m_path.path();
 		throw std::logic_error(error.toStdString());
 	}
 
