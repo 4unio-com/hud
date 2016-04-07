@@ -60,7 +60,8 @@ private:
     void windowRegistered(const QString &service,
 		const QDBusObjectPath &menuObjectPath);
 
-	QList<Collector::Ptr> m_collectors;
+	Collector::Ptr m_am_collector;
+	Collector::Ptr m_collector;
 	unsigned int m_windowId;
 	QSharedPointer<ComCanonicalAppMenuRegistrarInterface> m_registrar;
 	Factory &m_factory;

@@ -94,6 +94,8 @@ protected:
 	QMap<DocumentID, Item::Ptr> m_items;
 
 	QMap<QString, Item::Ptr> m_toolbarItems;
+
+	QMap<QChar, int> m_mnemonic2DocumentId;
 };
 
 }

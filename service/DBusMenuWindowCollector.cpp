@@ -53,13 +53,14 @@ DBusMenuWindowCollector::DBusMenuWindowCollector(unsigned int windowId,
 			if (!windowProperties.at(0).isEmpty()) {
 				// _WNCK_ACTION_MENU_OBJECT_PATH -> menu
 				QDBusObjectPath menu = QDBusObjectPath(windowProperties.at(0));
-				m_collectors << factory.newDBusMenuCollector(DBusTypes::BAMF_DBUS_NAME, menu);
+				m_am_collector = factory.newDBusMenuCollector(DBusTypes::BAMF_DBUS_NAME, menu);
 			}
 		}
 	}
 
-	// AppeMenu
-	QDBusPendingReply<QString, QDBusObjectPath> windowReply = registrar->GetMenuForWindow(m_windowId);
+	// AppMenu
+	QDBusPendingReply<QString, QDBusObjectPath> windowReply =
+		registrar->GetMenuForWindow(m_windowId);
 
 	windowReply.waitForFinished();
 	if (windowReply.isError()) {
@@ -73,17 +74,46 @@ DBusMenuWindowCollector::~DBusMenuWindowCollector() {
 }
 
 bool DBusMenuWindowCollector::isValid() const {
-	return !m_collectors.isEmpty();
+	return !m_collector || !m_am_collector;
+}
+
+static void setPropertyForAllActions(QMenu *menu) {
+	if (!menu)
+	return;
+
+
+	for (QAction *action : menu->actions()) {
+		if (!action->isEnabled()) {
+			continue;
+		}
+
+		if (action->isSeparator()) {
+			continue;
+		}
+
+		action->setProperty("searchByMnemonic", true);
+		setPropertyForAllActions(action->menu());
+	}
 }
 
 QList<CollectorToken::Ptr> DBusMenuWindowCollector::activate() {
-	QList<CollectorToken::Ptr> tokens;
+	QList<CollectorToken::Ptr> ret;
 
-	for (Collector::Ptr collector : m_collectors) {
-		tokens.append(collector->activate());
+	if (m_am_collector) {
+		QList<CollectorToken::Ptr> tokens = m_am_collector->activate();
+
+		for (CollectorToken::Ptr token : tokens) {
+			setPropertyForAllActions(token->menu());
+		}
+
+		ret.append(tokens);
 	}
 
-	return tokens;
+	if (m_collector) {
+		ret.append(m_collector->activate());
+	}
+
+	return ret;
 }
 
 void DBusMenuWindowCollector::deactivate() {
@@ -111,5 +141,5 @@ void DBusMenuWindowCollector::windowRegistered(const QString &service,
 		this,
 		SLOT(WindowRegistered(uint, const QString &, const QDBusObjectPath &)));
 
-	m_collectors << m_factory.newDBusMenuCollector(service, menuObjectPath);
+	m_collector = m_factory.newDBusMenuCollector(service, menuObjectPath);
 }
