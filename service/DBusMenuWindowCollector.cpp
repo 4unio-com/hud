@@ -74,7 +74,7 @@ DBusMenuWindowCollector::~DBusMenuWindowCollector() {
 }
 
 bool DBusMenuWindowCollector::isValid() const {
-	return !m_collector || !m_am_collector;
+	return m_collector || m_am_collector;
 }
 
 static void setPropertyForAllActions(QMenu *menu) {
