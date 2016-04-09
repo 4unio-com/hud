@@ -76,8 +76,7 @@ bool DBusMenuWindowCollector::isValid() const {
 
 static void setPropertyForAllActions(QMenu *menu) {
 	if (!menu)
-	return;
-
+		return;
 
 	for (QAction *action : menu->actions()) {
 		if (!action->isEnabled()) {
