@@ -102,8 +102,7 @@ public:
 	virtual Collector::Ptr newGMenuWindowCollector(unsigned int windowId,
 			const QString &applicationId);
 
-	virtual Collector::Ptr newDBusMenuWindowCollector(unsigned int windowId,
-			const QString &applicationId);
+	virtual Collector::Ptr newDBusMenuWindowCollector(unsigned int windowId);
 
 protected:
 	QDBusConnection m_sessionBus;

@@ -40,7 +40,6 @@ public:
 	typedef std::shared_ptr<DBusMenuWindowCollector> Ptr;
 
 	DBusMenuWindowCollector(unsigned int windowId,
-		const QString &applicationId,
 		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack,
 		QSharedPointer<ComCanonicalAppMenuRegistrarInterface> registrar,
 		Factory &factory);

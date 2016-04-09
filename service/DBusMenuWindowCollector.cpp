@@ -27,10 +27,7 @@
 using namespace hud::common;
 using namespace hud::service;
 
-static const QStringList DBUSMENU_WINDOW_PROPERTIES( { "_WNCK_ACTION_MENU_OBJECT_PATH" });
-
 DBusMenuWindowCollector::DBusMenuWindowCollector(unsigned int windowId,
-		const QString &applicationId,
 		QSharedPointer<ComCanonicalUnityWindowStackInterface> windowStack,
 		QSharedPointer<ComCanonicalAppMenuRegistrarInterface> registrar,
 		Factory &factory) :
@@ -41,20 +38,20 @@ DBusMenuWindowCollector::DBusMenuWindowCollector(unsigned int windowId,
 		this,
 		SLOT(WindowRegistered(uint, const QString &, const QDBusObjectPath &)));
 
-	// _WNCK_ACTION_MENU_OBJECT_PATH
-	QDBusPendingReply<QStringList> windowPropertiesReply(
-		windowStack->GetWindowProperties(windowId, applicationId, DBUSMENU_WINDOW_PROPERTIES));
+	QDBusPendingReply<QStringList> windowDBusAddressReply(
+		windowStack->GetWindowBusAddress(windowId));
 
-	windowPropertiesReply.waitForFinished();
-	if (!windowPropertiesReply.isError()) {
-		QStringList windowProperties(windowPropertiesReply);
+	// Window action menu
+	windowDBusAddressReply.waitForFinished();
+	if (!windowDBusAddressReply.isError()) {
+		QStringList windowDBusAddress(windowDBusAddressReply);
 
-		if (!windowProperties.isEmpty()) {
-			if (!windowProperties.at(0).isEmpty()) {
-				// _WNCK_ACTION_MENU_OBJECT_PATH -> menu
-				QDBusObjectPath menu = QDBusObjectPath(windowProperties.at(0));
-				m_am_collector = factory.newDBusMenuCollector(DBusTypes::BAMF_DBUS_NAME, menu);
-			}
+		if (windowDBusAddress.size() == 2) {
+			const QString &name = windowDBusAddress.at(0);
+			const QString &path = windowDBusAddress.at(1);
+
+			if (!name.isEmpty() && !path.isEmpty())
+				m_am_collector = factory.newDBusMenuCollector(name, QDBusObjectPath(path));
 		}
 	}
 

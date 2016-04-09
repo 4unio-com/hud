@@ -187,9 +187,8 @@ Collector::Ptr Factory::newGMenuWindowCollector(unsigned int windowId,
 					singletonWindowStack(), *this));
 }
 
-Collector::Ptr Factory::newDBusMenuWindowCollector(unsigned int windowId,
-		const QString &applicationId) {
+Collector::Ptr Factory::newDBusMenuWindowCollector(unsigned int windowId) {
 	return Collector::Ptr(
-			new DBusMenuWindowCollector(windowId, applicationId,
+			new DBusMenuWindowCollector(windowId,
 					singletonWindowStack(), singletonAppmenu(), *this));
 }
