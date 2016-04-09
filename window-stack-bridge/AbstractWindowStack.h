@@ -52,6 +52,8 @@ public Q_SLOTS:
 	virtual QStringList GetWindowProperties(uint windowId, const QString &appId,
 			const QStringList &names) = 0;
 
+	virtual QStringList GetWindowBusAddress(uint windowId) = 0;
+
 Q_SIGNALS:
 	void FocusedWindowChanged(uint windowId, const QString &appId, uint stage);
 
