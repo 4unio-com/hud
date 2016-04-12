@@ -34,6 +34,10 @@ public:
 
 	unsigned int windowId();
 
+	QString service() const;
+
+	QString path() const;
+
 	const QString & applicationId();
 
 	const QString xProp(const QString &property);
@@ -69,6 +73,8 @@ public Q_SLOTS:
 
 	QStringList GetWindowProperties(uint windowId, const QString &appId,
 			const QStringList &names) override;
+
+	QStringList GetWindowBusAddress(uint windowId) override;
 
 protected Q_SLOTS:
 	void ActiveWindowChanged(const QString &oldWindow,

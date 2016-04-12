@@ -84,6 +84,16 @@ unsigned int BamfWindow::windowId() {
 	return m_windowId;
 }
 
+QString BamfWindow::service() const
+{
+	return m_window.service();
+}
+
+QString BamfWindow::path() const
+{
+	return m_window.path();
+}
+
 const QString & BamfWindow::applicationId() {
 	return m_applicationId;
 }
@@ -235,6 +245,17 @@ QStringList BamfWindowStack::GetWindowProperties(uint windowId,
 		}
 	}
 	return result;
+}
+
+QStringList BamfWindowStack::GetWindowBusAddress(uint windowId) {
+	const auto window = m_windowsById[windowId];
+
+	if (window == nullptr) {
+		sendErrorReply(QDBusError::InvalidArgs, "Unable to find windowId");
+		return {};
+	}
+
+	return {window->service(), window->path()};
 }
 
 void BamfWindowStack::ActiveWindowChanged(const QString &oldWindowPath,

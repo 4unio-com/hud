@@ -66,7 +66,7 @@ protected:
 	}
 
 	Window::Ptr createWindow() {
-		EXPECT_CALL(factory, newDBusMenuWindowCollector(1234, QString("application-id"))).Times(
+		EXPECT_CALL(factory, newDBusMenuWindowCollector(1234)).Times(
 				1).WillOnce(Return(dbusmenuWindowCollector));
 		EXPECT_CALL(factory, newGMenuWindowCollector(1234, QString("application-id"))).Times(
 				1).WillOnce(Return(gmenuWindowCollector));

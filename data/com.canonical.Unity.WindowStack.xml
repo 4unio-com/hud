@@ -22,6 +22,10 @@
       <arg name="app_id" type="s" direction="in"/>
       <arg name="property_names" type="as" direction="in"/>
     </method>
+    <method name="GetWindowBusAddress">
+      <arg name="address_path" type="as" direction="out"/>
+      <arg name="window_id" type="u" direction="in"/>
+    </method>
     <method name="GetAppIdFromPid">
       <arg name="app_id" type="s" direction="out"/>
       <arg name="pid" type="u" direction="in"/>
