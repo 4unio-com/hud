@@ -61,6 +61,16 @@ static QString convertActionText(const QAction *action) {
 	return action->text().remove(SINGLE_AMPERSAND).replace("&&", "&");
 }
 
+static QChar getMnemonic(const QAction *action) {
+	int ampersandIndex = action->text().indexOf(SINGLE_AMPERSAND);
+
+	if (ampersandIndex < 0 || ampersandIndex >= action->text().length() - 1) {
+		return 0;
+	}
+
+	return action->text()[ampersandIndex+1].toLower();
+}
+
 void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 		const QStringList &stack, const QList<int> &index) {
 	int i(-1);
@@ -73,6 +83,8 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 		if (action->isSeparator()) {
 			continue;
 		}
+
+		bool searchByMnemonic(action->property("searchByMnemonic").toBool());
 
 		QStringList text(
 				convertActionText(action).remove(BAD_CHARACTERS).split(
@@ -90,6 +102,11 @@ void ItemStore::indexMenu(const QMenu *menu, const QMenu *root,
 			indexMenu(child, root, childStack, childIndex);
 		} else {
 			Document document(m_nextId);
+
+			if (searchByMnemonic) {
+				QChar mnemonic = getMnemonic(action);
+				m_mnemonic2DocumentId[mnemonic] = m_nextId;
+			}
 
 			WordList command;
 			for (const QString &word : text) {
@@ -198,6 +215,11 @@ void ItemStore::search(const QString &query,
 					m_matcher.onlineMatch(queryList, Word("command")));
 
 			int queryLength(query.length());
+
+			if (queryLength == 1 && m_mnemonic2DocumentId.contains(query[0])) {
+				int docId = m_mnemonic2DocumentId[query[0]];
+				addResult(docId, stringMatcher, queryLength, 1.0, results);
+			}
 
 			size_t maxResults = std::min(matchResults.size(), size_t(20));
 

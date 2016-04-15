@@ -23,6 +23,7 @@
 #include <service/Application.h>
 #include <service/ApplicationList.h>
 #include <service/DBusMenuCollector.h>
+#include <service/DBusMenuWindowCollector.h>
 #include <service/GMenuWindowCollector.h>
 #include <service/GMenuCollector.h>
 #include <service/ItemStore.h>
@@ -87,8 +88,8 @@ public:
 	virtual WindowToken::Ptr newWindowToken(const QString &applicationId,
 			QList<CollectorToken::Ptr> tokens);
 
-	virtual Collector::Ptr newDBusMenuCollector(unsigned int windowId,
-			const QString &applicationId);
+	virtual Collector::Ptr newDBusMenuCollector(const QString &service,
+		const QDBusObjectPath &menuObjectPath);
 
 	virtual Collector::Ptr newGMenuCollector(const QString &name,
 			const QMap<QString, QDBusObjectPath> &actions,
@@ -100,6 +101,8 @@ public:
 
 	virtual Collector::Ptr newGMenuWindowCollector(unsigned int windowId,
 			const QString &applicationId);
+
+	virtual Collector::Ptr newDBusMenuWindowCollector(unsigned int windowId);
 
 protected:
 	QDBusConnection m_sessionBus;

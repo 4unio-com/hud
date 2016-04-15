@@ -161,10 +161,9 @@ WindowContext::Ptr Factory::newWindowContext() {
 	return WindowContext::Ptr(new WindowContextImpl(*this));
 }
 
-Collector::Ptr Factory::newDBusMenuCollector(unsigned int windowId,
-		const QString &applicationId) {
-	Q_UNUSED(applicationId);
-	return Collector::Ptr(new DBusMenuCollector(windowId, singletonAppmenu()));
+Collector::Ptr Factory::newDBusMenuCollector(const QString &service,
+		const QDBusObjectPath &menuObjectPath) {
+	return Collector::Ptr(new DBusMenuCollector(service, menuObjectPath));
 }
 
 Collector::Ptr Factory::newGMenuCollector(const QString &name,
@@ -186,4 +185,10 @@ Collector::Ptr Factory::newGMenuWindowCollector(unsigned int windowId,
 	return Collector::Ptr(
 			new GMenuWindowCollector(windowId, applicationId,
 					singletonWindowStack(), *this));
+}
+
+Collector::Ptr Factory::newDBusMenuWindowCollector(unsigned int windowId) {
+	return Collector::Ptr(
+			new DBusMenuWindowCollector(windowId,
+					singletonWindowStack(), singletonAppmenu(), *this));
 }

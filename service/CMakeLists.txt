@@ -16,6 +16,7 @@ set(HUD_SERVICE_LIB_SOURCES
   ApplicationListImpl.cpp
   Collector.cpp
   DBusMenuCollector.cpp
+  DBusMenuWindowCollector.cpp
   Factory.cpp
   GMenuCollector.cpp
   GMenuWindowCollector.cpp
