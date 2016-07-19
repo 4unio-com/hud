@@ -1,8 +1,0 @@
-description "Unity HUD"
-
-# Currently started by the dbus service file
-# start on dbus-activation com.canonical.hud
-stop on desktop-end
-start on started dbus and ((xsession SESSION=ubuntu-touch) or (xsession SESSION=ubuntu-touch-surfaceflinger) or (xsession SESSION=ubuntu))
-
-exec @pkglibexecdir@/hud-service
