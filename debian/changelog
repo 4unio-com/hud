@@ -1,8 +1,9 @@
-hud (14.10+16.04.20160415-0ubuntu2~systemd1) yakkety; urgency=medium
+hud (14.10+16.10.20160728-0ubuntu1) yakkety; urgency=medium
 
+  [ Sebastien Bacher ]
   * Switch the user session to systemd
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 19 Jul 2016 11:17:58 +0200
+ -- Robert Bruce Park <robert.park@canonical.com>  Thu, 28 Jul 2016 03:38:43 +0000
 
 hud (14.10+16.04.20160415-0ubuntu1) xenial; urgency=medium
 
