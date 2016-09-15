@@ -1,0 +1,7 @@
+[Unit]
+Description=Unity HUD
+
+[Service]
+Type=dbus
+BusName=com.canonical.hud
+ExecStart=@pkglibexecdir@/hud-service
