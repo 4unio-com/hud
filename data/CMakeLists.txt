@@ -35,7 +35,9 @@ DESTINATION ${DBUSSERVICEDIR}
 ###########################
 
 # where to install
-pkg_get_variable(SYSTEMD_USER_DIR systemd systemduserunitdir)
+# Uncomment when we drop Vivid
+# pkg_get_variable(SYSTEMD_USER_DIR systemd systemduserunitdir)
+set (SYSTEMD_USER_DIR "/usr/lib/systemd/user")
 message (STATUS "${SYSTEMD_USER_DIR} is the systemd user unit file install dir")
 
 set(pkglibexecdir "${CMAKE_INSTALL_FULL_LIBEXECDIR}/hud")
