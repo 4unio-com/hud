@@ -2,7 +2,7 @@ Source: hud
 Section: gnome
 Priority: optional
 Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
-Build-Depends: cmake (>= 3.4),
+Build-Depends: cmake,
                debhelper (>= 9),
                gnome-common,
                gobject-introspection,
