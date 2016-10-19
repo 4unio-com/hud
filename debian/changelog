@@ -1,3 +1,10 @@
+hud (14.10+17.04.20161019.1-0ubuntu1) zesty; urgency=medium
+
+  [ Ted Gould ]
+  * Support older CMake versions for vivid landing
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Wed, 19 Oct 2016 11:39:35 +0000
+
 hud (14.10+16.04.20160415-0ubuntu2~systemd1) yakkety; urgency=medium
 
   * Switch the user session to systemd
