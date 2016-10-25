@@ -31,36 +31,22 @@ DESTINATION ${DBUSSERVICEDIR}
 )
 
 ###########################
-# Upstart Job
+# Systemd Unit
 ###########################
 
-set(HUD_UPSTART
-"${CMAKE_CURRENT_BINARY_DIR}/hud.conf"
-)
+# where to install
+pkg_get_variable(SYSTEMD_USER_DIR systemd systemduserunitdir)
+message (STATUS "${SYSTEMD_USER_DIR} is the systemd user unit file install dir")
 
 set(pkglibexecdir "${CMAKE_INSTALL_FULL_LIBEXECDIR}/hud")
-configure_file("hud.conf.in"
-  "${HUD_UPSTART}"
+configure_file("hud.service.in"
+  "hud.service"
   @ONLY
 )
 
 install(
-FILES
-"${HUD_UPSTART}"
-DESTINATION "${CMAKE_INSTALL_DATADIR}/upstart/sessions"
-)
-
-set(pkglibexecdir "${CMAKE_INSTALL_FULL_LIBEXECDIR}/hud")
-configure_file("dbus-activation-hack.sh.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/dbus-activation-hack.sh"
-  @ONLY
-)
-
-install(
-PROGRAMS
-"${CMAKE_CURRENT_BINARY_DIR}/dbus-activation-hack.sh"
-DESTINATION
-"${CMAKE_INSTALL_FULL_LIBEXECDIR}/hud"
+FILES "${CMAKE_CURRENT_BINARY_DIR}/hud.service"
+DESTINATION "${SYSTEMD_USER_DIR}"
 )
 
 ###########################
@@ -68,14 +54,14 @@ DESTINATION
 ###########################
 
 configure_file(
-  "window-stack-bridge.conf.in"
-  "window-stack-bridge.conf"
+  "window-stack-bridge.service.in"
+  "window-stack-bridge.service"
   @ONLY
 )
 
 install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/window-stack-bridge.conf"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/upstart/sessions"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/window-stack-bridge.service"
+  DESTINATION "${SYSTEMD_USER_DIR}"
 )
 
 ###########################
