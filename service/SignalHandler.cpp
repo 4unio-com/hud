@@ -42,9 +42,9 @@ SignalHandler::SignalHandler(QObject *parent) :
 	}
 
 	m_socketNotifierInt = new QSocketNotifier(sigintFd[1], QSocketNotifier::Read, this);
-	connect(m_socketNotifierInt, &QSocketNotifier::activated, this, &SignalHandler::handleSigInt);
+	connect(m_socketNotifierInt, &QSocketNotifier::activated, this, &SignalHandler::handleSigInt, Qt::QueuedConnection);
 	m_socketNotifierTerm = new QSocketNotifier(sigtermFd[1], QSocketNotifier::Read, this);
-	connect(m_socketNotifierTerm, &QSocketNotifier::activated, this, &SignalHandler::handleSigTerm);
+	connect(m_socketNotifierTerm, &QSocketNotifier::activated, this, &SignalHandler::handleSigTerm, Qt::QueuedConnection);
 }
 
 void SignalHandler::intSignalHandler(int) {
