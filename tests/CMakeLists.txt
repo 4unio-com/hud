@@ -1,5 +1,5 @@
 set(CMAKE_AUTOMOC OFF)
-include(FindGMock)
+find_package(GMock REQUIRED)
 set(CMAKE_AUTOMOC ON)
 
 find_package("Valgrind" REQUIRED)
