@@ -1,3 +1,9 @@
+hud (14.10+17.04.20161202-0ubuntu1) zesty; urgency=medium
+
+  * Use cmake-extras to find GMock
+
+ -- Pete Woods <pete.woods@canonical.com>  Fri, 02 Dec 2016 12:36:05 +0000
+
 hud (14.10+17.04.20161026-0ubuntu1) zesty; urgency=medium
 
   [ Sebastien Bacher ]
