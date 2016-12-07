@@ -23,7 +23,7 @@ include(Coverage)
 include(UseGlibGeneration)
 include(UseGdbusCodegen)
 include(UseConstantBuilder)
-include(UseGSettings)
+find_package(GSettings)
 include(UseVala)
 
 # Workaround for libexecdir on debian
