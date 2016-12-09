@@ -145,6 +145,10 @@ protected:
 		EXPECT_EQ(icon,
 				toolbarModel.data(index, Qt::DecorationRole).toString());
 		EXPECT_EQ(item, toolbarModel.data(index, Qt::UserRole).toInt());
+		if ((toolbarModel.data(index, Qt::UserRole + 1).toBool()) != enabled) {
+			QSignalSpy spy(&toolbarModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &, const QVector<int> &)));
+			ASSERT_TRUE(spy.wait());
+		}
 		EXPECT_EQ(enabled, toolbarModel.data(index, Qt::UserRole + 1).toBool());
 	}
 
