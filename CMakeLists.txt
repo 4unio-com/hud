@@ -19,7 +19,6 @@ find_package(PkgConfig REQUIRED)
 include(GNUInstallDirs)
 include(CheckIncludeFile)
 include(CheckFunctionExists)
-include(Coverage)
 include(UseGlibGeneration)
 include(UseGdbusCodegen)
 include(UseConstantBuilder)
@@ -160,6 +159,66 @@ if(${ENABLE_TESTS})
 		${CMAKE_CTEST_COMMAND} --force-new-ctest-process --output-on-failure
 	)
 	add_subdirectory(tests)
+
+	find_package(CoverageReport)
+	enable_coverage_report(
+		TARGETS
+			hud-generated
+			hud
+			hud-cli
+			hud-cli-appstack
+			hud-cli-param
+			hud-cli-toolbar
+			hud-client-generated
+			hud-client
+			hud-common
+			hud-gtk
+			hud-service
+			hud-service-exec
+			qtgmenu
+			window-stack-bridge
+			window-stack-bridge-bin
+			dbusmenu-json-loader
+			hud-test-interface
+			qtgmenu-test-app
+			test-integration-tests
+			test-libhud-application
+			test-libhud-client-unit-tests
+			test-libhud-unit-tests
+			test-menu-input-model-deep
+			test-menu-input-model-shortcuts
+			test-menu-input-model-simple
+			test-menu-input-model-toolbar-all
+			test-menu-input-model-toolbar-dynamic
+			test-menu-input-model-toolbar-undo
+			test-menu-input-model-toolbar-unknown
+			test-qtgmenu-unit-tests
+			test-service-unit-tests
+			test-utils
+			test-window-stack-bridge-unit-tests
+		FILTER
+			${CMAKE_SOURCE_DIR}/tests/*
+			${CMAKE_BINARY_DIR}/*
+		TESTS
+			dbusmenu-json-loader
+			hud-test-interface
+			qtgmenu-test-app
+			test-integration-tests
+			test-libhud-application
+			test-libhud-client-unit-tests
+			test-libhud-unit-tests
+			test-menu-input-model-deep
+			test-menu-input-model-shortcuts
+			test-menu-input-model-simple
+			test-menu-input-model-toolbar-all
+			test-menu-input-model-toolbar-dynamic
+			test-menu-input-model-toolbar-undo
+			test-menu-input-model-toolbar-unknown
+			test-qtgmenu-unit-tests
+			test-service-unit-tests
+			test-utils
+			test-window-stack-bridge-unit-tests
+	)
 endif()
 
 
