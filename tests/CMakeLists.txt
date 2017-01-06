@@ -2,8 +2,6 @@ set(CMAKE_AUTOMOC OFF)
 find_package(GMock REQUIRED)
 set(CMAKE_AUTOMOC ON)
 
-find_package("Valgrind" REQUIRED)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${GMOCK_INCLUDE_DIRS})
 include_directories(${GTEST_INCLUDE_DIRS})
@@ -52,9 +50,9 @@ add_definitions(-DMODEL_LIBHUD="${CMAKE_CURRENT_BINARY_DIR}/menus/test-libhud-ap
 set(TEST_RUNNER "${CMAKE_CURRENT_SOURCE_DIR}/run-under-xvfb.sh")
 
 function(add_hud_test NAME)
-	add_valgrind_test(
+	add_test(
 		${NAME}
-		${TEST_RUNNER} qdbus-simple-test-runner VALGRIND "${CMAKE_CURRENT_BINARY_DIR}/${NAME}"
+		${TEST_RUNNER} qdbus-simple-test-runner "${CMAKE_CURRENT_BINARY_DIR}/${NAME}"
 	)
 	
 	set_tests_properties(
