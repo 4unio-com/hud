@@ -1,3 +1,9 @@
+hud (14.10+17.04.20170106-0ubuntu1) zesty; urgency=medium
+
+  * Compatibility with unversioned cmake-extras modules (LP: #1563573)
+
+ -- Pete Woods <pete.woods@canonical.com>  Fri, 06 Jan 2017 10:44:58 +0000
+
 hud (14.10+17.04.20161202-0ubuntu1) zesty; urgency=medium
 
   * Use cmake-extras to find GMock
